@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Booking | TravelERP{% endblock %}
+{% block header_title %}Booking details{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <p class="eyebrow">Trip record</p>
+    <h1>{{ booking.booking_number }} / {{ booking.guest_name }}</h1>
+  </div>
+  <div>
+    <a class="button button-primary" href="{% url 'trip-create' booking.pk %}">Create confirmed trip</a>
+  </div>
+</div>
+
+<section class="panel">
+  <div class="panel-heading"><h2>Customer itinerary</h2><span class="muted">{{ booking.get_itinerary_status_display }}</span></div>
+  <ul class="stat-list">
+    <li><span>Guest</span><strong>{{ booking.guest_name }}</strong></li>
+    <li><span>Phone</span><strong>{{ booking.guest_phone|default:'N/A' }}</strong></li>
+    <li><span>Route</span><strong>{{ booking.pickup_location }} → {{ booking.destination }}</strong></li>
+    <li><span>Pickup date</span><strong>{{ booking.pickup_date }}</strong></li>
+    <li><span>Journey type</span><strong>{{ booking.get_journey_type_display }}</strong></li>
+    <li><span>Hotel status</span><strong>{{ booking.get_hotel_confirmation_status_display }}</strong></li>
+  </ul>
+</section>
+
+<section class="panel" style="margin-top: 24px;">
+  <div class="panel-heading"><h2>Plan details</h2></div>
+  <p>{{ booking.plan_details|linebreaksbr|default:'No generic itinerary added yet.' }}</p>
+</section>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}TravelERP{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'app.css' %}">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">S</span><span>Sivagayathiri</span></a>
+      <p class="eyebrow">Operations desk</p>
+      <nav class="nav-list" aria-label="Main navigation">
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">📊 DMC Executive Dashboard</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'booking-list' %}">Bookings</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">Statements</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'inquiry_pipeline' %}is-active{% endif %}" href="{% url 'crm:inquiry_pipeline' %}">🔎 Query Tracker 2.0</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'quotation_create' or request.resolver_match.url_name == 'quotation_builder' or request.resolver_match.url_name == 'quotation_preview' %}is-active{% endif %}" href="{% url 'crm:quotation_create' %}">📑 Quotation Studio</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'partner_list' %}is-active{% endif %}" href="{% url 'crm:partner_list' %}">🏢 Partners &amp; FTOs</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">🏨 Suppliers &amp; Rates</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'voucher_console' or request.resolver_match.url_name == 'voucher_detail' %}is-active{% endif %}" href="{% url 'crm:voucher_console' %}">🧾 Service Vouchers</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'document_vault' %}is-active{% endif %}" href="{% url 'crm:document_vault' %}">📂 Document Vault</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'complaint_list' %}is-active{% endif %}" href="{% url 'crm:complaint_list' %}">🚨 Quality &amp; Grievances</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'requisition_list' %}is-active{% endif %}" href="{% url 'crm:requisition_list' %}">💸 Accounts Payable</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">⏳ Pending Receivables</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">🧾 Invoices &amp; Billing</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">📈 DMC Reports</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live fleet map</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">📊 Fleet analytics & CPK</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">Vehicle profit</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">Party profit</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">💰 Tally, Zoho & Payroll</a>
+        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance & Maintenance</a>
+        <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">🏨 Tariffs & Master Data</a>
+        <a class="nav-link" href="{% url 'admin:index' %}">Admin workspace</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span><span>System online</span>
+      </div>
+    </aside>
+    <div class="main-shell">
+      <header class="topbar">
+        <div><span class="topbar-kicker">COIMBATORE, TAMIL NADU</span><strong>{% block header_title %}Control room{% endblock %}</strong></div>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button button-quiet" type="submit">Sign out</button></form>
+      </header>
+      <main class="content">{% block content %}{% endblock %}</main>
+    </div>
+  </div>
+</body>
+</html>

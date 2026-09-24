@@ -1,0 +1,480 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fleet RTO Compliance & Maintenance Scheduler | TravelERP{% endblock %}
+{% block header_title %}RTO Compliance Watchdog & Maintenance Scheduler{% endblock %}
+
+{% block content %}
+<style>
+  .comp-hero {
+    background: linear-gradient(135deg, #1b3438 0%, #0d2124 100%);
+    border-radius: 12px;
+    padding: 28px 32px;
+    color: white;
+    margin-bottom: 28px;
+    box-shadow: 0 12px 32px rgba(27, 52, 56, 0.16);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .comp-hero h1 {
+    color: white;
+    font-size: 26px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .comp-hero p {
+    color: #9cbdb6;
+    margin: 0;
+    font-size: 13px;
+    max-width: 600px;
+  }
+  .health-gauge {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 14px 22px;
+  }
+  .health-score {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: Georgia, serif;
+    color: #4ade80;
+  }
+  .health-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #9cbdb6;
+  }
+  .badge-pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .pill-expired { background: #fee2e2; color: #991b1b; }
+  .pill-critical { background: #ffedd5; color: #9a3412; }
+  .pill-warning { background: #fef9c3; color: #854d0e; }
+  .pill-ok { background: #dcfce7; color: #166534; }
+  .pill-overdue { background: #fce7f3; color: #9d174d; }
+
+  /* Navigation Tabs */
+  .tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 2px;
+  }
+  .tab-trigger {
+    padding: 10px 18px;
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-bottom: -2px;
+  }
+  .tab-trigger.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+</style>
+
+<!-- Hero Section -->
+<div class="comp-hero">
+  <div>
+    <h1>🛡️ RTO Compliance Watchdog & Maintenance Scheduler</h1>
+    <p>Automated safety watchdog actively monitoring vehicle Fitness (FC), Insurance, State Permits, Road Tax, PUC, and Driver commercial licenses with zero-tolerance dispatch locks.</p>
+    <div style="margin-top: 12px; display: flex; gap: 10px; align-items: center;">
+      <button onclick="sendRenewalWarnings()" id="btnBroadcastWarnings" class="button button-primary" style="background: #176b68; color: #fff; font-size: 13px; font-weight: 700; border-radius: 6px; padding: 7px 14px; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+        📲 Broadcast Renewal & Maintenance Warnings
+      </button>
+      <span id="broadcastResultBadge" style="display: none; font-size: 12px; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 4px 10px; border-radius: 4px;"></span>
+    </div>
+  </div>
+  <div class="health-gauge">
+    <div>
+      <div class="health-label">Fleet Compliance Rate</div>
+      <div class="health-score">{{ compliance.compliance_rate }}%</div>
+    </div>
+    <div style="font-size: 28px;">
+      {% if compliance.compliance_rate >= 90 %}🟢{% elif compliance.compliance_rate >= 75 %}🟡{% else %}🔴{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- KPI Stat Cards -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <span class="kpi-label">Expired Documents</span>
+    <strong class="kpi-value" style="color: #991b1b;">{{ expired_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Immediate Lock Triggered</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Critical (≤ 7 Days)</span>
+    <strong class="kpi-value" style="color: #ea580c;">{{ critical_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Urgent Renewal Action</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Upcoming (≤ {{ threshold }} Days)</span>
+    <strong class="kpi-value" style="color: #ca8a04;">{{ warning_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Advance Notice</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Preventive Services Due</span>
+    <strong class="kpi-value" style="color: #2563eb;">{{ services_due_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Oil / General Service</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Tyre / Battery Wear</span>
+    <strong class="kpi-value" style="color: #9333ea;">{{ assets_due_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Lifespan > 90%</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Open Defect Tickets</span>
+    <strong class="kpi-value" style="color: #dc2626;">{{ defect_tickets.count }}</strong>
+    <span class="muted" style="font-size: 11px;">Workshop Attention</span>
+  </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="tab-nav">
+  <button class="tab-trigger active" onclick="showTab('tab-rto', this)">
+    📜 RTO Document Watchdog ({{ expired_count|add:critical_count|add:warning_count }})
+  </button>
+  <button class="tab-trigger" onclick="showTab('tab-service', this)">
+    🔧 Preventive Maintenance Due ({{ services_due_count }})
+  </button>
+  <button class="tab-trigger" onclick="showTab('tab-assets', this)">
+    🚗 Tyre & Battery Wear ({{ assets_due_count }})
+  </button>
+  <button class="tab-trigger" onclick="showTab('tab-defects', this)">
+    ⚠️ Active Defect Tickets ({{ defect_tickets.count }})
+  </button>
+</div>
+
+<!-- TAB 1: RTO DOCUMENT WATCHDOG -->
+<div id="tab-rto" class="tab-panel active">
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Document Compliance Alerts</h2>
+      <a href="/admin/maintenance/compliancedocument/add/" class="button button-quiet" target="_blank">
+        + Upload Renewal Document
+      </a>
+    </div>
+
+    {% if compliance.expired or compliance.critical or compliance.warning %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Entity</th>
+          <th>Registration / Name</th>
+          <th>Document Type</th>
+          <th>Expiry Date</th>
+          <th>Days Left</th>
+          <th>Urgency Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Expired Documents -->
+        {% for item in compliance.expired %}
+        <tr style="background: #fff5f5;">
+          <td><span class="badge-pill pill-expired">{{ item.entity_type|upper }}</span></td>
+          <td>
+            <strong>{{ item.identifier }}</strong>
+            <div class="muted" style="font-size: 11px;">{{ item.model_name }}</div>
+          </td>
+          <td><strong>{{ item.doc_type }}</strong></td>
+          <td style="color: #991b1b; font-weight: bold;">{{ item.expiry_date }}</td>
+          <td>
+            <span class="badge-pill pill-expired">{{ item.days_left|stringformat:"d"|slice:"1:" }} Days Overdue</span>
+          </td>
+          <td><span class="badge-pill pill-expired">🔴 DISPATCH LOCKED</span></td>
+          <td>
+            {% if item.entity_type == 'vehicle' %}
+              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Update Vehicle</a>
+            {% else %}
+              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Update Driver</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+
+        <!-- Critical Documents (<= 7 Days) -->
+        {% for item in compliance.critical %}
+        <tr style="background: #fffaf0;">
+          <td><span class="badge-pill pill-critical">{{ item.entity_type|upper }}</span></td>
+          <td>
+            <strong>{{ item.identifier }}</strong>
+            <div class="muted" style="font-size: 11px;">{{ item.model_name }}</div>
+          </td>
+          <td><strong>{{ item.doc_type }}</strong></td>
+          <td style="color: #ea580c; font-weight: bold;">{{ item.expiry_date }}</td>
+          <td>
+            <span class="badge-pill pill-critical">Expires in {{ item.days_left }} Days</span>
+          </td>
+          <td><span class="badge-pill pill-critical">🟠 URGENT RENEWAL</span></td>
+          <td>
+            {% if item.entity_type == 'vehicle' %}
+              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Renew</a>
+            {% else %}
+              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Renew</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+
+        <!-- Warning Documents (<= 30 Days) -->
+        {% for item in compliance.warning %}
+        <tr>
+          <td><span class="badge-pill pill-warning">{{ item.entity_type|upper }}</span></td>
+          <td>
+            <strong>{{ item.identifier }}</strong>
+            <div class="muted" style="font-size: 11px;">{{ item.model_name }}</div>
+          </td>
+          <td>{{ item.doc_type }}</td>
+          <td>{{ item.expiry_date }}</td>
+          <td>
+            <span class="badge-pill pill-warning">{{ item.days_left }} Days</span>
+          </td>
+          <td><span class="badge-pill pill-warning">🟡 UPCOMING</span></td>
+          <td>
+            {% if item.entity_type == 'vehicle' %}
+              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">View</a>
+            {% else %}
+              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">View</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      🎉 Outstanding! All vehicles and drivers currently hold valid RTO documents with no expiries in the next {{ threshold }} days.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TAB 2: PREVENTIVE MAINTENANCE SCHEDULE -->
+<div id="tab-service" class="tab-panel">
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Odometer-Triggered Preventive Maintenance</h2>
+      <a href="/admin/maintenance/servicereminder/add/" class="button button-quiet" target="_blank">
+        + Set Service Interval Rule
+      </a>
+    </div>
+
+    {% if maintenance.services_due %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Service Task</th>
+          <th>Current Odometer</th>
+          <th>Service Due At</th>
+          <th>KM Difference</th>
+          <th>Schedule Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in maintenance.services_due %}
+        <tr>
+          <td>
+            <strong>{{ s.vehicle.registration_number }}</strong>
+            <div class="muted" style="font-size: 11px;">{{ s.vehicle.vehicle_type.name|default:"Fleet" }}</div>
+          </td>
+          <td><strong>{{ s.task_name }}</strong></td>
+          <td>{{ s.current_km }} KM</td>
+          <td>{{ s.due_km }} KM</td>
+          <td>
+            {% if s.status == 'overdue' %}
+              <span class="badge-pill pill-overdue">{{ s.km_difference|stringformat:"d"|slice:"1:" }} KM Overdue</span>
+            {% else %}
+              <span class="badge-pill pill-critical">In {{ s.km_difference }} KM</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if s.status == 'overdue' %}
+              <span class="badge-pill pill-overdue">🔴 OVERDUE</span>
+            {% else %}
+              <span class="badge-pill pill-critical">🟠 DUE SOON</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/admin/maintenance/servicerecord/add/?vehicle={{ s.vehicle.id }}" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">
+              Book Service
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      ✅ No preventive maintenance services currently overdue or due soon. All vehicle odometers are within scheduled operating limits.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TAB 3: TYRE & BATTERY WEAR -->
+<div id="tab-assets" class="tab-panel">
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Tyre & Battery Lifespan Watch (Wear > 90%)</h2>
+      <a href="/admin/maintenance/vehicleasset/add/" class="button button-quiet" target="_blank">
+        + Register New Asset
+      </a>
+    </div>
+
+    {% if maintenance.assets_due %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Asset Type</th>
+          <th>Serial Number</th>
+          <th>Position</th>
+          <th>Current Run</th>
+          <th>Rated Lifespan</th>
+          <th>Health Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in maintenance.assets_due %}
+        <tr>
+          <td><strong>{{ a.vehicle.registration_number }}</strong></td>
+          <td><span class="badge-pill pill-warning">{{ a.asset_type }}</span></td>
+          <td><code>{{ a.serial_number }}</code></td>
+          <td>{{ a.position }}</td>
+          <td><strong>{{ a.current_run_km }} KM</strong></td>
+          <td>{{ a.expected_life_km }} KM</td>
+          <td><span class="badge-pill pill-overdue">⚠️ Retreading / Replace Due</span></td>
+          <td>
+            <a href="/admin/maintenance/vehicleasset/{{ a.asset_id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">
+              Asset Record
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      ✅ All tyres and batteries are currently operating within safe lifespan thresholds (&lt; 90% expected life).
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TAB 4: ACTIVE DEFECT TICKETS -->
+<div id="tab-defects" class="tab-panel">
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Open / In-Progress Workshop Defect Tickets</h2>
+      <a href="/admin/maintenance/defectticket/add/" class="button button-quiet" target="_blank">
+        + Report Defect
+      </a>
+    </div>
+
+    {% if defect_tickets %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Date Reported</th>
+          <th>Reported By</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in defect_tickets %}
+        <tr>
+          <td><strong>{{ d.vehicle.registration_number }}</strong></td>
+          <td>{{ d.date_reported }}</td>
+          <td>{{ d.reported_by }}</td>
+          <td>{{ d.description }}</td>
+          <td>
+            {% if d.status == 'open' %}
+              <span class="badge-pill pill-critical">Open</span>
+            {% else %}
+              <span class="badge-pill pill-warning">In Progress</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/admin/maintenance/defectticket/{{ d.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">
+              Resolve Ticket
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      ✅ No open defect tickets! Fleet is fully operational and cleared for dispatch.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function showTab(tabId, btn) {
+    document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-trigger').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function sendRenewalWarnings() {
+    const btn = document.getElementById('btnBroadcastWarnings');
+    const badge = document.getElementById('broadcastResultBadge');
+    btn.disabled = true;
+    btn.innerText = '⏳ Scanning & Broadcasting...';
+
+    fetch("{% url 'maintenance:api_send_renewal_warnings' %}")
+      .then(r => r.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerText = '📲 Broadcast Renewal & Maintenance Warnings';
+        badge.style.display = 'inline-block';
+        if (data.status === 'dispatched') {
+          badge.style.color = '#16a34a';
+          badge.style.background = '#dcfce7';
+          badge.innerText = `✓ Dispatched! Alerted ${data.critical_count} critical expiries & ${data.maintenance_count} maintenance items via WhatsApp/Email.`;
+        } else {
+          badge.style.color = '#0d5c58';
+          badge.style.background = '#f0fdf4';
+          badge.innerText = data.message || 'All fleet compliance and maintenance schedules are healthy!';
+        }
+        setTimeout(() => { badge.style.display = 'none'; }, 6000);
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerText = '📲 Broadcast Renewal & Maintenance Warnings';
+        alert('Failed to send broadcast: ' + err);
+      });
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,22 @@
+<USER_REQUEST>
+These detail from one of the application used in real world and what are the thing are we missing from this and first tell all the things we impleneted and what are the thing are we missing from this
+
+
+ 📊 Dashboard ⦁ Monthly / Today’s Query Summary ⦁ To-Do List: Add/Assign tasks, set priority ⦁ Destination information: Top destination chart ⦁ Status-wise Query Report ⦁ Month-wise / Yearly Query Status ⦁ Monthly Sales & Gross Margin Data ⦁ List of Top 5 FTOs ⦁ Alerts: Query TAT & Follow-ups 🏢 FTO / Corporate Management ⦁ Add, edit, delete FTO/Corporate ⦁ Define Agent/Corporate Category ⦁ Multiple contact details, address, bank info ⦁ Upload business agreements (corporates) 👥 B2C Management ⦁ Add, edit, delete B2C contacts ⦁ Multiple contact details, address, bank info ⦁ Enter social media links (Facebook, Twitter, LinkedIn) 🏨 Supplier Management ⦁ Add, edit, delete suppliers ⦁ Multiple supplier types: Hotelier, Sightseeing, Transporter ⦁ Multiple contact details, address, bank info ⦁ Upload business agreements 🔎 Query Tracker ⦁ Online tracking of all queries ⦁ Auto-generated Query ID ⦁ Auto email notifications ⦁ Assign queries to destination experts ⦁ Define priority (High/Medium/Low) ⦁ Define TAT (Turnaround Time) 📑 Quotation Builder ⦁ Auto creation of day-wise itinerary ⦁ Add services: Hotel, Activities, Entrance, Guide, Travel Mode ⦁ Add enroute activities, early arrivals ⦁ Auto-suggest itinerary titles & descriptions ⦁ Define markup & service tax 📦 Package Builder ⦁ Create multi-destination packages ⦁ Detailed itinerary creation ⦁ Enter hotel, sightseeing, transfer info ⦁ Pricing in any currency ⦁ Upload multiple images 📈 Reports ⦁ Description-wise reports ⦁ Quotation reports ⦁ Customer reports ⦁ Client pending payment reports 🗂 Master Data ⦁ Upload hotel info with rate sheet ⦁ Upload transportation cost ⦁ Upload entrance ticket cost ⦁ Upload activities ticket cost ⦁ Upload guide charges ⦁ Create flight master 💰 Payment Request & Invoicing ⦁ Supplier payment requisition generation ⦁ Payment reminders (suppliers & clients) ⦁ Payment types: Full, Partial, Credit ⦁ Supplier-wise payment updates with attachments ⦁ Cost to client vs cost to company data ⦁ Payment schedules with combinations ⦁ Auto payment receipts ⦁ Proforma & tax invoice generation ⦁ Define multiple tax types ⦁ Auto capture booking details ⦁ Corporate invoice payment tracking ⦁ Print / Email / Download options 📂 Document Management ⦁ Quick document retrieval ⦁ Upload various document types ⦁ Store emailers, templates, brochures ⦁ Attach documents with queries ⦁ View/Download/Send documents ⚠️ Complaint Management ⦁ Lodge complaints (agent/client) ⦁ Change complaint status ⦁ Remarks column for analysis ⦁ Supplier rating based on services 
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-24T17:36:00+05:30.
+
+The user's current state is as follows:
+Active Document: c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application\templates\operations\fleet_live_mission_control.html (LANGUAGE_HTML)
+Cursor is on line: 1
+Other open documents:
+- c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application\scripts\test_phase1_fleet_operations.py (LANGUAGE_PYTHON)
+- c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application\travelerp\urls.py (LANGUAGE_PYTHON)
+- c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application\travelerp\settings.py (LANGUAGE_PYTHON)
+- c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application\templates\driver_portal\sos.html (LANGUAGE_HTML)
+- c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application\templates\driver_portal\dashboard.html (LANGUAGE_HTML)
+Running terminal commands:
+- python manage.py runserver 127.0.0.1:8000 (in c:\Users\rithi\Documents\Documents Project Intership and Course\Projects\Rag chatbot\Travels Trip Managment Application, running for 6h34m48s)
+</ADDITIONAL_METADATA>

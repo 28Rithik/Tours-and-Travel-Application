@@ -1,0 +1,72 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+{% if kpi_metrics %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+    <!-- Card 1: Active Contracts -->
+    <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #bae6fd; font-weight: 600;">Active Master Contracts</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ kpi_metrics.active_contracts }} / {{ kpi_metrics.total_contracts }}</div>
+            <div style="font-size: 11px; color: #e0f2fe; margin-top: 4px;">Corporate, School &amp; Factory ETS</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-file-contract"></i></div>
+    </div>
+
+    <!-- Card 2: Dedicated Fleet Committed -->
+    <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #ccfbf1; font-weight: 600;">Dedicated Fleet Committed</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ kpi_metrics.committed_buses }} Buses</div>
+            <div style="font-size: 11px; color: #f0fdfa; margin-top: 4px;">+ {{ kpi_metrics.standby_buses }} standby backup spares</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-bus-alt"></i></div>
+    </div>
+
+    <!-- Card 3: Monthly Revenue Run-Rate -->
+    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #d1fae5; font-weight: 600;">Monthly Contract Revenue</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ kpi_metrics.monthly_revenue }}</div>
+            <div style="font-size: 11px; color: #ecfdf5; margin-top: 4px;">Recurring institutional retainer</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-hand-holding-usd"></i></div>
+    </div>
+
+    <!-- Card 4: SLA Penalties Deducted -->
+    <div style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fee2e2; font-weight: 600;">Active SLA Deductions</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ kpi_metrics.sla_deductions }}</div>
+            <div style="font-size: 11px; color: #fef2f2; margin-top: 4px;">Across {{ kpi_metrics.penalty_count }} non-waived infractions</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-exclamation-triangle"></i></div>
+</div>
+{% endif %}
+
+{% if category_counts %}
+<div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;">
+    <span style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-right: 4px;">Verticals:</span>
+    <a href="?" class="btn btn-sm" style="border-radius: 20px; font-weight: 600; font-size: 12px; padding: 4px 14px; {% if not request.GET.contract_category %}background: #0284c7; color: #fff; border: 1px solid #0284c7;{% else %}background: rgba(30, 41, 59, 0.7); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3);{% endif %}">
+        ⚡ All Contracts ({{ category_counts.total }})
+    </a>
+    <a href="?contract_category=corporate" class="btn btn-sm" style="border-radius: 20px; font-weight: 600; font-size: 12px; padding: 4px 14px; {% if request.GET.contract_category == 'corporate' %}background: #3b82f6; color: #fff; border: 1px solid #3b82f6;{% else %}background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);{% endif %}">
+        🏢 Corporate ETS ({{ category_counts.corporate }})
+    </a>
+    <a href="?contract_category=school" class="btn btn-sm" style="border-radius: 20px; font-weight: 600; font-size: 12px; padding: 4px 14px; {% if request.GET.contract_category == 'school' %}background: #f59e0b; color: #fff; border: 1px solid #f59e0b;{% else %}background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);{% endif %}">
+        🎒 School / College ({{ category_counts.school }})
+    </a>
+    <a href="?contract_category=factory" class="btn btn-sm" style="border-radius: 20px; font-weight: 600; font-size: 12px; padding: 4px 14px; {% if request.GET.contract_category == 'factory' %}background: #8b5cf6; color: #fff; border: 1px solid #8b5cf6;{% else %}background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.4);{% endif %}">
+        🏭 Factory Shift ({{ category_counts.factory }})
+    </a>
+    <a href="?contract_category=hospital" class="btn btn-sm" style="border-radius: 20px; font-weight: 600; font-size: 12px; padding: 4px 14px; {% if request.GET.contract_category == 'hospital' %}background: #10b981; color: #fff; border: 1px solid #10b981;{% else %}background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);{% endif %}">
+        🏥 Hospital Shuttle ({{ category_counts.hospital }})
+    </a>
+    <a href="?contract_category=government" class="btn btn-sm" style="border-radius: 20px; font-weight: 600; font-size: 12px; padding: 4px 14px; {% if request.GET.contract_category == 'government' %}background: #059669; color: #fff; border: 1px solid #059669;{% else %}background: rgba(5, 150, 105, 0.15); color: #10b981; border: 1px solid rgba(5, 150, 105, 0.4);{% endif %}">
+        🏛️ Govt / PSU ({{ category_counts.government }})
+    </a>
+</div>
+{% endif %}
+
+{{ block.super }}
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Trip details | TravelERP{% endblock %}
+{% block header_title %}Confirmed itinerary{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <p class="eyebrow">Operations handover</p>
+    <h1>{{ trip.trip_id }} / {{ trip.guest_name }}</h1>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    {% if trip.tracking_token %}
+      <a class="button" style="background: #0284c7; color: white;" href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank">🚀 Open Live Tracking</a>
+    {% endif %}
+    <a class="button" style="background: #25d366; color: white;" href="{% url 'trip-broadcast-whatsapp' trip.pk %}">📲 Send WhatsApp Confirmation</a>
+    <a class="button button-primary" href="{% url 'customer-confirmation-preview' trip.pk %}">Preview customer message</a>
+  </div>
+</div>
+
+<!-- Live Passenger GPS Tracking Panel -->
+{% if trip.tracking_token %}
+<section class="panel" style="margin-bottom: 24px; border-left: 4px solid #0284c7;">
+  <div class="panel-heading">
+    <div>
+      <h2 style="display: flex; align-items: center; gap: 8px;">
+        🛰️ Live Passenger GPS Tracking
+        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
+          {% if trip.status == 'started' %}🟢 Live Moving En Route{% elif trip.status == 'assigned' %}🟡 Captain Assigned{% else %}{{ trip.get_status_display }}{% endif %}
+        </span>
+      </h2>
+      <p style="font-size: 12.5px; color: #64748b; margin: 4px 0 0 0;">
+        Shareable public GPS link for guests &amp; corporate travelers. Shows real-time moving map, speed, and dynamic ETA.
+      </p>
+    </div>
+  </div>
+
+  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 280px;">
+      <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Public Tracking URL</label>
+      <input type="text" id="liveTrackUrl" readonly value="http://{{ request.get_host }}{% url 'passenger-live-tracking' trip.tracking_token %}" style="width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 13px; font-family: monospace; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 4px;">
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button type="button" onclick="copyTrackingUrl()" id="btnCopyTrack" class="button" style="background: #0f766e; color: white; padding: 8px 14px; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
+        📋 Copy Link
+      </button>
+      <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank" class="button" style="background: #0284c7; color: white; padding: 8px 14px; font-size: 12.5px; border-radius: 6px; text-decoration: none;">
+        Launch Map &rarr;
+      </a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="panel">
+  <div class="panel-heading"><h2>Trip summary</h2><span class="muted">{{ trip.get_status_display }}</span></div>
+  <ul class="stat-list">
+    <li><span>Guest</span><strong>{{ trip.guest_name }}</strong></li>
+    <li><span>Vehicle</span><strong>{{ trip.vehicle|default:'Pending assignment' }}</strong></li>
+    <li><span>Driver</span><strong>{{ trip.driver|default:'Pending assignment' }}</strong></li>
+    <li><span>Hotel</span><strong>{{ trip.hotel_name|default:'Pending confirmation' }}</strong></li>
+    <li><span>Hotel status</span><strong>{{ trip.get_hotel_confirmation_status_display }}</strong></li>
+    <li><span>Pickup</span><strong>{{ trip.start_date }} / {{ trip.start_time|default:'N/A' }}</strong></li>
+  </ul>
+</section>
+
+<section class="panel" style="margin-top: 24px;">
+  <div class="panel-heading"><h2>Trip controls</h2></div>
+  <form method="post" action="{% url 'trip-update-status' trip.pk %}" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    {% csrf_token %}
+    <select name="status">
+      {% for value,label in trip.STATUSES %}
+      <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="button button-primary" type="submit">Update status</button>
+  </form>
+</section>
+
+<section class="panel" style="margin-top: 24px;">
+  <div class="panel-heading"><h2>WhatsApp / handover message</h2></div>
+  <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ trip.handover_message }}</pre>
+</section>
+
+<script>
+  function copyTrackingUrl() {
+    const input = document.getElementById('liveTrackUrl');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value);
+    const btn = document.getElementById('btnCopyTrack');
+    const oldText = btn.innerText;
+    btn.innerText = '✓ Copied!';
+    setTimeout(() => { btn.innerText = oldText; }, 2500);
+  }
+</script>
+{% endblock %}

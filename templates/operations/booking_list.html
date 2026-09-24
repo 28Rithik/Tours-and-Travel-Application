@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Bookings | TravelERP{% endblock %}
+{% block header_title %}Trip operations{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <p class="eyebrow">Travel workflow</p>
+    <h1>Bookings and trip handover</h1>
+  </div>
+  <a class="button button-primary" href="{% url 'booking-create' %}">New booking</a>
+</div>
+
+<section class="panel" style="margin-bottom: 24px;">
+  <form method="get" style="display: grid; gap: 12px; grid-template-columns: repeat(5, minmax(150px, 1fr)); align-items: end;">
+    <div>
+      <label for="search">Search</label>
+      <input id="search" type="text" name="search" value="{{ search_term }}" placeholder="Guest or booking">
+    </div>
+    <div>
+      <label for="status">Plan status</label>
+      <select id="status" name="status">
+        <option value="">All</option>
+        {% for value,label in booking.itinerary_status_choices %}
+        <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="journey_type">Journey</label>
+      <select id="journey_type" name="journey_type">
+        <option value="">All</option>
+        {% for value,label in booking.JOURNEY_TYPES %}
+        <option value="{{ value }}" {% if value == journey_filter %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="hotel_status">Hotel status</label>
+      <select id="hotel_status" name="hotel_status">
+        <option value="">All</option>
+        {% for value,label in booking.HOTEL_CONFIRMATION_CHOICES %}
+        <option value="{{ value }}" {% if value == hotel_filter %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <button class="button button-primary" type="submit">Apply</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Draft and confirmed bookings</h2>
+    <span class="muted">{{ bookings|length }} records</span>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Booking</th>
+        <th>Guest</th>
+        <th>Route</th>
+        <th>Plan</th>
+        <th>Hotel</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for booking in bookings %}
+      <tr>
+        <td>{{ booking.booking_number }}</td>
+        <td>{{ booking.guest_name }}<br><small>{{ booking.guest_phone }}</small></td>
+        <td>{{ booking.pickup_location }} → {{ booking.destination }}</td>
+        <td>{{ booking.get_itinerary_status_display }}</td>
+        <td>{{ booking.get_hotel_confirmation_status_display }}</td>
+        <td>
+          <a href="{% url 'booking-detail' booking.pk %}">View</a>
+          {% if booking.trips.exists %}
+          | <a href="{% url 'trip-detail' booking.trips.first.pk %}">Trip</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty">No bookings match the current filters.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

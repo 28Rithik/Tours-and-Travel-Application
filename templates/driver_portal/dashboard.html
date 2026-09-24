@@ -1,0 +1,172 @@
+{% extends "driver_portal/base.html" %}
+
+{% block title %}Dashboard | Captain {{ driver.name }}{% endblock %}
+
+{% block content %}
+<!-- Driver Welcome Banner -->
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+    <div>
+        <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Welcome, Captain</div>
+        <h1 style="font-size: 22px; font-weight: 800;">{{ driver.name }}</h1>
+    </div>
+    <div style="text-align: right;">
+        <span class="badge badge-success">🟢 Active Duty</span>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">{{ driver.phone }}</div>
+    </div>
+</div>
+
+<!-- Big Emergency SOS Button -->
+<a href="{% url 'driver_portal:sos' %}" style="display: block; text-decoration: none; margin-bottom: 16px;">
+    <div style="background: linear-gradient(135deg, #b91c1c, #ef4444); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35); border: 1px solid rgba(254, 202, 202, 0.2);">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 44px; height: 44px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                🚨
+            </div>
+            <div>
+                <div style="color: #fff; font-weight: 800; font-size: 16px; letter-spacing: -0.01em;">EMERGENCY SOS</div>
+                <div style="color: rgba(255, 255, 255, 0.85); font-size: 12px;">Accident / Breakdown / Medical Help</div>
+            </div>
+        </div>
+        <span style="color: #fff; font-size: 20px; font-weight: 800;">&rsaquo;</span>
+    </div>
+</a>
+
+<!-- Vehicle & Safety Inspection Card -->
+<div class="card" style="border-left: 4px solid var(--primary);">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Assigned Fleet Vehicle</div>
+            <div style="font-size: 18px; font-weight: 800; color: var(--primary); margin-top: 2px;">
+                🚗 {{ current_vehicle.registration_number|default:"No Vehicle Assigned" }}
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                {{ current_vehicle.brand }} {{ current_vehicle.model }} &bull; {{ current_vehicle.seating_capacity }} Seater
+            </div>
+        </div>
+        <div>
+            {% if inspection_today %}
+                {% if inspection_today.overall_status == 'passed' %}
+                    <span class="badge badge-success">✅ Fit for Duty</span>
+                {% elif inspection_today.overall_status == 'conditional_pass' %}
+                    <span class="badge badge-warning">🟡 Conditional</span>
+                {% else %}
+                    <span class="badge badge-danger">🔴 Grounded</span>
+                {% endif %}
+            {% else %}
+                <span class="badge badge-warning">⚠️ Inspection Due</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; background: var(--bg-surface); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 12px;">
+        <div>
+            <span style="color: var(--text-muted);">Current Odometer:</span>
+            <strong style="color: var(--text-primary); margin-left: 4px;">{{ current_vehicle.current_km|default:0 }} KM</strong>
+        </div>
+        <div>
+            <span style="color: var(--text-muted);">Fuel:</span>
+            <strong style="color: var(--text-primary); margin-left: 4px;">{{ current_vehicle.fuel_type|upper }}</strong>
+        </div>
+    </div>
+
+    {% if not inspection_today or inspection_today.overall_status == 'failed' %}
+        <a href="{% url 'driver_portal:inspection' %}{% if current_vehicle %}?vehicle_id={{ current_vehicle.pk }}{% endif %}{% if current_trip %}&trip_id={{ current_trip.pk }}{% endif %}" class="btn btn-primary" style="padding: 11px; font-size: 13px;">
+            📋 Complete Pre-Trip Inspection Checklist
+        </a>
+    {% else %}
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
+            <span>Certified today: #{{ inspection_today.inspection_number }}</span>
+            <a href="{% url 'driver_portal:inspection' %}?vehicle_id={{ current_vehicle.pk }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Re-inspect</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Active Trip Card -->
+{% if current_trip %}
+<div class="card" style="border-top: 4px solid var(--accent-green);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+            <span class="badge badge-info">Trip #{{ current_trip.trip_id }}</span>
+            <span style="font-size: 12px; color: var(--text-muted); margin-left: 6px;">{{ current_trip.get_status_display }}</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">
+            📅 {{ current_trip.pickup_date|date:"D, d M" }}
+        </div>
+    </div>
+
+    <div style="margin-bottom: 14px;">
+        <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">
+            👤 {{ current_trip.guest_name }}
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+            <span>📍 {{ current_trip.pickup_location }}</span>
+            <span>&rarr;</span>
+            <span>🏁 {{ current_trip.destination }}</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+            👥 {{ current_trip.pax_count|default:1 }} Passengers &bull; Reporting: {{ current_trip.reporting_time|default:"On Time" }}
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <a href="{% url 'driver_portal:trip_detail' current_trip.pk %}" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">
+            📄 View Details
+        </a>
+        {% if current_trip.status != 'started' %}
+            <form method="POST" action="{% url 'driver_portal:trip_start' current_trip.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="opening_km" value="{{ current_vehicle.current_km|default:0 }}">
+                <button type="submit" class="btn btn-success" style="padding: 10px; font-size: 13px;">
+                    ▶️ Start Trip
+                </button>
+            </form>
+        {% else %}
+            <form method="POST" action="{% url 'driver_portal:trip_end' current_trip.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="padding: 10px; font-size: 13px;">
+                    ⏹️ End Trip
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions Grid -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+    <a href="{% url 'driver_portal:inspection' %}" class="card" style="margin-bottom: 0; padding: 14px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+        <div style="font-size: 26px;">📋</div>
+        <div style="font-weight: 700; font-size: 13px;">Pre-Trip Inspection</div>
+        <div style="font-size: 11px; color: var(--text-muted);">Vehicle safety checks</div>
+    </a>
+    <a href="{% url 'driver_portal:fuel_log' %}" class="card" style="margin-bottom: 0; padding: 14px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
+        <div style="font-size: 26px;">⛽</div>
+        <div style="font-weight: 700; font-size: 13px;">Log Fuel Fill</div>
+        <div style="font-size: 11px; color: var(--text-muted);">Upload bill & litres</div>
+    </a>
+</div>
+
+<!-- Recent Completed Trips -->
+{% if recent_trips %}
+<div>
+    <div style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text-secondary);">
+        Recent Trip History
+    </div>
+    {% for trip in recent_trips %}
+        <div class="card" style="padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-weight: 700; font-size: 13px;">Trip #{{ trip.trip_id }} &bull; {{ trip.guest_name }}</div>
+                <div style="font-size: 11px; color: var(--text-muted);">{{ trip.pickup_location }} &rarr; {{ trip.destination }}</div>
+            </div>
+            <div style="text-align: right;">
+                <span class="badge {% if trip.status == 'completed' %}badge-success{% else %}badge-info{% endif %}">
+                    {{ trip.get_status_display }}
+                </span>
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">{{ trip.start_date|date:"d M" }}</div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

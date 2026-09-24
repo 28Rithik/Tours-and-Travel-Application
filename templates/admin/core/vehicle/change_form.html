@@ -1,0 +1,151 @@
+{% extends "admin/change_form.html" %}
+
+{% block after_related_objects %}
+{{ block.super }}
+<script type="text/javascript">
+(function() {
+    // Tab IDs to hide when vehicle is outsourced
+    var OUTSOURCED_HIDDEN_TABS = [
+        'technical-specs-detailed-tab',
+        'compliance-expiries-tab',
+        'insurance-details-tab',
+        'financing-assets-tab',
+        'ownership-documents-tab'
+    ];
+
+    // Tab IDs to hide when vehicle is owned
+    var OWNED_HIDDEN_TABS = [
+        'supplier-contact-tab',
+        'supplier-terms-rates-tab',
+        'supplier-agreement-tab'
+    ];
+
+    var lastOwnershipValue = null;
+    var lastFuelValue = null;
+    var lastYearValue = null;
+
+    function hideTab(tabId) {
+        var pane = document.getElementById(tabId);
+        if (pane) pane.style.display = 'none';
+        var link = document.querySelector('a[href="#' + tabId + '"]');
+        if (link) {
+            var li = link.closest('li');
+            if (li) li.style.display = 'none';
+        }
+    }
+
+    function showTab(tabId) {
+        var pane = document.getElementById(tabId);
+        if (pane) pane.style.display = '';
+        var link = document.querySelector('a[href="#' + tabId + '"]');
+        if (link) {
+            var li = link.closest('li');
+            if (li) li.style.display = '';
+        }
+    }
+
+    function applyToggle() {
+        var sel = document.getElementById('id_ownership_type');
+        if (!sel) return;
+
+        var type = sel.value;
+        var ownerPartyRow = document.querySelector('.field-owner_party');
+
+        if (type === 'owned') {
+            if (ownerPartyRow) ownerPartyRow.style.display = 'none';
+            OUTSOURCED_HIDDEN_TABS.forEach(showTab);
+            OWNED_HIDDEN_TABS.forEach(hideTab);
+            showTab('amenities-tab');
+
+            // Auto-switch to Basic Info if current tab was hidden
+            var activeLink = document.querySelector('.nav-link.active');
+            if (activeLink) {
+                var href = activeLink.getAttribute('href');
+                if (href) {
+                    var id = href.replace('#', '');
+                    if (OWNED_HIDDEN_TABS.indexOf(id) !== -1) {
+                        var basic = document.querySelector('a[href="#basic-info-tab"]');
+                        if (basic) basic.click();
+                    }
+                }
+            }
+        } else if (type === 'outsourced') {
+            if (ownerPartyRow) ownerPartyRow.style.display = '';
+            OUTSOURCED_HIDDEN_TABS.forEach(hideTab);
+            OWNED_HIDDEN_TABS.forEach(showTab);
+            showTab('amenities-tab');
+
+            // Auto-switch to Basic Info if current tab was hidden
+            var activeLink = document.querySelector('.nav-link.active');
+            if (activeLink) {
+                var href = activeLink.getAttribute('href');
+                if (href) {
+                    var id = href.replace('#', '');
+                    if (OUTSOURCED_HIDDEN_TABS.indexOf(id) !== -1) {
+                        var basic = document.querySelector('a[href="#basic-info-tab"]');
+                        if (basic) basic.click();
+                    }
+                }
+            }
+        }
+
+        // DEF capacity — only for diesel >= 2020
+        var defRow = document.querySelector('.field-def_capacity');
+        var fuelSel = document.getElementById('id_fuel_type');
+        var yearInp = document.getElementById('id_year');
+        var techPane = document.getElementById('technical-specs-tab');
+        if (defRow && fuelSel && yearInp) {
+            if (techPane && techPane.style.display === 'none') {
+                defRow.style.display = 'none';
+            } else {
+                var isDiesel = fuelSel.value === 'diesel';
+                var year = parseInt(yearInp.value, 10);
+                defRow.style.display = (isDiesel && !isNaN(year) && year >= 2020) ? '' : 'none';
+            }
+        }
+
+        // Highlight expired dates in red
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        ['id_rc_expiry', 'id_insurance_expiry', 'id_fc_expiry',
+         'id_permit_expiry', 'id_tax_expiry', 'id_pollution_expiry'].forEach(function(fid) {
+            var inp = document.getElementById(fid);
+            if (inp && inp.value) {
+                var p = inp.value.split('-');
+                if (p.length === 3) {
+                    var d = new Date(p[0], p[1] - 1, p[2]);
+                    var expired = d < today;
+                    inp.style.color = expired ? '#dc2626' : '';
+                    inp.style.fontWeight = expired ? 'bold' : '';
+                    inp.style.borderColor = expired ? '#dc2626' : '';
+                    inp.style.backgroundColor = expired ? '#fef2f2' : '';
+                }
+            }
+        });
+    }
+
+    // Poll every 200ms — bulletproof regardless of Select2, jQuery, or script load order
+    setInterval(function() {
+        var sel = document.getElementById('id_ownership_type');
+        var fuelSel = document.getElementById('id_fuel_type');
+        var yearInp = document.getElementById('id_year');
+        if (!sel) return;
+
+        var curOwnership = sel.value;
+        var curFuel = fuelSel ? fuelSel.value : '';
+        var curYear = yearInp ? yearInp.value : '';
+
+        // Only re-apply if something changed
+        if (curOwnership !== lastOwnershipValue || curFuel !== lastFuelValue || curYear !== lastYearValue) {
+            lastOwnershipValue = curOwnership;
+            lastFuelValue = curFuel;
+            lastYearValue = curYear;
+            applyToggle();
+        }
+    }, 200);
+
+    // Also run once immediately
+    applyToggle();
+})();
+</script>
+{% endblock %}

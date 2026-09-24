@@ -1,0 +1,285 @@
+{% extends "driver_portal/base.html" %}
+
+{% block title %}Pre-Trip Safety Inspection | Fleet ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h1 style="font-size: 20px; font-weight: 800;">Vehicle Inspection</h1>
+            <p style="font-size: 12px; color: var(--text-secondary);">Mandatory safety check before trip release</p>
+        </div>
+        <span class="badge badge-info">🚗 {{ vehicle.registration_number }}</span>
+    </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data" id="inspectionForm">
+    {% csrf_token %}
+    <input type="hidden" name="vehicle_id" value="{{ vehicle.pk }}">
+    {% if trip %}<input type="hidden" name="trip_id" value="{{ trip.pk }}">{% endif %}
+
+    <!-- Odometer Reading Card -->
+    <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <span>⏱️</span> Odometer Verification
+        </div>
+        <div style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                Current Odometer Reading (KM)
+            </label>
+            <input 
+                type="number" 
+                name="odometer_reading" 
+                value="{{ vehicle.current_km|default:0 }}" 
+                required 
+                style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; font-weight: 700;"
+            >
+        </div>
+        <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                📸 Odometer Photo (Optional)
+            </label>
+            <input 
+                type="file" 
+                name="odometer_photo" 
+                accept="image/*" 
+                capture="environment"
+                style="font-size: 12px; color: var(--text-secondary);"
+            >
+        </div>
+    </div>
+
+    <!-- Section 1: Critical Mechanical & Fluids -->
+    <div class="card" style="border-left: 4px solid var(--accent-red);">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #f87171;">
+            1. Critical Mechanical & Fluids
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">
+            Safety critical: Any failure here grounds the vehicle for repair.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <label class="check-row">
+                <input type="checkbox" name="brakes_functional" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Foot Brakes & Handbrake</span>
+                    <span class="check-desc">Firm pedal response & secure handbrake lock</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="tyres_tread_and_pressure" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Tyres Condition & Air Pressure</span>
+                    <span class="check-desc">Sufficient tread depth, no sidewall cuts or bulges</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="engine_oil_level" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Engine Oil Level</span>
+                    <span class="check-desc">Between MIN and MAX on dipstick</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="coolant_level" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Radiator Coolant Level</span>
+                    <span class="check-desc">Normal level in overflow reservoir</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="brake_fluid_level" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Brake Fluid Reservoir</span>
+                    <span class="check-desc">Adequate fluid level</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="battery_and_wiring" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Battery & Starting</span>
+                    <span class="check-desc">Clean terminals, instant starter crank</span>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- Section 2: Lights, Signals & Visibility -->
+    <div class="card" style="border-left: 4px solid var(--accent-amber);">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #fbbf24;">
+            2. Lights & Visibility
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">
+            Ensure all safety indicators and nighttime lighting function properly.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <label class="check-row">
+                <input type="checkbox" name="headlights_and_highbeam" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Headlights & High Beam</span>
+                    <span class="check-desc">Both low and high beam operational</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="taillights_and_brakelights" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Tail & Brake Lights</span>
+                    <span class="check-desc">Bright brake activation lights</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="indicators_and_hazard" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Turn Signals & Hazard Flashers</span>
+                    <span class="check-desc">Left, right & 4-way flashers</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="wipers_and_washer_fluid" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Wipers & Washer Spray</span>
+                    <span class="check-desc">Wiper blades clean and water spray works</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="horn_and_mirrors" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Horn & Rearview Mirrors</span>
+                    <span class="check-desc">Clear horn sound & intact side mirrors</span>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- Section 3: Mandatory Safety & Passenger Comfort -->
+    <div class="card" style="border-left: 4px solid var(--accent-green);">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #34d399;">
+            3. Safety Gear & Cabin
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 14px;">
+            RTO compliance and guest presentation standards.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <label class="check-row">
+                <input type="checkbox" name="first_aid_kit_present" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">First Aid Kit</span>
+                    <span class="check-desc">Stocked with bandages & antiseptic</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="fire_extinguisher_present" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Fire Extinguisher</span>
+                    <span class="check-desc">Pressure gauge in green zone</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="spare_wheel_and_jack" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Spare Wheel & Tool Jack</span>
+                    <span class="check-desc">Inflated spare tyre & wheel spanner</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="ac_or_fans_working" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">AC & Cabin Cooling</span>
+                    <span class="check-desc">Effective cooling on all vents</span>
+                </div>
+            </label>
+
+            <label class="check-row">
+                <input type="checkbox" name="cabin_cleanliness" value="1" checked class="custom-toggle">
+                <div class="check-info">
+                    <span class="check-title">Cabin Cleanliness</span>
+                    <span class="check-desc">Clean seats, floor mats & fresh fragrance</span>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <!-- Section 4: Exterior Dents & Notes -->
+    <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px;">
+            4. Exterior Condition & Notes
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
+                <input type="checkbox" name="has_visible_body_scratches" value="1">
+                <span>Vehicle has existing exterior scratches/dents</span>
+            </label>
+        </div>
+        <div style="margin-bottom: 14px;">
+            <textarea 
+                name="exterior_condition_notes" 
+                rows="2" 
+                placeholder="Mention locations of visible scratches/dents (e.g. Left rear bumper scrape)"
+                style="width: 100%; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;"
+            ></textarea>
+        </div>
+        <div style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                Driver Signature (Your Full Name)
+            </label>
+            <input 
+                type="text" 
+                name="driver_signature_name" 
+                value="{{ driver.name }}" 
+                required
+                style="width: 100%; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px; font-weight: 600;"
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="padding: 15px; font-size: 16px;">
+            ✅ Certify & Submit Pre-Trip Inspection
+        </button>
+    </div>
+</form>
+
+<style>
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    user-select: none;
+}
+.custom-toggle {
+    width: 22px;
+    height: 22px;
+    accent-color: #10b981;
+    cursor: pointer;
+}
+.check-info {
+    display: flex;
+    flex-direction: column;
+}
+.check-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.check-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+</style>
+{% endblock %}

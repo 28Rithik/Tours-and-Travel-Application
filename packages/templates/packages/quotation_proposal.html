@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ package.name }} — Tour Proposal Quotation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            line-height: 1.6;
+        }
+
+        /* Top Action Bar (Hidden on Print) */
+        .top-action-bar {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: #0f172a;
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .top-action-bar .brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .top-action-bar .actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .btn-print {
+            background: #0284c7;
+            color: #fff;
+        }
+        .btn-print:hover {
+            background: #0369a1;
+        }
+        .btn-back {
+            background: #334155;
+            color: #f8fafc;
+        }
+        .btn-back:hover {
+            background: #475569;
+        }
+
+        /* Container & A4 Document Pages */
+        .document-wrapper {
+            max-width: 850px;
+            margin: 30px auto;
+        }
+        .page {
+            background: #ffffff;
+            width: 100%;
+            min-height: 1120px;
+            padding: 45px 55px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-radius: 4px;
+            position: relative;
+        }
+
+        /* Header matching PDF */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        .logo-box {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+        .logo-text span.brand-siva {
+            color: #1e3a8a;
+        }
+        .logo-text span.brand-gayathri {
+            color: #ea580c;
+        }
+        .logo-tagline {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 4px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .address-box {
+            text-align: right;
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* Titles */
+        .doc-title {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            text-decoration: underline;
+            text-transform: uppercase;
+            color: #0f172a;
+            margin: 30px 0 25px;
+            letter-spacing: 0.5px;
+        }
+        .salutation {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .greetings {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+        }
+        .quotation-lead {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        /* Quotation Summary Table */
+        .summary-table-box {
+            margin: 30px auto;
+            max-width: 650px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .summary-table td {
+            padding: 10px 12px;
+            vertical-align: middle;
+        }
+        .summary-table td.label-col {
+            width: 28%;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .summary-table td.colon-col {
+            width: 6%;
+            font-weight: 700;
+            text-align: center;
+        }
+        .summary-table td.val-col {
+            width: 66%;
+            font-weight: 600;
+            color: #334155;
+        }
+        .destination-highlight {
+            background-color: #fef08a;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 800;
+            color: #854d0e;
+            display: inline-block;
+        }
+
+        /* Page 2: Itinerary */
+        .itinerary-route-headline {
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 17px;
+            font-weight: 800;
+            text-decoration: underline;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            color: #0f172a;
+        }
+        .itinerary-day-block {
+            margin-bottom: 22px;
+            font-size: 13.5px;
+            line-height: 1.7;
+            text-align: justify;
+        }
+        .day-badge {
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .day-highlight {
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .tour-ends-tag {
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            margin-top: 40px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Page 3: Two Column Comparison */
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .info-box {
+            border: 1px solid #000;
+            padding: 20px 22px;
+            border-radius: 0px;
+            background: #fff;
+            min-height: 480px;
+        }
+        .info-box-header {
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            text-decoration: underline;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        .check-list {
+            list-style: none;
+        }
+        .check-list li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        .check-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #000;
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        /* Page 4: Terms & Bus Details */
+        .section-header-pill {
+            background-color: #fef08a;
+            padding: 3px 8px;
+            font-weight: 800;
+            font-size: 14px;
+            color: #000;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .terms-block {
+            margin-bottom: 25px;
+        }
+        .note-list {
+            margin-left: 20px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .note-list li {
+            margin-bottom: 6px;
+        }
+        .bus-details-title {
+            font-weight: 800;
+            font-size: 13px;
+            text-decoration: underline;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        /* Page 5: Pricing & Contacts */
+        .staff-note {
+            font-weight: 800;
+            font-size: 14px;
+            margin: 40px 0 25px;
+        }
+        .pricing-highlight-box {
+            margin-bottom: 45px;
+        }
+        .pricing-line {
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 10px;
+        }
+        .signoff-section {
+            margin-top: 60px;
+            text-align: right;
+            padding-right: 20px;
+        }
+        .signoff-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .signoff-company {
+            font-size: 16px;
+            font-weight: 800;
+            color: #dc2626;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+        .contact-entry {
+            margin-bottom: 16px;
+        }
+        .contact-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #dc2626;
+            text-transform: uppercase;
+        }
+        .contact-phone {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 2px;
+        }
+        .happy-journey-footer {
+            text-align: center;
+            margin-top: 80px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Print Media Styles */
+        @media print {
+            body {
+                background: #fff;
+            }
+            .top-action-bar {
+                display: none;
+            }
+            .document-wrapper {
+                max-width: 100%;
+                margin: 0;
+            }
+            .page {
+                box-shadow: none;
+                margin: 0;
+                padding: 30px 40px;
+                page-break-after: always;
+                min-height: 100vh;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Action Bar -->
+    {% if not is_modal_preview %}
+    <div class="top-action-bar">
+        <div class="brand">
+            <i class="fas fa-file-pdf text-danger"></i>
+            <span>Tour Proposal Quotation Generator</span>
+        </div>
+        <div class="actions">
+            <a href="/admin/packages/package/" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Packages
+            </a>
+            <button onclick="window.print()" class="btn btn-print">
+                <i class="fas fa-print"></i> Print / Save as PDF
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="document-wrapper">
+
+        <!-- =================================================================== -->
+        <!-- PAGE 1: COVER & QUOTATION SUMMARY                                  -->
+        <!-- =================================================================== -->
+        <div class="page">
+            <div class="header-section">
+                <div class="logo-box">
+                    <div class="logo-text">
+                        <span class="brand-siva">SIVA GAYATHRI</span> <span class="brand-gayathri">TOURS &amp; TRAVELS</span>
+                    </div>
+                    <div class="logo-tagline">Good Times &bull; Great Memories &bull; Premium Fleet</div>
+                </div>
+                <div class="address-box">
+                    90, K Nagar, Sungam, Ramanathapuram,<br>
+                    Trichy Road, Coimbatore - 641045.<br>
+                    <span style="color: #0284c7; font-weight: 600;"><i class="fas fa-phone-alt mr-1"></i> +91 98425 33777, 94381 7131</span><br>
+                    <span style="color: #475569;"><i class="fas fa-envelope mr-1"></i> rithikcar9@gmail.com</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Scenic Header Banner -->
+            <div style="text-align: center; margin: 20px 0 25px;">
+                {% if package.is_devotional or package.category == 'devotional' or package.category == 'pilgrimage' %}
+                <div style="background: linear-gradient(135deg, #7c2d12, #ea580c); border-radius: 8px; padding: 22px 20px; color: #fff; box-shadow: 0 4px 14px rgba(234,88,12,0.25);">
+                    <i class="fas fa-om fa-2x mb-2" style="opacity: 0.95; color: #fde047;"></i>
+                    <h2 style="font-size: 23px; font-weight: 800; letter-spacing: 0.5px;">{{ package.name }}</h2>
+                    <p style="font-size: 13px; opacity: 0.95; margin-top: 4px;">
+                        🕉️ Spiritual Yatra &amp; Devotional Temple Circuit Itinerary | 100% Satvik Pure Veg Meals
+                    </p>
+                </div>
+                {% elif package.is_international or package.category == 'international' %}
+                <div style="background: linear-gradient(135deg, #0f766e, #0369a1); border-radius: 8px; padding: 22px 20px; color: #fff; box-shadow: 0 4px 14px rgba(3,105,161,0.25);">
+                    <i class="fas fa-plane-departure fa-2x mb-2" style="opacity: 0.95; color: #38bdf8;"></i>
+                    <h2 style="font-size: 23px; font-weight: 800; letter-spacing: 0.5px;">{{ package.name }}</h2>
+                    <p style="font-size: 13px; opacity: 0.95; margin-top: 4px;">
+                        ✈️ International Tour Package ({{ package.destination_country|default:"Overseas" }}) | Flights, Visa &amp; Forex
+                    </p>
+                </div>
+                {% elif package.category == 'college_iv' %}
+                <div style="background: linear-gradient(135deg, #1e3a8a, #0369a1); border-radius: 8px; padding: 22px 20px; color: #fff; box-shadow: 0 4px 14px rgba(3,105,161,0.25);">
+                    <i class="fas fa-graduation-cap fa-2x mb-2" style="opacity: 0.9; color: #fde047;"></i>
+                    <h2 style="font-size: 23px; font-weight: 800; letter-spacing: 0.5px;">{{ package.name }}</h2>
+                    <p style="font-size: 13px; opacity: 0.9; margin-top: 4px;">🎓 College / School Industrial Visit (IV) &amp; Hill Station Expedition</p>
+                </div>
+                {% else %}
+                <div style="background: linear-gradient(135deg, #065f46, #0d9488); border-radius: 8px; padding: 22px 20px; color: #fff; box-shadow: 0 4px 14px rgba(13,148,136,0.25);">
+                    <i class="fas fa-mountain fa-2x mb-2" style="opacity: 0.9; color: #a7f3d0;"></i>
+                    <h2 style="font-size: 23px; font-weight: 800; letter-spacing: 0.5px;">{{ package.name }}</h2>
+                    <p style="font-size: 13px; opacity: 0.9; margin-top: 4px;">🏖️ Premium Holiday &amp; Scenic Getaway Itinerary (1 to N Days)</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="doc-title">{{ package.duration_nights }} NIGHTS {{ package.duration_days }} DAYS TOUR PLAN</div>
+
+            <div class="salutation">Dear Sir / Madam,</div>
+            <div class="greetings">Greetings from SIVA GAYATHRI TOURS AND TRAVELS!!!!!!!!!!!!!!!!!!!!</div>
+            <div class="quotation-lead">Quotation as follows:-</div>
+
+            <div class="summary-table-box">
+                <table class="summary-table">
+                    <tr>
+                        <td class="label-col">Destination</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col"><span class="destination-highlight">( {{ package.destination|upper }} )</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">No. of Days</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ package.duration_days }} days</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">No. of Pax</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ package.min_pax }} members.</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Hotel</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ package.hotel_star_category }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Rooms</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ package.get_room_sharing_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Meal Plan</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ package.get_meal_plan_display }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Vehicle</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ package.vehicle_seating_desc }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Transit Mode</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col"><span style="color: #0284c7; font-weight: 700;">{{ package.get_transit_mode_display }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Travel Date</td>
+                        <td class="colon-col">:-</td>
+                        <td class="val-col">{{ travel_date|default:"Upcoming Season 2026-27" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- PAGE 2: TOUR ITINERARY                                             -->
+        <!-- =================================================================== -->
+        <div class="page">
+            <div class="header-section">
+                <div class="logo-box">
+                    <div class="logo-text">
+                        <span class="brand-siva">SIVA GAYATHRI</span> <span class="brand-gayathri">TOURS &amp; TRAVELS</span>
+                    </div>
+                    <div class="logo-tagline">Good Times &bull; Great Memories &bull; Premium Fleet</div>
+                </div>
+                <div class="address-box">
+                    90, K Nagar, Sungam, Ramanathapuram,<br>
+                    Trichy Road, Coimbatore - 641045.<br>
+                    <span style="color: #0284c7; font-weight: 600;"><i class="fas fa-phone-alt mr-1"></i> +91 98425 33777, 94381 7131</span><br>
+                    <span style="color: #475569;"><i class="fas fa-envelope mr-1"></i> rithikcar9@gmail.com</span>
+                </div>
+            </div>
+
+            <div class="doc-title" style="margin-top: 15px; margin-bottom: 20px;">TOUR ITINERARY:-</div>
+            <div class="itinerary-route-headline">{{ package.name|upper }}</div>
+
+            {% for day in itinerary_days %}
+            <div class="itinerary-day-block">
+                <span class="day-badge">Day 0{{ day.day_number }}:</span>
+                <strong style="color: #1e3a8a; font-size: 14px;">{{ day.title }}</strong>
+                <div style="margin-top: 4px; color: #334155; font-size: 13.5px; line-height: 1.6;">
+                {% if day.activities %}
+                    {{ day.activities }}
+                {% endif %}
+                {% if day.morning_activity %}
+                    {{ day.morning_activity }}.
+                {% endif %}
+                {% if day.sightseeing_spots %}
+                    Proceed to local sightseeing covering: <span class="day-highlight">{{ day.sightseeing_spots }}</span>.
+                {% endif %}
+                {% if day.evening_night_activity %}
+                    {{ day.evening_night_activity }}.
+                {% endif %}
+                {% if day.night_stay_location %}
+                    Night stay at {{ day.night_stay_location }}.
+                {% endif %}
+                {% if day.meals_included %}
+                    <span style="display: inline-block; background: #f1f5f9; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 6px;">
+                        <i class="fas fa-utensils mr-1"></i>Meals: {{ day.meals_included }}
+                    </span>
+                {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <!-- Default Fallback Itinerary if not yet populated -->
+            <div class="itinerary-day-block">
+                <span class="day-badge">Day 00:</span> Depart from Coimbatore to Mysore by luxurious bus, overnight journey.
+            </div>
+            <div class="itinerary-day-block">
+                <span class="day-badge">Day 01:</span> Arriving Mysore @ early morning, Check in to the hotel after refreshment. Proceed Mysore palace, Brindavan garden, KRS dam, St.philomena’s cathedral church and later on dinner proceed Coorg stay @ hotel in Coorg.
+            </div>
+            <div class="itinerary-day-block">
+                <span class="day-badge">Day 02:</span> After refreshment proceed to local sightseeing covering: <span class="day-highlight">Rajaseat, elephant camp, golden temple and Dj with camp fire</span> later on dinner and stay at hotel Coorg.
+            </div>
+            <div class="itinerary-day-block">
+                <span class="day-badge">Day 03:</span> @ early morning, After refreshment checkout from the hotel. Depart to Chikmanglur, Proceed to Local sightseeing covering: <span class="day-highlight">Mullayanagiri peak, Seethalayanagiri, Baba Bundan Giri, Z view point by jeep safari, camp fire</span> later on dinner and depart to Coimbatore.
+            </div>
+            <div class="itinerary-day-block">
+                <span class="day-badge">Day 04:</span> Arriving Coimbatore @ morning.
+            </div>
+            {% endfor %}
+
+            {% if temple_slots %}
+            <!-- Devotional Temple Darshan Slots Table -->
+            <div style="margin-top: 25px; border: 2px solid #8b5cf6; border-radius: 8px; overflow: hidden; background: #fff;">
+                <div style="background: #8b5cf6; color: #fff; padding: 10px 16px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">
+                    <i class="fas fa-om mr-1 text-warning"></i> SCHEDULED TEMPLE DARSHAN &amp; SPECIAL ENTRY SLOTS
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #f5f3ff; color: #5b21b6; text-align: left;">
+                            <th style="padding: 8px 12px; border-bottom: 1px solid #ddd6fe;">Temple / Sthalam</th>
+                            <th style="padding: 8px 12px; border-bottom: 1px solid #ddd6fe;">Darshan Type</th>
+                            <th style="padding: 8px 12px; border-bottom: 1px solid #ddd6fe;">Booked Slot</th>
+                            <th style="padding: 8px 12px; border-bottom: 1px solid #ddd6fe;">Token / Seva</th>
+                            <th style="padding: 8px 12px; border-bottom: 1px solid #ddd6fe;">Senior Care</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for slot in temple_slots %}
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">
+                                {{ slot.temple_name }}
+                                {% if slot.deity_or_circuit %}<br><small style="color: #64748b;">({{ slot.deity_or_circuit }})</small>{% endif %}
+                            </td>
+                            <td style="padding: 8px 12px;"><span style="color: #6d28d9; font-weight: 600;">{{ slot.get_darshan_type_display }}</span></td>
+                            <td style="padding: 8px 12px; color: #0284c7; font-weight: 600;">{{ slot.booked_slot_time|default:"Regular Hours" }}</td>
+                            <td style="padding: 8px 12px; color: #334155;">{{ slot.token_ticket_number|default:"Included" }}</td>
+                            <td style="padding: 8px 12px;">
+                                {% if slot.senior_citizen_support %}
+                                <span style="color: #059669; font-weight: 600;"><i class="fas fa-wheelchair mr-1"></i>Wheelchair</span>
+                                {% else %}
+                                <span style="color: #64748b;">Walk</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <div class="tour-ends-tag">-TOUR ENDS-</div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- PAGE 3: INCLUSIONS & EXCLUSIONS                                    -->
+        <!-- =================================================================== -->
+        <div class="page">
+            <div class="header-section">
+                <div class="logo-box">
+                    <div class="logo-text">
+                        <span class="brand-siva">SIVA GAYATHRI</span> <span class="brand-gayathri">TOURS &amp; TRAVELS</span>
+                    </div>
+                    <div class="logo-tagline">Good Times &bull; Great Memories &bull; Premium Fleet</div>
+                </div>
+                <div class="address-box">
+                    90, K Nagar, Sungam, Ramanathapuram,<br>
+                    Trichy Road, Coimbatore - 641045.<br>
+                    <span style="color: #0284c7; font-weight: 600;"><i class="fas fa-phone-alt mr-1"></i> +91 98425 33777, 94381 7131</span><br>
+                    <span style="color: #475569;"><i class="fas fa-envelope mr-1"></i> rithikcar9@gmail.com</span>
+                </div>
+            </div>
+
+            <div class="two-column-grid">
+                <!-- Inclusions Column -->
+                <div class="info-box">
+                    <div class="info-box-header">TOUR COST INCLUDES:</div>
+                    <ul class="check-list">
+                        {% for item in inclusions_list %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Exclusions Column -->
+                <div class="info-box">
+                    <div class="info-box-header">TOUR COST EXCLUDES:</div>
+                    <ul class="check-list">
+                        {% for item in exclusions_list %}
+                            <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- PAGE 4: TERMS & CONDITIONS & BUS DETAILS                           -->
+        <!-- =================================================================== -->
+        <div class="page">
+            <div class="header-section">
+                <div class="logo-box">
+                    <div class="logo-text">
+                        <span class="brand-siva">SIVA GAYATHRI</span> <span class="brand-gayathri">TOURS &amp; TRAVELS</span>
+                    </div>
+                    <div class="logo-tagline">Good Times &bull; Great Memories &bull; Premium Fleet</div>
+                </div>
+                <div class="address-box">
+                    90, K Nagar, Sungam, Ramanathapuram,<br>
+                    Trichy Road, Coimbatore - 641045.<br>
+                    <span style="color: #0284c7; font-weight: 600;"><i class="fas fa-phone-alt mr-1"></i> +91 98425 33777, 94381 7131</span><br>
+                    <span style="color: #475569;"><i class="fas fa-envelope mr-1"></i> rithikcar9@gmail.com</span>
+                </div>
+            </div>
+
+            <!-- Terms & Conditions -->
+            <div class="terms-block">
+                <div class="section-header-pill">Terms &amp; Conditions:</div>
+                <ul class="check-list" style="margin-top: 8px;">
+                    {% for term in terms_list %}
+                        <li>{{ term }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Notes -->
+            <div style="margin-top: 20px;">
+                <div class="section-header-pill">NOTE:</div>
+                <ul class="note-list">
+                    <li>Itinerary will be given as per the Customers interest and timings.</li>
+                    <li>Food Menu will be given once the Trip is confirmed.</li>
+                    <li>Packages also available for all destinations and any no of Persons.</li>
+                    <li>We do arrange Package tours, Group tours, Family tours, Business tours, Corporate Conferences, College Industrial Visits, Hill trekking, Rock Climbing, Jungle Safari, Jungle Camping, Beach Walk, Desert Walk, Elephant Safari, Honeymoon Trips...</li>
+                </ul>
+            </div>
+
+            <!-- Bus Details -->
+            <div style="margin-top: 20px;">
+                <div class="bus-details-title">BUS &amp; COACH SPECIFICATIONS:</div>
+                <ul class="check-list">
+                    <li>52 / 54 seated luxury coach.</li>
+                    <li>1 Driver &amp; 1 cleaner.</li>
+                    <li>Laser Light &amp; Ambient Lighting.</li>
+                    <li>JBL Sound systems.</li>
+                    <li>First aid kit.</li>
+                </ul>
+            </div>
+
+            {% if package.transit_mode == 'flight_coach' or package.flight_estimate_per_pax > 0 %}
+            <!-- Fly-Bus Flight Logistics Card -->
+            <div style="margin-top: 18px; border: 1.5px solid #0284c7; border-radius: 6px; padding: 12px 16px; background: #f0f9ff;">
+                <div style="font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: #0369a1; margin-bottom: 6px; text-transform: uppercase;">
+                    <i class="fas fa-plane-departure mr-1"></i> FLIGHT &amp; AIRLINE TRANSIT LOGISTICS:
+                </div>
+                <ul class="check-list" style="font-size: 12px; color: #1e293b;">
+                    <li><strong>Baggage Allowance:</strong> 15 kg Check-in Baggage + 7 kg Cabin Hand Baggage per passenger included.</li>
+                    <li><strong>Mandatory Photo ID:</strong> Original Govt Photo ID / Aadhaar Card mandatory for all students &amp; staff at airport security.</li>
+                    <li><strong>Airport Group Desk:</strong> Assembly and group check-in coordinated at Coimbatore International Airport (CJB) - Terminal 1.</li>
+                    <li><strong>Destination Coach:</strong> Private Luxury AC Coach stationed at Delhi Airport for airport transfers and complete tour circuit.</li>
+                </ul>
+            </div>
+            {% elif package.transit_mode == 'train_coach' or package.train_estimate_per_pax > 0 %}
+            <!-- Rail-Bus Logistics Card -->
+            <div style="margin-top: 18px; border: 1.5px solid #059669; border-radius: 6px; padding: 12px 16px; background: #f0fdf4;">
+                <div style="font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: #15803d; margin-bottom: 6px; text-transform: uppercase;">
+                    <i class="fas fa-train mr-1"></i> RAIL &amp; HIGH-SPEED TRAIN LOGISTICS:
+                </div>
+                <ul class="check-list" style="font-size: 12px; color: #1e293b;">
+                    <li><strong>Train Travel:</strong> Confirmed Group Reservation (3-Tier AC / Sleeper Express).</li>
+                    <li><strong>Govt ID Mandatory:</strong> Original Aadhaar / College ID mandatory for TTE verification.</li>
+                    <li><strong>Destination Coach:</strong> Private Coach pickup from railway station and all-inclusive onward sightseeing.</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if vehicle_tariffs %}
+            <!-- 4 to 60-Seater Vehicle Fleet Tariff Matrix -->
+            <div style="margin-top: 22px;">
+                <div style="font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 8px; text-transform: uppercase;">
+                    <i class="fas fa-car-side text-primary mr-1"></i> FLEET TARIFF MATRIX (4 TO 60 SEATS | 1 TO N DAYS):
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden;">
+                    <thead>
+                        <tr style="background: #0f172a; color: #fff; text-align: left;">
+                            <th style="padding: 7px 9px;">Vehicle Seating Tier</th>
+                            <th style="padding: 7px 9px;">Rate Structure</th>
+                            <th style="padding: 7px 9px;">Included KMs / Hrs</th>
+                            <th style="padding: 7px 9px;">Package Rate</th>
+                            <th style="padding: 7px 9px;">Extra KM / Hr</th>
+                            <th style="padding: 7px 9px;">Driver Bata</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vt in vehicle_tariffs %}
+                        <tr style="border-bottom: 1px solid #e2e8f0; {% cycle 'background: #fff;' 'background: #f8fafc;' %}">
+                            <td style="padding: 6px 9px; font-weight: 600; color: #0284c7;">
+                                {{ vt.get_seating_tier_display|default:vt.vehicle_type.name }}
+                            </td>
+                            <td style="padding: 6px 9px; font-weight: 500;">
+                                {{ vt.get_rate_type_display }}
+                            </td>
+                            <td style="padding: 6px 9px; color: #334155;">
+                                {{ vt.included_km }} km {% if vt.rate_type == 'local_1day' %}({{ vt.local_package_hours }} hrs){% endif %}
+                            </td>
+                            <td style="padding: 6px 9px; font-weight: 700; color: #059669;">
+                                ₹{{ vt.package_rate|floatformat:0 }}
+                                {% if vt.per_day_rate %}<br><small style="color: #64748b;">(₹{{ vt.per_day_rate|floatformat:0 }}/day)</small>{% endif %}
+                            </td>
+                            <td style="padding: 6px 9px; color: #ea580c; font-weight: 600;">
+                                ₹{{ vt.extra_km_rate|floatformat:2 }}/km
+                                {% if vt.extra_hour_rate %}<br><small>+₹{{ vt.extra_hour_rate|floatformat:0 }}/hr</small>{% endif %}
+                            </td>
+                            <td style="padding: 6px 9px; color: #475569;">
+                                ₹{{ vt.driver_bata_per_day|floatformat:0 }}/day
+                                {% if vt.double_driver_included %}<br><span style="color: #d97706; font-size: 10px; font-weight: 600;">2 Drivers</span>{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if intl_documents %}
+            <!-- International Document Checklist Box -->
+            <div style="margin-top: 18px; border: 1px solid #0284c7; border-radius: 6px; padding: 10px 14px; background: #f0f9ff;">
+                <div style="color: #0369a1; font-weight: 700; font-size: 12px; margin-bottom: 5px;">
+                    <i class="fas fa-passport mr-1"></i> MANDATORY INTERNATIONAL TRAVEL DOCUMENTS:
+                </div>
+                <ul style="padding-left: 18px; font-size: 11px; color: #334155;">
+                    {% for doc in intl_documents %}
+                    <li><strong>{{ doc.document_name }}</strong> — Submit {{ doc.submission_deadline_days }} days prior to departure. {% if doc.notes %}({{ doc.notes }}){% endif %}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if package.is_devotional or package.category == 'devotional' or package.category == 'pilgrimage' %}
+            <!-- Devotional Guidelines Box -->
+            <div style="margin-top: 15px; border: 1px solid #8b5cf6; border-radius: 6px; padding: 10px 14px; background: #faf5ff;">
+                <div style="color: #6d28d9; font-weight: 700; font-size: 12px; margin-bottom: 4px;">
+                    <i class="fas fa-praying-hands mr-1"></i> DEVOTIONAL YATRA SPECIAL GUIDELINES:
+                </div>
+                <p style="font-size: 11px; color: #475569; margin: 2px 0;">
+                    <strong>Dress Code:</strong> {{ package.temple_dress_code }}
+                </p>
+                <p style="font-size: 11px; color: #059669; margin: 2px 0;">
+                    <i class="fas fa-leaf mr-1"></i> 100% Satvik Pure Vegetarian Food provided throughout the circuit.
+                </p>
+                {% if package.senior_citizen_friendly %}
+                <p style="font-size: 11px; color: #0284c7; margin: 2px 0;">
+                    <i class="fas fa-wheelchair mr-1"></i> Senior Citizen Care: Wheelchair support and battery buggy pass coordinated at temple entrances.
+                </p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- =================================================================== -->
+        <!-- PAGE 5: HEADCOUNT, DUAL PRICING & SIGN-OFF                         -->
+        <!-- =================================================================== -->
+        <div class="page">
+            <div class="header-section">
+                <div class="logo-box">
+                    <div class="logo-text">
+                        <span class="brand-siva">SIVA GAYATHRI</span> <span class="brand-gayathri">TOURS &amp; TRAVELS</span>
+                    </div>
+                    <div class="logo-tagline">Good Times &bull; Great Memories &bull; Premium Fleet</div>
+                </div>
+                <div class="address-box">
+                    90, K Nagar, Sungam, Ramanathapuram,<br>
+                    Trichy Road, Coimbatore - 641045.<br>
+                    <span style="color: #0284c7; font-weight: 600;"><i class="fas fa-phone-alt mr-1"></i> +91 98425 33777, 94381 7131</span><br>
+                    <span style="color: #475569;"><i class="fas fa-envelope mr-1"></i> rithikcar9@gmail.com</span>
+                </div>
+            </div>
+
+            <div class="staff-note">
+                Note: Itinerary is based on {{ package.min_pax }} members + {{ package.complementary_staff_count }} staffs.
+            </div>
+
+            {% if package.transit_mode == 'flight_coach' or package.flight_estimate_per_pax > 0 %}
+            <!-- Dual Quotation Comparison (Land Package vs Flight Inclusive) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 25px 0;">
+                <div style="border: 2px solid #0284c7; border-radius: 8px; padding: 15px; background: #f8fafc; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 800; color: #0369a1; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">
+                        OPTION A: LAND PACKAGE ONLY (EX-DELHI)
+                    </div>
+                    <div style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 5px 0;">
+                        Without Food: <strong>Rs. {{ package.price_without_food|floatformat:0 }}/-</strong> / pax
+                    </div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0284c7; margin: 5px 0;">
+                        With Food: <strong>Rs. {{ package.price_with_food|floatformat:0 }}/-</strong> / pax
+                    </div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 6px;">
+                        (Institution books own flights; we receive at Delhi Airport)
+                    </div>
+                </div>
+
+                <div style="border: 2px solid #059669; border-radius: 8px; padding: 15px; background: #f0fdf4; text-align: center;">
+                    <div style="font-size: 12px; font-weight: 800; color: #15803d; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">
+                        OPTION B: FULL INCLUSIVE (WITH RETURN FLIGHTS)
+                    </div>
+                    <div style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 5px 0;">
+                        Without Food + Flights: <strong>Rs. {{ package.price_without_food_flight_inclusive|floatformat:0 }}/-</strong> / pax
+                    </div>
+                    <div style="font-size: 15px; font-weight: 800; color: #059669; margin: 5px 0;">
+                        With Food + Flights: <strong>Rs. {{ package.price_with_food_flight_inclusive|floatformat:0 }}/-</strong> / pax
+                    </div>
+                    <div style="font-size: 11px; color: #15803d; font-weight: 600; margin-top: 6px;">
+                        (Includes CJB-DEL-CJB Flights est. ₹{{ package.flight_estimate_per_pax|floatformat:0 }}/- + All Meals)
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="pricing-highlight-box">
+                <div class="pricing-line">
+                    Tour cost: Rs. {{ package.price_without_food|floatformat:0 }}/- per person ( without food)
+                </div>
+                <div class="pricing-line">
+                    Tour cost: Rs. {{ package.price_with_food|floatformat:0 }}/- per person ( with food)
+                </div>
+            </div>
+            {% endif %}
+
+            {% if addons %}
+            <!-- Optional Experience & Safari Add-ons -->
+            <div style="margin-top: 18px; border: 1.5px solid #d97706; border-radius: 8px; padding: 12px 16px; background: #fffbeb;">
+                <div style="font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; color: #b45309; margin-bottom: 6px; text-transform: uppercase;">
+                    <i class="fas fa-hiking mr-1"></i> OPTIONAL EXPERIENCES, SAFARIS &amp; ACTIVITY ADD-ONS:
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #fde68a; color: #78350f; text-align: left;">
+                            <th style="padding: 4px 6px;">Activity / Excursion</th>
+                            <th style="padding: 4px 6px;">Category</th>
+                            <th style="padding: 4px 6px;">Pricing Unit</th>
+                            <th style="padding: 4px 6px; text-align: right;">Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for addon in addons %}
+                        <tr style="border-bottom: 1px solid #fef3c7;">
+                            <td style="padding: 4px 6px; font-weight: 600; color: #1e293b;">
+                                {{ addon.title }}
+                                {% if addon.description %}<br><small style="color: #64748b;">{{ addon.description }}</small>{% endif %}
+                            </td>
+                            <td style="padding: 4px 6px; color: #475569;">{{ addon.get_category_display }}</td>
+                            <td style="padding: 4px 6px; color: #64748b;">{{ addon.get_pricing_unit_display }}</td>
+                            <td style="padding: 4px 6px; text-align: right; font-weight: 700; color: #b45309;">
+                                {% if addon.is_mandatory_inclusion %}
+                                    <span style="color: #059669;">INCLUDED</span>
+                                {% else %}
+                                    +₹{{ addon.selling_price|floatformat:0 }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            {% if seasonal_rates %}
+            <!-- Seasonal Tariff Multiplier Note -->
+            <div style="margin-top: 14px; border: 1.5px solid #0284c7; border-radius: 8px; padding: 10px 14px; background: #f0f9ff;">
+                <div style="font-family: 'Montserrat', sans-serif; font-size: 11.5px; font-weight: 800; color: #0369a1; text-transform: uppercase;">
+                    <i class="fas fa-calendar-alt mr-1"></i> SEASONAL PEAK &amp; FESTIVAL RATE NOTICE:
+                </div>
+                <div style="font-size: 11px; color: #334155; margin-top: 3px;">
+                    {% for s in seasonal_rates %}
+                        <div>&bull; <strong>{{ s.season_name }}</strong> ({{ s.start_date|date:"d M Y" }} to {{ s.end_date|date:"d M Y" }}):
+                        {% if s.price_with_food_override %}₹{{ s.price_with_food_override|floatformat:0 }} per pax{% else %}+{{ s.surge_percentage }}% Peak Surge applies{% endif %}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="signoff-section">
+                <div class="signoff-text">With regards,</div>
+                <div class="signoff-company">SIVA GAYATHRI TOURS AND TRAVELS,</div>
+
+                <div class="contact-entry">
+                    <div class="contact-name">RITHIK CA</div>
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Proprietor / Managing Director</div>
+                    <div class="contact-phone" style="font-size: 15px; font-weight: 700; color: #0284c7; margin-top: 3px;"><i class="fas fa-phone-alt mr-1"></i> +91 98425 33777</div>
+                    <div style="font-size: 12px; color: #475569; margin-top: 2px;"><i class="fas fa-envelope mr-1 text-secondary"></i> rithikcar9@gmail.com</div>
+                </div>
+
+                <div class="contact-entry">
+                    <div class="contact-name">ANANDH C</div>
+                    <div style="font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Tour Operations &amp; Convoy Coordinator</div>
+                    <div class="contact-phone" style="font-size: 15px; font-weight: 700; color: #0284c7; margin-top: 3px;"><i class="fas fa-phone-alt mr-1"></i> +91 94381 7131 / +91 38209 9979</div>
+                </div>
+            </div>
+
+            <div class="happy-journey-footer">
+                <span>😊 😊 😊 😊 😊</span>
+                <span>happy journey</span>
+                <span>😊 😊 😊 😊 😊</span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

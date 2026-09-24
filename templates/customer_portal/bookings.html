@@ -1,0 +1,34 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "My Bookings" %} | Customer Portal{% endblock %}
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1>{% trans "My Bookings" %}</h1>
+    <p style="color: var(--text-muted);">{% trans "View all your past and upcoming trips." %}</p>
+</div>
+
+<div class="grid">
+    {% for booking in bookings %}
+    <div class="glass-card">
+        <h3>{{ booking.destination }}</h3>
+        <p><strong>{% trans "Date" %}:</strong> {{ booking.pickup_date }}</p>
+        <p><strong>{% trans "Status" %}:</strong> <span style="background: var(--bg-color); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;">{{ booking.get_status_display }}</span></p>
+        <p><strong>{% trans "Total Paid" %}:</strong> {{ booking.total_paid }}</p>
+        <p><strong>{% trans "Balance Due" %}:</strong> <span style="{% if booking.balance_due > 0 %}color: red; font-weight: bold;{% else %}color: green;{% endif %}">{{ booking.balance_due }}</span></p>
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 1rem 0;">
+        {% if booking.balance_due > 0 and booking.status != 'cancelled' %}
+            <a href="{% url 'customer_portal:checkout' booking.package_inventory.id %}" class="btn-secondary" style="margin-bottom: 0.5rem; text-align: center; display: block; box-sizing: border-box;">{% trans "Pay Now" %}</a>
+        {% endif %}
+        {% if booking.invoice and booking.invoice.file %}
+            <a href="{{ booking.invoice.file.url }}" target="_blank" class="btn-primary" style="margin-bottom: 0.5rem; background: white; color: var(--primary); border: 1px solid var(--primary); text-align: center; display: block; box-sizing: border-box;">{% trans "Download Invoice" %}</a>
+        {% endif %}
+        <a href="{% url 'customer_portal:booking_detail' booking.id %}" class="btn-primary" style="background: white; color: var(--primary); border: 1px solid var(--primary); width: 100%; text-align: center; display: block; box-sizing: border-box;">{% trans "View Details" %}</a>
+    </div>
+    {% empty %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">{% trans "You don't have any bookings yet." %}</p>
+        <a href="{% url 'customer_portal:package_list' %}" class="btn-primary">{% trans "Browse Packages" %}</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

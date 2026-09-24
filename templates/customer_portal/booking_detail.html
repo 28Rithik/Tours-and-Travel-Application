@@ -1,0 +1,70 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Booking Details" %} | Customer Portal{% endblock %}
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <a href="{% url 'customer_portal:bookings' %}" style="text-decoration: none; color: var(--primary); margin-bottom: 1rem; display: inline-block;">&larr; {% trans "Back to My Bookings" %}</a>
+    <h1>{% trans "Booking Reference" %}: {{ booking.booking_number }}</h1>
+    <p style="color: var(--text-muted);">{% trans "Status" %}: <span class="badge" style="background: var(--bg-color); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;">{{ booking.get_status_display }}</span></p>
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr;">
+    <div>
+        <div class="glass-card" style="margin-bottom: 2rem;">
+            <h2>{% trans "Trip Details" %}</h2>
+            <p><strong>{% trans "Destination" %}:</strong> {{ booking.destination }}</p>
+            <p><strong>{% trans "Travel Dates" %}:</strong> {{ booking.pickup_date }} {% if booking.drop_date %}to {{ booking.drop_date }}{% endif %}</p>
+            <p><strong>{% trans "Number of Travelers" %}:</strong> {{ booking.pax_count }}</p>
+        </div>
+
+        {% if itinerary_days %}
+        <div class="glass-card">
+            <h2>{% trans "Itinerary" %}</h2>
+            <div style="margin-top: 1rem;">
+                {% for day in itinerary_days %}
+                <div style="border-left: 3px solid var(--primary); padding-left: 1rem; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0 0 0.5rem 0;">{% trans "Day" %} {{ day.day_number }}: {{ day.title }}</h3>
+                    <p style="margin: 0; color: #555;">{{ day.description }}</p>
+                    {% if day.hotel_name %}
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;"><strong>{% trans "Hotel" %}:</strong> {{ day.hotel_name }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <div class="glass-card" style="margin-bottom: 2rem; background-color: #f9f9f9;">
+            <h2>{% trans "Payment Summary" %}</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">{% trans "Total Amount" %}</td>
+                    <td style="padding: 0.5rem 0; text-align: right; font-weight: bold;">₹{{ booking.quoted_price }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666; border-bottom: 1px solid #ddd;">{% trans "Amount Paid" %}</td>
+                    <td style="padding: 0.5rem 0; text-align: right; border-bottom: 1px solid #ddd;">₹{{ total_paid }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 1rem 0; font-weight: bold; font-size: 1.2rem;">{% trans "Balance Due" %}</td>
+                    <td style="padding: 1rem 0; text-align: right; font-weight: bold; font-size: 1.2rem; {% if balance_due > 0 %}color: red;{% else %}color: green;{% endif %}">₹{{ balance_due }}</td>
+                </tr>
+            </table>
+
+            {% if balance_due > 0 and booking.status != 'cancelled' %}
+                <a href="{% url 'customer_portal:checkout' booking.package_inventory.id %}" class="btn-primary" style="display: block; text-align: center; margin-top: 1rem; width: 100%; box-sizing: border-box;">
+                    {% trans "Pay Balance" %}
+                </a>
+            {% endif %}
+
+            {% if invoice and invoice.file %}
+                <a href="{{ invoice.file.url }}" target="_blank" class="btn-secondary" style="display: block; text-align: center; margin-top: 1rem; width: 100%; box-sizing: border-box; background: white; color: var(--primary); border: 1px solid var(--primary);">
+                    {% trans "Download Invoice" %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

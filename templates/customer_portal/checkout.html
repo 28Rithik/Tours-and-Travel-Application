@@ -1,0 +1,55 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Checkout" %} | Customer Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="glass-card">
+        <h2 style="margin-bottom: 1.5rem;">{% trans "Checkout" %}</h2>
+        <div style="background: var(--bg-color); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+            <h3>{{ package.name }}</h3>
+            <p style="margin: 0; color: var(--text-muted);">{% trans "Departure" %}: {{ inventory.departure_date }}</p>
+        </div>
+
+        <form method="POST" action="{% url 'customer_portal:checkout' inventory.id %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 20px;">
+                <label for="pax" style="display: block; font-weight: bold; margin-bottom: 5px;">{% trans "Number of Travelers" %}</label>
+                <input type="number" id="pax" name="pax" value="1" min="1" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="coupon" style="display: block; font-weight: bold; margin-bottom: 5px;">{% trans "Coupon Code (Optional)" %}</label>
+                <input type="text" id="coupon" name="coupon" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="payment_plan" style="display: block; font-weight: bold; margin-bottom: 5px;">{% trans "Payment Plan" %}</label>
+                <select id="payment_plan" name="payment_plan" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="full">{% trans "Pay Full Amount" %}</option>
+                    <option value="advance">{% trans "Pay 50% Advance Now" %}</option>
+                </select>
+            </div>
+
+            {% if upsells %}
+            <div style="margin-bottom: 20px; background: #eef2f5; padding: 15px; border-radius: 5px;">
+                <h3 style="margin-top: 0;">{% trans "Recommended Add-ons" %}</h3>
+                {% for upsell in upsells %}
+                    <div style="margin-bottom: 10px;">
+                        <strong>{{ upsell.title }}</strong> - ₹{{ upsell.price }}
+                        <p style="margin: 5px 0; font-size: 0.9em; color: #555;">{{ upsell.description }}</p>
+                    </div>
+                {% endfor %}
+                <p style="font-size: 0.85em; color: #777; margin-bottom: 0;"><em>{% trans "Please request these add-ons from your travel agent after booking." %}</em></p>
+            </div>
+            {% endif %}
+            
+            <button type="submit" style="background-color: #4CAF50; color: white; border: none; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%;">
+                {% trans "Proceed to Payment" %}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

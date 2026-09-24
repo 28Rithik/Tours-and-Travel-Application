@@ -1,0 +1,122 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}1-Click Batch Monthly Billing Run | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 10px 0 40px;">
+    <!-- Breadcrumb Header -->
+    <div style="margin-bottom: 20px;">
+        <a href="/admin/fleet_contracts/contractmonthlyinvoice/" style="color: #38bdf8; text-decoration: none; font-size: 13px;">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Contract Monthly Invoices
+        </a>
+        <h1 style="color: #f8fafc; font-size: 26px; font-weight: 800; margin-top: 8px;">
+            <i class="fas fa-bolt" style="color: #38bdf8; margin-right: 8px;"></i> 1-Click Batch Monthly Billing Run
+        </h1>
+        <p style="color: #94a3b8; font-size: 14px;">
+            Automatically generate draft corporate tax invoices for all active institutional contracts. The engine computes base contract rates, integrates logged trips and KMs, calculates fuel price indexation adjustments, and automatically applies accrued SLA penalty deductions respecting contractual ceilings.
+        </p>
+    </div>
+
+    <!-- Configuration Form Card -->
+    <div style="background: #1e293b; border-radius: 10px; border: 1px solid #334155; padding: 24px; margin-bottom: 28px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
+        <h3 style="color: #38bdf8; font-size: 16px; font-weight: 700; margin-top: 0; margin-bottom: 18px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+            <i class="fas fa-sliders-h mr-1"></i> Billing Run Configuration
+        </h3>
+
+        <form method="POST" action="">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; color: #cbd5e1; font-weight: 600; font-size: 13px; margin-bottom: 6px;">
+                        Billing Month (Target Cycle):
+                    </label>
+                    <input type="month" name="billing_month" value="{{ default_month }}" required 
+                           style="width: 100%; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 10px 14px; border-radius: 6px; font-size: 14px;">
+                    <small style="color: #94a3b8; font-size: 11px; margin-top: 4px; display: block;">Select the calendar month for which invoices will be compiled.</small>
+                </div>
+
+                <div>
+                    <label style="display: block; color: #cbd5e1; font-weight: 600; font-size: 13px; margin-bottom: 6px;">
+                        Payment Credit Period Override:
+                    </label>
+                    <select name="credit_policy" style="width: 100%; background: #0f172a; border: 1px solid #475569; color: #f8fafc; padding: 10px 14px; border-radius: 6px; font-size: 14px;">
+                        <option value="contract_default" selected>Use Contract Default (e.g. 30/45/60 Days)</option>
+                        <option value="net_30">Net 30 Days Standard</option>
+                        <option value="net_45">Net 45 Days</option>
+                        <option value="net_60">Net 60 Days</option>
+                    </select>
+                    <small style="color: #94a3b8; font-size: 11px; margin-top: 4px; display: block;">Determines the auto-calculated invoice Due Date.</small>
+                </div>
+            </div>
+
+            <div style="background: #0f172a; border-radius: 8px; padding: 16px; margin-bottom: 24px; border: 1px solid #334155;">
+                <div style="font-weight: 600; color: #f8fafc; margin-bottom: 10px; font-size: 13px;">
+                    <i class="fas fa-shield-alt mr-1" style="color: #10b981;"></i> Automation & Governance Rules:
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <label style="display: flex; align-items: center; color: #cbd5e1; font-size: 13px; cursor: pointer;">
+                        <input type="checkbox" name="auto_deduct_sla" value="1" checked style="margin-right: 10px; width: 16px; height: 16px; accent-color: #0284c7;">
+                        <span><strong>Auto-Apply Unbilled SLA Deductions:</strong> Automatically query all unbilled, non-waived SLA penalties incurred up to this billing month and deduct from taxable amount.</span>
+                    </label>
+                    <label style="display: flex; align-items: center; color: #cbd5e1; font-size: 13px; cursor: pointer;">
+                        <input type="checkbox" name="enforce_sla_cap" value="1" checked style="margin-right: 10px; width: 16px; height: 16px; accent-color: #0284c7;">
+                        <span><strong>Enforce Contract SLA Ceilings:</strong> Cap total monthly penalty deductions to agreed contractual threshold (e.g. max 10% or 15% of billing).</span>
+                    </label>
+                    <label style="display: flex; align-items: center; color: #cbd5e1; font-size: 13px; cursor: pointer;">
+                        <input type="checkbox" name="include_fuel_escalation" value="1" checked style="margin-right: 10px; width: 16px; height: 16px; accent-color: #0284c7;">
+                        <span><strong>Calculate Fuel Price Escalation:</strong> Apply fuel adjustment clause for contracts with active fuel escalation formulas.</span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <a href="/admin/fleet_contracts/contractmonthlyinvoice/" class="btn btn-secondary" style="background: #334155; color: #f8fafc; padding: 10px 20px; border-radius: 6px; font-weight: 600; text-decoration: none;">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" onclick="return confirm('Initiate batch invoice generation for active contracts?');"
+                        style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; color: #ffffff; padding: 11px 26px; border-radius: 6px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); cursor: pointer;">
+                    <i class="fas fa-play mr-1"></i> Execute Batch Billing Run ({{ active_contracts|length }} Contracts)
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Active Contracts Scope Table -->
+    <div style="background: #1e293b; border-radius: 10px; border: 1px solid #334155; padding: 20px;">
+        <h3 style="color: #f8fafc; font-size: 15px; font-weight: 700; margin-top: 0; margin-bottom: 14px;">
+            <i class="fas fa-list-check mr-1" style="color: #34d399;"></i> Active Contracts in Batch Invoicing Scope ({{ active_contracts|length }})
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #cbd5e1;">
+            <thead>
+                <tr style="border-bottom: 2px solid #334155; text-align: left; background: #0f172a;">
+                    <th style="padding: 10px 12px; color: #94a3b8;">#</th>
+                    <th style="padding: 10px 12px; color: #94a3b8;">Contract Name</th>
+                    <th style="padding: 10px 12px; color: #94a3b8;">Client Organization</th>
+                    <th style="padding: 10px 12px; color: #94a3b8;">Category</th>
+                    <th style="padding: 10px 12px; color: #94a3b8;">Billing Model</th>
+                    <th style="padding: 10px 12px; color: #94a3b8; text-align: right;">Base Rate</th>
+                    <th style="padding: 10px 12px; color: #94a3b8; text-align: center;">Fleet</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in active_contracts %}
+                <tr style="border-bottom: 1px solid #334155;">
+                    <td style="padding: 10px 12px; color: #64748b;">{{ forloop.counter }}</td>
+                    <td style="padding: 10px 12px; font-weight: 600; color: #f8fafc;">{{ c.name }}</td>
+                    <td style="padding: 10px 12px; color: #93c5fd;">{{ c.customer.name }}</td>
+                    <td style="padding: 10px 12px;">{{ c.get_contract_category_display }}</td>
+                    <td style="padding: 10px 12px;"><span class="badge" style="background: #334155; color: #cbd5e1; padding: 3px 6px;">{{ c.get_billing_model_display }}</span></td>
+                    <td style="padding: 10px 12px; text-align: right; color: #34d399; font-weight: 600;">₹{{ c.default_rate|floatformat:0 }}</td>
+                    <td style="padding: 10px 12px; text-align: center;"><span class="badge" style="background: #0369a1; color: #fff; padding: 2px 7px;">{{ c.committed_vehicle_count }} Primary</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 20px; text-align: center; color: #94a3b8;">No active contracts found eligible for invoicing.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

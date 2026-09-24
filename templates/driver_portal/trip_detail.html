@@ -1,0 +1,142 @@
+{% extends "driver_portal/base.html" %}
+
+{% block title %}Trip #{{ trip.trip_id }} | Sivagayathiri Fleet{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="{% url 'driver_portal:dashboard' %}" style="color: var(--primary); text-decoration: none; font-size: 12px; font-weight: 600;">
+                &larr; Back to Dashboard
+            </a>
+            <h1 style="font-size: 20px; font-weight: 800; margin-top: 4px;">Trip #{{ trip.trip_id }}</h1>
+        </div>
+        <span class="badge {% if trip.status == 'started' %}badge-success{% elif trip.status == 'completed' %}badge-info{% else %}badge-warning{% endif %}">
+            {{ trip.get_status_display }}
+        </span>
+    </div>
+</div>
+
+<!-- Guest & Itinerary Card -->
+<div class="card">
+    <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+        👤 Guest / Client Details
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+            <div style="font-size: 17px; font-weight: 800;">{{ trip.guest_name }}</div>
+            {% if trip.booking.guest_phone %}
+                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                    📞 {{ trip.booking.guest_phone }}
+                </div>
+            {% endif %}
+        </div>
+        {% if trip.booking.guest_phone %}
+            <a href="tel:{{ trip.booking.guest_phone }}" class="btn btn-primary" style="width: auto; padding: 8px 14px; font-size: 12px;">
+                📞 Call Guest
+            </a>
+        {% endif %}
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 14px;">
+        <div style="margin-bottom: 8px;">
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">PICKUP LOCATION</div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">📍 {{ trip.pickup_location }}</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Reporting: {{ trip.start_time|default:"On Time" }}</div>
+        </div>
+        <div style="border-top: 1px dashed var(--border); padding-top: 8px;">
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">DESTINATION</div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">🏁 {{ trip.destination }}</div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+        <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm);">
+            <span style="color: var(--text-muted);">Vehicle:</span>
+            <strong style="color: var(--primary);">{{ trip.vehicle.registration_number|default:"-" }}</strong>
+        </div>
+        <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm);">
+            <span style="color: var(--text-muted);">Pax Count:</span>
+            <strong>{{ trip.pax_count|default:1 }} Persons</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Trip Progression Actions -->
+{% if trip.status != 'completed' %}
+    <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px;">
+            🚗 Trip Duty Progress
+        </div>
+
+        {% if trip.status != 'started' %}
+            <form method="POST" action="{% url 'driver_portal:trip_start' trip.pk %}">
+                {% csrf_token %}
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                        Opening Odometer Reading (KM)
+                    </label>
+                    <input 
+                        type="number" 
+                        name="opening_km" 
+                        value="{{ trip.vehicle.current_km|default:0 }}" 
+                        required 
+                        style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; font-weight: 700;"
+                    >
+                </div>
+                <button type="submit" class="btn btn-success" style="padding: 14px; font-size: 15px;">
+                    ▶️ Start Trip & Departure
+                </button>
+            </form>
+        {% else %}
+            <form method="POST" action="{% url 'driver_portal:trip_end' trip.pk %}">
+                {% csrf_token %}
+                <div style="margin-bottom: 12px;">
+                    <span class="badge badge-success">🟢 Trip Currently In Progress</span>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                        Started at {{ trip.start_time|default:"Earlier" }} &bull; Opening KM: {{ trip.opening_km|default:0 }}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                        Closing Odometer Reading (KM)
+                    </label>
+                    <input 
+                        type="number" 
+                        name="closing_km" 
+                        placeholder="Enter final meter reading" 
+                        required 
+                        style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; font-weight: 700;"
+                    >
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                        Closing Notes / Toll / Parking Remarks
+                    </label>
+                    <textarea 
+                        name="trip_completion_notes" 
+                        rows="2" 
+                        placeholder="e.g. Guest dropped safely at Airport. Fastag toll paid."
+                        style="width: 100%; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;"
+                    ></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-danger" style="padding: 14px; font-size: 15px;">
+                    ⏹️ Complete & Close Trip
+                </button>
+            </form>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="card" style="border-left: 4px solid var(--accent-green); text-align: center; padding: 20px;">
+        <div style="font-size: 32px; margin-bottom: 8px;">🎉</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--accent-green);">Trip Completed & Closed</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+            Total Run: {{ trip.total_km|default:0 }} KM &bull; Opening: {{ trip.opening_km|default:0 }} &bull; Closing: {{ trip.closing_km|default:0 }}
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ package.name }} | Customer Portal{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <h1>{{ package.name }}</h1>
+    <p style="color: var(--text-muted);">{{ package.destination }} • {{ package.duration_days }} {% trans "Days" %}</p>
+    <div style="margin-top: 1rem;">
+        <p>{{ package.description }}</p>
+    </div>
+</div>
+
+<h2>{% trans "Available Departures" %}</h2>
+<div class="grid">
+    {% for inv in inventories %}
+    <div class="glass-card">
+        <h3>{{ inv.departure_date|date:"M d, Y" }}</h3>
+        <p>{% trans "Available Seats" %}: {{ inv.available_seats }}</p>
+        <p style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">
+            ₹{% if inv.price_override %}{{ inv.price_override }}{% else %}{{ package.base_price }}{% endif %}
+        </p>
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 1rem 0;">
+        {% if user.is_authenticated %}
+            <a href="{% url 'customer_portal:checkout' inv.id %}" class="btn-primary" style="width: 100%; text-align: center; display: block; box-sizing: border-box;">
+                {% trans "Book Now" %}
+            </a>
+        {% else %}
+            <a href="{% url 'customer_portal:login' %}?next={% url 'customer_portal:checkout' inv.id %}" class="btn-primary" style="background: white; color: var(--primary); border: 1px solid var(--primary); width: 100%; text-align: center; display: block; box-sizing: border-box;">
+                {% trans "Login to Book" %}
+            </a>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
+        <p style="color: var(--text-muted);">{% trans "No open departures for this package." %}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,4 @@
+{% extends 'base.html' %}
+{% block title %}Generate Statement | TravelERP{% endblock %}
+{% block header_title %}Statement studio{% endblock %}
+{% block content %}<div class="page-intro"><div><p class="eyebrow">CAB statement</p><h1>Build a statement.</h1><p>Choose a party and reporting window. Optional filters narrow the trip rows.</p></div></div><section class="panel form-panel"><form method="post">{% csrf_token %}{{ form.as_p }}<button class="button button-primary" type="submit">Download statement</button></form></section>{% endblock %}

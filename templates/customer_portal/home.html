@@ -1,0 +1,23 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1>{% trans "Welcome" %}, {{ user.first_name|default:user.username }}!</h1>
+    <p style="color: var(--text-muted);">{% trans "Here's an overview of your upcoming trips and recent activity." %}</p>
+</div>
+
+<div class="grid">
+    <div class="glass-card" style="text-align: center; padding: 3rem 1rem;">
+        <h2>{% trans "Ready for your next adventure?" %}</h2>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">{% trans "Explore our curated packages and find your perfect getaway." %}</p>
+        <a href="{% url 'customer_portal:package_list' %}" class="btn-primary">{% trans "Browse Packages" %}</a>
+    </div>
+
+    <div class="glass-card">
+        <h3>{% trans "Recent Documents" %}</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">{% trans "No new documents uploaded." %}</p>
+        <a href="{% url 'customer_portal:documents' %}" class="btn-primary" style="background: white; color: var(--primary); border: 1px solid var(--primary);">{% trans "View All Documents" %}</a>
+    </div>
+</div>
+{% endblock %}

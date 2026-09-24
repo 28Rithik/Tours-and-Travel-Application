@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Live Trip Tracking | Sivagayathiri Travels</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <style>
+    :root {
+      --primary: #176b68;
+      --primary-dark: #0f4b48;
+      --accent: #d9654f;
+      --bg: #0f172a;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text: #1e293b;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); }
+    
+    #map { width: 100%; height: 100%; z-index: 1; }
+
+    /* Top Floating Brand Header */
+    .top-header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      z-index: 1000;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 14px;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      color: white;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .brand-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .trip-tag {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #dcfce7;
+      color: #15803d;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    /* Bottom Bottom Passenger Card */
+    .bottom-card {
+      position: absolute;
+      bottom: 20px;
+      left: 16px;
+      right: 16px;
+      z-index: 1000;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.6);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .eta-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .eta-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .speed-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: #f1f5f9;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* Driver & Vehicle Row */
+    .driver-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .driver-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .driver-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+      font-size: 18px;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+    }
+    .driver-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .driver-badge {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .call-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(23, 107, 104, 0.3);
+    }
+
+    /* Vehicle details */
+    .vehicle-strip {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text);
+      border: 1px solid #e2e8f0;
+    }
+    .reg-plate {
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: #0f172a;
+    }
+
+    /* Custom Leaflet Marker Styling */
+    .car-marker-container {
+      width: 44px;
+      height: 44px;
+      background: #176b68;
+      border: 3px solid white;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Floating Header -->
+  <div class="top-header">
+    <div class="brand-group">
+      <div class="brand-logo">S</div>
+      <div>
+        <div class="brand-title">Sivagayathiri Travels</div>
+        <div class="trip-tag">{{ trip.trip_id }} &bull; {{ trip.guest_name|default:"Passenger" }}</div>
+      </div>
+    </div>
+    <div class="status-badge" id="status-pill">
+      <span class="pulse-dot"></span>
+      <span id="trip-status-label">{{ trip.get_status_display }}</span>
+    </div>
+  </div>
+
+  <!-- Map -->
+  <div id="map"></div>
+
+  <!-- Bottom Floating Passenger Card -->
+  <div class="bottom-card">
+    <div class="eta-banner">
+      <div>
+        <div style="font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: .08em;">Estimated Arrival</div>
+        <div class="eta-text" id="live-eta-text">Calculating ETA...</div>
+      </div>
+      <div class="speed-badge" id="live-speed-badge">
+        Speed: 0 km/h
+      </div>
+    </div>
+
+    <!-- Driver Info -->
+    <div class="driver-row">
+      <div class="driver-meta">
+        <div class="driver-avatar" id="driver-avatar-initial">
+          {{ driver.name|slice:":1"|default:"C" }}
+        </div>
+        <div>
+          <div class="driver-name" id="driver-name-text">{{ driver.name|default:"Captain" }}</div>
+          <div class="driver-badge" id="driver-badge-text">
+            ⭐ 4.95 &bull; {{ driver.badge_number|default:"Verified Fleet Captain" }}
+          </div>
+        </div>
+      </div>
+      <div>
+        {% if driver and driver.phone %}
+          <a href="tel:{{ driver.phone }}" class="call-btn" id="call-driver-link">📞 Call</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Vehicle Details -->
+    <div class="vehicle-strip">
+      <div>
+        <span class="reg-plate" id="veh-plate">{{ vehicle.registration_number|default:"To be assigned" }}</span>
+        <span style="color: var(--muted); font-size: 12px; margin-left: 6px;" id="veh-model">
+          ({{ vehicle.brand }} {{ vehicle.model }})
+        </span>
+      </div>
+      <div style="font-weight: 600; color: var(--primary);" id="veh-type">
+        {{ vehicle.vehicle_type.name|default:"Sedan" }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <script>
+    const TOKEN = "{{ token }}";
+    const API_URL = `/api/track/${TOKEN}/live/`;
+
+    // Initialize Map centered on Coimbatore default or last known position
+    let initialLat = {% if latest_ping %}{{ latest_ping.latitude }}{% else %}11.0168{% endif %};
+    let initialLng = {% if latest_ping %}{{ latest_ping.longitude }}{% else %}76.9558{% endif %};
+
+    const map = L.map('map', { zoomControl: false }).setView([initialLat, initialLng], 14);
+
+    // Modern OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    // Custom Car Marker Icon
+    const carIcon = L.divIcon({
+      className: 'car-marker-container',
+      html: '🚖',
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
+    });
+
+    let vehicleMarker = L.marker([initialLat, initialLng], { icon: carIcon }).addTo(map);
+    let polyline = L.polyline([], { color: '#176b68', weight: 4, opacity: 0.8 }).addTo(map);
+
+    function pollLivePosition() {
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.vehicle) {
+            const v = data.vehicle;
+            const newPos = [v.lat, v.lng];
+
+            // Animate/Move Marker
+            vehicleMarker.setLatLng(newPos);
+            map.panTo(newPos);
+
+            // Update UI Elements
+            document.getElementById('live-eta-text').innerText = data.trip.eta_str || "~15 mins";
+            document.getElementById('live-speed-badge').innerText = `Speed: ${Math.round(v.speed_kmh)} km/h`;
+            document.getElementById('trip-status-label').innerText = data.trip.status;
+
+            if (data.driver) {
+              document.getElementById('driver-name-text').innerText = data.driver.name;
+              document.getElementById('driver-avatar-initial').innerText = data.driver.name.charAt(0);
+              if (data.driver.phone) {
+                const callBtn = document.getElementById('call-driver-link');
+                if (callBtn) callBtn.href = `tel:${data.driver.phone}`;
+              }
+            }
+
+            document.getElementById('veh-plate').innerText = v.registration_number;
+            document.getElementById('veh-type').innerText = v.vehicle_type;
+
+            // Update breadcrumbs trail
+            if (data.breadcrumbs && data.breadcrumbs.length > 0) {
+              const path = data.breadcrumbs.map(b => [b.lat, b.lng]);
+              polyline.setLatLngs(path);
+            }
+          }
+        })
+        .catch(err => console.log('Polling live tracking error:', err));
+    }
+
+    // Initial poll and recurring poll every 5 seconds
+    pollLivePosition();
+    setInterval(pollLivePosition, 5000);
+  </script>
+</body>
+</html>

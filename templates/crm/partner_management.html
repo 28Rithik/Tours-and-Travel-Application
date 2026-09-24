@@ -1,0 +1,589 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Partner & B2C Management | TravelERP CRM{% endblock %}
+{% block header_title %}FTO, Corporate & B2C Customer Directory{% endblock %}
+
+{% block content %}
+<style>
+  .partner-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-card .val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    color: #0f766e;
+    margin-top: 2px;
+  }
+
+  .tabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #64748b;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s ease;
+  }
+  .tab-btn:hover { color: #0d5c58; }
+  .tab-btn.is-active {
+    color: #0d5c58;
+    border-bottom-color: #0d5c58;
+  }
+
+  .filter-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .filter-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    padding: 8px 14px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    width: 260px;
+  }
+  .select-filter {
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .data-card-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    font-size: 13.5px;
+  }
+  .data-card-table th, .data-card-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .data-card-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .badge-tier {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-diamond { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .badge-gold { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+  .badge-silver { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+  .badge-corp { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+  .badge-b2b { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+
+  /* Modal Form */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 640px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+  }
+  .modal-title { font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; }
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-group { margin-bottom: 12px; }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+</style>
+
+<!-- Metrics Overview -->
+<div class="partner-metrics">
+  <div class="metric-card">
+    <div class="title">FTOs &amp; Corporates</div>
+    <div class="val">{{ total_fto_count }}</div>
+    <div class="sub">Active Agency Accounts</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Total Credit Exposure</div>
+    <div class="val">₹{{ total_credit_exposure|floatformat:0 }}</div>
+    <div class="sub">Authorized Credit Limit</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Direct B2C Travelers</div>
+    <div class="val">{{ total_b2c_count }}</div>
+    <div class="sub">Guest Directory</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">VIP Travelers</div>
+    <div class="val" style="color: #e11d48;">{{ vip_count }}</div>
+    <div class="sub">Priority Handled</div>
+  </div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="tabs-nav">
+  <a href="?tab=partners" class="tab-btn {% if tab != 'b2c' %}is-active{% endif %}">
+    🏢 FTOs, B2B Agents &amp; Corporates ({{ total_fto_count }})
+  </a>
+  <a href="?tab=b2c" class="tab-btn {% if tab == 'b2c' %}is-active{% endif %}">
+    👥 Direct Retail B2C Travelers ({{ total_b2c_count }})
+  </a>
+</div>
+
+<!-- Filter & Search Toolbar -->
+<div class="filter-panel">
+  <form method="get" class="filter-group">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name, trade name, phone..." class="search-input">
+    
+    {% if tab != 'b2c' %}
+      <select name="category" class="select-filter" onchange="this.form.submit()">
+        <option value="">-- All Tiers / Categories --</option>
+        {% for cat_val, cat_label in category_choices %}
+          <option value="{{ cat_val }}" {% if category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+
+    <button type="submit" class="button" style="background:#0d5c58; color:#fff; padding: 8px 14px; font-size:12px; border-radius:6px;">Filter</button>
+    {% if q or category %}
+      <a href="?tab={{ tab }}" style="font-size:12px; color:#64748b; text-decoration:none; margin-left:6px;">Clear</a>
+    {% endif %}
+  </form>
+
+  <div>
+    {% if tab != 'b2c' %}
+      <button onclick="openModal('addPartnerModal')" class="button" style="background: #0d5c58; color: #fff; font-weight: 700; padding: 9px 16px; border-radius: 6px;">
+        + Add FTO / Corporate Partner
+      </button>
+    {% else %}
+      <button onclick="openModal('addB2CModal')" class="button" style="background: #0d5c58; color: #fff; font-weight: 700; padding: 9px 16px; border-radius: 6px;">
+        + Add B2C Traveler
+      </button>
+    {% endif %}
+  </div>
+</div>
+
+{% if tab != 'b2c' %}
+  <!-- FTO / Corporate Table -->
+  <table class="data-card-table">
+    <thead>
+      <tr>
+        <th>Partner Legal / Trade Name</th>
+        <th>Tier Category</th>
+        <th>Contact Desk</th>
+        <th>Credit Limit</th>
+        <th>PAN / GSTIN</th>
+        <th>Agreement</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in partners %}
+        <tr>
+          <td>
+            <strong>{{ p.party.name }}</strong>
+            {% if p.trade_name %}
+              <div style="font-size: 12px; color: #64748b;">DBA: {{ p.trade_name }}</div>
+            {% endif %}
+            {% if p.iata_number %}
+              <div style="font-size: 11px; color: #0284c7;">IATA/DOT: {{ p.iata_number }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.category == 'diamond' %}
+              <span class="badge-tier badge-diamond">💎 Diamond FTO</span>
+            {% elif p.category == 'gold' %}
+              <span class="badge-tier badge-gold">🥇 Gold Partner</span>
+            {% elif p.category == 'silver' %}
+              <span class="badge-tier badge-silver">🥈 Silver Retail</span>
+            {% elif p.category == 'corporate_mnc' %}
+              <span class="badge-tier badge-corp">🏢 Corporate MNC</span>
+            {% else %}
+              <span class="badge-tier badge-b2b">🤝 Local B2B</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.party.phone %}<div>📞 {{ p.party.phone }}</div>{% endif %}
+            {% if p.party.email %}<div style="font-size: 12px; color: #64748b;">✉️ {{ p.party.email }}</div>{% endif %}
+            <div style="font-size: 11.5px; color: #0f766e; margin-top: 2px;">
+              {{ p.party.contact_persons.count }} listed contact(s)
+            </div>
+          </td>
+          <td>
+            <strong>₹{{ p.credit_limit|floatformat:0 }}</strong>
+            <div style="font-size: 11px; color: #64748b;">{{ p.party.credit_period_days }} Days Terms</div>
+          </td>
+          <td>
+            {% if p.pan_number %}<div>PAN: <code>{{ p.pan_number }}</code></div>{% endif %}
+            {% if p.party.gstin %}<div style="font-size: 11px; color: #64748b;">GST: <code>{{ p.party.gstin }}</code></div>{% endif %}
+          </td>
+          <td>
+            {% if p.agreement_file %}
+              <span style="color: #059669; font-weight: 700; font-size: 12px;">✅ Signed</span>
+              {% if p.agreement_valid_until %}<div style="font-size: 11px; color: #64748b;">Until {{ p.agreement_valid_until|date:"M Y" }}</div>{% endif %}
+            {% else %}
+              <span style="color: #94a3b8; font-size: 12px;">No file</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/admin/crm/partnerprofile/{{ p.id }}/change/" class="button" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; color: #334155; border-radius: 4px; text-decoration: none;">
+              ✏️ Edit / Bank Info
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 32px; color: #64748b;">
+            No FTO or Corporate partners found matching the filter criteria.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
+  <!-- B2C Travelers Table -->
+  <table class="data-card-table">
+    <thead>
+      <tr>
+        <th>Traveler Name</th>
+        <th>VIP Status</th>
+        <th>Contact Coordinates</th>
+        <th>Nationality &amp; Passport</th>
+        <th>Residence Location</th>
+        <th>Social Profiles</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in b2c_customers %}
+        <tr>
+          <td>
+            <strong>{{ b.full_name }}</strong>
+            <div style="font-size: 11px; color: #64748b;">Added {{ b.created_at|date:"d M Y" }}</div>
+          </td>
+          <td>
+            {% if b.is_vip %}
+              <span class="badge" style="background: #e11d48; color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">
+                👑 VIP Guest
+              </span>
+            {% else %}
+              <span style="color: #94a3b8; font-size: 12px;">Standard</span>
+            {% endif %}
+          </td>
+          <td>
+            <div>📞 {{ b.party.phone|default:b.alternate_phone|default:"-" }}</div>
+            {% if b.party.email %}<div style="font-size: 12px; color: #64748b;">✉️ {{ b.party.email }}</div>{% endif %}
+          </td>
+          <td>
+            <div>{{ b.nationality }}</div>
+            {% if b.passport_number %}
+              <div style="font-size: 11px; color: #0284c7;">Passport: <code>{{ b.passport_number }}</code></div>
+            {% endif %}
+          </td>
+          <td>
+            <div>{{ b.city|default:"-" }}{% if b.state %}, {{ b.state }}{% endif %}</div>
+            {% if b.pincode %}<div style="font-size: 11px; color: #64748b;">PIN: {{ b.pincode }}</div>{% endif %}
+          </td>
+          <td>
+            <div style="display: flex; gap: 6px; font-size: 14px;">
+              {% if b.facebook_url %}<a href="{{ b.facebook_url }}" target="_blank" title="Facebook">🌐</a>{% endif %}
+              {% if b.instagram_handle %}<a href="https://instagram.com/{{ b.instagram_handle }}" target="_blank" title="Instagram">📸</a>{% endif %}
+              {% if b.linkedin_url %}<a href="{{ b.linkedin_url }}" target="_blank" title="LinkedIn">💼</a>{% endif %}
+              {% if not b.facebook_url and not b.instagram_handle and not b.linkedin_url %}<span style="color:#94a3b8; font-size:12px;">None</span>{% endif %}
+            </div>
+          </td>
+          <td>
+            <a href="/admin/crm/b2ccustomerprofile/{{ b.id }}/change/" class="button" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; color: #334155; border-radius: 4px; text-decoration: none;">
+              ✏️ Details
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 32px; color: #64748b;">
+            No B2C retail traveler profiles registered yet.
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+<!-- Modal: Add FTO / Corporate Partner -->
+<div id="addPartnerModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title">🏢 Add New FTO / Corporate Partner</h3>
+      <button type="button" onclick="closeModal('addPartnerModal')" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action_type" value="add_partner">
+      
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Company Legal Name *</label>
+          <input type="text" name="name" required placeholder="e.g. Kuoni Travel India Pvt Ltd">
+        </div>
+        <div class="form-group">
+          <label>Doing Business As (Trade Name)</label>
+          <input type="text" name="trade_name" placeholder="e.g. SOTC Holidays">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Tier Category *</label>
+          <select name="category" required>
+            <option value="diamond">💎 Diamond Tier 1 (Volume FTO / Global Inbound)</option>
+            <option value="gold">🥇 Gold Tier 2 (National DMC Partner)</option>
+            <option value="silver" selected>🥈 Silver Tier 3 (Regional Retail Agency)</option>
+            <option value="corporate_mnc">🏢 Corporate MNC (Contracted Business)</option>
+            <option value="b2b_local">🤝 Local B2B Operator / Freelancer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Credit Exposure Limit (₹)</label>
+          <input type="number" name="credit_limit" value="100000" step="5000">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Primary Phone *</label>
+          <input type="text" name="phone" required placeholder="e.g. 0422 2345678">
+        </div>
+        <div class="form-group">
+          <label>Official Email *</label>
+          <input type="email" name="email" required placeholder="reservations@partner.com">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>GSTIN</label>
+          <input type="text" name="gstin" placeholder="33AAAAA0000A1Z5">
+        </div>
+        <div class="form-group">
+          <label>PAN Number</label>
+          <input type="text" name="pan_number" placeholder="ABCDE1234F">
+        </div>
+      </div>
+
+      <div style="font-weight: 700; font-size: 13px; color: #0d5c58; margin: 12px 0 8px 0; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+        Key Contact Person (Operations / Accounts)
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Contact Name</label>
+          <input type="text" name="contact_name" placeholder="Mr. Rajesh Kumar">
+        </div>
+        <div class="form-group">
+          <label>Designation</label>
+          <input type="text" name="contact_designation" value="Operations Manager">
+        </div>
+        <div class="form-group">
+          <label>Direct Mobile</label>
+          <input type="text" name="contact_phone" placeholder="9876543210">
+        </div>
+      </div>
+
+      <div style="font-weight: 700; font-size: 13px; color: #0d5c58; margin: 12px 0 8px 0; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+        Banking Information
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Bank Name</label>
+          <input type="text" name="bank_name" placeholder="HDFC Bank">
+        </div>
+        <div class="form-group">
+          <label>Account Number</label>
+          <input type="text" name="bank_account_number" placeholder="50200012345678">
+        </div>
+        <div class="form-group">
+          <label>IFSC Code</label>
+          <input type="text" name="bank_ifsc" placeholder="HDFC0001234">
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-top: 16px;">
+        <button type="button" onclick="closeModal('addPartnerModal')" class="button" style="background:#e2e8f0; color:#334155; margin-right:8px;">Cancel</button>
+        <button type="submit" class="button button-primary" style="background:#0d5c58; color:#fff; font-weight:700;">Save Partner Profile</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Add B2C Traveler -->
+<div id="addB2CModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title">👥 Add Direct Retail B2C Traveler</h3>
+      <button type="button" onclick="closeModal('addB2CModal')" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action_type" value="add_b2c">
+      
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Full Traveler Name *</label>
+          <input type="text" name="full_name" required placeholder="e.g. Dr. Priya Soundararajan">
+        </div>
+        <div class="form-group">
+          <label>Nationality</label>
+          <input type="text" name="nationality" value="Indian">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Mobile Number *</label>
+          <input type="text" name="phone" required placeholder="9876543210">
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="priya@example.com">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Passport Number (NRI / Foreign Guest)</label>
+          <input type="text" name="passport_number" placeholder="e.g. Z1234567">
+        </div>
+        <div class="form-group">
+          <label>City of Residence</label>
+          <input type="text" name="city" placeholder="Coimbatore">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <input type="checkbox" name="is_vip" style="width:auto; margin-right:6px;"> Mark as Priority VIP Guest
+        </label>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Instagram Handle</label>
+          <input type="text" name="instagram_handle" placeholder="@priya_travels">
+        </div>
+        <div class="form-group">
+          <label>Facebook Profile URL</label>
+          <input type="url" name="facebook_url" placeholder="https://facebook.com/...">
+        </div>
+        <div class="form-group">
+          <label>LinkedIn URL</label>
+          <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/...">
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-top: 16px;">
+        <button type="button" onclick="closeModal('addB2CModal')" class="button" style="background:#e2e8f0; color:#334155; margin-right:8px;">Cancel</button>
+        <button type="submit" class="button button-primary" style="background:#0d5c58; color:#fff; font-weight:700;">Save Traveler Profile</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal(id) {
+    document.getElementById(id).style.display = 'flex';
+  }
+  function closeModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+</script>
+{% endblock %}

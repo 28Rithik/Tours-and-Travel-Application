@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Payslip - {{ driver.name }} ({{ month_name }} {{ payslip.year }})</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f7f3;
+      margin: 0;
+      padding: 30px;
+      color: #172a2e;
+    }
+    .payslip-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #dce5df;
+      border-radius: 8px;
+      padding: 36px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #176b68;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .brand-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #176b68;
+      margin-bottom: 4px;
+    }
+    .brand-sub {
+      font-size: 13px;
+      color: #6d7c7d;
+    }
+    .slip-badge {
+      text-align: right;
+    }
+    .slip-badge h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #172a2e;
+    }
+    .slip-badge span {
+      font-size: 13px;
+      color: #6d7c7d;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      background: #fbfcfb;
+      border: 1px solid #e8efe9;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+    .info-label {
+      color: #6d7c7d;
+    }
+    .info-val {
+      font-weight: 600;
+    }
+    .tables-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      background: #eef5f2;
+      color: #176b68;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid #dce5df;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f4f1;
+    }
+    .amt-col {
+      text-align: right;
+    }
+    .total-row {
+      font-weight: bold;
+      background: #fbfcfb;
+      border-top: 1px solid #dce5df;
+    }
+    .net-banner {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 8px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 36px;
+    }
+    .net-label {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1b5e20;
+    }
+    .net-sub {
+      font-size: 12px;
+      color: #4caf50;
+      margin-top: 2px;
+    }
+    .net-val {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2e7d32;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 30px;
+      border-top: 1px dashed #dce5df;
+      font-size: 12px;
+      color: #6d7c7d;
+    }
+    .sig-line {
+      width: 180px;
+      border-top: 1px solid #172a2e;
+      margin-top: 40px;
+      text-align: center;
+      padding-top: 6px;
+    }
+    .print-actions {
+      max-width: 800px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn {
+      padding: 8px 16px;
+      background: #176b68;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 0;
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .payslip-container { box-shadow: none; border: 0; padding: 0; max-width: 100%; }
+      .print-actions { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-actions">
+    <button onclick="window.print()" class="btn">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <div class="payslip-container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <div class="brand-title">Sivagayathiri Travels & Fleet Solutions</div>
+        <div class="brand-sub">Tours, Rentals & Corporate Commute Operations</div>
+        <div class="brand-sub">Coimbatore, Tamil Nadu | GSTIN: 33AAAAA0000A1Z5</div>
+      </div>
+      <div class="slip-badge">
+        <h2>PAYSLIP</h2>
+        <span>{{ month_name }} {{ payslip.year }}</span>
+      </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="info-grid">
+      <div>
+        <div class="info-item">
+          <span class="info-label">Driver Name:</span>
+          <span class="info-val">{{ driver.name }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Contact Phone:</span>
+          <span class="info-val">{{ driver.phone|default:"—" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Driving License:</span>
+          <span class="info-val">{{ driver.license_number|default:"—" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Aadhar Number:</span>
+          <span class="info-val">{{ driver.aadhar_number|default:"—" }}</span>
+        </div>
+      </div>
+      <div>
+        <div class="info-item">
+          <span class="info-label">Duty Days Present:</span>
+          <span class="info-val" style="color: #176b68;">{{ payslip.days_present }} Days</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">EPF Number:</span>
+          <span class="info-val">{{ profile.epf_number|default:"Not Enrolled" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">ESI Number:</span>
+          <span class="info-val">{{ profile.esi_number|default:"Not Enrolled" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Trips & Shifts Logged:</span>
+          <span class="info-val">{{ attendance.total_trips }} Trips, {{ attendance.total_contract_shifts }} Contract Shifts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earnings & Deductions Tables -->
+    <div class="tables-wrapper">
+      <!-- Earnings -->
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Earnings Component</th>
+              <th class="amt-col">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Basic Salary (Prorated)</td>
+              <td class="amt-col">{{ payslip.basic_salary|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td>Allowances & Benefits</td>
+              <td class="amt-col">{{ payslip.allowances|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+              <td>Total Gross Earnings</td>
+              <td class="amt-col">{{ payslip.gross_earnings|floatformat:2 }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Deductions -->
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Deductions Component</th>
+              <th class="amt-col">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>EPF (Employee Contribution)</td>
+              <td class="amt-col">{{ payslip.epf_deduction|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td>ESI (Employee Contribution)</td>
+              <td class="amt-col">{{ payslip.esi_deduction|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td>
+                Traffic Challans Deducted
+                {% if fines %}
+                  <div style="font-size: 10px; color: #6d7c7d;">
+                    {% for f in fines %}Challan {{ f.challan_number }} (₹{{ f.fine_amount }}){% if not forloop.last %}, {% endif %}{% endfor %}
+                  </div>
+                {% endif %}
+              </td>
+              <td class="amt-col" style="color: #c5221f;">{{ payslip.traffic_fines_deduction|floatformat:2 }}</td>
+            </tr>
+            <tr>
+              <td>
+                Advances Recovered
+                {% if advances %}
+                  <div style="font-size: 10px; color: #6d7c7d;">
+                    {% for a in advances %}Adv {{ a.date|date:"d M" }} (₹{{ a.amount }}){% if not forloop.last %}, {% endif %}{% endfor %}
+                  </div>
+                {% endif %}
+              </td>
+              <td class="amt-col" style="color: #c5221f;">{{ payslip.advances_recovered|floatformat:2 }}</td>
+            </tr>
+            <tr class="total-row">
+              <td>Total Deductions</td>
+              <td class="amt-col" style="color: #c5221f;">{{ payslip.total_deductions|floatformat:2 }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Net Banner -->
+    <div class="net-banner">
+      <div>
+        <div class="net-label">NET TAKE-HOME SALARY PAYABLE</div>
+        <div class="net-sub">Direct Bank Transfer / Company Cash Disbursement</div>
+      </div>
+      <div class="net-val">₹{{ payslip.net_payable|floatformat:2 }}</div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="signatures">
+      <div>
+        <div class="sig-line">Driver Signature / Thumbprint</div>
+      </div>
+      <div>
+        <div class="sig-line">Prepared By (Accounts)</div>
+      </div>
+      <div>
+        <div class="sig-line">Authorized Signatory</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

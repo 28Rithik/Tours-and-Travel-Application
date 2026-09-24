@@ -1,0 +1,1663 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Live Fleet Operations Mission Control | TravelERP{% endblock %}
+{% block header_title %}Fleet Operations Mission Control{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="mission-control-container">
+    <!-- Top Command Strip -->
+    <header class="mc-header">
+        <div class="mc-title-group">
+            <div class="mc-badge-live">
+                <span class="mc-pulse-dot"></span>
+                <span>LIVE TELEMETRY</span>
+            </div>
+            <h1 class="mc-main-title">🛰️ Fleet Operations Command</h1>
+            <span class="mc-last-sync" id="mcLastSyncText">Syncing...</span>
+        </div>
+
+        <!-- Quick KPI Counters -->
+        <div class="mc-kpi-bar">
+            <div class="mc-kpi-pill is-total" title="Total Fleet Size">
+                <span class="mc-kpi-icon">🚗</span>
+                <span class="mc-kpi-val" id="kpiTotalCount">--</span>
+                <span class="mc-kpi-lbl">Total</span>
+            </div>
+            <div class="mc-kpi-pill is-active" title="Currently on Road / Active Trip">
+                <span class="mc-kpi-icon">🟢</span>
+                <span class="mc-kpi-val" id="kpiActiveCount">--</span>
+                <span class="mc-kpi-lbl">On Duty</span>
+            </div>
+            <div class="mc-kpi-pill is-standby" title="Available in Depot Yard">
+                <span class="mc-kpi-icon">🔵</span>
+                <span class="mc-kpi-val" id="kpiStandbyCount">--</span>
+                <span class="mc-kpi-lbl">Standby</span>
+            </div>
+            <div class="mc-kpi-pill is-workshop" title="In Workshop or Open Defect">
+                <span class="mc-kpi-icon">🟠</span>
+                <span class="mc-kpi-val" id="kpiWorkshopCount">--</span>
+                <span class="mc-kpi-lbl">Workshop</span>
+            </div>
+            <div class="mc-kpi-pill is-sos" id="kpiSosWrapper" title="Active SOS / Emergency Incidents">
+                <span class="mc-kpi-icon">🔴</span>
+                <span class="mc-kpi-val" id="kpiSosCount">0</span>
+                <span class="mc-kpi-lbl">SOS Alerts</span>
+            </div>
+        </div>
+
+        <div class="mc-header-actions">
+            <a href="{% url 'analytics:fleet_analytics' %}" class="mc-btn mc-btn-secondary" title="View Cost-Per-KM and Fleet Economics">
+                📊 Fleet Analytics & CPK
+            </a>
+            <button id="btnManualRefresh" class="mc-btn mc-btn-primary" title="Trigger instant telematics ping refresh">
+                <span class="refresh-spinner" id="refreshIcon">↻</span> Refresh
+            </button>
+        </div>
+    </header>
+
+    <!-- Emergency SOS Alert Banner (Visible when SOS > 0) -->
+    <div id="mcSosBanner" class="mc-sos-banner" style="display: none;">
+        <div class="mc-sos-banner-content">
+            <span class="mc-sos-beacon">🚨</span>
+            <div>
+                <strong id="sosBannerTitle">CRITICAL INCIDENT DETECTED</strong>
+                <p id="sosBannerDesc">Emergency alert active. Standby unit dispatch recommended.</p>
+            </div>
+        </div>
+        <button id="btnOpenDispatchQuick" class="mc-btn mc-btn-danger">
+            ⚡ Quick Standby Dispatch
+        </button>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="mc-toolbar">
+        <div class="mc-filter-pills" id="statusFilterPills">
+            <button class="filter-pill is-active" data-filter="all">All Vehicles (<span id="countPillAll">0</span>)</button>
+            <button class="filter-pill" data-filter="on_trip">🟢 Moving (<span id="countPillActive">0</span>)</button>
+            <button class="filter-pill" data-filter="standby">🔵 Standby (<span id="countPillStandby">0</span>)</button>
+            <button class="filter-pill" data-filter="workshop">🟠 Workshop (<span id="countPillWorkshop">0</span>)</button>
+            <button class="filter-pill" data-filter="sos_alert">🔴 SOS Alert (<span id="countPillSos">0</span>)</button>
+        </div>
+
+        <div class="mc-search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="vehicleSearchInput" placeholder="Search Reg, Driver, Model, City..." />
+            <button id="clearSearchBtn" class="clear-search-btn" style="display:none;">✕</button>
+        </div>
+
+        <div class="mc-map-toggles">
+            <button id="btnFitBounds" class="mc-toggle-btn" title="Fit all fleet on map">⛶ Fit All</button>
+            <button id="btnToggleDepot" class="mc-toggle-btn" title="Focus HQ Depot">📍 Depot Yard</button>
+        </div>
+    </div>
+
+    <!-- Main Live Command Layout: Interactive Map + Telemetry Panel -->
+    <div class="mc-workspace">
+        <!-- Interactive Leaflet Map -->
+        <div class="mc-map-wrapper">
+            <div id="liveFleetMap" class="mc-map"></div>
+
+            <!-- Map Floating Legend Overlay -->
+            <div class="mc-map-legend">
+                <div class="legend-row"><span class="legend-dot green"></span> Moving On Trip</div>
+                <div class="legend-row"><span class="legend-dot blue"></span> Ready Standby</div>
+                <div class="legend-row"><span class="legend-dot orange"></span> Maintenance / Defect</div>
+                <div class="legend-row"><span class="legend-dot red pulsing"></span> SOS / Breakdown</div>
+            </div>
+        </div>
+
+        <!-- Right Side Panel: Tabs for (1) Telemetry Drawer, (2) Fleet Roster, (3) Live Safety Ticker -->
+        <aside class="mc-sidebar" id="mcSidebar">
+            <div class="mc-tab-headers">
+                <button class="mc-tab-btn is-active" data-tab="telemetry">⚡ Telemetry</button>
+                <button class="mc-tab-btn" data-tab="roster">📋 Fleet List (<span id="rosterListCount">0</span>)</button>
+                <button class="mc-tab-btn" data-tab="safety">🛡️ Safety Ticker (<span id="safetyEventsCount">0</span>)</button>
+            </div>
+
+            <!-- Tab 1: Telemetry Inspector -->
+            <div class="mc-tab-content is-active" id="tabContentTelemetry">
+                <div id="telemetryPlaceholder" class="mc-empty-state">
+                    <div class="empty-icon">🛰️</div>
+                    <h3>Select a Vehicle</h3>
+                    <p>Click any vehicle pin on the map or select from the fleet roster to inspect real-time telematics, speed, driver, and active trip status.</p>
+                </div>
+
+                <div id="telemetryDetails" class="mc-telemetry-details" style="display: none;">
+                    <!-- Vehicle Title & Status -->
+                    <div class="mc-detail-head">
+                        <div>
+                            <div class="reg-number" id="detailRegNumber">TN-38-BZ-1234</div>
+                            <div class="model-name" id="detailModelName">Innova Crysta 2.4 VX</div>
+                        </div>
+                        <div class="status-badge" id="detailStatusBadge">🟢 On Trip</div>
+                    </div>
+
+                    <!-- Digital Gauges -->
+                    <div class="mc-gauges-grid">
+                        <div class="gauge-card">
+                            <span class="gauge-label">Speed</span>
+                            <div class="gauge-value" id="detailSpeed">0 <small>km/h</small></div>
+                            <div class="gauge-sub" id="detailIgnition">Ignition: OFF</div>
+                        </div>
+                        <div class="gauge-card">
+                            <span class="gauge-label">Fuel Level</span>
+                            <div class="gauge-value" id="detailFuel">75 <small>%</small></div>
+                            <div class="fuel-bar-wrap">
+                                <div class="fuel-bar-fill" id="detailFuelBar" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                        <div class="gauge-card">
+                            <span class="gauge-label">Odometer</span>
+                            <div class="gauge-value" id="detailOdometer">42,500 <small>km</small></div>
+                            <div class="gauge-sub" id="detailFuelType">Diesel</div>
+                        </div>
+                    </div>
+
+                    <!-- Location & Ping Info -->
+                    <div class="mc-info-strip">
+                        <span class="info-icon">📍</span>
+                        <div class="info-text">
+                            <strong id="detailLocationName">Coimbatore Bypass, NH-544</strong>
+                            <span id="detailPingTime">Last ping: 2s ago</span>
+                        </div>
+                        <button id="btnCenterVehicle" class="mc-btn-icon" title="Center Map on this Vehicle">🎯</button>
+                    </div>
+
+                    <!-- Active Trip Section -->
+                    <div class="mc-section-card" id="detailTripCard">
+                        <div class="card-section-title">
+                            <span>🧭 Active Trip</span>
+                            <span class="badge-trip-no" id="detailTripNumber">TRP-1042</span>
+                        </div>
+                        <div class="trip-route-visual">
+                            <div class="route-point">
+                                <span class="point-dot pickup"></span>
+                                <span class="point-text" id="detailTripPickup">Coimbatore Junction</span>
+                            </div>
+                            <div class="route-line"></div>
+                            <div class="route-point">
+                                <span class="point-dot dest"></span>
+                                <span class="point-text" id="detailTripDest">Ooty Boat House</span>
+                            </div>
+                        </div>
+                        <div class="trip-guest-meta">
+                            <span>Guest: <strong id="detailTripGuest">Rithick Kumar</strong></span>
+                            <span id="detailTripPhone">📞 +91 98765 43210</span>
+                        </div>
+                        <div class="trip-action-row">
+                            <a id="detailTripLink" href="#" class="mc-btn mc-btn-sm mc-btn-secondary" target="_blank">
+                                Open Trip Sheet ↗
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Driver Card -->
+                    <div class="mc-section-card" id="detailDriverCard">
+                        <div class="card-section-title">
+                            <span>👨‍✈️ Assigned Captain</span>
+                            <span class="badge-driver-grade" id="detailDriverGrade">Grade A+</span>
+                        </div>
+                        <div class="driver-profile-row">
+                            <div class="driver-avatar" id="detailDriverAvatar">RK</div>
+                            <div class="driver-info">
+                                <strong id="detailDriverName">Murugan S.</strong>
+                                <span id="detailDriverPhone">+91 94432 11223</span>
+                            </div>
+                            <a id="detailDriverCall" href="tel:" class="mc-btn mc-btn-icon is-call" title="Call Driver">
+                                📞
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Alert Box (If present) -->
+                    <div class="mc-incident-alert-box" id="detailIncidentBox" style="display: none;">
+                        <div class="incident-alert-head">
+                            <span>🚨 INCIDENT IN PROGRESS</span>
+                            <span class="badge-incident-sev" id="detailIncidentSev">CRITICAL</span>
+                        </div>
+                        <p id="detailIncidentDesc">Mechanical breakdown on Ghat road.</p>
+                        <button id="btnTriggerDispatchFromDetail" class="mc-btn mc-btn-danger" style="width: 100%; margin-top: 8px;">
+                            ⚡ Dispatch Standby Replacement
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Fleet Roster List -->
+            <div class="mc-tab-content" id="tabContentRoster">
+                <div class="mc-roster-list" id="mcRosterList">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Tab 3: Safety & Violation Ticker -->
+            <div class="mc-tab-content" id="tabContentSafety">
+                <div class="safety-events-feed" id="safetyEventsFeed">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<!-- Standby Replacement Dispatch Modal -->
+<div id="standbyDispatchModal" class="mc-modal-backdrop" style="display: none;">
+    <div class="mc-modal-card">
+        <div class="mc-modal-header">
+            <h3>⚡ Emergency Standby Replacement Dispatch</h3>
+            <button id="btnCloseModal" class="mc-modal-close">&times;</button>
+        </div>
+        <form id="standbyDispatchForm" method="POST" action="">
+            {% csrf_token %}
+            <div class="mc-modal-body">
+                <p class="modal-sub">Assign a standby vehicle and fresh driver to recover passengers immediately.</p>
+
+                <div class="form-group">
+                    <label>Select Active Incident</label>
+                    <select id="modalIncidentSelect" name="incident_id" required class="mc-select">
+                        {% for inc in active_incidents %}
+                            <option value="{{ inc.id }}">{{ inc.incident_id }} - {{ inc.vehicle.registration_number }} ({{ inc.get_incident_type_display }})</option>
+                        {% empty %}
+                            <option value="">No Active Incidents Pending</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Available Standby Vehicle</label>
+                        <select name="standby_vehicle_id" required class="mc-select">
+                            {% for v in standby_vehicles %}
+                                <option value="{{ v.id }}">{{ v.registration_number }} - {{ v.brand }} {{ v.model }} ({{ v.seating_capacity }} seats)</option>
+                            {% empty %}
+                                <option value="">No Standby Vehicles Available</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group half">
+                        <label>Dispatched ETA (Minutes)</label>
+                        <input type="number" name="eta_minutes" value="25" min="5" max="180" class="mc-input" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dispatch Coordination Notes</label>
+                    <textarea name="notes" rows="3" class="mc-textarea" placeholder="Instructions for standby driver (route details, passenger count, rendezvous point)..."></textarea>
+                </div>
+            </div>
+            <div class="mc-modal-footer">
+                <button type="button" id="btnCancelModal" class="mc-btn mc-btn-secondary">Cancel</button>
+                <button type="submit" class="mc-btn mc-btn-danger">Confirm Standby Dispatch</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Mission Control Stylesheet */
+.mission-control-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 70px);
+    background: #090d16;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow: hidden;
+}
+
+/* Header */
+.mc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.mc-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mc-badge-live {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    letter-spacing: 0.05em;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.mc-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #10b981;
+    animation: pulse 1.6s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.mc-main-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin: 0;
+}
+
+.mc-last-sync {
+    color: #64748b;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* KPI Bar */
+.mc-kpi-bar {
+    display: flex;
+    gap: 8px;
+}
+
+.mc-kpi-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.mc-kpi-val {
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.mc-kpi-lbl {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+.mc-kpi-pill.is-active .mc-kpi-val { color: #10b981; }
+.mc-kpi-pill.is-standby .mc-kpi-val { color: #38bdf8; }
+.mc-kpi-pill.is-workshop .mc-kpi-val { color: #f59e0b; }
+.mc-kpi-pill.is-sos {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+.mc-kpi-pill.is-sos .mc-kpi-val { color: #ef4444; }
+
+/* Buttons */
+.mc-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.mc-btn {
+    border: none;
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.mc-btn-primary {
+    background: #0284c7;
+    color: #ffffff;
+}
+.mc-btn-primary:hover { background: #0369a1; }
+
+.mc-btn-secondary {
+    background: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+}
+.mc-btn-secondary:hover { background: #334155; }
+
+.mc-btn-danger {
+    background: #dc2626;
+    color: #ffffff;
+}
+.mc-btn-danger:hover { background: #b91c1c; }
+
+.refresh-spinner {
+    display: inline-block;
+    font-size: 14px;
+    transition: transform 0.6s ease;
+}
+.refresh-spinner.spin {
+    animation: rotate 0.8s linear infinite;
+}
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* SOS Banner */
+.mc-sos-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(90deg, #7f1d1d, #991b1b);
+    border-bottom: 2px solid #ef4444;
+    padding: 10px 20px;
+    color: #fef2f2;
+}
+.mc-sos-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.mc-sos-beacon {
+    font-size: 24px;
+    animation: pulse 1s infinite alternate;
+}
+.mc-sos-banner strong {
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    color: #fecaca;
+}
+.mc-sos-banner p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #fca5a5;
+}
+
+/* Toolbar */
+.mc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 18px;
+    background: #0b1120;
+    border-bottom: 1px solid #1e293b;
+    gap: 12px;
+}
+
+.mc-filter-pills {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-pill {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.filter-pill:hover { background: #334155; color: #f1f5f9; }
+.filter-pill.is-active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.mc-search-box {
+    display: flex;
+    align-items: center;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 4px 10px;
+    width: 280px;
+}
+.mc-search-box input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f8fafc;
+    font-size: 12px;
+    width: 100%;
+    margin-left: 6px;
+}
+.clear-search-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.mc-map-toggles {
+    display: flex;
+    gap: 6px;
+}
+.mc-toggle-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.mc-toggle-btn:hover { background: #334155; }
+
+/* Workspace Split */
+.mc-workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.mc-map-wrapper {
+    flex: 1;
+    position: relative;
+    height: 100%;
+}
+
+.mc-map {
+    width: 100%;
+    height: 100%;
+    background: #080d1a;
+}
+
+/* Floating Legend */
+.mc-map-legend {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #334155;
+    backdrop-filter: blur(8px);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #cbd5e1;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+.legend-row:last-child { margin-bottom: 0; }
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.legend-dot.green { background: #10b981; }
+.legend-dot.blue { background: #38bdf8; }
+.legend-dot.orange { background: #f59e0b; }
+.legend-dot.red { background: #ef4444; }
+.legend-dot.red.pulsing { animation: pulse 1s infinite alternate; }
+
+/* Sidebar */
+.mc-sidebar {
+    width: 360px;
+    background: #0d1322;
+    border-left: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mc-tab-headers {
+    display: flex;
+    border-bottom: 1px solid #1e293b;
+    background: #090e1a;
+}
+.mc-tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #94a3b8;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.mc-tab-btn.is-active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+}
+
+.mc-tab-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+}
+.mc-tab-content.is-active {
+    display: block;
+}
+
+/* Empty State */
+.mc-empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #64748b;
+}
+.empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+.mc-empty-state h3 {
+    color: #94a3b8;
+    font-size: 16px;
+    margin: 0 0 6px 0;
+}
+.mc-empty-state p {
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Telemetry Details */
+.mc-detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+.reg-number {
+    font-size: 18px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: #f8fafc;
+}
+.model-name {
+    font-size: 12px;
+    color: #94a3b8;
+}
+.status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #1e293b;
+    color: #10b981;
+}
+
+/* Gauges */
+.mc-gauges-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.gauge-card {
+    background: #151e33;
+    border: 1px solid #23314f;
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+.gauge-label {
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: block;
+}
+.gauge-value {
+    font-size: 16px;
+    font-weight: 800;
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 2px 0;
+}
+.gauge-value small { font-size: 10px; color: #94a3b8; }
+.gauge-sub {
+    font-size: 10px;
+    color: #64748b;
+}
+.fuel-bar-wrap {
+    height: 4px;
+    background: #0f172a;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.fuel-bar-fill {
+    height: 100%;
+    background: #10b981;
+    border-radius: 2px;
+}
+
+/* Info Strip */
+.mc-info-strip {
+    display: flex;
+    align-items: center;
+    background: #151e33;
+    border: 1px solid #23314f;
+    border-radius: 8px;
+    padding: 8px 10px;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.info-icon { font-size: 16px; }
+.info-text { flex: 1; }
+.info-text strong {
+    display: block;
+    font-size: 12px;
+    color: #f1f5f9;
+}
+.info-text span {
+    font-size: 11px;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+}
+.mc-btn-icon {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.mc-btn-icon:hover { background: #334155; }
+.mc-btn-icon.is-call { background: #065f46; color: #a7f3d0; border-color: #059669; }
+
+/* Section Cards */
+.mc-section-card {
+    background: #151e33;
+    border: 1px solid #23314f;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+.card-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+.badge-trip-no {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.badge-driver-grade {
+    font-size: 11px;
+    font-weight: 800;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Trip Route Visual */
+.trip-route-visual {
+    margin-bottom: 8px;
+}
+.route-point {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+.point-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.point-dot.pickup { background: #38bdf8; }
+.point-dot.dest { background: #10b981; }
+.point-text { font-weight: 600; color: #f1f5f9; }
+.route-line {
+    width: 2px;
+    height: 12px;
+    background: #334155;
+    margin-left: 3px;
+}
+.trip-guest-meta {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.trip-action-row {
+    text-align: right;
+}
+.mc-btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+/* Driver Profile Row */
+.driver-profile-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.driver-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+.driver-info { flex: 1; }
+.driver-info strong { display: block; font-size: 13px; color: #f8fafc; }
+.driver-info span { font-size: 11px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; }
+
+/* Incident Box */
+.mc-incident-alert-box {
+    background: rgba(220, 38, 38, 0.15);
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+}
+.incident-alert-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 800;
+    color: #fca5a5;
+}
+.badge-incident-sev {
+    background: #ef4444;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.mc-incident-alert-box p {
+    font-size: 12px;
+    color: #fecaca;
+    margin: 6px 0;
+}
+
+/* Roster List in Sidebar */
+.mc-roster-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.roster-card {
+    background: #131b2e;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.roster-card:hover {
+    background: #1c2742;
+    border-color: #38bdf8;
+}
+.roster-card.is-selected {
+    background: rgba(56, 189, 248, 0.1);
+    border-color: #38bdf8;
+}
+.roster-card-left .reg {
+    font-size: 13px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: #f8fafc;
+}
+.roster-card-left .model {
+    font-size: 11px;
+    color: #94a3b8;
+}
+.roster-card-right {
+    text-align: right;
+}
+.roster-card-right .status {
+    font-size: 11px;
+    font-weight: 700;
+}
+.roster-card-right .speed {
+    font-size: 11px;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Safety Events Feed */
+.safety-events-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.safety-event-card {
+    background: #131b2e;
+    border-left: 3px solid #f59e0b;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+.safety-event-card.is-critical {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+.safety-event-card.is-sos {
+    border-left-color: #dc2626;
+    background: rgba(220, 38, 38, 0.15);
+}
+.event-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+}
+.event-top strong { color: #f8fafc; }
+.event-body {
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+/* Modal */
+.mc-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.mc-modal-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    width: 520px;
+    max-width: 90vw;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+.mc-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #1e293b;
+}
+.mc-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #f8fafc;
+}
+.mc-modal-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 22px;
+    cursor: pointer;
+}
+.mc-modal-body {
+    padding: 20px;
+}
+.modal-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 0 0 16px 0;
+}
+.form-group {
+    margin-bottom: 14px;
+}
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+.form-group.half { flex: 1; }
+.form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+.mc-select, .mc-input, .mc-textarea {
+    width: 100%;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #f8fafc;
+    padding: 8px 10px;
+    font-size: 12px;
+    outline: none;
+    box-sizing: border-box;
+}
+.mc-select:focus, .mc-input:focus, .mc-textarea:focus {
+    border-color: #38bdf8;
+}
+.mc-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 20px;
+    background: #090e1a;
+    border-top: 1px solid #1e293b;
+}
+
+/* Custom Leaflet Marker Styling */
+.mc-vehicle-marker {
+    background: transparent;
+    border: none;
+}
+.marker-pin-inner {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    border: 2px solid #ffffff;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.marker-pin-inner:hover {
+    transform: scale(1.2);
+}
+.marker-pin-inner.green {
+    background: #10b981;
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.7);
+}
+.marker-pin-inner.blue {
+    background: #0284c7;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+}
+.marker-pin-inner.orange {
+    background: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+}
+.marker-pin-inner.red {
+    background: #ef4444;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.9);
+    animation: marker-pulse 1s infinite alternate;
+}
+.marker-pin-inner.gray {
+    background: #64748b;
+}
+
+@keyframes marker-pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.25); }
+}
+
+.marker-label {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #334155;
+    color: #f8fafc;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    pointer-events: none;
+}
+</style>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    // --- Application State ---
+    let map = null;
+    let vehicleMarkers = {};
+    let geofenceLayers = [];
+    let fleetData = [];
+    let selectedVehicleId = null;
+    let currentFilter = 'all';
+    let autoRefreshTimer = null;
+    let isFetching = false;
+
+    const DEPOT_COORDS = [11.0168, 76.9558]; // Coimbatore HQ
+
+    // --- Initialize Leaflet Map ---
+    function initMap() {
+        map = L.map('liveFleetMap', {
+            center: DEPOT_COORDS,
+            zoom: 11,
+            zoomControl: false
+        });
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // High contrast dark command tile layer (CartoDB Dark Matter) with OSM fallback
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(map);
+    }
+
+    // --- Fetch Live Telematics Feed ---
+    async function fetchLiveFeed() {
+        if (isFetching) return;
+        isFetching = true;
+        const icon = document.getElementById('refreshIcon');
+        if (icon) icon.classList.add('spin');
+
+        try {
+            const resp = await fetch('/api/fleet/live-feed/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+
+            fleetData = data.vehicles || [];
+            updateSummaryCounters(data.summary || {});
+            renderVehicleMarkers(fleetData);
+            renderGeofences(data.geofences || []);
+            renderRosterList(fleetData);
+            renderSafetyEvents(data.recent_violations || [], data.active_incidents || []);
+            checkSosAlerts(data.active_incidents || []);
+
+            const syncText = document.getElementById('mcLastSyncText');
+            if (syncText) {
+                const now = new Date();
+                syncText.innerText = `Synced ${now.toLocaleTimeString()}`;
+            }
+
+            // If a vehicle was selected, refresh its details
+            if (selectedVehicleId) {
+                const v = fleetData.find(x => x.id === selectedVehicleId);
+                if (v) selectVehicle(v, false);
+            }
+        } catch (err) {
+            console.error('Error fetching live fleet feed:', err);
+        } finally {
+            isFetching = false;
+            if (icon) icon.classList.remove('spin');
+        }
+    }
+
+    // --- Update Counters ---
+    function updateSummaryCounters(summary) {
+        document.getElementById('kpiTotalCount').innerText = summary.total_vehicles || 0;
+        document.getElementById('kpiActiveCount').innerText = summary.active_count || 0;
+        document.getElementById('kpiStandbyCount').innerText = summary.standby_count || 0;
+        document.getElementById('kpiWorkshopCount').innerText = summary.workshop_count || 0;
+        document.getElementById('kpiSosCount').innerText = summary.sos_count || 0;
+
+        document.getElementById('countPillAll').innerText = summary.total_vehicles || 0;
+        document.getElementById('countPillActive').innerText = summary.active_count || 0;
+        document.getElementById('countPillStandby').innerText = summary.standby_count || 0;
+        document.getElementById('countPillWorkshop').innerText = summary.workshop_count || 0;
+        document.getElementById('countPillSos').innerText = summary.sos_count || 0;
+
+        document.getElementById('rosterListCount').innerText = summary.total_vehicles || 0;
+        document.getElementById('safetyEventsCount').innerText = (summary.violations_count || 0) + (summary.active_alerts_count || 0);
+
+        const sosWrapper = document.getElementById('kpiSosWrapper');
+        if (summary.sos_count > 0) {
+            sosWrapper.style.display = 'flex';
+        }
+    }
+
+    // --- Check Active SOS Incidents ---
+    function checkSosAlerts(activeIncidents) {
+        const banner = document.getElementById('mcSosBanner');
+        if (!banner) return;
+        if (activeIncidents && activeIncidents.length > 0) {
+            const first = activeIncidents[0];
+            document.getElementById('sosBannerTitle').innerText = `🚨 CRITICAL ALERT: ${first.incident_id} (${first.vehicle_reg})`;
+            document.getElementById('sosBannerDesc').innerText = `${first.incident_type} reported at ${first.location}. ${first.description}`;
+            banner.style.display = 'flex';
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    // --- Render Custom Vehicle Markers on Leaflet Map ---
+    function renderVehicleMarkers(vehicles) {
+        const currentIds = new Set();
+        const searchVal = (document.getElementById('vehicleSearchInput').value || '').trim().toLowerCase();
+
+        vehicles.forEach(v => {
+            currentIds.add(v.id);
+
+            // Filter Check
+            let matchesFilter = true;
+            if (currentFilter !== 'all') {
+                matchesFilter = (v.status_code === currentFilter);
+            }
+
+            // Search Check
+            let matchesSearch = true;
+            if (searchVal) {
+                const haystack = `${v.registration_number} ${v.model_name} ${v.location_name} ${v.driver ? v.driver.name : ''}`.toLowerCase();
+                matchesSearch = haystack.includes(searchVal);
+            }
+
+            const visible = matchesFilter && matchesSearch;
+
+            // Choose icon class & symbol
+            let iconSymbol = '🚗';
+            let colorClass = 'blue';
+            if (v.vehicle_type && v.vehicle_type.toLowerCase().includes('bus')) {
+                iconSymbol = '🚌';
+            } else if (v.vehicle_type && v.vehicle_type.toLowerCase().includes('tempo')) {
+                iconSymbol = '🚐';
+            }
+
+            if (v.status_code === 'sos_alert') {
+                colorClass = 'red';
+                iconSymbol = '🚨';
+            } else if (v.status_code === 'workshop') {
+                colorClass = 'orange';
+                iconSymbol = '🔧';
+            } else if (v.status_code === 'on_trip') {
+                colorClass = 'green';
+            } else if (v.status_code === 'idle') {
+                colorClass = 'gray';
+            }
+
+            const customHtml = `
+                <div class="marker-pin-inner ${colorClass}">
+                    ${iconSymbol}
+                </div>
+                <div class="marker-label">${v.registration_number}</div>
+            `;
+
+            const icon = L.divIcon({
+                className: 'mc-vehicle-marker',
+                html: customHtml,
+                iconSize: [34, 46],
+                iconAnchor: [17, 20]
+            });
+
+            if (vehicleMarkers[v.id]) {
+                const marker = vehicleMarkers[v.id];
+                marker.setLatLng([v.lat, v.lng]);
+                marker.setIcon(icon);
+                if (visible) {
+                    if (!map.hasLayer(marker)) marker.addTo(map);
+                } else {
+                    if (map.hasLayer(marker)) map.removeLayer(marker);
+                }
+            } else {
+                const marker = L.marker([v.lat, v.lng], { icon: icon });
+                marker.on('click', () => selectVehicle(v, true));
+                if (visible) marker.addTo(map);
+                vehicleMarkers[v.id] = marker;
+            }
+        });
+
+        // Cleanup removed vehicles
+        Object.keys(vehicleMarkers).forEach(id => {
+            if (!currentIds.has(Number(id))) {
+                map.removeLayer(vehicleMarkers[id]);
+                delete vehicleMarkers[id];
+            }
+        });
+    }
+
+    // --- Render Geofences ---
+    function renderGeofences(geofences) {
+        geofenceLayers.forEach(l => map.removeLayer(l));
+        geofenceLayers = [];
+
+        geofences.forEach(g => {
+            const circle = L.circle([g.lat, g.lng], {
+                radius: g.radius,
+                color: '#38bdf8',
+                fillColor: '#0284c7',
+                fillOpacity: 0.1,
+                weight: 1.5,
+                dashArray: '4, 4'
+            }).addTo(map);
+            circle.bindTooltip(`📍 ${g.name} (${g.zone_type})`, { permanent: false, direction: 'top' });
+            geofenceLayers.push(circle);
+        });
+    }
+
+    // --- Render Sidebar Fleet Roster ---
+    function renderRosterList(vehicles) {
+        const container = document.getElementById('mcRosterList');
+        if (!container) return;
+        const searchVal = (document.getElementById('vehicleSearchInput').value || '').trim().toLowerCase();
+
+        container.innerHTML = '';
+        vehicles.forEach(v => {
+            if (currentFilter !== 'all' && v.status_code !== currentFilter) return;
+            if (searchVal) {
+                const haystack = `${v.registration_number} ${v.model_name} ${v.location_name} ${v.driver ? v.driver.name : ''}`.toLowerCase();
+                if (!haystack.includes(searchVal)) return;
+            }
+
+            const card = document.createElement('div');
+            card.className = `roster-card ${selectedVehicleId === v.id ? 'is-selected' : ''}`;
+            card.innerHTML = `
+                <div class="roster-card-left">
+                    <div class="reg">${v.registration_number}</div>
+                    <div class="model">${v.model_name} &bull; ${v.capacity} Seater</div>
+                </div>
+                <div class="roster-card-right">
+                    <div class="status" style="color: ${v.status_color}">${v.status_label}</div>
+                    <div class="speed">${v.speed_kmh > 0 ? v.speed_kmh + ' km/h' : 'Parked'}</div>
+                </div>
+            `;
+            card.addEventListener('click', () => selectVehicle(v, true));
+            container.appendChild(card);
+        });
+    }
+
+    // --- Render Safety Events Ticker ---
+    function renderSafetyEvents(violations, incidents) {
+        const container = document.getElementById('safetyEventsFeed');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Add Active Incidents first
+        incidents.forEach(inc => {
+            const card = document.createElement('div');
+            card.className = 'safety-event-card is-sos';
+            card.innerHTML = `
+                <div class="event-top">
+                    <strong>🚨 ${inc.incident_id} (${inc.vehicle_reg})</strong>
+                    <span>${inc.reported_at}</span>
+                </div>
+                <div class="event-body">
+                    <strong>${inc.incident_type}:</strong> ${inc.description}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        // Add Violations
+        violations.forEach(b => {
+            const card = document.createElement('div');
+            card.className = `safety-event-card ${b.severity === 'critical' ? 'is-critical' : ''}`;
+            card.innerHTML = `
+                <div class="event-top">
+                    <strong>${b.vehicle_reg} &bull; ${b.driver_name}</strong>
+                    <span>${b.time}</span>
+                </div>
+                <div class="event-body">
+                    ⚠️ ${b.event_type} (${b.speed} km/h, limit: ${b.limit} km/h)
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        if (container.children.length === 0) {
+            container.innerHTML = '<div style="color: #64748b; font-size: 12px; text-align: center; padding: 20px;">✅ No safety violations recorded today. Fleet operating safely.</div>';
+        }
+    }
+
+    // --- Select Vehicle & Display in Telemetry Inspector ---
+    function selectVehicle(v, panToMap = true) {
+        selectedVehicleId = v.id;
+
+        // Switch to Telemetry Tab
+        switchTab('telemetry');
+
+        // Highlight in Roster
+        document.querySelectorAll('.roster-card').forEach(el => el.classList.remove('is-selected'));
+
+        document.getElementById('telemetryPlaceholder').style.display = 'none';
+        document.getElementById('telemetryDetails').style.display = 'block';
+
+        document.getElementById('detailRegNumber').innerText = v.registration_number;
+        document.getElementById('detailModelName').innerText = `${v.model_name} (${v.vehicle_type})`;
+
+        const badge = document.getElementById('detailStatusBadge');
+        badge.innerText = v.status_label;
+        badge.style.color = v.status_color;
+
+        document.getElementById('detailSpeed').innerHTML = `${v.speed_kmh} <small>km/h</small>`;
+        document.getElementById('detailIgnition').innerText = `Ignition: ${v.ignition_on ? 'ON' : 'OFF'}`;
+        document.getElementById('detailIgnition').style.color = v.ignition_on ? '#10b981' : '#64748b';
+
+        document.getElementById('detailFuel').innerHTML = `${v.fuel_level_pct || 75} <small>%</small>`;
+        document.getElementById('detailFuelBar').style.width = `${v.fuel_level_pct || 75}%`;
+
+        document.getElementById('detailOdometer').innerHTML = `${(v.current_km || 0).toLocaleString()} <small>km</small>`;
+        document.getElementById('detailFuelType').innerText = v.fuel_type || 'Diesel';
+
+        document.getElementById('detailLocationName').innerText = v.location_name;
+        document.getElementById('detailPingTime').innerText = `Updated: ${v.last_ping_time}`;
+
+        // Trip Info
+        const tripCard = document.getElementById('detailTripCard');
+        if (v.trip) {
+            tripCard.style.display = 'block';
+            document.getElementById('detailTripNumber').innerText = v.trip.booking_number;
+            document.getElementById('detailTripPickup').innerText = v.trip.pickup || 'Pickup Spot';
+            document.getElementById('detailTripDest').innerText = v.trip.destination || 'Destination';
+            document.getElementById('detailTripGuest').innerText = v.trip.guest_name;
+            document.getElementById('detailTripPhone').innerText = v.trip.guest_phone ? `📞 ${v.trip.guest_phone}` : '';
+            document.getElementById('detailTripLink').href = `/trips/${v.trip.id}/`;
+        } else {
+            tripCard.style.display = 'none';
+        }
+
+        // Driver Info
+        const driverCard = document.getElementById('detailDriverCard');
+        if (v.driver) {
+            driverCard.style.display = 'block';
+            document.getElementById('detailDriverName').innerText = v.driver.name;
+            document.getElementById('detailDriverPhone').innerText = v.driver.phone || 'No phone set';
+            document.getElementById('detailDriverGrade').innerText = `Grade ${v.driver.grade} (${v.driver.safety_score}%)`;
+            document.getElementById('detailDriverAvatar').innerText = v.driver.name.charAt(0);
+            document.getElementById('detailDriverCall').href = `tel:${v.driver.phone || ''}`;
+        } else {
+            driverCard.style.display = 'none';
+        }
+
+        // Incident Box
+        const incidentBox = document.getElementById('detailIncidentBox');
+        if (v.incident) {
+            incidentBox.style.display = 'block';
+            document.getElementById('detailIncidentSev').innerText = v.incident.severity;
+            document.getElementById('detailIncidentDesc').innerText = `${v.incident.incident_type}: ${v.incident.description}`;
+        } else {
+            incidentBox.style.display = 'none';
+        }
+
+        if (panToMap && map) {
+            map.flyTo([v.lat, v.lng], 14, { duration: 1.2 });
+        }
+    }
+
+    // --- Tab Switching ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.mc-tab-btn').forEach(btn => {
+            btn.classList.toggle('is-active', btn.dataset.tab === tabId);
+        });
+        document.querySelectorAll('.mc-tab-content').forEach(content => {
+            content.classList.toggle('is-active', content.id === `tabContent${tabId.charAt(0).toUpperCase() + tabId.slice(1)}`);
+        });
+    }
+
+    // --- Fit All Bounds ---
+    function fitAllMarkers() {
+        const visibleMarkers = Object.values(vehicleMarkers).filter(m => map.hasLayer(m));
+        if (visibleMarkers.length > 0) {
+            const group = L.featureGroup(visibleMarkers);
+            map.fitBounds(group.getBounds().pad(0.15));
+        } else {
+            map.setView(DEPOT_COORDS, 12);
+        }
+    }
+
+    // --- Modal Handlers ---
+    function openDispatchModal(incidentId = null) {
+        const modal = document.getElementById('standbyDispatchModal');
+        if (modal) {
+            if (incidentId) {
+                const select = document.getElementById('modalIncidentSelect');
+                if (select) select.value = incidentId;
+            }
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('standbyDispatchModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // --- Form Submit for Standby Replacement ---
+    async function handleStandbySubmit(e) {
+        e.preventDefault();
+        const form = document.getElementById('standbyDispatchForm');
+        const formData = new FormData(form);
+        const incidentId = formData.get('incident_id');
+
+        if (!incidentId) {
+            alert('Please select an active incident to dispatch standby for.');
+            return;
+        }
+
+        try {
+            const resp = await fetch(`/incidents/${incidentId}/dispatch-standby/`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const result = await resp.json();
+            if (result.status === 'success') {
+                alert(`✅ ${result.message}`);
+                closeModal();
+                fetchLiveFeed();
+            } else {
+                alert(`⚠️ ${result.message}`);
+            }
+        } catch (err) {
+            console.error('Error dispatching standby:', err);
+            alert('Error dispatching standby replacement vehicle.');
+        }
+    }
+
+    // --- Setup Listeners ---
+    document.addEventListener('DOMContentLoaded', () => {
+        initMap();
+        fetchLiveFeed();
+
+        // 12s Polling
+        autoRefreshTimer = setInterval(fetchLiveFeed, 12000);
+
+        // Manual Refresh Button
+        document.getElementById('btnManualRefresh').addEventListener('click', fetchLiveFeed);
+
+        // Filter Pills
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('is-active'));
+                pill.classList.add('is-active');
+                currentFilter = pill.dataset.filter;
+                renderVehicleMarkers(fleetData);
+                renderRosterList(fleetData);
+            });
+        });
+
+        // Search Input
+        const searchInput = document.getElementById('vehicleSearchInput');
+        const clearBtn = document.getElementById('clearSearchBtn');
+        searchInput.addEventListener('input', () => {
+            clearBtn.style.display = searchInput.value ? 'inline-block' : 'none';
+            renderVehicleMarkers(fleetData);
+            renderRosterList(fleetData);
+        });
+        clearBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearBtn.style.display = 'none';
+            renderVehicleMarkers(fleetData);
+            renderRosterList(fleetData);
+        });
+
+        // Map View Controls
+        document.getElementById('btnFitBounds').addEventListener('click', fitAllMarkers);
+        document.getElementById('btnToggleDepot').addEventListener('click', () => {
+            map.flyTo(DEPOT_COORDS, 13, { duration: 1.0 });
+        });
+
+        // Center Vehicle
+        document.getElementById('btnCenterVehicle').addEventListener('click', () => {
+            if (selectedVehicleId) {
+                const v = fleetData.find(x => x.id === selectedVehicleId);
+                if (v) map.flyTo([v.lat, v.lng], 15, { duration: 0.8 });
+            }
+        });
+
+        // Tabs
+        document.querySelectorAll('.mc-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+
+        // Modal triggers
+        document.getElementById('btnOpenDispatchQuick').addEventListener('click', () => openDispatchModal());
+        const triggerDetail = document.getElementById('btnTriggerDispatchFromDetail');
+        if (triggerDetail) {
+            triggerDetail.addEventListener('click', () => {
+                const v = fleetData.find(x => x.id === selectedVehicleId);
+                openDispatchModal(v && v.incident ? v.incident.id : null);
+            });
+        }
+        document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+        document.getElementById('btnCancelModal').addEventListener('click', closeModal);
+        document.getElementById('standbyDispatchForm').addEventListener('submit', handleStandbySubmit);
+    });
+})();
+</script>
+{% endblock %}

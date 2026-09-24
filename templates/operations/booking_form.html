@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Create booking | TravelERP{% endblock %}
+{% block header_title %}Booking setup{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <p class="eyebrow">Before booking</p>
+    <h1>Generic itinerary / travel plan</h1>
+  </div>
+</div>
+
+<section class="panel form-panel">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button button-primary" type="submit">Save booking</button>
+  </form>
+</section>
+{% endblock %}

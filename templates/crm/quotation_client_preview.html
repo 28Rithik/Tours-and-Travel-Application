@@ -1,0 +1,697 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Proposal {{ q.quotation_number }} (v{{ q.version }}) | TravelERP CRM{% endblock %}
+{% block header_title %}Client Travel Proposal & Quotation Document{% endblock %}
+
+{% block content %}
+<style>
+  /* --- Toolbar & Controls --- */
+  .proposal-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .control-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+  .btn-secondary:hover { background: #e2e8f0; }
+  .btn-primary {
+    background: #0d5c58;
+    color: #ffffff;
+  }
+  .btn-primary:hover { background: #0a4643; }
+  .btn-wa {
+    background: #25d366;
+    color: #ffffff;
+    border-color: #20ba5a;
+  }
+  .btn-wa:hover { background: #1ebe57; }
+  .btn-convert {
+    background: #059669;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(5,150,105,0.3);
+  }
+  .btn-convert:hover { background: #047857; }
+
+  /* --- Proposal Document Container --- */
+  .proposal-doc {
+    max-width: 900px;
+    margin: 0 auto 40px auto;
+    background: #ffffff;
+    border: 1px solid #d8e2dc;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+  }
+
+  /* --- Header / Brand --- */
+  .doc-header {
+    background: linear-gradient(135deg, #0d5c58 0%, #157e79 100%);
+    color: #ffffff;
+    padding: 36px 40px 30px 40px;
+    position: relative;
+  }
+  .doc-brand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 22px;
+    margin-bottom: 20px;
+  }
+  .brand-logo-text {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0 0 4px 0;
+  }
+  .brand-tagline {
+    font-size: 13px;
+    color: #b8dedb;
+    margin: 0;
+  }
+  .doc-meta-badge {
+    text-align: right;
+  }
+  .doc-meta-badge .ref-no {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .doc-meta-badge .date-txt {
+    font-size: 12px;
+    color: #e2f1f0;
+    margin-top: 4px;
+  }
+  .proposal-title-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .proposal-hero-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+  }
+  .status-badge-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  /* --- Document Body --- */
+  .doc-body {
+    padding: 36px 40px;
+  }
+
+  /* Key Metrics Grid */
+  .metrics-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+  }
+  .metric-item .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-item .val {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .metric-item .sub {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  /* Section Styles */
+  .doc-section {
+    margin-bottom: 36px;
+  }
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  .section-heading .bar {
+    width: 4px;
+    height: 18px;
+    background: #0d5c58;
+    border-radius: 2px;
+  }
+
+  /* Day Timeline */
+  .timeline-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .day-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    position: relative;
+    border-left: 4px solid #0d5c58;
+  }
+  .day-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .day-pill {
+    background: #e6f3f2;
+    color: #0d5c58;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 6px;
+  }
+  .day-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+  .night-dest-badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    background: #f1f5f9;
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+  .hotel-spec-box {
+    background: #fdfbf7;
+    border: 1px solid #fae6c6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .hotel-spec-box strong { color: #92400e; }
+  .hotel-spec-box .meal-plan-badge {
+    background: #d97706;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .day-narrative {
+    font-size: 13.5px;
+    color: #334155;
+    margin: 12px 0 0 0;
+    white-space: pre-line;
+  }
+  .day-inclusions-list {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .inclusion-tag {
+    font-size: 11.5px;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 3px 9px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Cost Table */
+  .cost-summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 13.5px;
+  }
+  .cost-summary-table th, .cost-summary-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .cost-summary-table th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #64748b;
+    background: #f8fafc;
+    font-weight: 700;
+  }
+  .cost-summary-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .grand-total-row {
+    background: #f0fdf4;
+    border-top: 2px solid #86efac;
+    font-weight: 800;
+  }
+  .grand-total-row td {
+    color: #166534;
+    font-size: 16px;
+    padding: 16px 14px;
+  }
+
+  /* Inclusions / Exclusions Grid */
+  .inc-exc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 680px) {
+    .inc-exc-grid { grid-template-columns: 1fr; }
+  }
+  .inc-card {
+    background: #fbfdfc;
+    border: 1px solid #d1fae5;
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .exc-card {
+    background: #fffbfa;
+    border: 1px solid #fee2e2;
+    border-radius: 8px;
+    padding: 18px 20px;
+  }
+  .inc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #065f46;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .exc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #991b1b;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .policy-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-size: 13px;
+    color: #475569;
+    white-space: pre-line;
+  }
+
+  /* Document Footer */
+  .doc-footer {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 24px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .signature-box {
+    text-align: right;
+  }
+  .signature-line {
+    width: 160px;
+    border-top: 1px solid #94a3b8;
+    margin-top: 40px;
+    margin-left: auto;
+    padding-top: 4px;
+    font-size: 11px;
+    color: #334155;
+    font-weight: 600;
+  }
+
+  /* Print Styles */
+  @media print {
+    body { background: #ffffff !important; padding: 0 !important; }
+    .sidebar, .topbar, .proposal-controls, .no-print { display: none !important; }
+    .main-shell { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    .proposal-doc {
+      border: none !important;
+      box-shadow: none !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+    }
+    .doc-header {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .grand-total-row {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+</style>
+
+<!-- Action & Controls Toolbar (Hidden in Print) -->
+<div class="proposal-controls no-print">
+  <div class="control-group">
+    <a href="{% url 'crm:quotation_builder' quotation_id=q.id %}" class="btn-action btn-secondary">
+      ✏️ Edit in Studio
+    </a>
+    <a href="{% url 'crm:inquiry_pipeline' %}" class="btn-action btn-secondary">
+      ← Back to Pipeline
+    </a>
+    <button onclick="window.print()" class="btn-action btn-secondary">
+      🖨️ Print / Save as PDF
+    </button>
+  </div>
+
+  <div class="control-group">
+    <!-- WhatsApp Share -->
+    <a href="https://wa.me/?text={{ 'Hello! Here is your custom travel proposal for '|urlencode }}{{ q.destination|urlencode }}{{ ' ('|urlencode }}{{ q.duration_days|urlencode }}{{ 'D/'|urlencode }}{{ q.duration_nights|urlencode }}{{ 'N). Total Quoted Price: ₹'|urlencode }}{{ q.total_quoted_price|floatformat:2|urlencode }}{{ '. Ref: '|urlencode }}{{ q.quotation_number|urlencode }}" 
+       target="_blank" class="btn-action btn-wa">
+      📲 Share via WhatsApp
+    </a>
+
+    <!-- Send to Client (Updates status to Sent & fires signals) -->
+    {% if q.status == 'draft' %}
+      <a href="{% url 'crm:quotation_send' quotation_id=q.id %}" class="btn-action btn-primary" onclick="return confirm('Send official proposal email/WhatsApp acknowledgment to customer?');">
+        🚀 Mark as Sent
+      </a>
+    {% endif %}
+
+    <!-- Create Revision -->
+    <a href="{% url 'crm:quotation_revision' quotation_id=q.id %}" class="btn-action btn-secondary" onclick="return confirm('Clone this quote as a new revision version (v{{ q.version|add:1 }})?');">
+      📑 Clone Revision (v{{ q.version|add:1 }})
+    </a>
+
+    <!-- 1-Click Convert to Booking -->
+    {% if q.booking %}
+      <a href="{% url 'booking-detail' booking_id=q.booking.id %}" class="btn-action btn-convert">
+        ✅ View Confirmed Booking (#{{ q.booking.booking_number }})
+      </a>
+    {% else %}
+      <a href="{% url 'crm:quotation_convert' quotation_id=q.id %}" class="btn-action btn-convert" onclick="return confirm('Confirm acceptance and convert this quotation to an active Operations Booking?');">
+        🎉 1-Click Convert to Booking
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Proposal Document Presentation -->
+<div class="proposal-doc">
+  <!-- Document Header -->
+  <div class="doc-header">
+    <div class="doc-brand-row">
+      <div>
+        <h1 class="brand-logo-text">Sivagayathiri Travels & Holidays</h1>
+        <p class="brand-tagline">Approved Destination Management Company (DMC) • South India & The Nilgiris</p>
+        <p style="font-size: 11.5px; color: #a4d2cf; margin: 4px 0 0 0;">GSTIN: 33AAAAA0000A1Z5 | Coimbatore, Tamil Nadu</p>
+      </div>
+      <div class="doc-meta-badge">
+        <div class="ref-no">{{ q.quotation_number }} {% if q.version > 1 %}<span style="font-size:13px; font-weight:400; opacity:0.9;">(Rev v{{ q.version }})</span>{% endif %}</div>
+        <div class="date-txt">Date: {{ q.created_at|date:"d M Y" }}</div>
+        <div class="date-txt">Valid Until: {{ q.end_date|date:"d M Y" }}</div>
+      </div>
+    </div>
+    
+    <div class="proposal-title-banner">
+      <div>
+        <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #d1fae5; font-weight: 700; margin-bottom: 2px;">
+          Tailor-Made Tour Proposal
+        </div>
+        <h2 class="proposal-hero-title">{{ q.title }}</h2>
+      </div>
+      <div>
+        <span class="status-badge-pill">
+          Status: {{ q.get_status_display }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Body -->
+  <div class="doc-body">
+    <!-- Executive Snapshot Grid -->
+    <div class="metrics-card">
+      <div class="metric-item">
+        <div class="lbl">Primary Guest / FTO</div>
+        <div class="val">{{ q.guest_name }}</div>
+        <div class="sub">{{ q.party.name }}</div>
+      </div>
+      <div class="metric-item">
+        <div class="lbl">Destination</div>
+        <div class="val">📍 {{ q.destination }}</div>
+        <div class="sub">{{ q.duration_days }} Days / {{ q.duration_nights }} Nights</div>
+      </div>
+      <div class="metric-item">
+        <div class="lbl">Travel Window</div>
+        <div class="val">{{ q.start_date|date:"d M Y" }}</div>
+        <div class="sub">to {{ q.end_date|date:"d M Y" }}</div>
+      </div>
+      <div class="metric-item">
+        <div class="lbl">Passenger Group</div>
+        <div class="val">👥 {{ q.pax_count }} Adults</div>
+        <div class="sub">{% if q.inquiry and q.inquiry.child_count %}+ {{ q.inquiry.child_count }} Children{% else %}Private Tour{% endif %}</div>
+      </div>
+      <div class="metric-item">
+        <div class="lbl">Dedicated Vehicle</div>
+        <div class="val">🚗 {{ q.vehicle_type.name|default:"Deluxe AC Tourist Cab" }}</div>
+        <div class="sub">{{ q.vehicle_count }}x Chauffeur Driven</div>
+      </div>
+    </div>
+
+    <!-- Day-by-Day Journey Itinerary -->
+    <div class="doc-section">
+      <div class="section-heading">
+        <div class="bar"></div>
+        <span>Day-by-Day Customized Tour Itinerary</span>
+      </div>
+
+      <div class="timeline-container">
+        {% for day in days %}
+          <div class="day-card">
+            <div class="day-card-header">
+              <div>
+                <span class="day-pill">DAY {{ day.day_number|stringformat:"02d" }}</span>
+                <h3 class="day-title">{{ day.title }}</h3>
+              </div>
+              <div class="night-dest-badge">
+                🌙 Overnight: <strong>{{ day.overnight_destination }}</strong>
+              </div>
+            </div>
+
+            {% if day.hotel %}
+              <div class="hotel-spec-box">
+                <div>
+                  🏨 <strong>{{ day.hotel.name }}</strong> ({{ day.hotel.get_star_category_display }})
+                  <span style="color:#64748b; margin-left: 6px;">• {{ day.hotel.room_type }}</span>
+                </div>
+                <div>
+                  <span class="meal-plan-badge">{{ day.hotel_meal_plan }} Plan</span>
+                </div>
+              </div>
+            {% endif %}
+
+            <p class="day-narrative">{{ day.description|default:"Sightseeing and destination exploration as per itinerary schedule." }}</p>
+
+            <!-- Line Items scheduled for this day -->
+            {% if day.items.all %}
+              <div class="day-inclusions-list">
+                {% for item in day.items.all %}
+                  <span class="inclusion-tag">
+                    {{ item.get_category_display }}: <strong>{{ item.item_name }}</strong> (x{{ item.quantity }})
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% empty %}
+          <div style="padding: 24px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+            No day itineraries have been added yet. Use the Quotation Studio to build the day schedule.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Commercials & Cost Breakdown -->
+    <div class="doc-section">
+      <div class="section-heading">
+        <div class="bar"></div>
+        <span>Commercial Costing & Price Breakdown</span>
+      </div>
+
+      <table class="cost-summary-table">
+        <thead>
+          <tr>
+            <th>Service Component</th>
+            <th>Description / Coverage</th>
+            <th class="num">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>🏨 Hotel Accommodations</strong></td>
+            <td>Premium twin sharing rooms with selected meal plan</td>
+            <td class="num">₹{{ q.accommodation_cost|floatformat:2 }}</td>
+          </tr>
+          <tr>
+            <td><strong>🚗 Dedicated Tourist Transport</strong></td>
+            <td>AC vehicle including fuel, chauffeur bata, interstate permits & tolls</td>
+            <td class="num">₹{{ q.transport_cost|floatformat:2 }}</td>
+          </tr>
+          <tr>
+            <td><strong>🏛️ Heritage & Monument Entrance</strong></td>
+            <td>Scheduled entrance tickets and forest permits</td>
+            <td class="num">₹{{ q.monuments_cost|floatformat:2 }}</td>
+          </tr>
+          <tr>
+            <td><strong>🚣 Activities, Boating & Safaris</strong></td>
+            <td>Curated sightseeing experiences and activity bookings</td>
+            <td class="num">₹{{ q.activities_cost|floatformat:2 }}</td>
+          </tr>
+          <tr>
+            <td><strong>👤 Certified Tour Guide / Escort</strong></td>
+            <td>Professional destination guide services</td>
+            <td class="num">₹{{ q.guide_cost|floatformat:2 }}</td>
+          </tr>
+          {% if q.other_services_cost > 0 %}
+          <tr>
+            <td><strong>✨ Ancillary & Special Services</strong></td>
+            <td>Custom arrangements, refreshments & ground logistics</td>
+            <td class="num">₹{{ q.other_services_cost|floatformat:2 }}</td>
+          </tr>
+          {% endif %}
+          
+          <tr style="border-top: 2px solid #cbd5e1; font-weight: 600; background: #f8fafc;">
+            <td colspan="2">Net Operational Cost (Base DMC Cost)</td>
+            <td class="num">₹{{ q.net_cost|floatformat:2 }}</td>
+          </tr>
+          <tr>
+            <td colspan="2">Package Facilitation & Management Charge ({{ q.markup_percent }}%)</td>
+            <td class="num">₹{{ q.markup_amount|floatformat:2 }}</td>
+          </tr>
+          <tr style="font-weight: 600;">
+            <td colspan="2">Subtotal (Taxable Value)</td>
+            <td class="num">₹{{ q.gross_price|floatformat:2 }}</td>
+          </tr>
+          <tr>
+            <td colspan="2">GST on Tour Package ({{ q.gst_rate }}%)</td>
+            <td class="num">₹{{ q.gst_amount|floatformat:2 }}</td>
+          </tr>
+          <tr class="grand-total-row">
+            <td>
+              <strong>TOTAL QUOTED PACKAGE PRICE</strong>
+              <div style="font-size: 11px; font-weight: normal; color: #166534;">All-Inclusive (Taxes, Chauffeur, Sightseeing)</div>
+            </td>
+            <td style="font-size: 13px; font-weight: 600;">
+              ₹{{ q.per_pax_price|floatformat:2 }} / person ({{ q.pax_count }} Pax)
+            </td>
+            <td class="num" style="font-size: 18px;">
+              ₹{{ q.total_quoted_price|floatformat:2 }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Inclusions & Exclusions Side-by-Side -->
+    <div class="doc-section">
+      <div class="section-heading">
+        <div class="bar"></div>
+        <span>Package Inclusions & Exclusions</span>
+      </div>
+
+      <div class="inc-exc-grid">
+        <div class="inc-card">
+          <h4 class="inc-title">✅ Included in Package</h4>
+          <div style="font-size: 13px; color: #334155; white-space: pre-line;">{{ q.inclusions }}</div>
+        </div>
+        <div class="exc-card">
+          <h4 class="exc-title">❌ Excluded from Package</h4>
+          <div style="font-size: 13px; color: #334155; white-space: pre-line;">{{ q.exclusions }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment & Terms -->
+    <div class="doc-section">
+      <div class="section-heading">
+        <div class="bar"></div>
+        <span>Terms & Conditions and Booking Milestones</span>
+      </div>
+      <div class="policy-box">{{ q.terms_conditions }}</div>
+    </div>
+  </div>
+
+  <!-- Document Footer / Sign-off -->
+  <div class="doc-footer">
+    <div>
+      <strong>Sivagayathiri Travels & Holidays</strong><br>
+      Reservations Desk: +91 94430 00000 • reservations@sivagayathiri.com<br>
+      Proposal generated electronically via Sivagayathiri TravelERP DMC Engine.
+    </div>
+    <div class="signature-box">
+      <div class="signature-line">Authorized Signatory<br>Sivagayathiri Holidays</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

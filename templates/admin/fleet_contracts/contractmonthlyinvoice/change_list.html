@@ -1,0 +1,61 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+{% if invoice_metrics %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+    <!-- Card 1: Total Invoiced Volume -->
+    <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #bae6fd; font-weight: 600;">Total Invoiced Volume (Gross)</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ invoice_metrics.total_invoiced }}</div>
+            <div style="font-size: 11px; color: #e0f2fe; margin-top: 4px;">Across {{ invoice_metrics.total_invoices }} monthly invoices</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-file-invoice-dollar"></i></div>
+    </div>
+
+    <!-- Card 2: Collected / Paid -->
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #a7f3d0; font-weight: 600;">Collected Revenue (Paid)</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ invoice_metrics.total_paid }}</div>
+            <div style="font-size: 11px; color: #d1fae5; margin-top: 4px;">{{ invoice_metrics.paid_count }} invoices settled with bank UTRs</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-check-double"></i></div>
+    </div>
+
+    <!-- Card 3: Pending Outstanding -->
+    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fef3c7; font-weight: 600;">Outstanding Receivables</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ invoice_metrics.total_pending }}</div>
+            <div style="font-size: 11px; color: #fffbeb; margin-top: 4px;">{{ invoice_metrics.pending_count }} active corporate accounts</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-clock"></i></div>
+    </div>
+
+    <!-- Card 4: SLA Deductions Subtracted -->
+    <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fecaca; font-weight: 600;">SLA Penalties Deducted</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">-₹{{ invoice_metrics.total_sla_deductions }}</div>
+            <div style="font-size: 11px; color: #fee2e2; margin-top: 4px;">Subtracted from pre-tax billing</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-cut"></i></div>
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 14px 20px; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+    <div>
+        <strong style="color: #f8fafc; font-size: 14px;"><i class="fas fa-magic mr-1" style="color: #38bdf8;"></i> Automated Institutional Billing Engine</strong>
+        <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">Batch generate draft monthly invoices across all active contracts with automated trip aggregation and SLA penalty subtractions.</div>
+    </div>
+    <div>
+        <a href="/admin/fleet_contracts/contractmonthlyinvoice/batch-generate/" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; font-weight: 700; padding: 9px 18px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fas fa-bolt"></i> 1-Click Batch Monthly Billing Run
+        </a>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}

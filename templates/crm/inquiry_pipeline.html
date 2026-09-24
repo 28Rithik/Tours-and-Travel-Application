@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Query Tracker & Sales Pipeline | TravelERP CRM{% endblock %}
+{% block header_title %}Lead & Query Tracker 2.0{% endblock %}
+
+{% block content %}
+<style>
+  .crm-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+    border-radius: 14px;
+    padding: 26px 30px;
+    color: white;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .crm-hero h1 {
+    color: white;
+    font-size: 24px;
+    margin: 0 0 6px 0;
+    font-weight: 700;
+  }
+  .crm-hero p {
+    color: #cbd5e1;
+    margin: 0;
+    font-size: 13px;
+    max-width: 650px;
+    line-height: 1.5;
+  }
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    padding: 16px 18px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  }
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted, #64748b);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    font-family: Georgia, serif;
+    color: var(--text, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-strip {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pill-filter {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid var(--line, #e2e8f0);
+    color: var(--muted, #64748b);
+    background: var(--surface, #ffffff);
+    transition: all 0.2s;
+  }
+  .pill-filter.active, .pill-filter:hover {
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
+  }
+  .pill-danger.active {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+  }
+  .query-table-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+  .query-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .query-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: .05em;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line, #e2e8f0);
+    text-align: left;
+  }
+  .query-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line, #e2e8f0);
+    vertical-align: middle;
+  }
+  .query-table tr:hover td {
+    background: #f8fafc;
+  }
+  .badge-priority {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .prio-urgent { background: #fee2e2; color: #991b1b; }
+  .prio-high { background: #ffedd5; color: #9a3412; }
+  .prio-medium { background: #e0f2fe; color: #0369a1; }
+  .prio-low { background: #f1f5f9; color: #475569; }
+
+  .badge-tat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tat-breached { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .tat-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .tat-ok { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .tat-done { background: #f8fafc; color: #64748b; }
+</style>
+
+<!-- Hero Banner -->
+<div class="crm-hero">
+  <div>
+    <h1>🔎 Lead & Query Tracker 2.0</h1>
+    <p>Real-time customer inquiry pipeline with automated Turnaround Time (TAT) monitoring, priority dispatch, destination matching, and instant 1-click quotation generation.</p>
+  </div>
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <a href="{% url 'crm:quotation_create' %}" class="button button-primary" style="background: #14b8a6; color: #042f2e; border: 0; font-weight: 700; padding: 10px 18px; border-radius: 8px;">
+      📑 + New Quotation
+    </a>
+    <a href="/admin/crm/inquiry/add/" class="button" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-weight: 600; padding: 10px 16px; border-radius: 8px;" target="_blank">
+      ➕ Log Inquiry
+    </a>
+  </div>
+</div>
+
+<!-- KPI Summary Strip -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Today's Queries</div>
+    <div class="kpi-val" style="color: #0f766e;">{{ today_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">This Month</div>
+    <div class="kpi-val">{{ month_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Active Leads</div>
+    <div class="kpi-val" style="color: #2563eb;">{{ active_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Quoted Proposals</div>
+    <div class="kpi-val" style="color: #d97706;">{{ quoted_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Converted (Won)</div>
+    <div class="kpi-val" style="color: #16a34a;">{{ won_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">SLA Overdue</div>
+    <div class="kpi-val" style="color: {% if overdue_count > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+      {{ overdue_count }} {% if overdue_count > 0 %}🚨{% else %}✅{% endif %}
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Win Rate</div>
+    <div class="kpi-val" style="color: #9333ea;">{{ win_rate }}%</div>
+  </div>
+</div>
+
+<!-- Filter & Search Toolbar -->
+<div class="filter-strip">
+  <div class="filter-group">
+    <span style="font-size: 12px; font-weight: 700; color: #475569; margin-right: 4px;">Status:</span>
+    <a href="?{% if priority_filter %}priority={{ priority_filter }}&{% endif %}{% if search_query %}q={{ search_query }}&{% endif %}" class="pill-filter {% if not status_filter and not sla_filter %}active{% endif %}">All</a>
+    <a href="?status=new{% if priority_filter %}&priority={{ priority_filter }}{% endif %}" class="pill-filter {% if status_filter == 'new' %}active{% endif %}">🆕 New Leads</a>
+    <a href="?status=in_progress{% if priority_filter %}&priority={{ priority_filter }}{% endif %}" class="pill-filter {% if status_filter == 'in_progress' %}active{% endif %}">⚡ Under Review</a>
+    <a href="?status=quoted{% if priority_filter %}&priority={{ priority_filter }}{% endif %}" class="pill-filter {% if status_filter == 'quoted' %}active{% endif %}">📋 Quoted</a>
+    <a href="?status=won{% if priority_filter %}&priority={{ priority_filter }}{% endif %}" class="pill-filter {% if status_filter == 'won' %}active{% endif %}">🏆 Won</a>
+    <a href="?sla=overdue" class="pill-filter pill-danger {% if sla_filter == 'overdue' %}active{% endif %}">🚨 SLA Breached</a>
+  </div>
+  <div class="filter-group">
+    <span style="font-size: 12px; font-weight: 700; color: #475569; margin-right: 4px;">Priority:</span>
+    <a href="?priority=urgent" class="pill-filter {% if priority_filter == 'urgent' %}active{% endif %}">🔴 Urgent / VIP</a>
+    <a href="?priority=high" class="pill-filter {% if priority_filter == 'high' %}active{% endif %}">🟠 High</a>
+    <a href="?priority=medium" class="pill-filter {% if priority_filter == 'medium' %}active{% endif %}">🟡 Medium</a>
+  </div>
+  <form method="get" style="display: flex; gap: 6px; align-items: center;">
+    <input type="text" name="q" value="{{ search_query }}" placeholder="Search guest, phone, destination..." style="padding: 6px 12px; border: 1px solid var(--line, #cbd5e1); border-radius: 6px; font-size: 12px; width: 220px;">
+    <button type="submit" class="button" style="padding: 6px 12px; font-size: 12px; background: #0f172a; color: #fff; border-radius: 6px;">Search</button>
+  </form>
+</div>
+
+<!-- Inquiries Table -->
+<div class="query-table-card">
+  <table class="query-table">
+    <thead>
+      <tr>
+        <th>Query ID &amp; Source</th>
+        <th>Customer &amp; Contact</th>
+        <th>Circuit &amp; Dates</th>
+        <th>Priority</th>
+        <th>Response TAT SLA</th>
+        <th>Assigned Specialist</th>
+        <th>Pipeline Status</th>
+        <th>Quoted Amount</th>
+        <th style="text-align: right;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inq in inquiries %}
+      <tr>
+        <td>
+          <b style="font-family: monospace; font-size: 13px; color: #0284c7;">{{ inq.inquiry_number }}</b><br>
+          <small style="color: #64748b;">{{ inq.get_source_display }}</small>
+        </td>
+        <td>
+          <b style="color: #0f172a;">{{ inq.guest_name }}</b><br>
+          <span style="color: #64748b; font-size: 12px;">📞 {{ inq.guest_phone|default:inq.party.phone }}</span>
+        </td>
+        <td>
+          <b>{{ inq.destination }}</b><br>
+          <small style="color: #64748b;">{{ inq.pickup_date|date:"d M Y" }} ({{ inq.adult_count }} Adults{% if inq.child_count %}, {{ inq.child_count }} Kids{% endif %})</small>
+        </td>
+        <td>
+          {% if inq.priority == 'urgent' %}
+            <span class="badge-priority prio-urgent">🔴 Urgent / VIP</span>
+          {% elif inq.priority == 'high' %}
+            <span class="badge-priority prio-high">🟠 High</span>
+          {% elif inq.priority == 'medium' %}
+            <span class="badge-priority prio-medium">🟡 Medium</span>
+          {% else %}
+            <span class="badge-priority prio-low">🟢 Low</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if inq.status == 'won' or inq.status == 'lost' or inq.status == 'quoted' %}
+            <span class="badge-tat tat-done">✅ Responded</span>
+          {% elif inq.is_overdue %}
+            <span class="badge-tat tat-breached">🚨 SLA Breached</span>
+          {% elif inq.tat_remaining_hours <= 4 %}
+            <span class="badge-tat tat-warning">⏱️ {{ inq.tat_remaining_hours }}h left</span>
+          {% else %}
+            <span class="badge-tat tat-ok">⏱️ {{ inq.tat_remaining_hours }}h left</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if inq.assigned_to %}
+            <span style="font-weight: 500; color: #334155;">👤 {{ inq.assigned_to.get_full_name|default:inq.assigned_to.username }}</span>
+          {% else %}
+            <span style="color: #94a3b8; font-style: italic;">Unassigned</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if inq.status == 'new' %}
+            <span class="badge" style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-weight: 600;">🆕 New Lead</span>
+          {% elif inq.status == 'in_progress' %}
+            <span class="badge" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 4px; font-weight: 600;">⚡ In Review</span>
+          {% elif inq.status == 'quoted' %}
+            <span class="badge" style="background: #fef9c3; color: #854d0e; padding: 4px 8px; border-radius: 4px; font-weight: 600;">📋 Quoted</span>
+          {% elif inq.status == 'won' %}
+            <span class="badge" style="background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 4px; font-weight: 600;">🏆 Won</span>
+          {% else %}
+            <span class="badge" style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px; font-weight: 600;">❌ Lost</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if inq.quoted_price %}
+            <b style="color: #10b981; font-size: 13px;">₹{{ inq.quoted_price|floatformat:2 }}</b>
+          {% else %}
+            <span style="color: #94a3b8; font-size: 12px;">Not Quoted</span>
+          {% endif %}
+        </td>
+        <td style="text-align: right;">
+          <a href="{% url 'crm:quotation_create' %}?inquiry_id={{ inq.id }}" class="button button-quiet" style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; background: #0f766e; color: #fff; text-decoration: none;">
+            📑 Build Quote
+          </a>
+          <a href="/admin/crm/inquiry/{{ inq.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;" target="_blank">
+            ✏️ Edit
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9" style="text-align: center; padding: 36px; color: #94a3b8;">
+          No inquiries found matching the active criteria. Click <b>+ Log Inquiry</b> to register new travel inquiries.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,595 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accounting, Tally, Zoho & Payroll | TravelERP{% endblock %}
+{% block header_title %}Financial Governance & Export Suite{% endblock %}
+
+{% block content %}
+<style>
+  .export-hero {
+    background: linear-gradient(135deg, #172a2e 0%, #1e3e44 100%);
+    border-radius: 12px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 28px;
+    box-shadow: 0 12px 36px rgba(23, 42, 46, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .export-hero h1 {
+    color: #ffffff;
+    font-size: 28px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .export-hero p {
+    color: #a4c2bd;
+    margin: 0;
+    font-size: 14px;
+    max-width: 620px;
+  }
+  .filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    box-shadow: var(--shadow);
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 170px;
+  }
+  .filter-group label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  .export-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin-bottom: 32px;
+  }
+  .export-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .export-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(23, 42, 46, 0.12);
+  }
+  .export-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .export-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+  }
+  .icon-tally-sales { background: #e6f4ea; color: #137333; }
+  .icon-tally-exp { background: #feefe3; color: #b06000; }
+  .icon-zoho-sales { background: #e8f0fe; color: #1a73e8; }
+  .icon-zoho-exp { background: #fce8e6; color: #c5221f; }
+  .export-card-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+  }
+  .export-card-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .export-card-desc {
+    font-size: 13px;
+    color: #556b69;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+  .btn-export {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+    border: 0;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-export:hover { opacity: 0.9; }
+  .btn-tally { background: #0f5b35; color: white; }
+  .btn-zoho { background: #1967d2; color: white; }
+  .btn-payroll { background: #7b1fa2; color: white; }
+
+  /* Tabs */
+  .section-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 2px;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-bottom: -2px;
+  }
+  .tab-btn.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+  }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  .badge-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green { background: #d4edda; color: #155724; }
+  .badge-blue { background: #cce5ff; color: #004085; }
+  .badge-amber { background: #fff3cd; color: #856404; }
+  .badge-red { background: #f8d7da; color: #721c24; }
+  .badge-purple { background: #ede7f6; color: #4a148c; }
+
+  .payroll-trigger-box {
+    background: #fbf7ff;
+    border: 1px solid #e1bee7;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+</style>
+
+<!-- Hero Section -->
+<div class="export-hero">
+  <div>
+    <h1>💰 Tally, Zoho & Automated Payroll Bridge</h1>
+    <p>Seamlessly export verified sales invoices and fleet operational expenses into Tally Prime XML and Zoho Books CSV formats, and generate prorated attendance payroll from live trip logs.</p>
+  </div>
+  <div>
+    <span class="badge-tag badge-purple" style="font-size: 13px; padding: 8px 14px;">
+      ⚡ Automated Duty Bridge Active
+    </span>
+  </div>
+</div>
+
+{% if messages %}
+<div style="margin-bottom: 24px;">
+  {% for message in messages %}
+    <div style="padding: 14px 18px; border-radius: 8px; background: #d4edda; color: #155724; border: 1px solid #c3e6cb; font-size: 14px; margin-bottom: 10px;">
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Date Range Filter Toolbar -->
+<form method="get" class="filter-bar">
+  <div class="filter-group">
+    <label for="id_from_date">From Date</label>
+    <input type="date" id="id_from_date" name="from_date" value="{{ from_date }}">
+  </div>
+  <div class="filter-group">
+    <label for="id_to_date">To Date</label>
+    <input type="date" id="id_to_date" name="to_date" value="{{ to_date }}">
+  </div>
+  <div class="filter-group" style="min-width: 140px;">
+    <label for="id_month">Payroll Month</label>
+    <select id="id_month" name="month">
+      {% for m_num, m_name in months_list %}
+        <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>{{ m_name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-group" style="min-width: 110px;">
+    <label for="id_year">Payroll Year</label>
+    <select id="id_year" name="year">
+      {% for y in years_list %}
+        <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <button type="submit" class="button button-primary">Apply Filters</button>
+  </div>
+</form>
+
+<!-- Live KPI Cards -->
+<div class="kpi-grid">
+  <div class="kpi">
+    <span class="kpi-label">Billable Invoices</span>
+    <strong class="kpi-value">{{ total_sales_count }}</strong>
+    <span class="muted" style="font-size: 11px;">{{ trips_count }} Trips + {{ contract_invoices_count }} Contracts</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Sales Revenue</span>
+    <strong class="kpi-value" style="color: #0f5b35;">₹{{ total_sales_revenue|floatformat:0 }}</strong>
+    <span class="muted" style="font-size: 11px;">Trips: ₹{{ trips_revenue|floatformat:0 }}</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Expense Vouchers</span>
+    <strong class="kpi-value">{{ total_expense_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Fuel, Tolls & Expenses</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Expense Outflow</span>
+    <strong class="kpi-value" style="color: #c5221f;">₹{{ total_expense_amount|floatformat:0 }}</strong>
+    <span class="muted" style="font-size: 11px;">Fuel: ₹{{ fuel_total|floatformat:0 }}</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Drivers on Payroll</span>
+    <strong class="kpi-value">{{ payslips_count }} / {{ active_drivers_count }}</strong>
+    <span class="muted" style="font-size: 11px;">Active Workforce</span>
+  </div>
+  <div class="kpi">
+    <span class="kpi-label">Net Payroll Liability</span>
+    <strong class="kpi-value" style="color: #7b1fa2;">₹{{ payroll_total_net|floatformat:0 }}</strong>
+    <span class="muted" style="font-size: 11px;">Gross: ₹{{ payroll_total_gross|floatformat:0 }}</span>
+  </div>
+</div>
+
+<!-- 4 Instant 1-Click Export Cards -->
+<h2 style="margin-bottom: 16px;">1-Click Accounting Exports (Tally Prime & Zoho Books)</h2>
+<div class="export-cards-grid">
+  <!-- 1. Tally Prime Sales XML -->
+  <div class="export-card">
+    <div>
+      <div class="export-card-header">
+        <div class="export-card-icon icon-tally-sales">📁</div>
+        <div>
+          <div class="export-card-title">Tally Prime: Sales XML</div>
+          <div class="export-card-sub">&lt;VOUCHER VCHTYPE="Sales"&gt;</div>
+        </div>
+      </div>
+      <div class="export-card-desc">
+        Exports customer sales vouchers for all completed trips and transport contract monthly billings with GST ledgers.
+      </div>
+    </div>
+    <div>
+      <a href="{% url 'export-tally-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-tally">
+        📥 Download Tally Sales XML
+      </a>
+    </div>
+  </div>
+
+  <!-- 2. Tally Prime Expenses XML -->
+  <div class="export-card">
+    <div>
+      <div class="export-card-header">
+        <div class="export-card-icon icon-tally-exp">⛽</div>
+        <div>
+          <div class="export-card-title">Tally Prime: Expenses XML</div>
+          <div class="export-card-sub">&lt;VOUCHER VCHTYPE="Payment"&gt;</div>
+        </div>
+      </div>
+      <div class="export-card-desc">
+        Exports fuel logs, FASTag toll deductions, and company-paid trip expenses into standard Tally payment vouchers.
+      </div>
+    </div>
+    <div>
+      <a href="{% url 'export-tally-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-tally">
+        📥 Download Tally Expenses XML
+      </a>
+    </div>
+  </div>
+
+  <!-- 3. Zoho Books Sales CSV -->
+  <div class="export-card">
+    <div>
+      <div class="export-card-header">
+        <div class="export-card-icon icon-zoho-sales">📊</div>
+        <div>
+          <div class="export-card-title">Zoho Books: Invoices CSV</div>
+          <div class="export-card-sub">Customer Invoices Schema</div>
+        </div>
+      </div>
+      <div class="export-card-desc">
+        Standard Zoho Books CSV invoice format mapping customer name, trip details, vehicle number, and itemized taxes.
+      </div>
+    </div>
+    <div>
+      <a href="{% url 'export-zoho-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho">
+        📊 Download Zoho Sales CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- 4. Zoho Books Expenses CSV -->
+  <div class="export-card">
+    <div>
+      <div class="export-card-header">
+        <div class="export-card-icon icon-zoho-exp">💳</div>
+        <div>
+          <div class="export-card-title">Zoho Books: Expenses CSV</div>
+          <div class="export-card-sub">Fleet Expenses Schema</div>
+        </div>
+      </div>
+      <div class="export-card-desc">
+        Operational expenses CSV including Petro card accounts, Fastag deductions, vendor stations, and vehicle registrations.
+      </div>
+    </div>
+    <div>
+      <a href="{% url 'export-zoho-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho">
+        📊 Download Zoho Expenses CSV
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs Container -->
+<div class="section-tabs">
+  <button class="tab-btn active" onclick="switchTab('payroll-tab', this)">⚡ Driver Payroll & Duty Attendance</button>
+  <button class="tab-btn" onclick="switchTab('sales-tab', this)">📄 Sales Invoices ({{ total_sales_count }})</button>
+  <button class="tab-btn" onclick="switchTab('expenses-tab', this)">⛽ Operational Expenses ({{ total_expense_count }})</button>
+</div>
+
+<!-- TAB 1: DRIVER PAYROLL -->
+<div id="payroll-tab" class="tab-pane active">
+  <div class="payroll-trigger-box">
+    <div>
+      <strong style="font-size: 16px; color: #4a148c; display: block; margin-bottom: 4px;">
+        Automated Duty-Attendance Payroll Generator
+      </strong>
+      <span class="muted" style="font-size: 13px;">
+        Queries distinct trip dates from regular trips and contract shifts, prorates salary profile, calculates EPF/ESI, and deducts traffic fines and advances.
+      </span>
+    </div>
+    <div>
+      <form method="post" action="{% url 'run-batch-payroll' %}">
+        {% csrf_token %}
+        <input type="hidden" name="month" value="{{ selected_month }}">
+        <input type="hidden" name="year" value="{{ selected_year }}">
+        <button type="submit" class="btn-export btn-payroll" style="width: auto; padding: 11px 22px;">
+          ⚡ Run Batch Payroll for {{ selected_month }}/{{ selected_year }}
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Driver Payslips ({{ selected_month }}/{{ selected_year }})</h2>
+      <a href="/admin/finance/driverpayslip/?month={{ selected_month }}&year={{ selected_year }}" class="button button-quiet" target="_blank">
+        Admin Payroll Manager
+      </a>
+    </div>
+
+    {% if payslips %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Driver</th>
+          <th>Duty Days</th>
+          <th>Basic Salary</th>
+          <th>Allowances</th>
+          <th>Gross</th>
+          <th>EPF / ESI</th>
+          <th>Traffic Fines</th>
+          <th>Advances</th>
+          <th>Net Take-Home</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payslips %}
+        <tr>
+          <td>
+            <strong>{{ p.driver.name }}</strong>
+            <div class="muted" style="font-size: 11px;">{{ p.driver.phone|default:"No phone" }}</div>
+          </td>
+          <td>
+            <span class="badge-tag badge-blue">{{ p.days_present }} Days</span>
+          </td>
+          <td>₹{{ p.basic_salary|floatformat:2 }}</td>
+          <td>₹{{ p.allowances|floatformat:2 }}</td>
+          <td><strong>₹{{ p.gross_earnings|floatformat:2 }}</strong></td>
+          <td>
+            <div style="font-size: 11px;">EPF: ₹{{ p.epf_deduction|floatformat:2 }}</div>
+            <div style="font-size: 11px;">ESI: ₹{{ p.esi_deduction|floatformat:2 }}</div>
+          </td>
+          <td>
+            {% if p.traffic_fines_deduction > 0 %}
+              <span class="badge-tag badge-red">-₹{{ p.traffic_fines_deduction|floatformat:2 }}</span>
+            {% else %}
+              <span class="muted">₹0</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if p.advances_recovered > 0 %}
+              <span class="badge-tag badge-amber">-₹{{ p.advances_recovered|floatformat:2 }}</span>
+            {% else %}
+              <span class="muted">₹0</span>
+            {% endif %}
+          </td>
+          <td>
+            <strong style="color: #0f5b35; font-size: 15px;">₹{{ p.net_payable|floatformat:2 }}</strong>
+          </td>
+          <td>
+            <a href="{% url 'driver-payslip-detail' p.id %}" target="_blank" class="button button-quiet" style="padding: 5px 10px; font-size: 12px;">
+              📄 View Slip
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      No payslips generated yet for {{ selected_month }}/{{ selected_year }}. Click <strong>Run Batch Payroll</strong> above to generate payslips for all active drivers.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TAB 2: SALES INVOICES -->
+<div id="sales-tab" class="tab-pane">
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Trips & Contract Invoices (Export Preview)</h2>
+      <span class="muted">{{ from_date }} to {{ to_date }}</span>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Reference #</th>
+          <th>Type</th>
+          <th>Customer / Party</th>
+          <th>Date</th>
+          <th>Vehicle</th>
+          <th>Taxable</th>
+          <th>GST</th>
+          <th>Total Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trip in recent_trips %}
+        <tr>
+          <td><strong>{{ trip.trip_id }}</strong></td>
+          <td><span class="badge-tag badge-blue">Trip</span></td>
+          <td>{{ trip.party.name|default:trip.guest_name }}</td>
+          <td>{{ trip.start_date }}</td>
+          <td>{{ trip.vehicle.registration_number|default:"—" }}</td>
+          <td>₹{{ trip.bill_value|floatformat:2 }}</td>
+          <td>₹{{ trip.gst_amount|floatformat:2 }}</td>
+          <td><strong>₹{{ trip.total_amount|floatformat:2 }}</strong></td>
+          <td><span class="badge-tag badge-green">{{ trip.status }}</span></td>
+        </tr>
+        {% empty %}
+        {% endfor %}
+        {% for inv in recent_contract_invoices %}
+        <tr>
+          <td><strong>{{ inv.invoice_number }}</strong></td>
+          <td><span class="badge-tag badge-purple">Contract</span></td>
+          <td>{{ inv.contract.customer.name }}</td>
+          <td>{{ inv.billing_month }}</td>
+          <td>Dedicated Fleet</td>
+          <td>₹{{ inv.net_taxable_amount|floatformat:2 }}</td>
+          <td>₹{{ inv.gst_amount|floatformat:2 }}</td>
+          <td><strong>₹{{ inv.grand_total|floatformat:2 }}</strong></td>
+          <td><span class="badge-tag badge-green">{{ inv.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        {% endfor %}
+        {% if not recent_trips and not recent_contract_invoices %}
+        <tr>
+          <td colspan="9" class="empty">No sales records found in selected date range.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TAB 3: EXPENSES & FUEL -->
+<div id="expenses-tab" class="tab-pane">
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Fleet Expenses, Fuel & FASTag (Export Preview)</h2>
+      <span class="muted">{{ from_date }} to {{ to_date }}</span>
+    </div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Vehicle</th>
+          <th>Ledger / Description</th>
+          <th>Payment Account</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in recent_fuel %}
+        <tr>
+          <td>{{ f.date }}</td>
+          <td><span class="badge-tag badge-amber">Fuel</span></td>
+          <td>{{ f.vehicle.registration_number }}</td>
+          <td>{{ f.fuel_quantity }}L @ ₹{{ f.fuel_price }} ({{ f.fuel_station|default:"Station" }})</td>
+          <td>{{ f.petro_account.account_name|default:"Cash / Bank" }}</td>
+          <td><strong>₹{{ f.amount|floatformat:2 }}</strong></td>
+        </tr>
+        {% endfor %}
+        {% for exp in recent_expenses %}
+        <tr>
+          <td>{{ exp.date }}</td>
+          <td><span class="badge-tag badge-blue">Expense</span></td>
+          <td>{{ exp.trip.vehicle.registration_number|default:"—" }}</td>
+          <td>{{ exp.get_expense_type_display }}: {{ exp.description }}</td>
+          <td>{{ exp.get_paid_by_display }}</td>
+          <td><strong>₹{{ exp.amount|floatformat:2 }}</strong></td>
+        </tr>
+        {% endfor %}
+        {% for toll in recent_fastag %}
+        <tr>
+          <td>{{ toll.date|date:"Y-m-d" }}</td>
+          <td><span class="badge-tag badge-purple">FASTag</span></td>
+          <td>{{ toll.vehicle.registration_number }}</td>
+          <td>Toll Plaza: {{ toll.toll_plaza }}</td>
+          <td>{{ toll.account.account_name|default:"Master Wallet" }}</td>
+          <td><strong>₹{{ toll.amount|floatformat:2 }}</strong></td>
+        </tr>
+        {% endfor %}
+        {% if not recent_fuel and not recent_expenses and not recent_fastag %}
+        <tr>
+          <td colspan="6" class="empty">No expense records found in selected date range.</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+
+{% endblock %}

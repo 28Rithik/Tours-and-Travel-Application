@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | TravelERP{% endblock %}
+{% block header_title %}Control room{% endblock %}
+{% block content %}
+<div class="page-intro"><div><p class="eyebrow">Tuesday, {% now "d M Y" %}</p><h1>Good morning, {{ user.get_username }}.</h1><p>Keep the fleet, trips, and money moving in one place.</p></div><a class="button button-primary" href="{% url 'generate-statement' %}">Generate statement</a></div>
+<section class="kpi-grid">
+  <div class="kpi"><span class="kpi-label">Active trips</span><strong class="kpi-value">{{ active_trips }}</strong></div>
+  <div class="kpi"><span class="kpi-label">Completed trips</span><strong class="kpi-value">{{ completed_trips }}</strong></div>
+  <div class="kpi"><span class="kpi-label">Monthly revenue</span><strong class="kpi-value">{{ monthly_revenue|floatformat:2 }}</strong></div>
+  <div class="kpi"><span class="kpi-label">Monthly profit</span><strong class="kpi-value">{{ monthly_profit|floatformat:2 }}</strong></div>
+  <div class="kpi"><span class="kpi-label">Receivables</span><strong class="kpi-value">{{ receivables|floatformat:2 }}</strong></div>
+  <div class="kpi"><span class="kpi-label">Payables</span><strong class="kpi-value">{{ payables|floatformat:2 }}</strong></div>
+</section>
+<section class="panel"><div class="panel-heading"><h2>Monthly pulse</h2><span class="muted">Current month</span></div><ul class="stat-list"><li><span>Expenses recorded</span><strong>{{ monthly_expenses|floatformat:2 }}</strong></li><li><span>Revenue after expenses</span><strong>{{ monthly_profit|floatformat:2 }}</strong></li></ul></section>
+{% endblock %}

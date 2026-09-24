@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supplier Payment Requisitions &amp; Accounts Payable | TravelERP CRM{% endblock %}
+{% block header_title %}Accounts Payable &amp; Supplier Payment Requisitions{% endblock %}
+
+{% block content %}
+<style>
+  .ap-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-card .val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  .action-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .ap-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    font-size: 13.5px;
+  }
+  .ap-table th, .ap-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .ap-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .margin-pill {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #dcfce7;
+    color: #166534;
+  }
+  .status-badge {
+    padding: 4px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .st-pending_approval { background: #fef3c7; color: #b45309; }
+  .st-approved { background: #dbeafe; color: #1e40af; }
+  .st-disbursed { background: #dcfce7; color: #166534; }
+  .st-rejected { background: #fee2e2; color: #991b1b; }
+  .st-draft { background: #f1f5f9; color: #475569; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .modal-header {
+    background: #f8fafc;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-body {
+    padding: 20px 24px;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+</style>
+
+<div class="ap-container">
+  <!-- AP Metrics -->
+  <div class="ap-metrics">
+    <div class="metric-card">
+      <div class="title">Total Payouts Requested</div>
+      <div class="val">₹{{ total_requested|floatformat:2 }}</div>
+      <div class="sub" style="color: #64748b;">Accounts Payable Requisitions</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Total Cost to Company</div>
+      <div class="val" style="color: #0369a1;">₹{{ total_cost_to_company|floatformat:2 }}</div>
+      <div class="sub" style="color: #0369a1;">Net Negotiated Buy Cost</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Total Cost to Client</div>
+      <div class="val" style="color: #0d5c58;">₹{{ total_cost_to_client|floatformat:2 }}</div>
+      <div class="sub" style="color: #0d5c58;">Billed Traveler Package Value</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Gross Margin Spread</div>
+      <div class="val" style="color: #166534;">₹{{ total_margin|floatformat:2 }}</div>
+      <div class="sub" style="color: #166534;">Profit Retained on Disbursed Items</div>
+    </div>
+  </div>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <div>
+      <h6 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b;">Supplier Requisition Queue</h6>
+      <span style="font-size: 12px; color: #64748b;">Disburse hotelier advances, coach hire settlements, and activity permits</span>
+    </div>
+
+    <button onclick="document.getElementById('createReqModal').style.display='flex'" class="btn btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-weight: 600; padding: 8px 18px; border-radius: 6px;">
+      ➕ Create Payment Requisition
+    </button>
+  </div>
+
+  <!-- Table -->
+  {% if requisitions %}
+    <div class="table-responsive">
+      <table class="ap-table">
+        <thead>
+          <tr>
+            <th>Requisition #</th>
+            <th>Supplier</th>
+            <th>Payout Amount</th>
+            <th>Cost vs Quoted</th>
+            <th>Gross Margin</th>
+            <th>Bank Account</th>
+            <th>Status</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in requisitions %}
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: #0f172a;">{{ r.requisition_number }}</div>
+                <div style="font-size: 11px; color: #64748b;">{{ r.created_at|date:"d-M-Y" }}</div>
+              </td>
+              <td>
+                <div style="font-weight: 600; color: #1e293b;">🏨 {{ r.supplier.company_name }}</div>
+                <div style="font-size: 11px; color: #64748b;">
+                  {{ r.get_payment_type_display }}
+                  {% if r.invoice_number %} &bull; Inv: {{ r.invoice_number }}{% endif %}
+                </div>
+              </td>
+              <td>
+                <div style="font-size: 15px; font-weight: 800; color: #0f172a;">₹{{ r.amount_requested|floatformat:2 }}</div>
+              </td>
+              <td>
+                <div style="font-size: 12px; color: #475569;">
+                  Buy: ₹{{ r.cost_to_company|floatformat:2 }}<br>
+                  Sell: ₹{{ r.cost_to_client|floatformat:2 }}
+                </div>
+              </td>
+              <td>
+                <span class="margin-pill">+₹{{ r.gross_margin|floatformat:2 }}</span>
+              </td>
+              <td>
+                {% if r.bank_account_number %}
+                  <div style="font-size: 12px; font-weight: 600; color: #1e293b;">{{ r.bank_name|default:"Bank" }}</div>
+                  <div style="font-size: 11px; color: #64748b;">A/C: {{ r.bank_account_number }} | {{ r.ifsc_code }}</div>
+                {% else %}
+                  <span style="font-size: 12px; color: #94a3b8;">No Bank On File</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="status-badge st-{{ r.status }}">{{ r.get_status_display }}</span>
+                {% if r.transaction_reference %}
+                  <div style="font-size: 10.5px; color: #166534; margin-top: 2px;">UTR: {{ r.transaction_reference }}</div>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 4px;">
+                  {% if r.status == 'pending_approval' %}
+                    <button onclick="updateStatus('{{ r.id }}', 'approve')" class="btn btn-sm btn-success" style="font-size: 11.5px; padding: 3px 8px; font-weight: 600;">
+                      ✓ Approve
+                    </button>
+                    <button onclick="updateStatus('{{ r.id }}', 'reject')" class="btn btn-sm btn-outline-danger" style="font-size: 11.5px; padding: 3px 8px;">
+                      ✕
+                    </button>
+                  {% elif r.status == 'approved' %}
+                    <button onclick="openDisburseModal('{{ r.id }}', '{{ r.requisition_number }}', '{{ r.amount_requested }}')" class="btn btn-sm btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-size: 11.5px; padding: 3px 10px; font-weight: 600;">
+                      💸 Disburse
+                    </button>
+                  {% else %}
+                    <span style="font-size: 12px; color: #64748b;">Archived</span>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 48px; text-align: center; color: #64748b;">
+      <div style="font-size: 36px; margin-bottom: 12px;">💰</div>
+      <div style="font-size: 16px; font-weight: 700; color: #1e293b;">No supplier payment requisitions</div>
+      <p style="font-size: 13px; margin: 6px 0 16px;">Initiate a payment requisition for hoteliers, transporter fleets, or entry permits.</p>
+      <button onclick="document.getElementById('createReqModal').style.display='flex'" class="btn btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-size: 13px;">
+        Create First Requisition
+      </button>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Create Requisition Modal -->
+<div id="createReqModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">New Supplier Payment Requisition</h5>
+      <button type="button" onclick="document.getElementById('createReqModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+    </div>
+    <form method="POST" action="{% url 'crm:requisition_create' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Select Supplier *</label>
+          <select name="supplier" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+            {% for s in suppliers %}
+              <option value="{{ s.id }}">{{ s.company_name }} ({{ s.destination_city }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Amount to Disburse (₹) *</label>
+            <input type="number" step="0.01" name="amount_requested" required placeholder="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Payment Type</label>
+            <select name="payment_type" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+              {% for pt_code, pt_label in payment_types %}
+                <option value="{{ pt_code }}">{{ pt_label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Cost to Company (Buy Net)</label>
+            <input type="number" step="0.01" name="cost_to_company" placeholder="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Cost to Client (Quoted Sell)</label>
+            <input type="number" step="0.01" name="cost_to_client" placeholder="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Supplier Invoice #</label>
+            <input type="text" name="invoice_number" placeholder="e.g. INV-2026-88" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Attach Bill / Invoice</label>
+            <input type="file" name="invoice_attachment" style="width: 100%; padding: 5px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Payment Remarks / Voucher Notes</label>
+          <textarea name="notes" rows="2" placeholder="e.g. 50% advance for 10 rooms at Club Mahindra Ooty" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;"></textarea>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="document.getElementById('createReqModal').style.display='none'" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" style="background: #0d5c58; border-color: #0d5c58; padding: 8px 20px; font-weight: 600;">Submit to Finance</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Disburse Modal -->
+<div id="disburseModal" class="modal-overlay">
+  <div class="modal-box" style="max-width: 480px;">
+    <div class="modal-header">
+      <h5 id="disburseTitle" style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Record Bank Disbursement</h5>
+      <button type="button" onclick="document.getElementById('disburseModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="disburseReqId">
+      <p style="font-size: 13px; color: #475569; margin-bottom: 16px;">Enter the bank reference / UTR number for this payout transaction:</p>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Bank UTR / Transaction Reference *</label>
+        <input type="text" id="disburseUtr" placeholder="e.g. UTR2026092400981" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+      </div>
+    </div>
+    <div style="background: #f8fafc; padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+      <button type="button" onclick="document.getElementById('disburseModal').style.display='none'" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">Cancel</button>
+      <button type="button" onclick="submitDisburse()" class="btn btn-primary btn-sm" style="background: #0d5c58; border-color: #0d5c58; padding: 8px 20px; font-weight: 600;">Confirm Disbursal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function updateStatus(id, action) {
+  if(!confirm(`Are you sure you want to ${action} this requisition?`)) return;
+  
+  const formData = new FormData();
+  formData.append('action', action);
+
+  fetch(`/crm/api/requisitions/${id}/update-status/`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === 'success') {
+      window.location.reload();
+    } else {
+      alert("Error: " + (data.message || "Failed to update status"));
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Request failed. Please check network connection.");
+  });
+}
+
+function openDisburseModal(id, number, amount) {
+  document.getElementById('disburseReqId').value = id;
+  document.getElementById('disburseTitle').innerText = `Disburse ${number} (₹${amount})`;
+  document.getElementById('disburseUtr').value = '';
+  document.getElementById('disburseModal').style.display = 'flex';
+}
+
+function submitDisburse() {
+  const id = document.getElementById('disburseReqId').value;
+  const utr = document.getElementById('disburseUtr').value.trim();
+  
+  const formData = new FormData();
+  formData.append('action', 'disburse');
+  formData.append('transaction_reference', utr);
+
+  fetch(`/crm/api/requisitions/${id}/update-status/`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === 'success') {
+      window.location.reload();
+    } else {
+      alert("Error: " + (data.message || "Failed to record disbursement"));
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Request failed.");
+  });
+}
+</script>
+{% endblock %}

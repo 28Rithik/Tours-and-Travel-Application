@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Import Passenger Manifest — Siva Gayathri Tours and Travels</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b1329;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .import-card {
+            background: #111d3d;
+            border: 1px solid #1e3a8a;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            max-width: 680px;
+            width: 100%;
+            padding: 36px 40px;
+            position: relative;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 18px;
+        }
+        .header-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+        }
+        .header-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .download-box {
+            background: #0f2744;
+            border: 1px dashed #0284c7;
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .download-box-text {
+            font-size: 13px;
+            color: #cbd5e1;
+        }
+        .download-btn {
+            background: #0284c7;
+            color: #fff;
+            padding: 9px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .download-btn:hover {
+            background: #0369a1;
+            transform: translateY(-1px);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+        .form-select, .form-input {
+            width: 100%;
+            background: #0d1833;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 10px 14px;
+            color: #f8fafc;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-select:focus, .form-input:focus {
+            border-color: #38bdf8;
+        }
+        .file-dropzone {
+            border: 2px dashed #38bdf8;
+            border-radius: 8px;
+            background: #0a1329;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .file-dropzone:hover {
+            background: #0f1c3f;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #94a3b8;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+        .btn-submit {
+            flex: 1;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+        .btn-cancel {
+            background: #334155;
+            color: #cbd5e1;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-cancel:hover {
+            background: #475569;
+        }
+        .messages {
+            margin-bottom: 20px;
+        }
+        .alert {
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+            color: #6ee7b7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="import-card">
+        <div class="header">
+            <div class="header-icon">
+                <i class="fas fa-file-excel"></i>
+            </div>
+            <div>
+                <div class="header-title">Bulk Import Passenger Manifest</div>
+                <div class="header-subtitle">Import up to 500+ Students, Staff, Buses &amp; Rooms from Excel / Google Sheets</div>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Download Template -->
+        <div class="download-box">
+            <div class="download-box-text">
+                <strong>Need the format?</strong> Download the official CSV template with pre-filled sample rows.
+            </div>
+            <a href="/packages/manifest/template/download/" class="download-btn">
+                <i class="fas fa-download"></i> Download CSV Template
+            </a>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="iv_expedition">
+                    <i class="fas fa-university text-warning mr-1"></i> Link to College IV Expedition (Recommended):
+                </label>
+                <select name="iv_expedition" id="iv_expedition" class="form-select">
+                    <option value="">-- Optional: Link to College IV Expedition --</option>
+                    {% for exp in expeditions %}
+                    <option value="{{ exp.id }}" {% if selected_iv == exp.id|stringformat:"s" %}selected{% endif %}>
+                        {{ exp.college_name }} — {{ exp.department_and_batch }} ({{ exp.total_pax }} Pax)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="departure_batch">
+                    <i class="fas fa-bus text-info mr-1"></i> Or Link to Tour Bus Departure Batch:
+                </label>
+                <select name="departure_batch" id="departure_batch" class="form-select">
+                    <option value="">-- Optional: Select Departure Batch --</option>
+                    {% for dep in departures %}
+                    <option value="{{ dep.id }}">
+                        {{ dep.package.name }} — {{ dep.departure_date|date:"d M Y" }} ({{ dep.available_seats }} seats free)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-upload text-success mr-1"></i> Choose CSV File (Exported from Google Sheets or Excel):
+                </label>
+                <div class="file-dropzone" onclick="document.getElementById('csv_file').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x" style="color: #38bdf8; margin-bottom: 8px;"></i>
+                    <p style="font-size: 13px; color: #cbd5e1;">Click to browse or drag and drop your <strong>.csv</strong> file here</p>
+                    <small style="color: #64748b;">Supports UTF-8 CSV containing 350+ student rows</small>
+                    <input type="file" name="csv_file" id="csv_file" accept=".csv, .txt" style="display: none;" onchange="this.previousElementSibling.innerText = 'Selected file: ' + this.files[0].name" required>
+                </div>
+            </div>
+
+            <label class="checkbox-label">
+                <input type="checkbox" name="clear_existing" value="1">
+                <span>Replace / overwrite existing passenger manifest for this expedition</span>
+            </label>
+
+            <div class="btn-group">
+                <a href="/admin/package_tours/passengermanifestproxy/" class="btn-cancel">
+                    <i class="fas fa-arrow-left"></i> Back to Admin
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-check-circle"></i> Start Bulk Import Now
+                </button>
+            </div>
+        </form>
+    </div>
+
+</body>
+</html>

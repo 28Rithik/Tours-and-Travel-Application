@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complaint &amp; Service Quality Management | TravelERP CRM{% endblock %}
+{% block header_title %}Service Quality, Guest Grievances &amp; Supplier Audit{% endblock %}
+
+{% block content %}
+<style>
+  .complaint-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-card .val {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  .filter-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .select-filter {
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .complaints-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    font-size: 13.5px;
+  }
+  .complaints-table th, .complaints-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .complaints-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .badge-severity {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .sev-critical { background: #fee2e2; color: #b91c1c; }
+  .sev-high { background: #ffedd5; color: #c2410c; }
+  .sev-medium { background: #fef9c3; color: #854d0e; }
+  .sev-low { background: #f1f5f9; color: #475569; }
+
+  .badge-status {
+    padding: 4px 9px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .st-lodged { background: #fee2e2; color: #991b1b; }
+  .st-under_investigation { background: #fef3c7; color: #b45309; }
+  .st-supplier_escalated { background: #ffedd5; color: #ea580c; }
+  .st-resolved { background: #dcfce7; color: #166534; }
+  .st-closed { background: #f1f5f9; color: #475569; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 620px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .modal-header {
+    background: #f8fafc;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-body {
+    padding: 20px 24px;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+</style>
+
+<div class="complaints-container">
+  <!-- Metrics Cards -->
+  <div class="complaint-metrics">
+    <div class="metric-card">
+      <div class="title">Total Quality Cases</div>
+      <div class="val">{{ total_complaints }}</div>
+      <div class="sub" style="color: #64748b;">Lifetime Service Logs</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Open Cases Pending</div>
+      <div class="val" style="color: #ea580c;">{{ open_count }}</div>
+      <div class="sub" style="color: #ea580c;">Under Action / Escalation</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Successfully Resolved</div>
+      <div class="val" style="color: #166534;">{{ resolved_count }}</div>
+      <div class="sub" style="color: #166534;">Guest Grievances Closed</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">New Unassigned</div>
+      <div class="val" style="color: #dc2626;">{{ status_counts.lodged|default:0 }}</div>
+      <div class="sub" style="color: #dc2626;">Immediate Attention Required</div>
+    </div>
+  </div>
+
+  <!-- Filter & Action Bar -->
+  <div class="filter-bar">
+    <form method="GET" action="{% url 'crm:complaint_list' %}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+      <select name="status" onchange="this.form.submit()" class="select-filter">
+        <option value="">All Statuses ({{ total_complaints }})</option>
+        {% for st_code, st_label in statuses %}
+          <option value="{{ st_code }}" {% if selected_status == st_code %}selected{% endif %}>{{ st_label }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="category" onchange="this.form.submit()" class="select-filter">
+        <option value="">All Categories</option>
+        {% for cat_code, cat_label in categories %}
+          <option value="{{ cat_code }}" {% if selected_category == cat_code %}selected{% endif %}>{{ cat_label }}</option>
+        {% endfor %}
+      </select>
+
+      {% if selected_status or selected_category %}
+        <a href="{% url 'crm:complaint_list' %}" class="btn btn-outline-secondary btn-sm" style="padding: 7px 12px;">Clear Filters</a>
+      {% endif %}
+    </form>
+
+    <button onclick="document.getElementById('lodgeModal').style.display='flex'" class="btn btn-danger" style="font-weight: 600; padding: 8px 18px; border-radius: 6px;">
+      🚨 Lodge Complaint
+    </button>
+  </div>
+
+  <!-- Table -->
+  {% if complaints %}
+    <div class="table-responsive">
+      <table class="complaints-table">
+        <thead>
+          <tr>
+            <th>Ref #</th>
+            <th>Complainant</th>
+            <th>Category &amp; Severity</th>
+            <th>Supplier Involved</th>
+            <th>Status</th>
+            <th>Supplier Rating</th>
+            <th>Lodged Date</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in complaints %}
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: #0f172a;">{{ c.complaint_number }}</div>
+              </td>
+              <td>
+                <div style="font-weight: 600; color: #1e293b;">{{ c.complainant_name }}</div>
+                <div style="font-size: 11.5px; color: #64748b;">
+                  {{ c.get_complainant_type_display }}
+                  {% if c.complainant_phone %} &bull; {{ c.complainant_phone }}{% endif %}
+                </div>
+              </td>
+              <td>
+                <div style="font-weight: 600; font-size: 12.5px; color: #334155;">{{ c.get_category_display }}</div>
+                <div style="margin-top: 3px;">
+                  <span class="badge-severity sev-{{ c.severity }}">{{ c.get_severity_display }}</span>
+                </div>
+              </td>
+              <td>
+                {% if c.supplier_involved %}
+                  <div style="font-weight: 600; color: #0d5c58;">🏨 {{ c.supplier_involved.company_name }}</div>
+                  <div style="font-size: 11px; color: #64748b;">{{ c.supplier_involved.destination_city }}</div>
+                {% else %}
+                  <span style="font-size: 12px; color: #94a3b8;">Internal / Fleet</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge-status st-{{ c.status }}">{{ c.get_status_display }}</span>
+              </td>
+              <td>
+                {% if c.supplier_rating_awarded %}
+                  <div style="font-size: 13px; color: #f59e0b; font-weight: 700;">
+                    {% for star in "12345"|make_list %}
+                      {% if forloop.counter <= c.supplier_rating_awarded %}★{% else %}☆{% endif %}
+                    {% endfor %}
+                    <span style="color: #475569; font-size: 11px;">({{ c.supplier_rating_awarded }}/5)</span>
+                  </div>
+                {% else %}
+                  <span style="font-size: 12px; color: #94a3b8;">Pending Audit</span>
+                {% endif %}
+              </td>
+              <td style="font-size: 12px; color: #64748b;">
+                {{ c.lodged_at|date:"d M Y, H:i" }}
+              </td>
+              <td style="text-align: right;">
+                <button onclick="openResolveModal('{{ c.id }}', '{{ c.complaint_number }}', '{{ c.status }}', '{{ c.investigation_remarks|escapejs }}', '{{ c.resolution_notes|escapejs }}', '{{ c.supplier_rating_awarded|default:'' }}')" class="btn btn-sm btn-outline-dark" style="padding: 4px 10px; font-size: 12px; font-weight: 600;">
+                  🔍 Investigate
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 48px; text-align: center; color: #64748b;">
+      <div style="font-size: 36px; margin-bottom: 12px;">🛡️</div>
+      <div style="font-size: 16px; font-weight: 700; color: #1e293b;">No complaints found</div>
+      <p style="font-size: 13px; margin: 6px 0 16px;">Everything is running smoothly! Log any guest feedback or incident reports here.</p>
+      <button onclick="document.getElementById('lodgeModal').style.display='flex'" class="btn btn-danger" style="font-size: 13px;">
+        Lodge Service Report
+      </button>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Lodge Complaint Modal -->
+<div id="lodgeModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Lodge Quality Grievance / Complaint</h5>
+      <button type="button" onclick="document.getElementById('lodgeModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+    </div>
+    <form method="POST" action="{% url 'crm:complaint_lodge' %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Complainant Name *</label>
+            <input type="text" name="complainant_name" required placeholder="Guest or Agent Name" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Phone / WhatsApp</label>
+            <input type="text" name="complainant_phone" placeholder="+91 98765 43210" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Channel / Entity</label>
+            <select name="complainant_type" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+              <option value="b2c_traveler">Direct Retail Traveler (B2C)</option>
+              <option value="fto_agent">Foreign Tour Operator (FTO) / Agent</option>
+              <option value="corporate">Corporate MNC Coordinator</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Severity Tier</label>
+            <select name="severity" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+              <option value="medium">🟡 Medium</option>
+              <option value="critical">🔴 Critical (Immediate Escalation)</option>
+              <option value="high">🟠 High</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Category *</label>
+            <select name="category" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+              {% for cat_code, cat_label in categories %}
+                <option value="{{ cat_code }}">{{ cat_label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Supplier Involved (Optional)</label>
+            <select name="supplier_involved" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+              <option value="">-- None / In-House Service --</option>
+              {% for s in suppliers %}
+                <option value="{{ s.id }}">{{ s.company_name }} ({{ s.destination_city }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Incident &amp; Issue Details *</label>
+          <textarea name="issue_description" required rows="3" placeholder="Explain what occurred, what guest reported, affected dates, and impact..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;"></textarea>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="document.getElementById('lodgeModal').style.display='none'" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">Cancel</button>
+        <button type="submit" class="btn btn-danger btn-sm" style="padding: 8px 20px; font-weight: 600;">Lodge &amp; Assign</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Investigate / Resolve Modal -->
+<div id="resolveModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5 id="resolveModalTitle" style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Investigate &amp; Resolve Complaint</h5>
+      <button type="button" onclick="document.getElementById('resolveModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+    </div>
+    <form id="resolveForm" method="POST">
+      {% csrf_token %}
+      <input type="hidden" id="resolveComplaintId" name="complaint_id">
+      <div class="modal-body">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Update Status *</label>
+          <select id="resolveStatus" name="status" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+            {% for st_code, st_label in statuses %}
+              <option value="{{ st_code }}">{{ st_label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Operational Investigation Remarks</label>
+          <textarea id="resolveRemarks" name="investigation_remarks" rows="2" placeholder="Root cause analysis, findings from hotelier/driver inquiry..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Resolution / Corrective Action Notes</label>
+          <textarea id="resolveNotes" name="resolution_notes" rows="2" placeholder="Customer settlement, apology letter, room upgrade offered, refund, or supplier penalty..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;"></textarea>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Supplier Audit Score (1 to 5 Stars)</label>
+          <select id="resolveRating" name="supplier_rating" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+            <option value="">-- No Supplier Penalty / Audit Rating --</option>
+            <option value="5">★★★★★ 5 Stars (Exceptional Recovery)</option>
+            <option value="4">★★★★☆ 4 Stars (Good Co-operation)</option>
+            <option value="3">★★★☆☆ 3 Stars (Average / Minor Delay)</option>
+            <option value="2">★★☆☆☆ 2 Stars (Poor Quality / Warning Issued)</option>
+            <option value="1">★☆☆☆☆ 1 Star (Unacceptable / De-list Recommended)</option>
+          </select>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="document.getElementById('resolveModal').style.display='none'" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" style="background: #0d5c58; border-color: #0d5c58; padding: 8px 20px; font-weight: 600;">Save Investigation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openResolveModal(id, number, status, remarks, notes, rating) {
+  document.getElementById('resolveComplaintId').value = id;
+  document.getElementById('resolveModalTitle').innerText = 'Investigate & Resolve ' + number;
+  document.getElementById('resolveStatus').value = status;
+  document.getElementById('resolveRemarks').value = remarks || '';
+  document.getElementById('resolveNotes').value = notes || '';
+  document.getElementById('resolveRating').value = rating || '';
+  document.getElementById('resolveModal').style.display = 'flex';
+}
+
+document.getElementById('resolveForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const id = document.getElementById('resolveComplaintId').value;
+  const formData = new FormData(this);
+
+  fetch(`/crm/api/complaints/${id}/resolve/`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === 'success') {
+      window.location.reload();
+    } else {
+      alert("Error: " + (data.message || "Could not update complaint"));
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Request failed. Please check network connection.");
+  });
+});
+</script>
+{% endblock %}

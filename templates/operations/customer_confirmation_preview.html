@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Customer confirmation preview | TravelERP{% endblock %}
+{% block header_title %}Customer confirmation{% endblock %}
+{% block content %}
+<div class="page-intro">
+  <div>
+    <p class="eyebrow">Email / SMS preview</p>
+    <h1>{{ trip.guest_name }}</h1>
+  </div>
+</div>
+
+<section class="panel">
+  <pre style="white-space: pre-wrap; font-family: inherit; margin: 0;">{{ preview_text }}</pre>
+</section>
+{% endblock %}

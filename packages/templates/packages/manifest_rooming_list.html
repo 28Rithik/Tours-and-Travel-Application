@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rooming List & Seating Manifest — {{ expedition.college_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #0f172a;
+            color: #1e293b;
+            line-height: 1.5;
+            padding: 20px;
+        }
+
+        .top-action-bar {
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .top-action-bar .brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-print { background: #38bdf8; color: #0f172a; }
+        .btn-print:hover { background: #0284c7; color: #fff; }
+        .btn-back { background: #334155; color: #cbd5e1; }
+        .btn-back:hover { background: #475569; color: #fff; }
+
+        .sheet {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            padding: 40px;
+        }
+
+        /* Header */
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .brand-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #0369a1;
+        }
+        .badge-manifest {
+            background: #059669;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Expedition Banner */
+        .exp-banner {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            font-size: 13px;
+        }
+        .exp-banner dt { color: #64748b; font-weight: 600; font-size: 12px; }
+        .exp-banner dd { color: #0f172a; font-weight: 700; font-size: 14px; margin-top: 2px; }
+
+        .section-heading {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 24px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* Table */
+        .manifest-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 24px;
+        }
+        .manifest-table th {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            border-top: 1px solid #cbd5e1;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .manifest-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .manifest-table tr:nth-child(even) { background: #f8fafc; }
+
+        .tag-faculty { background: #7c3aed; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px; }
+        .tag-student { background: #0284c7; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 10px; }
+        .tag-m { color: #0284c7; font-weight: 700; }
+        .tag-f { color: #ec4899; font-weight: 700; }
+
+        @media print {
+            body { background: #fff; padding: 0; }
+            .top-action-bar { display: none; }
+            .sheet { box-shadow: none; padding: 15px; border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-action-bar">
+        <div class="brand">
+            <i class="fas fa-clipboard-list"></i> PASSENGER MANIFEST & HOTEL ROOMING LIST
+        </div>
+        <div class="actions">
+            <a href="/admin/package_tours/collegeivproxy/{{ expedition.id }}/change/" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Expedition
+            </a>
+            <button onclick="window.print()" class="btn btn-print">
+                <i class="fas fa-print"></i> Print Manifest & Rooming List
+            </button>
+        </div>
+    </div>
+
+    <div class="sheet">
+        <div class="sheet-header">
+            <div>
+                <div class="brand-title">SIVA GAYATHRI TOURS & TRAVELS</div>
+                <div style="font-size: 13px; color: #64748b; font-weight: 600;">
+                    College IV Operations & Dispatch Desk | Passenger Seating & Rooming Assignment
+                </div>
+            </div>
+            <div>
+                <span class="badge-manifest">Auto-Assigned & Verified</span>
+            </div>
+        </div>
+
+        <div class="exp-banner">
+            <div>
+                <dt>Institution / College:</dt>
+                <dd>{{ expedition.college_name }}</dd>
+            </div>
+            <div>
+                <dt>Department & Batch:</dt>
+                <dd>{{ expedition.department_and_batch }}</dd>
+            </div>
+            <div>
+                <dt>Total Passengers:</dt>
+                <dd>{{ expedition.total_pax }} Pax ({{ expedition.faculty_count }} Faculty + {{ expedition.student_count_male }} Boys + {{ expedition.student_count_female }} Girls)</dd>
+            </div>
+            <div>
+                <dt>Tour Manager:</dt>
+                <dd>{{ expedition.tour_manager_assigned }}</dd>
+            </div>
+            <div>
+                <dt>Convoy:</dt>
+                <dd>{{ expedition.bus_count }} Coach(es) | {{ expedition.get_transit_mode_display }}</dd>
+            </div>
+            <div>
+                <dt>Faculty Coordinator:</dt>
+                <dd>{{ expedition.faculty_incharge_name }} ({{ expedition.faculty_incharge_phone }})</dd>
+            </div>
+        </div>
+
+        <!-- Seating & Rooming Manifest Table -->
+        <div class="section-heading">
+            <i class="fas fa-bus text-primary"></i> Seating Manifest & Room Allocations
+        </div>
+
+        <table class="manifest-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">#</th>
+                    <th style="width: 70px;">Bus</th>
+                    <th style="width: 60px;">Seat</th>
+                    <th>Passenger Name</th>
+                    <th style="width: 80px;">Category</th>
+                    <th style="width: 60px;">Gender</th>
+                    <th style="width: 100px;">Roll No / ID</th>
+                    <th>Assigned Room Number</th>
+                    <th style="width: 100px;">Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in passengers %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><b>{{ p.bus_assignment|default:"Bus 01" }}</b></td>
+                    <td><span style="font-weight: 700; color: #0284c7;">{{ p.seat_number|default:"—" }}</span></td>
+                    <td><b>{{ p.passenger_name }}</b></td>
+                    <td>
+                        {% if p.category == 'faculty' %}
+                        <span class="tag-faculty">Faculty</span>
+                        {% else %}
+                        <span class="tag-student">Student</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.gender == 'female' %}
+                        <span class="tag-f">Female</span>
+                        {% else %}
+                        <span class="tag-m">Male</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ p.roll_number|default:"—" }}</td>
+                    <td><b style="color: #059669;">{{ p.room_sharing_number|default:"Unassigned" }}</b></td>
+                    <td>{{ p.phone|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" style="text-align: center; color: #94a3b8; padding: 20px;">
+                        No passenger records found. Please import the CSV manifest or run auto-assignment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

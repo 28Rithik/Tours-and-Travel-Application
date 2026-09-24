@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}DMC Document Management Vault | TravelERP CRM{% endblock %}
+{% block header_title %}Enterprise Document Vault &amp; Digital Collateral{% endblock %}
+
+{% block content %}
+<style>
+  .vault-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-card .val {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    color: #0d5c58;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  .nav-pills-vault {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .pill-tab {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .pill-tab:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .pill-tab.active {
+    background: #0d5c58;
+    color: #ffffff;
+    border-color: #0d5c58;
+  }
+
+  .action-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .search-input {
+    padding: 8px 14px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    width: 280px;
+  }
+
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    font-size: 13.5px;
+  }
+  .doc-table th, .doc-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .doc-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .badge-category {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+  .badge-agreement { background: #fef3c7; color: #b45309; }
+  .badge-kyc { background: #ede9fe; color: #6d28d9; }
+  .badge-invoice { background: #dcfce7; color: #15803d; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 580px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  .modal-header {
+    background: #f8fafc;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-body {
+    padding: 20px 24px;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+</style>
+
+<div class="vault-container">
+  <!-- Metrics Header -->
+  <div class="vault-metrics">
+    <div class="metric-card">
+      <div class="title">Total Vault Collateral</div>
+      <div class="val">{{ total_docs }}</div>
+      <div class="sub">Active Enterprise Files</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Brochures &amp; Itineraries</div>
+      <div class="val">{{ category_counts.brochure|default:0|add:category_counts.itinerary_template|default:0 }}</div>
+      <div class="sub">Marketing &amp; Sales Decks</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Legal &amp; Rate Sheets</div>
+      <div class="val">{{ category_counts.business_agreement|default:0|add:category_counts.rate_sheet|default:0 }}</div>
+      <div class="sub">B2B Contracts &amp; Tariffs</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Traveler KYC &amp; Passports</div>
+      <div class="val">{{ category_counts.client_kyc_passport|default:0 }}</div>
+      <div class="sub">Identity &amp; Visa Vault</div>
+    </div>
+  </div>
+
+  <!-- Category Nav Pills -->
+  <div class="nav-pills-vault">
+    <a href="{% url 'crm:document_vault' %}" class="pill-tab {% if not selected_category %}active{% endif %}">
+      📁 All Files ({{ total_docs }})
+    </a>
+    {% for cat_code, cat_label in categories %}
+      <a href="{% url 'crm:document_vault' %}?category={{ cat_code }}" class="pill-tab {% if selected_category == cat_code %}active{% endif %}">
+        {{ cat_label }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Search & Action Bar -->
+  <div class="action-bar">
+    <form method="GET" action="{% url 'crm:document_vault' %}" style="display: flex; gap: 8px;">
+      {% if selected_category %}
+        <input type="hidden" name="category" value="{{ selected_category }}">
+      {% endif %}
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Search documents by name or notes..." class="search-input">
+      <button type="submit" class="btn btn-secondary btn-sm" style="padding: 8px 14px; font-weight: 600;">Search</button>
+      {% if search_query %}
+        <a href="{% url 'crm:document_vault' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="btn btn-outline-secondary btn-sm" style="padding: 8px 10px;">Clear</a>
+      {% endif %}
+    </form>
+
+    <button onclick="document.getElementById('uploadModal').style.display='flex'" class="btn btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-weight: 600; padding: 8px 18px; border-radius: 6px;">
+      📤 Upload Document
+    </button>
+  </div>
+
+  <!-- Documents Table -->
+  {% if documents %}
+    <div class="table-responsive">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>Document Name</th>
+            <th>Category</th>
+            <th>Linked Context</th>
+            <th>Uploaded By</th>
+            <th>Added Date</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for doc in documents %}
+            <tr>
+              <td>
+                <div style="font-weight: 700; color: #0f172a;">
+                  📄 {{ doc.title }}
+                </div>
+                {% if doc.description %}
+                  <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">{{ doc.description|truncatechars:70 }}</div>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge-category {% if doc.category == 'business_agreement' %}badge-agreement{% elif doc.category == 'client_kyc_passport' %}badge-kyc{% elif doc.category == 'voucher_invoice' %}badge-invoice{% endif %}">
+                  {{ doc.get_category_display }}
+                </span>
+              </td>
+              <td>
+                {% if doc.related_partner %}
+                  <span style="font-size: 12px; font-weight: 600; color: #0369a1;">🤝 {{ doc.related_partner.party.name }}</span>
+                {% elif doc.related_supplier %}
+                  <span style="font-size: 12px; font-weight: 600; color: #0d5c58;">🏨 {{ doc.related_supplier.company_name }}</span>
+                {% elif doc.related_inquiry %}
+                  <span style="font-size: 12px; font-weight: 600; color: #475569;">📋 Inq #{{ doc.related_inquiry.id }}</span>
+                {% elif doc.related_booking %}
+                  <span style="font-size: 12px; font-weight: 600; color: #15803d;">✈️ {{ doc.related_booking.booking_number }}</span>
+                {% else %}
+                  <span style="font-size: 12px; color: #94a3b8;">General Vault</span>
+                {% endif %}
+              </td>
+              <td style="font-size: 12px; color: #475569;">
+                {{ doc.uploaded_by.get_full_name|default:doc.uploaded_by.username|default:"System" }}
+              </td>
+              <td style="font-size: 12px; color: #64748b;">
+                {{ doc.created_at|date:"d M Y, H:i" }}
+              </td>
+              <td style="text-align: right;">
+                {% if doc.document_file %}
+                  <a href="{{ doc.document_file.url }}" target="_blank" download class="btn btn-sm btn-outline-primary" style="padding: 4px 10px; font-size: 12px; font-weight: 600;">
+                    ⬇️ Download
+                  </a>
+                {% else %}
+                  <span style="font-size: 12px; color: #94a3b8;">No File</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 48px; text-align: center; color: #64748b;">
+      <div style="font-size: 36px; margin-bottom: 12px;">📂</div>
+      <div style="font-size: 16px; font-weight: 700; color: #1e293b;">No documents found</div>
+      <p style="font-size: 13px; margin: 6px 0 16px;">Upload brochures, contract agreements, rate sheets, or guest passports.</p>
+      <button onclick="document.getElementById('uploadModal').style.display='flex'" class="btn btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-size: 13px;">
+        Upload First File
+      </button>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Upload to Document Vault</h5>
+      <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+    </div>
+    <form id="vaultUploadForm" method="POST" action="{% url 'crm:api_document_upload' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Document Title *</label>
+          <input type="text" name="title" required placeholder="e.g. Ooty 3N/4D Deluxe Tour Brochure 2026" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Category *</label>
+          <select name="category" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+            {% for cat_code, cat_label in categories %}
+              <option value="{{ cat_code }}">{{ cat_label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Attach File *</label>
+          <input type="file" name="document_file" required style="width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+          <small style="color: #64748b; font-size: 11px;">Supported formats: PDF, DOCX, JPG, PNG, XLSX (up to 25MB)</small>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Description / Remarks</label>
+          <textarea name="description" rows="2" placeholder="Brief summary of document content or version notes..." style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;"></textarea>
+        </div>
+      </div>
+      <div style="background: #f8fafc; padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-sm" style="background: #0d5c58; border-color: #0d5c58; padding: 8px 20px; font-weight: 600;">Upload Now</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('vaultUploadForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(this);
+  fetch("{% url 'crm:api_document_upload' %}", {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === 'success') {
+      window.location.reload();
+    } else {
+      alert("Error: " + (data.message || "Failed to upload document"));
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Upload failed. Please check network connection.");
+  });
+});
+</script>
+{% endblock %}

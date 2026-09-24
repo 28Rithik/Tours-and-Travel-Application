@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Service Voucher {{ v.voucher_number }} | TravelERP CRM{% endblock %}
+{% block header_title %}Official Supplier Service Voucher &amp; Purchase Order (LPO){% endblock %}
+
+{% block content %}
+<style>
+  .voucher-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .control-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .btn-secondary { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+  .btn-secondary:hover { background: #e2e8f0; }
+  .btn-primary { background: #0d5c58; color: #ffffff; }
+  .btn-primary:hover { background: #0a4643; }
+  .btn-wa { background: #25d366; color: #ffffff; border-color: #20ba5a; }
+  .btn-wa:hover { background: #1ebe57; }
+
+  /* Voucher Paper */
+  .voucher-paper {
+    max-width: 860px;
+    margin: 0 auto 40px auto;
+    background: #ffffff;
+    border: 1px solid #d8e2dc;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.55;
+  }
+
+  .voucher-head {
+    background: linear-gradient(135deg, #0d5c58 0%, #157e79 100%);
+    color: #ffffff;
+    padding: 32px 36px 26px 36px;
+  }
+  .voucher-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 20px;
+    margin-bottom: 16px;
+  }
+  .head-logo-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0 0 4px 0;
+  }
+  .head-sub {
+    font-size: 12.5px;
+    color: #b8dedb;
+    margin: 0;
+  }
+  .voucher-no-box {
+    text-align: right;
+  }
+  .vch-no {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .vch-date {
+    font-size: 12px;
+    color: #e2f1f0;
+    margin-top: 4px;
+  }
+
+  .voucher-body {
+    padding: 32px 36px;
+  }
+
+  .info-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 640px) {
+    .info-split-grid { grid-template-columns: 1fr; }
+  }
+  .box-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 13px;
+  }
+  .box-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #0d5c58;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+  }
+
+  .service-spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px 0;
+    font-size: 13.5px;
+  }
+  .service-spec-table th, .service-spec-table td {
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+  }
+  .service-spec-table th {
+    background: #f1f5f9;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    color: #475569;
+    font-weight: 700;
+  }
+
+  .settlement-card {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .settlement-card .amt {
+    font-size: 22px;
+    font-weight: 800;
+    color: #166534;
+  }
+
+  .confirmation-extranet-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+
+  .voucher-footer {
+    border-top: 1px solid #e2e8f0;
+    padding: 24px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #64748b;
+    background: #f8fafc;
+  }
+  .sig-line {
+    width: 160px;
+    border-top: 1px solid #94a3b8;
+    margin-top: 36px;
+    margin-left: auto;
+    padding-top: 4px;
+    font-weight: 600;
+    color: #334155;
+    text-align: right;
+  }
+
+  @media print {
+    body { background: #fff !important; padding: 0 !important; }
+    .sidebar, .topbar, .voucher-controls, .no-print { display: none !important; }
+    .main-shell { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    .voucher-paper {
+      border: none !important;
+      box-shadow: none !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+  }
+</style>
+
+<!-- Controls Toolbar (Hidden in Print) -->
+<div class="voucher-controls no-print">
+  <div class="control-group">
+    <a href="{% url 'crm:voucher_console' %}" class="btn-action btn-secondary">
+      ← Back to Voucher Console
+    </a>
+    <button onclick="window.print()" class="btn-action btn-secondary">
+      🖨️ Print / Save as PDF
+    </button>
+  </div>
+
+  <div class="control-group">
+    <!-- WhatsApp Share -->
+    <a href="https://wa.me/{{ party.phone|default:'' }}?text={{ 'Dear Partner ('|urlencode }}{{ party.name|urlencode }}{{ '), here is official reservation voucher '|urlencode }}{{ v.voucher_number|urlencode }}{{ ' for '|urlencode }}{{ v.guest_name|urlencode }}{{ '. Link: http://127.0.0.1:8000/crm/vouchers/extranet/'|urlencode }}{{ v.confirmation_token|urlencode }}" 
+       target="_blank" class="btn-action btn-wa">
+      📲 WhatsApp to Supplier Desk
+    </a>
+
+    <!-- Extranet Portal Link -->
+    <a href="{% url 'crm:supplier_extranet_voucher' token=v.confirmation_token %}" target="_blank" class="btn-action btn-secondary">
+      🌐 Open Supplier Extranet
+    </a>
+
+    <!-- Issue Voucher Action -->
+    {% if v.status == 'draft' %}
+      <a href="{% url 'crm:voucher_issue' voucher_id=v.id %}" class="btn-action btn-primary" onclick="return confirm('Officially issue and dispatch this voucher to the supplier?');">
+        🚀 Issue to Supplier
+      </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Voucher Paper Document -->
+<div class="voucher-paper">
+  <div class="voucher-head">
+    <div class="voucher-head-row">
+      <div>
+        <h1 class="head-logo-title">Sivagayathiri Travels &amp; Holidays</h1>
+        <p class="head-sub">Inbound Destination Management Company (DMC) • South India &amp; Nilgiris</p>
+        <p style="font-size: 11.5px; color: #a4d2cf; margin: 4px 0 0 0;">GSTIN: 33AAAAA0000A1Z5 | Emergency Dispatch: +91 94430 00000</p>
+      </div>
+      <div class="voucher-no-box">
+        <div class="vch-no">{{ v.voucher_number }}</div>
+        <div class="vch-date">Date of Issue: {{ v.created_at|date:"d M Y" }}</div>
+        <div style="margin-top: 6px;">
+          <span style="background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+            Status: {{ v.get_status_display }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #d1fae5; font-weight: 700;">
+        Official Supplier Service Order &amp; Purchase Obligation (LPO)
+      </span>
+      <h2 style="font-size: 20px; font-weight: 700; margin: 2px 0 0 0; color: #fff;">
+        {{ v.get_voucher_type_display }}
+      </h2>
+    </div>
+  </div>
+
+  <div class="voucher-body">
+    <!-- Two Column Information Box: Beneficiary Supplier vs Passenger -->
+    <div class="info-split-grid">
+      <div class="box-card">
+        <div class="box-title">🏨 Beneficiary Supplier &amp; Desk</div>
+        <strong style="font-size: 14px; color: #0f172a;">{{ party.name }}</strong>
+        {% if supplier.trade_name %}<div style="color: #64748b;">DBA: {{ supplier.trade_name }}</div>{% endif %}
+        <div style="margin-top: 6px;">📍 Destination: <strong>{{ supplier.destination_city }}</strong></div>
+        {% if contact %}
+          <div>Attn: <strong>{{ contact.name }}</strong> ({{ contact.designation }})</div>
+          <div>Desk Phone: {{ contact.phone }} | Email: {{ contact.email|default:party.email }}</div>
+        {% else %}
+          <div>Desk Phone: {{ party.phone|default:"-" }}</div>
+          <div>Email: {{ party.email|default:"-" }}</div>
+        {% endif %}
+        {% if supplier.gstin %}<div>GSTIN: <code>{{ supplier.gstin }}</code></div>{% endif %}
+      </div>
+
+      <div class="box-card">
+        <div class="box-title">👤 Guest &amp; Journey Coordinates</div>
+        <strong style="font-size: 14px; color: #0f172a;">{{ v.guest_name }}</strong>
+        <div style="margin-top: 4px;">👥 Party Size: <strong>{{ v.pax_count }} Passengers</strong></div>
+        <div>📞 Contact: {{ v.guest_phone|default:"Provided upon arrival" }}</div>
+        {% if v.quotation %}
+          <div>Tour Ref: <strong>{{ v.quotation.quotation_number }}</strong> ({{ v.quotation.destination }})</div>
+        {% endif %}
+        {% if v.booking %}
+          <div>Operations Booking: <strong>#{{ v.booking.booking_number }}</strong></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Service Specifications Table -->
+    <table class="service-spec-table">
+      <thead>
+        <tr>
+          <th>Service Item &amp; Specifications</th>
+          <th>Check-in / Start</th>
+          <th>Check-out / End</th>
+          <th>Duration / Qty</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            {% if v.voucher_type == 'hotel_reservation' %}
+              <strong>{{ v.hotel_room_type|default:"Deluxe Room" }}</strong>
+              <div style="font-size: 12px; color: #0f766e; font-weight: 700; margin-top: 2px;">
+                Meal Plan: {{ v.hotel_meal_plan }} Plan • Rooms: {{ v.room_count }} Room(s)
+              </div>
+            {% elif v.voucher_type == 'transport_order' %}
+              <strong>{{ v.vehicle_type_name|default:"Dedicated AC Tourist Vehicle" }}</strong>
+              <div style="font-size: 12px; color: #475569; margin-top: 2px;">
+                Pickup: {{ v.pickup_location|default:"Arrival Point" }} &rarr; Drop: {{ v.drop_location|default:"Hotel / Departure" }}
+              </div>
+              {% if v.pickup_time %}<div style="font-size: 11.5px; color: #0f766e;">Reporting Time: {{ v.pickup_time|time:"H:i" }}</div>{% endif %}
+            {% else %}
+              <strong>{{ v.activity_name|default:v.get_voucher_type_display }}</strong>
+            {% endif %}
+          </td>
+          <td><strong>{{ v.service_date_start|date:"d M Y" }}</strong></td>
+          <td><strong>{{ v.service_date_end|date:"d M Y" }}</strong></td>
+          <td>{{ v.duration_nights }} Night(s) / Day(s)</td>
+        </tr>
+        {% if v.special_instructions %}
+          <tr style="background: #fffbeb;">
+            <td colspan="4" style="color: #92400e; font-size: 12.5px;">
+              <strong>Special Instructions &amp; Requests:</strong> {{ v.special_instructions }}
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- Commercial Settlement Advice -->
+    <div class="settlement-card">
+      <div>
+        <div style="font-size: 11.5px; text-transform: uppercase; font-weight: 700; color: #166534;">
+          Contracted Supplier Purchase Obligation
+        </div>
+        <div style="font-size: 13px; color: #15803d; margin-top: 2px;">
+          {{ v.payment_terms }}
+        </div>
+        {% if supplier.bank_name and supplier.bank_account_number %}
+          <div style="font-size: 12px; color: #475569; margin-top: 4px;">
+            Bank Payout: {{ supplier.bank_name }} • A/C: <code>{{ supplier.bank_account_number }}</code> • IFSC: <code>{{ supplier.bank_ifsc }}</code>
+          </div>
+        {% endif %}
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 11px; text-transform: uppercase; color: #166534; font-weight: 700;">Total Payable (₹)</div>
+        <div class="amt">₹{{ v.total_payable_to_supplier|floatformat:2 }}</div>
+      </div>
+    </div>
+
+    <!-- Confirmation Status / Extranet -->
+    {% if v.status == 'confirmed' %}
+      <div style="background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px;">
+        <strong style="color: #166534;">✅ Reservation Confirmed by Supplier Desk</strong>
+        <div style="font-size: 12.5px; color: #15803d; margin-top: 2px;">
+          Confirmation Code: <code>{{ v.confirmation_reference }}</code> (Confirmed at {{ v.confirmed_at|date:"d M Y, H:i" }})
+        </div>
+        {% if v.supplier_notes %}<div style="font-size: 12px; color: #475569; margin-top: 4px;">Supplier Remarks: "{{ v.supplier_notes }}"</div>{% endif %}
+      </div>
+    {% else %}
+      <div class="confirmation-extranet-box no-print">
+        <strong>⚡ Direct Supplier Extranet Confirmation Link:</strong>
+        <p style="margin: 4px 0 0 0; font-size: 12px; color: #3b82f6;">
+          Your vendor desk can confirm this reservation with 1-click via the secure URL:
+          <br>
+          <a href="{% url 'crm:supplier_extranet_voucher' token=v.confirmation_token %}" target="_blank" style="color: #1d4ed8; font-weight: 700;">
+            http://127.0.0.1:8000/crm/vouchers/extranet/{{ v.confirmation_token }}/
+          </a>
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="voucher-footer">
+    <div>
+      <strong>Sivagayathiri Travels &amp; Holidays DMC Desk</strong><br>
+      Reservations: +91 94430 00000 • reservations@sivagayathiri.com<br>
+      This is a digitally validated service purchase order.
+    </div>
+    <div>
+      <div class="sig-line">
+        Authorized Signatory<br>Sivagayathiri Operations
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

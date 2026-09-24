@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supplier Extranet Confirmation — {{ v.voucher_number }}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+      margin: 0;
+      padding: 24px 16px;
+      line-height: 1.5;
+    }
+    .portal-container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .portal-header {
+      background: #0d5c58;
+      color: #ffffff;
+      padding: 24px;
+      text-align: center;
+    }
+    .portal-header h1 {
+      font-size: 20px;
+      font-weight: 800;
+      margin: 0 0 4px 0;
+    }
+    .portal-header p {
+      font-size: 13px;
+      color: #b8dedb;
+      margin: 0;
+    }
+    .voucher-card {
+      padding: 24px;
+    }
+    .vch-meta-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .vch-number {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0d5c58;
+    }
+    .vch-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #fef3c7;
+      color: #b45309;
+    }
+    .info-list {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 13.5px;
+    }
+    .info-list div {
+      margin-bottom: 8px;
+    }
+    .info-list div:last-child { margin-bottom: 0; }
+    .info-list strong { color: #0f172a; }
+
+    .confirm-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .form-field {
+      margin-bottom: 14px;
+    }
+    .form-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    .form-field input, .form-field textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 800;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #059669;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(5,150,105,0.3);
+      transition: background 0.15s;
+    }
+    .btn-submit:hover { background: #047857; }
+    .btn-amend {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 1px solid #f59e0b;
+      cursor: pointer;
+      background: #fffbeb;
+      color: #b45309;
+    }
+    .confirmed-banner {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      color: #166534;
+      padding: 18px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-container">
+    <div class="portal-header">
+      <h1>Sivagayathiri Travels &amp; Holidays</h1>
+      <p>Supplier Extranet &bull; Fast Reservation Confirmation Portal</p>
+    </div>
+
+    <div class="voucher-card">
+      <div class="vch-meta-row">
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700;">Purchase Order / Voucher</span>
+          <div class="vch-number">{{ v.voucher_number }}</div>
+        </div>
+        <div>
+          <span class="vch-badge">{{ v.get_status_display }}</span>
+        </div>
+      </div>
+
+      <div class="info-list">
+        <div><strong>Supplier:</strong> {{ party.name }} ({{ supplier.destination_city }})</div>
+        <div><strong>Guest Name:</strong> {{ v.guest_name }} ({{ v.pax_count }} Passengers)</div>
+        <div><strong>Service Dates:</strong> {{ v.service_date_start|date:"d M Y" }} to {{ v.service_date_end|date:"d M Y" }} ({{ v.duration_nights }} Nights)</div>
+        {% if v.voucher_type == 'hotel_reservation' %}
+          <div><strong>Accommodation:</strong> {{ v.room_count }}x {{ v.hotel_room_type|default:"Deluxe Room" }} ({{ v.hotel_meal_plan }} Meal Plan)</div>
+        {% elif v.voucher_type == 'transport_order' %}
+          <div><strong>Vehicle / Fleet:</strong> {{ v.vehicle_type_name }} (Pickup: {{ v.pickup_location }})</div>
+        {% else %}
+          <div><strong>Service:</strong> {{ v.activity_name|default:v.get_voucher_type_display }}</div>
+        {% endif %}
+        {% if v.special_instructions %}
+          <div style="color: #b45309;"><strong>Special Notes:</strong> {{ v.special_instructions }}</div>
+        {% endif %}
+        <div style="border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 8px; font-weight: 700; color: #0d5c58;">
+          Agreed DMC Payout: ₹{{ v.total_payable_to_supplier|floatformat:2 }}
+        </div>
+      </div>
+
+      {% if v.status == 'confirmed' %}
+        <div class="confirmed-banner">
+          <h3 style="margin: 0 0 6px 0;">🎉 Reservation Guaranteed &amp; Confirmed!</h3>
+          <p style="margin: 0; font-size: 13px;">
+            Confirmation Reference: <strong><code>{{ v.confirmation_reference }}</code></strong><br>
+            Confirmed at {{ v.confirmed_at|date:"d M Y, H:i" }}
+          </p>
+          {% if v.supplier_notes %}
+            <p style="margin: 6px 0 0 0; font-size: 12px; color: #475569;">Remarks: "{{ v.supplier_notes }}"</p>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="confirm-box">
+          <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 800; color: #0f172a;">
+            Confirm This Reservation Order
+          </h3>
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-field">
+              <label>Your Hotel / Desk Confirmation Code *</label>
+              <input type="text" name="confirmation_reference" required placeholder="e.g. STH-CONF-202688" value="{{ v.confirmation_reference }}">
+            </div>
+
+            <div class="form-field">
+              <label>Room Allocation / Chauffeur / Special Remarks</label>
+              <textarea name="supplier_notes" rows="2" placeholder="e.g. Deluxe Room 204 &amp; 205 allocated. Early check-in accepted.">{{ v.supplier_notes }}</textarea>
+            </div>
+
+            <button type="submit" name="action" value="confirm" class="btn-submit">
+              ✅ Confirm &amp; Lock Reservation
+            </button>
+            <button type="submit" name="action" value="amend" class="btn-amend">
+              ⚠️ Request Date / Room Amendment
+            </button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

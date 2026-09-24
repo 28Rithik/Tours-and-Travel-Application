@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}DMC Executive Analytics &amp; Reports Center | TravelERP{% endblock %}
+{% block header_title %}DMC Business Analytics &amp; Performance Reports{% endblock %}
+
+{% block content %}
+<style>
+  .report-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-card .val {
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    margin-top: 2px;
+    font-weight: 600;
+  }
+
+  .report-section {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+  .section-sub {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .data-table th, .data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .data-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media(max-width: 900px) {
+    .grid-2col { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="reports-hub-container">
+  <!-- Top KPI Cards -->
+  <div class="report-metrics">
+    <div class="metric-card">
+      <div class="title">Total Gross Turnover</div>
+      <div class="val" style="color: #0f172a;">₹{{ total_turnover|floatformat:2 }}</div>
+      <div class="sub" style="color: #64748b;">{{ total_bookings }} Executed Tour Bookings</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Quotation Win Ratio</div>
+      <div class="val" style="color: #166534;">{{ win_rate }}%</div>
+      <div class="sub" style="color: #166534;">{{ won_quotes }} of {{ total_quotes }} Leads Won</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Average Quotation Size</div>
+      <div class="val" style="color: #0d5c58;">₹{{ avg_quote_val|floatformat:2 }}</div>
+      <div class="sub" style="color: #0d5c58;">Per Proposal Value</div>
+    </div>
+    <div class="metric-card">
+      <div class="title">Pending Proposals</div>
+      <div class="val" style="color: #ea580c;">{{ sent_quotes }}</div>
+      <div class="sub" style="color: #ea580c;">Awaiting Client Sign-off</div>
+    </div>
+  </div>
+
+  <!-- Destination & Circuit Description Report -->
+  <div class="report-section">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">📍 Destination &amp; Circuit Performance Report</h3>
+        <div class="section-sub">Tour bookings, guest counts, and gross realization broken down by holiday destination</div>
+      </div>
+      <a href="{% url 'crm:reports_hub' %}?export=destinations_csv" class="btn btn-outline-secondary btn-sm" style="font-weight: 600; padding: 6px 14px;">
+        📥 Export to CSV
+      </a>
+    </div>
+
+    {% if dest_list %}
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Holiday Destination / Circuit</th>
+              <th>Total Bookings</th>
+              <th>Passengers Catered</th>
+              <th>Gross Revenue</th>
+              <th style="text-align: right;">Share of Sales</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in dest_list %}
+              <tr>
+                <td>
+                  <strong style="color: #0f172a;">{{ d.dest }}</strong>
+                </td>
+                <td>
+                  <span style="font-weight: 600; color: #475569;">{{ d.count }} Tours</span>
+                </td>
+                <td>
+                  <span style="font-weight: 600; color: #0d5c58;">{{ d.pax }} Guests</span>
+                </td>
+                <td>
+                  <span style="font-size: 14px; font-weight: 800; color: #0f172a;">₹{{ d.revenue|floatformat:2 }}</span>
+                </td>
+                <td style="text-align: right;">
+                  <span class="badge" style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 4px; font-weight: 700;">
+                    Popular Circuit
+                  </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 30px; color: #64748b;">No destination data available.</div>
+    {% endif %}
+  </div>
+
+  <!-- 2-Column: Customer Leaderboard & Aging Collections Link -->
+  <div class="grid-2col">
+    <!-- Top Customer Accounts -->
+    <div class="report-section">
+      <div class="section-header">
+        <div>
+          <h3 class="section-title">🏆 Top Corporate &amp; Retail Accounts</h3>
+          <div class="section-sub">High-value clients and foreign tour operators</div>
+        </div>
+      </div>
+
+      {% if top_parties %}
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Account Name</th>
+                <th>Tours</th>
+                <th style="text-align: right;">Total Billed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in top_parties %}
+                <tr>
+                  <td>
+                    <div style="font-weight: 700; color: #0f172a;">{{ p.name }}</div>
+                    <div style="font-size: 11px; color: #64748b;">{{ p.get_party_type_display }}</div>
+                  </td>
+                  <td>{{ p.booking_count }}</td>
+                  <td style="text-align: right;">
+                    <strong style="color: #166534;">₹{{ p.total_spent|floatformat:2 }}</strong>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 30px; color: #64748b;">No client history recorded yet.</div>
+      {% endif %}
+    </div>
+
+    <!-- Client Aging & Commercial Invoicing Hub -->
+    <div class="report-section">
+      <div class="section-header">
+        <div>
+          <h3 class="section-title">⏳ Receivables Aging &amp; Collections</h3>
+          <div class="section-sub">Monitor pending balances &amp; 1-click reminders</div>
+        </div>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #0f172a;">Aging Receivables Report</h4>
+        <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">
+          Track all confirmed bookings across aging brackets (0-30d, 31-60d, 61-90d, and &gt;90d critical). Send automated payment reminders over WhatsApp.
+        </p>
+        <a href="{% url 'crm:client_pending_payments' %}" class="btn btn-primary btn-sm" style="background: #0d5c58; border-color: #0d5c58; font-weight: 600; padding: 8px 18px; border-radius: 6px;">
+          Open Aging Report &rarr;
+        </a>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px;">
+        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: #0f172a;">Commercial Invoices Suite</h4>
+        <p style="font-size: 13px; color: #64748b; margin: 0 0 16px;">
+          View generated GST Tax Invoices and Proforma advance bills, tax breakdowns, and settlement statuses.
+        </p>
+        <a href="{% url 'crm:invoice_console' %}" class="btn btn-outline-dark btn-sm" style="font-weight: 600; padding: 8px 18px; border-radius: 6px;">
+          Open Invoicing Suite &rarr;
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

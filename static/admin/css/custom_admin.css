@@ -1,0 +1,528 @@
+/* Fix Select2 fields blending into background on Dark themes */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    background-color: #272b30 !important;
+    border: 1px solid #1c1e22 !important;
+    border-radius: 4px !important;
+    color: #c8c8c8 !important;
+    min-height: 38px !important; /* Match standard bootstrap inputs */
+    padding: 4px !important;
+}
+
+/* Ensure text inside Select2 matches */
+.select2-container--default .select2-selection--single .select2-selection__rendered,
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    color: #c8c8c8 !important;
+}
+
+/* Fix the dropdown icon alignment */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 5px !important;
+}
+
+/* Fix dropdown menu colors */
+.select2-dropdown {
+    background-color: #272b30 !important;
+    border: 1px solid #1c1e22 !important;
+}
+
+/* Fix the search input box inside the dropdown */
+.select2-search--dropdown .select2-search__field {
+    background-color: #1c1e22 !important;
+    color: #ffffff !important;
+    border: 1px solid #3a3f44 !important;
+}
+
+/* Fix text colors inside dropdown items */
+.select2-results__option {
+    color: #ffffff !important;
+}
+.select2-results__option * {
+    color: inherit !important;
+}
+.select2-results__option--highlighted[aria-selected] {
+    background-color: #3a3f44 !important;
+    color: #ffffff !important;
+}
+
+/* Ensure native select dropdowns also look good (A to Z coverage) */
+select option {
+    color: #ffffff !important;
+    background-color: #272b30 !important;
+}
+
+/* Fix Navbar link hover color and padding */
+.navbar-dark .navbar-nav .nav-link:hover, 
+.navbar-dark .navbar-nav .nav-link:focus { 
+    color: #ffffff !important; 
+}
+.navbar-nav .nav-item {
+    margin: 0 4px;
+}
+
+/* ==========================================================================
+   Vehicle Status Toggle Switch & Badges
+   ========================================================================== */
+.vehicle-toggle-wrapper {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    vertical-align: middle;
+}
+
+.vehicle-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+    margin: 0 !important;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.vehicle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.vehicle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #4b5563; /* Sleek slate gray when Not Available */
+    transition: all 0.25s ease-in-out;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.vehicle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #ffffff;
+    transition: all 0.25s ease-in-out;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.vehicle-switch input:checked + .vehicle-slider {
+    background-color: #10b981; /* Emerald green when Available */
+    border-color: #059669;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.vehicle-switch input:checked + .vehicle-slider:before {
+    transform: translateX(18px);
+}
+
+.vehicle-switch input:disabled + .vehicle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vehicle-status-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px;
+    transition: color 0.2s ease;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.vehicle-badge-trip {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+    color: #ffffff !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35) !important;
+    border: 1px solid rgba(147, 197, 253, 0.3) !important;
+}
+
+.vehicle-badge-maintenance {
+    background: linear-gradient(135deg, #b45309, #d97706) !important;
+    color: #ffffff !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35) !important;
+}
+
+/* ==========================================================================
+   Global High-Contrast Table Styling for Dark Themes
+   ========================================================================== */
+
+/* Table header: Crisp, high-contrast, professional slate with blue accent */
+#changelist table thead th,
+.card-body table thead th,
+table.table thead th,
+.table thead th {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    border-top: none !important;
+    border-bottom: 2px solid #3b82f6 !important;
+    padding: 10px 14px !important;
+    vertical-align: middle !important;
+}
+
+/* Header sort links and text */
+#changelist table thead th a,
+.card-body table thead th a,
+table.table thead th a,
+.table thead th a {
+    color: #93c5fd !important; /* Bright soft blue */
+    text-decoration: none !important;
+    font-weight: 700 !important;
+}
+
+#changelist table thead th a:hover,
+table.table thead th a:hover,
+.table thead th a:hover {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+
+/* Table body cells: Clear readable off-white */
+#changelist table tbody td,
+.card-body table tbody td,
+table.table tbody td,
+.table tbody td {
+    color: #f1f5f9 !important; /* Bright, clear off-white */
+    font-size: 13px !important;
+    vertical-align: middle !important;
+    padding: 10px 14px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom: none !important;
+}
+
+/* Subtle alternating rows for perfect readability */
+#changelist table tbody tr:nth-of-type(odd),
+table.table tbody tr:nth-of-type(odd),
+.table tbody tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+#changelist table tbody tr:nth-of-type(even),
+table.table tbody tr:nth-of-type(even),
+.table tbody tr:nth-of-type(even) {
+    background-color: rgba(0, 0, 0, 0.16) !important;
+}
+
+#changelist table tbody tr:hover,
+table.table tbody tr:hover,
+.table tbody tr:hover {
+    background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
+/* Clickable table links: bright sky blue */
+#changelist table tbody td a:not(.btn):not(.badge),
+table.table tbody td a:not(.btn):not(.badge),
+.table tbody td a:not(.btn):not(.badge) {
+    color: #38bdf8 !important; /* Bright sky blue */
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+
+#changelist table tbody td a:not(.btn):not(.badge):hover,
+table.table tbody td a:not(.btn):not(.badge):hover,
+.table tbody td a:not(.btn):not(.badge):hover {
+    color: #7dd3fc !important;
+    text-decoration: underline !important;
+}
+
+/* Secondary / Muted text in dark mode */
+.text-muted, 
+small.text-muted,
+span.text-muted {
+    color: #94a3b8 !important; /* High-contrast silver slate */
+}
+
+/* Badges overhaul for crystal-clear readability */
+.badge {
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    border-radius: 4px !important;
+    padding: 4px 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+}
+
+.badge.badge-secondary {
+    background-color: #334155 !important;
+    color: #f8fafc !important;
+    border: 1px solid #475569 !important;
+}
+
+.badge.badge-dark {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #475569 !important;
+}
+
+.badge.badge-info {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+
+.badge.badge-primary {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.badge.badge-success {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+}
+
+.badge.badge-warning {
+    background-color: #f59e0b !important;
+    color: #0f172a !important;
+}
+
+.badge.badge-danger {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   Independent Scrollable Sidebar (AdminLTE / Jazzmin)
+   ========================================================================== */
+
+/* Fix sidebar container to viewport */
+.main-sidebar,
+#jazzy-sidebar,
+aside.main-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    z-index: 1038 !important;
+}
+
+/* Brand logo header stays pinned at top */
+.main-sidebar .brand-link,
+#jazzy-sidebar #jazzy-logo,
+.main-sidebar #jazzy-logo {
+    flex-shrink: 0 !important;
+    height: 57px !important;
+    min-height: 57px !important;
+    display: flex !important;
+    align-items: center !important;
+    position: relative !important;
+    z-index: 1039 !important;
+}
+
+/* Inner sidebar navigation: scrollable independently */
+.main-sidebar .sidebar,
+#jazzy-sidebar .sidebar,
+aside.main-sidebar .sidebar,
+.layout-fixed .main-sidebar .sidebar,
+.main-sidebar .os-host,
+.main-sidebar .os-viewport {
+    flex: 1 1 auto !important;
+    height: calc(100vh - 57px) !important;
+    max-height: calc(100vh - 57px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 50px !important;
+}
+
+/* Sleek custom scrollbar for dark sidebar */
+.main-sidebar .sidebar::-webkit-scrollbar,
+#jazzy-sidebar .sidebar::-webkit-scrollbar,
+.main-sidebar .os-viewport::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.main-sidebar .sidebar::-webkit-scrollbar-track,
+#jazzy-sidebar .sidebar::-webkit-scrollbar-track,
+.main-sidebar .os-viewport::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.main-sidebar .sidebar::-webkit-scrollbar-thumb,
+#jazzy-sidebar .sidebar::-webkit-scrollbar-thumb,
+.main-sidebar .os-viewport::-webkit-scrollbar-thumb {
+    background: #475569 !important;
+    border-radius: 4px !important;
+}
+
+.main-sidebar .sidebar::-webkit-scrollbar-thumb:hover,
+#jazzy-sidebar .sidebar::-webkit-scrollbar-thumb:hover,
+.main-sidebar .os-viewport::-webkit-scrollbar-thumb:hover {
+    background: #38bdf8 !important;
+}
+
+/* Firefox scrollbar support */
+.main-sidebar .sidebar,
+#jazzy-sidebar .sidebar,
+.main-sidebar .os-viewport {
+    scrollbar-width: thin !important;
+    scrollbar-color: #475569 rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Content wrapper margin handling */
+@media (min-width: 768px) {
+    body:not(.sidebar-collapse) .content-wrapper,
+    body:not(.sidebar-collapse) .main-footer,
+    body:not(.sidebar-collapse) .main-header {
+        margin-left: 250px !important;
+    }
+}
+
+/* ==========================================================================
+   Responsive Resizing & Mobile Adaptability Enhancements
+   ========================================================================== */
+
+/* 1. Prevent Horizontal Page Blowout */
+html, body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+
+.content-wrapper,
+.main-header,
+.main-footer {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+}
+
+/* 2. Responsive Mobile Sidebar Behavior */
+@media (max-width: 767.98px) {
+    .main-sidebar,
+    #jazzy-sidebar,
+    aside.main-sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        transform: translate3d(-250px, 0, 0) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 1040 !important;
+    }
+
+    body.sidebar-open .main-sidebar,
+    body.sidebar-open #jazzy-sidebar,
+    body.sidebar-open aside.main-sidebar {
+        transform: translate3d(0, 0, 0) !important;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    .content-wrapper,
+    .main-footer,
+    .main-header {
+        margin-left: 0 !important;
+    }
+}
+
+/* 3. Universal Responsive Tables & Inlines */
+.results,
+.table-responsive,
+#changelist-form .results,
+.tabular.inline-related,
+.inline-group div.tabular {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+    border-radius: 6px !important;
+}
+
+/* 4. Form Controls Responsive Adaptability */
+.form-row {
+    flex-wrap: wrap !important;
+}
+
+.form-control,
+.select2-container,
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Select2 width on mobile/tablet */
+.select2-container {
+    width: 100% !important;
+}
+
+/* 5. Injected Cards & Pricing UI Responsiveness */
+#package-context-card,
+#quote-live-summary,
+#trip-pnl-card,
+#traffic-fine-policy-box,
+.tc-preset-wrapper,
+.sg-unified-toolbar {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+    #quote-live-summary {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+    
+    #quote-live-summary > div {
+        border-left: none !important;
+        padding-left: 0 !important;
+        width: 100% !important;
+    }
+
+    #trip-pnl-card {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .sg-unified-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+}
+
+/* 6. Dynamic Modals on Small Viewports */
+@media (max-width: 768px) {
+    .modal-dialog {
+        max-width: 95vw !important;
+        margin: 10px auto !important;
+    }
+}
+
+
+
+

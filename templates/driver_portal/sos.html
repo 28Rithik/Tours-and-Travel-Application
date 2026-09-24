@@ -1,0 +1,146 @@
+{% extends "driver_portal/base.html" %}
+
+{% block title %}EMERGENCY SOS | Sivagayathiri Fleet{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 20px;">
+    <div style="width: 72px; height: 72px; margin: 0 auto 12px; background: linear-gradient(135deg, #b91c1c, #ef4444); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 34px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.5); animation: pulse-red 1.5s infinite;">
+        🚨
+    </div>
+    <h1 style="font-size: 24px; font-weight: 800; color: #f87171;">Emergency SOS Distress</h1>
+    <p style="font-size: 13px; color: var(--text-secondary);">Direct hotline to Sivagayathiri Fleet Operations Desk</p>
+</div>
+
+<div class="card" style="border: 2px solid #ef4444;">
+    <form method="POST" id="sosForm">
+        {% csrf_token %}
+        <input type="hidden" name="latitude" id="geoLat">
+        <input type="hidden" name="longitude" id="geoLng">
+
+        <!-- GPS Status Banner -->
+        <div id="gpsStatusBanner" style="background: rgba(239, 68, 68, 0.15); border: 1px dashed rgba(239, 68, 68, 0.4); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 12px; display: flex; align-items: center; gap: 8px;">
+            <span>📍</span>
+            <span id="gpsStatusText">Acquiring current GPS coordinates...</span>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                Type of Emergency
+            </label>
+            <select 
+                name="incident_type" 
+                required
+                style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 15px; font-weight: 700;"
+            >
+                <option value="breakdown">⚙️ Mechanical Breakdown</option>
+                <option value="accident">💥 Road Accident / Collision</option>
+                <option value="tyre_burst">🛞 Tyre Burst / Flat Puncture</option>
+                <option value="engine_overheat">🌡️ Engine Overheating / Smoke</option>
+                <option value="medical">🏥 Passenger Medical Emergency</option>
+                <option value="fuel_exhaustion">⛽ Out of Fuel / DEF Exhaustion</option>
+                <option value="other">⚠️ Other Safety Distress</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                Passenger Safety Condition
+            </label>
+            <select 
+                name="passengers_safety_status" 
+                required
+                style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px; font-weight: 600;"
+            >
+                <option value="all_safe">🟢 All Passengers Safe & Unharmed</option>
+                <option value="minor_injuries">🟡 Minor First-Aid Required</option>
+                <option value="hospitalized">🔴 Medical Evacuation / Ambulance Needed</option>
+                <option value="stranded_safe">⚪ Safe but Stranded on Highway</option>
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                    Passengers Onboard
+                </label>
+                <input 
+                    type="number" 
+                    name="passenger_count" 
+                    value="{{ active_trip.pax_count|default:1 }}" 
+                    required
+                    style="width: 100%; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 15px; font-weight: 700;"
+                >
+            </div>
+            <div>
+                <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                    Vehicle Reg
+                </label>
+                <input 
+                    type="text" 
+                    value="{{ vehicle.registration_number|default:'-' }}" 
+                    readonly
+                    style="width: 100%; padding: 10px 12px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--primary); font-size: 14px; font-weight: 700;"
+                >
+            </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                Highway KM Landmark / Location
+            </label>
+            <input 
+                type="text" 
+                name="location_address" 
+                placeholder="e.g. NH44, 15km before Krishnagiri Toll Plaza" 
+                required
+                style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 14px;"
+            >
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+                Brief Details of Distress
+            </label>
+            <textarea 
+                name="description" 
+                rows="3" 
+                placeholder="Describe issue (e.g. Clutch plate burnt, engine won't shift. Standby bus required immediately for 18 passengers.)"
+                required
+                style="width: 100%; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;"
+            ></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-danger" style="padding: 16px; font-size: 16px; letter-spacing: 0.02em;">
+            🚨 BROADCAST EMERGENCY SOS
+        </button>
+    </form>
+</div>
+
+<div style="background: var(--bg-card); border-radius: var(--radius-md); padding: 16px; border: 1px solid var(--border); text-align: center; margin-top: 16px;">
+    <div style="font-size: 12px; color: var(--text-muted);">Direct Operations Control Hotline:</div>
+    <div style="font-size: 18px; font-weight: 800; color: var(--primary); margin-top: 4px;">
+        <a href="tel:9444012345" style="color: inherit; text-decoration: none;">📞 +91 94440 12345</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('geoLat').value = position.coords.latitude;
+                document.getElementById('geoLng').value = position.coords.longitude;
+                var banner = document.getElementById('gpsStatusBanner');
+                banner.style.background = 'rgba(16, 185, 129, 0.15)';
+                banner.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                document.getElementById('gpsStatusText').innerHTML = '✅ GPS Locked: ' + position.coords.latitude.toFixed(4) + ', ' + position.coords.longitude.toFixed(4);
+            },
+            function(error) {
+                document.getElementById('gpsStatusText').innerHTML = '⚠️ GPS permission denied. Please enter landmark manually.';
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
+    }
+</script>
+{% endblock %}

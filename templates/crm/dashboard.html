@@ -1,0 +1,566 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}DMC Executive Business Dashboard | TravelERP CRM{% endblock %}
+{% block header_title %}Executive Travel Operations &amp; Commercial Intelligence{% endblock %}
+
+{% block content %}
+<style>
+  /* --- KPI Ribbon --- */
+  .kpi-ribbon {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: #0d5c58;
+  }
+  .kpi-card.kpi-accent::before { background: #0284c7; }
+  .kpi-card.kpi-margin::before { background: #059669; }
+  .kpi-card.kpi-alert::before { background: #e11d48; }
+
+  .kpi-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 6px;
+  }
+  .kpi-val {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+  .kpi-sub {
+    font-size: 12px;
+    color: #475569;
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* --- 2-Column Grid --- */
+  .dash-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1100px) {
+    .dash-layout { grid-template-columns: 1fr; }
+  }
+
+  .content-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+  .card-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .card-heading h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  /* Status Funnel Bars */
+  .funnel-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .funnel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+  }
+  .funnel-label {
+    width: 140px;
+    color: #334155;
+    font-weight: 600;
+  }
+  .funnel-track {
+    flex: 1;
+    background: #f1f5f9;
+    border-radius: 6px;
+    height: 14px;
+    overflow: hidden;
+  }
+  .funnel-bar {
+    height: 100%;
+    border-radius: 6px;
+    background: #0d5c58;
+    transition: width 0.3s ease;
+  }
+  .funnel-count {
+    width: 36px;
+    text-align: right;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  /* Destination Share Bars */
+  .dest-item {
+    margin-bottom: 12px;
+  }
+  .dest-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .dest-bar-track {
+    background: #f1f5f9;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .dest-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0d5c58, #0284c7);
+    border-radius: 4px;
+  }
+
+  /* Top FTO Leaderboard */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+  }
+  .leaderboard-table th {
+    background: #f8fafc;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 700;
+  }
+
+  /* To-Do List Widget */
+  .todo-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 10px;
+    background: #fdfdfd;
+    transition: background 0.15s;
+  }
+  .todo-item:hover { background: #f8fafc; }
+  .todo-item.is-done {
+    opacity: 0.6;
+    background: #f1f5f9;
+  }
+  .todo-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+  }
+  .todo-content {
+    flex: 1;
+  }
+  .todo-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+  }
+  .todo-item.is-done .todo-title {
+    text-decoration: line-through;
+  }
+  .todo-meta {
+    font-size: 11.5px;
+    color: #64748b;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .badge-task-priority {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .pri-urgent { background: #fee2e2; color: #991b1b; }
+  .pri-high { background: #ffedd5; color: #c2410c; }
+  .pri-medium { background: #fef9c3; color: #854d0e; }
+  .pri-low { background: #ecfdf5; color: #047857; }
+
+  /* Alert Feed */
+  .alert-feed-item {
+    border-left: 3px solid #e11d48;
+    background: #fffbfa;
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 10px;
+    font-size: 12.5px;
+  }
+  .alert-feed-item.alert-followup {
+    border-left-color: #f59e0b;
+    background: #fffdf5;
+  }
+</style>
+
+<!-- 1. KPI Ribbon (Summary of Queries, Sales, Gross Margin & Alerts) -->
+<div class="kpi-ribbon">
+  <div class="kpi-card">
+    <div class="kpi-title">Query Velocity &amp; Conversion</div>
+    <div class="kpi-val">{{ today_queries }} <span style="font-size:14px; font-weight:400; color:#64748b;">Today</span></div>
+    <div class="kpi-sub">
+      <span>{{ month_queries }} this month</span>
+      <strong style="color: #0d5c58;">{{ conversion_rate }}% Win Rate</strong>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-accent">
+    <div class="kpi-title">Monthly Gross Sales (Tours)</div>
+    <div class="kpi-val">₹{{ monthly_sales_revenue|floatformat:0 }}</div>
+    <div class="kpi-sub">
+      <span>Confirmed tour bookings</span>
+      <span style="color: #0284c7; font-weight:700;">Revenue</span>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-margin">
+    <div class="kpi-title">Monthly Gross Profit Margin</div>
+    <div class="kpi-val">₹{{ monthly_gross_margin_amount|floatformat:0 }}</div>
+    <div class="kpi-sub">
+      <span>Net Supplier: ₹{{ monthly_supplier_cost|floatformat:0 }}</span>
+      <strong style="color: #059669;">{{ monthly_gross_margin_pct }}% Margin</strong>
+    </div>
+  </div>
+
+  <div class="kpi-card kpi-alert">
+    <div class="kpi-title">SLA Turnaround &amp; Follow-ups</div>
+    <div class="kpi-val" style="color: #e11d48;">{{ tat_breaches|length }} <span style="font-size:14px; font-weight:400; color:#64748b;">Overdue</span></div>
+    <div class="kpi-sub">
+      <span>{{ scheduled_followups|length }} follow-ups today</span>
+      <a href="{% url 'crm:inquiry_pipeline' %}" style="color: #e11d48; font-weight:700; text-decoration:none;">Open Pipeline &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Main Dashboard Layout -->
+<div class="dash-layout">
+  <!-- Left Column: Sales Trends, Status Funnel, Top Destinations, Top FTOs -->
+  <div>
+    <!-- Status-Wise Query Report & Pipeline Funnel -->
+    <div class="content-card">
+      <div class="card-heading">
+        <h3>📊 Query Pipeline &amp; Status Funnel</h3>
+        <a href="{% url 'crm:inquiry_pipeline' %}" style="font-size: 12px; color: #0d5c58; font-weight: 700; text-decoration: none;">View Pipeline Board &rarr;</a>
+      </div>
+
+      <div class="funnel-container">
+        {% for st_key, st_info in status_counts.items %}
+          <div class="funnel-row">
+            <span class="funnel-label">{{ st_info.label }}</span>
+            <div class="funnel-track">
+              <div class="funnel-bar" style="width: {% if month_queries > 0 %}{% widthratio st_info.count month_queries 100 %}{% else %}{% if st_info.count > 0 %}40{% else %}0{% endif %}{% endif %}%;"></div>
+            </div>
+            <span class="funnel-count">{{ st_info.count }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Monthly Sales & Query Trajectory (Last 6 Months) -->
+    <div class="content-card">
+      <div class="card-heading">
+        <h3>📈 Monthly Sales &amp; Inbound Demand Trend (Last 6 Months)</h3>
+        <span style="font-size: 12px; color: #64748b;">Historical Run-rate</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; text-align: center;">
+        {% for tr in monthly_trends %}
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">{{ tr.month_label }}</div>
+            <div style="font-size: 16px; font-weight: 800; color: #0d5c58; margin: 4px 0;">₹{{ tr.revenue|floatformat:0 }}</div>
+            <div style="font-size: 11.5px; color: #475569;">{{ tr.query_count }} Queries</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Two-Column Sub-Grid: Top Destinations & Top 5 FTOs -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <!-- Destination Popularity -->
+      <div class="content-card" style="margin-bottom: 0;">
+        <div class="card-heading">
+          <h3>📍 Top Destination Information</h3>
+        </div>
+
+        {% for dest in top_destinations %}
+          <div class="dest-item">
+            <div class="dest-meta">
+              <strong>{{ dest.destination }}</strong>
+              <span style="color: #64748b; font-size: 11.5px;">{{ dest.count }} tours ({{ dest.share_pct }}%)</span>
+            </div>
+            <div class="dest-bar-track">
+              <div class="dest-bar-fill" style="width: {{ dest.share_pct }}%;"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Top 5 FTOs & Corporate Accounts -->
+      <div class="content-card" style="margin-bottom: 0;">
+        <div class="card-heading">
+          <h3>🏢 List of Top 5 FTOs &amp; Corporates</h3>
+          <a href="{% url 'crm:partner_list' %}" style="font-size: 11px; color: #0d5c58; text-decoration: none; font-weight: 700;">Directory &rarr;</a>
+        </div>
+
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Partner Account</th>
+              <th>Bookings</th>
+              <th>Total Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for fto in top_ftos %}
+              <tr>
+                <td>
+                  <strong>{{ fto.name }}</strong>
+                  <div style="font-size: 10.5px; color: #64748b;">{{ fto.category }}</div>
+                </td>
+                <td>{{ fto.bookings_count }}</td>
+                <td><strong style="color: #0f766e;">₹{{ fto.revenue|floatformat:0 }}</strong></td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="3" style="text-align: center; color: #94a3b8; padding: 14px;">No FTO bookings on file yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Operational To-Do List & SLA Action Feed -->
+  <div>
+    <!-- Operational Task Management (To-Do List) -->
+    <div class="content-card">
+      <div class="card-heading">
+        <div>
+          <h3>📋 Team To-Do List</h3>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+            {{ active_tasks|length }} Pending • {{ completed_tasks_count }} Done
+          </div>
+        </div>
+        <button onclick="toggleTaskForm()" class="button" style="font-size: 11.5px; padding: 5px 10px; background: #0d5c58; color: #fff; border-radius: 4px;">
+          + New Task
+        </button>
+      </div>
+
+      <!-- Inline Quick Task Adder (Hidden by default) -->
+      <form id="quickTaskForm" style="display: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+        {% csrf_token %}
+        <div style="margin-bottom: 8px;">
+          <input type="text" id="taskTitle" placeholder="Task title / action item..." style="width: 100%; box-sizing: border-box; padding: 6px 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 4px;" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <select id="taskPriority" style="padding: 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option value="urgent">🔴 Urgent</option>
+            <option value="high">🟠 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+          <select id="taskAssignee" style="padding: 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            <option value="">Assign Staff...</option>
+            {% for u in staff_users %}
+              <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <input type="date" id="taskDueDate" value="{{ today|date:'Y-m-d' }}" style="padding: 4px 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px;">
+          <div>
+            <button type="button" onclick="toggleTaskForm()" class="button" style="font-size: 11px; padding: 4px 8px; background: #cbd5e1; color: #334155; margin-right: 4px;">Cancel</button>
+            <button type="button" onclick="submitQuickTask()" class="button" style="font-size: 11px; padding: 4px 10px; background: #0d5c58; color: #fff;">Save Task</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Task Items List -->
+      <div id="tasksList">
+        {% for task in active_tasks %}
+          <div class="todo-item" id="task-card-{{ task.id }}">
+            <input type="checkbox" class="todo-checkbox" onchange="toggleTask({{ task.id }})">
+            <div class="todo-content">
+              <div class="todo-title">{{ task.title }}</div>
+              <div class="todo-meta">
+                {% if task.priority == 'urgent' %}<span class="badge-task-priority pri-urgent">🔴 Urgent</span>
+                {% elif task.priority == 'high' %}<span class="badge-task-priority pri-high">🟠 High</span>
+                {% elif task.priority == 'medium' %}<span class="badge-task-priority pri-medium">🟡 Medium</span>
+                {% else %}<span class="badge-task-priority pri-low">🟢 Low</span>{% endif %}
+
+                <span>👤 {{ task.assigned_to.get_full_name|default:task.assigned_to.username|default:"Unassigned" }}</span>
+                <span>Due: {{ task.due_date|date:"d M" }}</span>
+                {% if task.is_overdue %}<span style="color:#e11d48; font-weight:700;">⚠️ Overdue</span>{% endif %}
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div style="text-align: center; color: #94a3b8; font-size: 12.5px; padding: 20px;">
+            🎉 All operational tasks are up to date!
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SLA TAT Breaches & Urgent Inquiries -->
+    <div class="content-card">
+      <div class="card-heading">
+        <h3 style="color: #991b1b;">🚨 Query TAT Breaches ({{ tat_breaches|length }})</h3>
+        <span style="font-size: 11px; color: #991b1b; font-weight: 700;">SLA Breached</span>
+      </div>
+
+      {% for inq in tat_breaches %}
+        <div class="alert-feed-item">
+          <div style="display: flex; justify-content: space-between; font-weight: 700;">
+            <span>{{ inq.inquiry_number }} - {{ inq.guest_name }}</span>
+            <span style="color: #991b1b;">Overdue</span>
+          </div>
+          <div style="color: #64748b; font-size: 11.5px; margin: 2px 0;">
+            📍 {{ inq.destination }} • 👥 {{ inq.adult_count }} Adults
+          </div>
+          <div style="margin-top: 4px;">
+            <a href="{% url 'crm:quotation_create' %}?inquiry_id={{ inq.id }}" style="color: #0284c7; font-weight: 700; text-decoration: none; font-size: 11.5px;">
+              ⚡ Build &amp; Send Quotation &rarr;
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <div style="text-align: center; color: #059669; font-size: 12.5px; padding: 14px;">
+          ✅ No SLA Turnaround breaches! All inquiries addressed on time.
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Scheduled Follow-ups Feed -->
+    <div class="content-card" style="margin-bottom: 0;">
+      <div class="card-heading">
+        <h3 style="color: #b45309;">📞 Follow-up Reminders ({{ scheduled_followups|length }})</h3>
+        <span style="font-size: 11px; color: #b45309; font-weight: 700;">Today's Interactions</span>
+      </div>
+
+      {% for fu in scheduled_followups %}
+        <div class="alert-feed-item alert-followup">
+          <div style="font-weight: 700; color: #0f172a;">
+            {{ fu.inquiry.guest_name }} ({{ fu.inquiry.party.name }})
+          </div>
+          <div style="font-size: 11.5px; color: #475569; margin: 2px 0;">
+            {{ fu.get_interaction_type_display }}: "{{ fu.notes|truncatechars:60 }}"
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 11.5px;">
+            <span style="color: #64748b;">Next: {{ fu.next_action|default:"Review quote" }}</span>
+            {% if fu.inquiry.guest_phone %}
+              <a href="https://wa.me/{{ fu.inquiry.guest_phone }}" target="_blank" style="color: #25d366; font-weight: 700; text-decoration: none;">
+                📲 WhatsApp
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <div style="text-align: center; color: #94a3b8; font-size: 12.5px; padding: 14px;">
+          No pending follow-ups scheduled for today.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleTaskForm() {
+    const f = document.getElementById('quickTaskForm');
+    f.style.display = (f.style.display === 'none') ? 'block' : 'none';
+  }
+
+  function submitQuickTask() {
+    const title = document.getElementById('taskTitle').value.trim();
+    if (!title) { alert('Please enter a task title'); return; }
+    
+    const priority = document.getElementById('taskPriority').value;
+    const assignee = document.getElementById('taskAssignee').value;
+    const dueDate = document.getElementById('taskDueDate').value;
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('priority', priority);
+    formData.append('assigned_to', assignee);
+    formData.append('due_date', dueDate);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'crm:api_task_create' %}", {
+      method: 'POST',
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        location.reload();
+      } else {
+        alert(data.message || 'Error saving task');
+      }
+    });
+  }
+
+  function toggleTask(taskId) {
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch(`/crm/api/tasks/${taskId}/toggle/`, {
+      method: 'POST',
+      body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const card = document.getElementById(`task-card-${taskId}`);
+        if (data.is_completed) {
+          card.classList.add('is-done');
+        } else {
+          card.classList.remove('is-done');
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

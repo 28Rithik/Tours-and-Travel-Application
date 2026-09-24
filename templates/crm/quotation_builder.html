@@ -1,0 +1,537 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dynamic Quotation Builder | TravelERP CRM{% endblock %}
+{% block header_title %}Quotation Studio & Day-Wise Costing Engine{% endblock %}
+
+{% block content %}
+<style>
+  .quote-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .quote-layout { grid-template-columns: 1fr; }
+  }
+  .card-box {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text, #0f172a);
+    margin: 0 0 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  .form-field {
+    margin-bottom: 14px;
+  }
+  .form-field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+  .form-field input, .form-field select, .form-field textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--line, #cbd5e1);
+    border-radius: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+    background: #fff;
+  }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+    border-color: #0f766e;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(15,118,110,0.15);
+  }
+  .day-block {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 10px;
+  }
+  .item-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 10px;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+  .item-table th {
+    background: #f1f5f9;
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    color: #64748b;
+  }
+  .item-table td {
+    padding: 8px 10px;
+    border-top: 1px solid #e2e8f0;
+  }
+  /* Commercials Summary Panel */
+  .sticky-calc {
+    position: sticky;
+    top: 20px;
+    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 14px;
+    padding: 24px;
+    color: #fff;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.3);
+  }
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    font-size: 13px;
+    color: #cbd5e1;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+  }
+  .cost-row b { color: #f8fafc; }
+  .final-total-box {
+    margin-top: 18px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .final-price {
+    font-size: 32px;
+    font-weight: 800;
+    color: #4ade80;
+    font-family: Georgia, serif;
+  }
+</style>
+
+<div class="quote-layout">
+  <!-- Left Side: Quotation Details & Day-Wise Itinerary -->
+  <div>
+    <form method="post">
+      {% csrf_token %}
+      <div class="card-box">
+        <div class="card-title">
+          <span>📋 1. Tour Overview &amp; Client Details</span>
+          {% if quotation %}
+            <span class="badge" style="background: #0284c7; color: #fff; padding: 4px 10px; border-radius: 4px;">{{ quotation.quotation_number }} (v{{ quotation.version }})</span>
+          {% endif %}
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label>Client / Party *</label>
+            <select name="party" required>
+              {% for c in clients %}
+                <option value="{{ c.id }}" {% if form_data.party_id == c.id %}selected{% endif %}>{{ c.name }} ({{ c.phone|default:"No phone" }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Quotation Title *</label>
+            <input type="text" name="title" value="{{ form_data.title }}" required>
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label>Guest Name *</label>
+            <input type="text" name="guest_name" value="{{ form_data.guest_name }}" required>
+          </div>
+          <div class="form-field">
+            <label>Contact Phone</label>
+            <input type="text" name="guest_phone" value="{{ form_data.guest_phone }}">
+          </div>
+          <div class="form-field">
+            <label>Email Address</label>
+            <input type="email" name="guest_email" value="{{ form_data.guest_email }}">
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label>Destination Circuit *</label>
+            <input type="text" name="destination" id="circuit_dest" value="{{ form_data.destination }}" required>
+          </div>
+          <div class="form-field">
+            <label>Start Date *</label>
+            <input type="date" name="start_date" value="{{ form_data.start_date|date:'Y-m-d' }}" required>
+          </div>
+          <div class="form-field">
+            <label>End Date *</label>
+            <input type="date" name="end_date" value="{{ form_data.end_date|date:'Y-m-d' }}" required>
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-field">
+            <label>Total Pax (Guests) *</label>
+            <input type="number" name="pax_count" value="{{ form_data.pax_count }}" min="1" required>
+          </div>
+          <div class="form-field">
+            <label>Dedicated Vehicle Type</label>
+            <select name="vehicle_type">
+              <option value="">-- Select Fleet Segment --</option>
+              {% for vt in vehicle_types %}
+                <option value="{{ vt.id }}" {% if form_data.vehicle_type_id == vt.id %}selected{% endif %}>{{ vt.name }} ({{ vt.seating_capacity }} Seats)</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Markup Margin % *</label>
+            <input type="number" step="0.5" name="markup_percent" value="{{ form_data.markup_percent }}" required>
+          </div>
+        </div>
+
+        <button type="submit" class="button button-primary" style="background: #0f766e; color: #fff; font-weight: 700; padding: 10px 20px; border-radius: 6px;">
+          💾 Save Master Quotation
+        </button>
+      </div>
+    </form>
+
+    {% if quotation %}
+      <!-- Itinerary & Cost Item Builder -->
+      <div class="card-box">
+        <div class="card-title">
+          <span>🗓️ 2. Day-by-Day Itinerary &amp; Services</span>
+          <button type="button" class="button" onclick="openAddDayModal()" style="font-size: 12px; background: #0284c7; color: #fff; border-radius: 4px; padding: 6px 12px;">
+            + Add Day
+          </button>
+        </div>
+
+        {% for day in quotation.days.all %}
+          <div class="day-block">
+            <div class="day-header">
+              <div>
+                <span class="badge" style="background: #0f172a; color: #fff; padding: 3px 8px; border-radius: 4px; margin-right: 6px;">Day {{ day.day_number }}</span>
+                <b>{{ day.title }}</b>
+                <small style="color: #64748b; margin-left: 8px;">(Overnight: {{ day.overnight_destination }})</small>
+              </div>
+              <button type="button" onclick="openAddItemModal('{{ day.id }}', 'Day {{ day.day_number }}')" class="button" style="font-size: 11px; padding: 4px 8px; background: #10b981; color: #fff; border-radius: 4px;">
+                + Add Service
+              </button>
+            </div>
+            
+            <p style="font-size: 12px; color: #475569; margin: 4px 0 10px 0;">{{ day.description|linebreaksbr }}</p>
+            {% if day.hotel %}
+              <div style="font-size: 12px; background: #e0f2fe; color: #0369a1; padding: 6px 10px; border-radius: 6px; margin-bottom: 8px;">
+                🏨 <b>Hotel Stay:</b> {{ day.hotel.name }} (Plan: {{ day.get_hotel_meal_plan_display }})
+              </div>
+            {% endif %}
+
+            <!-- Line Items Table -->
+            <table class="item-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Service Description</th>
+                  <th style="text-align: right;">Qty</th>
+                  <th style="text-align: right;">Unit Cost</th>
+                  <th style="text-align: right;">Total Cost</th>
+                  <th style="text-align: center; width: 40px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in day.items.all %}
+                  <tr>
+                    <td><span class="badge" style="background: #f1f5f9; color: #334155;">{{ item.get_category_display }}</span></td>
+                    <td><b>{{ item.item_name }}</b></td>
+                    <td style="text-align: right;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">₹{{ item.unit_cost|floatformat:2 }}</td>
+                    <td style="text-align: right;"><b style="color: #0f766e;">₹{{ item.total_cost|floatformat:2 }}</b></td>
+                    <td style="text-align: center;">
+                      <a href="javascript:void(0)" onclick="deleteItem('{{ item.id }}')" style="color: #ef4444; font-size: 13px; text-decoration: none;">❌</a>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" style="text-align: center; color: #94a3b8; padding: 8px;">No services added yet for this day. Click "+ Add Service" to add transport, tickets, or guides.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% empty %}
+          <div style="text-align: center; padding: 32px; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1;">
+            <p style="color: #64748b; margin-bottom: 12px;">No itinerary days built yet for this quotation.</p>
+            <button type="button" class="button" onclick="openAddDayModal()" style="background: #0f766e; color: #fff; font-weight: 700; padding: 8px 16px; border-radius: 6px;">
+              + Create First Day (Day 1)
+            </button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Right Side: Sticky Commercial Margin & Quoted Price Panel -->
+  <div>
+    {% if quotation %}
+      <div class="sticky-calc">
+        <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; margin-bottom: 14px;">
+          💰 Commercial Costing Engine
+        </div>
+
+        <div class="cost-row">
+          <span>🚗 Transport Fleet:</span>
+          <b>₹{{ quotation.transport_cost|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>🏨 Hotel Accommodation:</span>
+          <b>₹{{ quotation.accommodation_cost|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>🏛️ Monument Tickets:</span>
+          <b>₹{{ quotation.monuments_cost|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>🚣 Activities &amp; Safaris:</span>
+          <b>₹{{ quotation.activities_cost|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>👤 Guide &amp; Escort:</span>
+          <b>₹{{ quotation.guide_cost|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>✨ Other Ancillary:</span>
+          <b>₹{{ quotation.other_services_cost|floatformat:2 }}</b>
+        </div>
+
+        <div class="cost-row" style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">
+          <span style="color: #f8fafc; font-weight: 700;">Net Supplier Cost:</span>
+          <b style="color: #38bdf8; font-size: 14px;">₹{{ quotation.net_cost|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>Agency Margin ({{ quotation.markup_percent }}%):</span>
+          <b style="color: #4ade80;">+₹{{ quotation.markup_amount|floatformat:2 }}</b>
+        </div>
+        <div class="cost-row">
+          <span>GST Tax ({{ quotation.gst_rate }}%):</span>
+          <span>₹{{ quotation.gst_amount|floatformat:2 }}</span>
+        </div>
+
+        <div class="final-total-box">
+          <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: .08em;">Final Client Quoted Price</div>
+          <div class="final-price">₹{{ quotation.total_quoted_price|floatformat:0 }}</div>
+          <div style="font-size: 11px; color: #cbd5e1; margin-top: 4px;">
+            Approx. <b>₹{% widthratio quotation.total_quoted_price quotation.pax_count 1 %}</b> / person ({{ quotation.pax_count }} Pax)
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 18px;">
+          <a href="{% url 'crm:quotation_preview' quotation.id %}" target="_blank" class="button" style="text-align: center; background: #0284c7; color: #fff; font-weight: 700; padding: 10px; border-radius: 6px; text-decoration: none;">
+            👁️ Client Proposal Preview
+          </a>
+          <a href="{% url 'crm:quotation_send' quotation.id %}" class="button" style="text-align: center; background: #2563eb; color: #fff; font-weight: 600; padding: 8px; border-radius: 6px; text-decoration: none;">
+            📲 Send Proposal (WhatsApp / Email)
+          </a>
+          {% if not quotation.booking %}
+            <a href="{% url 'crm:quotation_convert' quotation.id %}" class="button" style="text-align: center; background: #16a34a; color: #fff; font-weight: 700; padding: 10px; border-radius: 6px; text-decoration: none;">
+              🚀 1-Click Convert to Booking
+            </a>
+          {% else %}
+            <div style="text-align: center; font-size: 12px; color: #4ade80; padding: 6px;">
+              ✅ Converted to Booking: <a href="{% url 'booking-detail' quotation.booking.id %}" style="color: #38bdf8; font-weight: 700;">{{ quotation.booking.booking_number }}</a>
+            </div>
+          {% endif %}
+          <a href="{% url 'crm:quotation_revision' quotation.id %}" class="button" style="text-align: center; background: rgba(255,255,255,0.1); color: #fff; font-size: 12px; padding: 6px; border-radius: 6px; text-decoration: none;">
+            📑 Create Revised Version (v{{ quotation.version|add:1 }})
+          </a>
+        </div>
+      </div>
+    {% else %}
+      <div class="card-box" style="text-align: center; color: #64748b; padding: 36px 20px;">
+        <div style="font-size: 32px; margin-bottom: 10px;">💡</div>
+        <b>Save Quotation Details</b><br>
+        Fill out client details on the left and click "Save Master Quotation" to activate the interactive costing engine.
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Add Day Modal -->
+<div id="addDayModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: #fff; border-radius: 12px; width: 500px; max-width: 90%; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+    <h3 style="margin: 0 0 16px 0;">🗓️ Add Day to Itinerary</h3>
+    <form id="addDayForm">
+      {% csrf_token %}
+      <div class="form-field">
+        <label>Day Title *</label>
+        <input type="text" name="title" placeholder="e.g. Day 1: Arrival, Ooty Lake &amp; Botanical Garden" required>
+      </div>
+      <div class="form-field">
+        <label>Overnight Destination *</label>
+        <input type="text" name="overnight_destination" value="Ooty" required>
+      </div>
+      <div class="form-field">
+        <label>Select Hotel (Optional - from Hotel Master)</label>
+        <select name="hotel" id="day_hotel_select">
+          <option value="">-- No Hotel / Night Transit --</option>
+          {% for h in hotels %}
+            <option value="{{ h.id }}">{{ h.name }} ({{ h.destination }}) - CP: ₹{{ h.cp_rate|floatformat:0 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Hotel Meal Plan</label>
+        <select name="hotel_meal_plan">
+          <option value="CP" selected>Continental Plan (CP - Bed &amp; Breakfast)</option>
+          <option value="MAP">Modified Plan (MAP - Breakfast + Dinner)</option>
+          <option value="AP">American Plan (AP - All Meals Included)</option>
+          <option value="EP">European Plan (EP - Room Only)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Narrative Description</label>
+        <textarea name="description" rows="3" placeholder="Morning pickup from Coimbatore, scenic drive to Ooty via Coonoor. Check-in to hotel and afternoon sightseeing..."></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+        <button type="button" onclick="closeAddDayModal()" class="button" style="background: #e2e8f0; color: #475569; border-radius: 6px;">Cancel</button>
+        <button type="button" onclick="submitAddDay()" class="button button-primary" style="background: #0f766e; color: #fff; border-radius: 6px;">Add Day</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Item Modal -->
+<div id="addItemModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: #fff; border-radius: 12px; width: 500px; max-width: 90%; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+    <h3 style="margin: 0 0 16px 0;" id="addItemModalTitle">➕ Add Service Item</h3>
+    <form id="addItemForm">
+      {% csrf_token %}
+      <input type="hidden" name="day_id" id="modal_day_id" value="">
+      <div class="form-field">
+        <label>Service Category *</label>
+        <select name="category" required>
+          <option value="transport">🚗 Transport &amp; Vehicle Hire</option>
+          <option value="monument">🏛️ Monument / Entrance Ticket</option>
+          <option value="activity">🚣 Sightseeing &amp; Activity</option>
+          <option value="guide">👤 Professional Tour Guide</option>
+          <option value="hotel">🏨 Hotel Stay</option>
+          <option value="other">✨ Other Service</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label>Service Name *</label>
+        <input type="text" name="item_name" placeholder="e.g. Botanical Gardens Entrance Tickets (2 Adults)" required>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-field">
+          <label>Quantity *</label>
+          <input type="number" name="quantity" value="1" min="1" required>
+        </div>
+        <div class="form-field">
+          <label>Unit Cost (₹) *</label>
+          <input type="number" step="1" name="unit_cost" value="500" required>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+        <button type="button" onclick="closeAddItemModal()" class="button" style="background: #e2e8f0; color: #475569; border-radius: 6px;">Cancel</button>
+        <button type="button" onclick="submitAddItem()" class="button button-primary" style="background: #10b981; color: #fff; border-radius: 6px;">Add Service</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openAddDayModal() {
+    document.getElementById('addDayModal').style.display = 'flex';
+  }
+  function closeAddDayModal() {
+    document.getElementById('addDayModal').style.display = 'none';
+  }
+  function openAddItemModal(dayId, dayName) {
+    document.getElementById('modal_day_id').value = dayId;
+    document.getElementById('addItemModalTitle').innerText = '➕ Add Service to ' + dayName;
+    document.getElementById('addItemModal').style.display = 'flex';
+  }
+  function closeAddItemModal() {
+    document.getElementById('addItemModal').style.display = 'none';
+  }
+
+  function submitAddDay() {
+    {% if quotation %}
+      const form = document.getElementById('addDayForm');
+      const formData = new FormData(form);
+      fetch("{% url 'crm:api_quotation_add_day' quotation.id %}", {
+        method: 'POST',
+        body: formData,
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          location.reload();
+        } else {
+          alert('Error adding day: ' + (data.message || 'Unknown error'));
+        }
+      });
+    {% endif %}
+  }
+
+  function submitAddItem() {
+    {% if quotation %}
+      const form = document.getElementById('addItemForm');
+      const formData = new FormData(form);
+      fetch("{% url 'crm:api_quotation_add_item' quotation.id %}", {
+        method: 'POST',
+        body: formData,
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          location.reload();
+        } else {
+          alert('Error adding item: ' + (data.message || 'Unknown error'));
+        }
+      });
+    {% endif %}
+  }
+
+  function deleteItem(itemId) {
+    if (confirm('Remove this service line item from the quotation?')) {
+      const url = "/crm/api/quotations/items/" + itemId + "/delete/";
+      fetch(url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          location.reload();
+        }
+      });
+    }
+  }
+</script>
+{% endblock %}

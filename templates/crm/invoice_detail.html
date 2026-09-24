@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ inv.invoice_number }} - {{ inv.get_invoice_type_display }} | TravelERP{% endblock %}
+{% block header_title %}Commercial Invoice Document: {{ inv.invoice_number }}{% endblock %}
+
+{% block content %}
+<style>
+  .invoice-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    padding: 40px 48px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+  }
+
+  .action-banner {
+    max-width: 860px;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .inv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #0d5c58;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+  .company-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0d5c58;
+    letter-spacing: -0.5px;
+    margin: 0 0 4px;
+  }
+  .company-sub {
+    font-size: 12px;
+    color: #475569;
+    line-height: 1.5;
+  }
+
+  .invoice-tag {
+    text-align: right;
+  }
+  .invoice-title {
+    font-size: 22px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #0f172a;
+    margin: 0 0 4px;
+  }
+  .invoice-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0d5c58;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+  .meta-box h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: #64748b;
+    margin: 0 0 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .inv-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    font-size: 13.5px;
+  }
+  .inv-table th, .inv-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .inv-table th {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .totals-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 30px;
+  }
+  .totals-card {
+    width: 320px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+  }
+  .totals-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    color: #475569;
+  }
+  .totals-grand {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #cbd5e1;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .bank-terms {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #475569;
+  }
+
+  @media print {
+    body { background: #ffffff !important; }
+    .sidebar, .topbar, .action-banner { display: none !important; }
+    .main-shell { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    .invoice-wrapper { border: none !important; box-shadow: none !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+  }
+</style>
+
+<div class="action-banner">
+  <a href="{% url 'crm:invoice_console' %}" class="btn btn-outline-secondary btn-sm" style="font-weight: 600;">
+    &larr; Back to Invoices
+  </a>
+  <div style="display: flex; gap: 8px;">
+    <button onclick="window.print()" class="btn btn-outline-dark btn-sm" style="font-weight: 600; padding: 6px 16px;">
+      🖨️ Print / Save as PDF
+    </button>
+    <button onclick="dispatchInvoiceDirect()" id="btnDispatch" class="btn btn-success btn-sm" style="font-weight: 600; padding: 6px 18px;">
+      📱 Send via WhatsApp
+    </button>
+  </div>
+</div>
+
+<div class="invoice-wrapper">
+  <!-- Header -->
+  <div class="inv-header">
+    <div>
+      <h1 class="company-title">SIVAGAYATHIRI TRAVELS &amp; HOLIDAYS</h1>
+      <div class="company-sub">
+        Corporate Destination Management Company (DMC) &bull; Inbound South India<br>
+        104, Avinashi Road, Civil Aerodrome Post, Coimbatore, Tamil Nadu - 641018<br>
+        <strong>GSTIN:</strong> 33AAAFS2819L1Z8 &bull; <strong>PAN:</strong> AAAFS2819L &bull; <strong>SAC:</strong> 998555<br>
+        <strong>Email:</strong> billing@sivagayathiritravels.com &bull; <strong>Phone:</strong> +91 98765 43210
+      </div>
+    </div>
+    <div class="invoice-tag">
+      <div class="invoice-title">{{ inv.get_invoice_type_display }}</div>
+      <div class="invoice-num">{{ inv.invoice_number }}</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Original for Recipient</div>
+    </div>
+  </div>
+
+  <!-- Meta Details -->
+  <div class="meta-grid">
+    <div class="meta-box">
+      <h4>Billed To (Client / Organization)</h4>
+      <div style="font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">{{ inv.billing_name }}</div>
+      {% if inv.billing_address %}
+        <div style="color: #475569; margin-bottom: 4px;">{{ inv.billing_address|linebreaksbr }}</div>
+      {% endif %}
+      {% if inv.client_gstin %}
+        <div><strong>GSTIN:</strong> {{ inv.client_gstin }}</div>
+      {% endif %}
+      {% if inv.client_pan %}
+        <div><strong>PAN:</strong> {{ inv.client_pan }}</div>
+      {% endif %}
+      <div><strong>Place of Supply:</strong> {{ inv.place_of_supply }}</div>
+    </div>
+
+    <div class="meta-box" style="text-align: right;">
+      <h4>Invoice &amp; Booking Details</h4>
+      <div><strong>Invoice Date:</strong> {{ inv.invoice_date|date:"d-F-Y" }}</div>
+      {% if inv.due_date %}
+        <div><strong>Due Date:</strong> {{ inv.due_date|date:"d-F-Y" }}</div>
+      {% endif %}
+      {% if inv.booking %}
+        <div><strong>Booking Reference:</strong> {{ inv.booking.booking_number }} ({{ inv.booking.destination }})</div>
+      {% elif inv.quotation %}
+        <div><strong>Quotation Reference:</strong> {{ inv.quotation.quotation_number }}</div>
+      {% endif %}
+      <div><strong>Tax Regime:</strong> {{ inv.get_tax_regime_display }}</div>
+      <div><strong>Status:</strong> <span style="font-weight: 700; text-transform: uppercase;">{{ inv.get_status_display }}</span></div>
+    </div>
+  </div>
+
+  <!-- Items Table -->
+  <table class="inv-table">
+    <thead>
+      <tr>
+        <th style="width: 5%;">#</th>
+        <th style="width: 50%;">Description of Service</th>
+        <th style="width: 15%; text-align: center;">SAC Code</th>
+        <th style="width: 15%; text-align: right;">Rate / GST</th>
+        <th style="width: 15%; text-align: right;">Taxable Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>
+          <strong style="color: #0f172a;">{{ inv.description_of_service }}</strong>
+          {% if inv.booking %}
+            <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">
+              Passenger: {{ inv.booking.guest_name }} &bull; Dates: {{ inv.booking.pickup_date|date:"d M Y" }} to {{ inv.booking.drop_date|date:"d M Y" }}
+            </div>
+          {% endif %}
+        </td>
+        <td style="text-align: center; color: #475569;">{{ inv.sac_code }}</td>
+        <td style="text-align: right; color: #475569;">{{ inv.gst_rate }}% GST</td>
+        <td style="text-align: right; font-weight: 600;">₹{{ inv.taxable_amount|floatformat:2 }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Totals Summary -->
+  <div class="totals-row">
+    <div class="totals-card">
+      <div class="totals-item">
+        <span>Taxable Value:</span>
+        <strong style="color: #0f172a;">₹{{ inv.taxable_amount|floatformat:2 }}</strong>
+      </div>
+      {% if inv.tax_regime == 'intra_state' %}
+        <div class="totals-item">
+          <span>CGST ({{ inv.half_gst_rate }}%):</span>
+          <span>₹{{ inv.cgst_amount|floatformat:2 }}</span>
+        </div>
+        <div class="totals-item">
+          <span>SGST ({{ inv.half_gst_rate }}%):</span>
+          <span>₹{{ inv.sgst_amount|floatformat:2 }}</span>
+        </div>
+      {% elif inv.tax_regime == 'inter_state' %}
+        <div class="totals-item">
+          <span>IGST ({{ inv.gst_rate }}%):</span>
+          <span>₹{{ inv.igst_amount|floatformat:2 }}</span>
+        </div>
+      {% endif %}
+      <div class="totals-grand">
+        <span>Total Invoice Value:</span>
+        <span>₹{{ inv.total_invoice_amount|floatformat:2 }}</span>
+      </div>
+      <div class="totals-item" style="margin-top: 8px; color: #166534;">
+        <span>Amount Received:</span>
+        <strong>₹{{ inv.paid_amount|floatformat:2 }}</strong>
+      </div>
+      <div class="totals-item" style="color: {% if inv.balance_due > 0 %}#dc2626{% else %}#166534{% endif %}; font-size: 14px; font-weight: 800;">
+        <span>Net Balance Due:</span>
+        <span>₹{{ inv.balance_due|floatformat:2 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bank & Terms -->
+  <div class="bank-terms">
+    <div>
+      <h5 style="margin: 0 0 6px; font-size: 11px; text-transform: uppercase; font-weight: 800; color: #334155;">Bank Settlement Details</h5>
+      <pre style="margin: 0; font-family: inherit; font-size: 11.5px; line-height: 1.5; color: #475569; background: none; border: none; padding: 0;">{{ inv.bank_account_info }}</pre>
+    </div>
+    <div style="text-align: right;">
+      <h5 style="margin: 0 0 6px; font-size: 11px; text-transform: uppercase; font-weight: 800; color: #334155;">Terms &amp; Jurisdiction</h5>
+      <div style="font-size: 11px; line-height: 1.4; color: #64748b; margin-bottom: 24px;">{{ inv.terms_and_conditions|linebreaksbr }}</div>
+      <div style="font-weight: 700; color: #0f172a; font-size: 12px;">For SIVAGAYATHIRI TRAVELS &amp; HOLIDAYS</div>
+      <div style="margin-top: 20px; font-size: 11px; color: #64748b;">(Authorised Signatory)</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function dispatchInvoiceDirect() {
+  const btn = document.getElementById('btnDispatch');
+  btn.innerHTML = 'Sending...';
+  btn.disabled = true;
+
+  fetch("{% url 'crm:api_invoice_dispatch' invoice_id=inv.id %}", {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.status === 'success') {
+      btn.innerHTML = '✓ Sent!';
+      alert(`Invoice {{ inv.invoice_number }} successfully dispatched to ${data.dispatched_to}!`);
+    } else {
+      btn.innerHTML = '📱 Send via WhatsApp';
+      btn.disabled = false;
+      alert("Error: " + (data.message || "Could not dispatch invoice"));
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    btn.innerHTML = '📱 Send via WhatsApp';
+    btn.disabled = false;
+    alert("Request failed.");
+  });
+}
+</script>
+{% endblock %}

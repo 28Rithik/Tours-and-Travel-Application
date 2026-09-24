@@ -1,0 +1,4 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | TravelERP{% endblock %}
+{% block header_title %}Profitability{% endblock %}
+{% block content %}<div class="page-intro"><div><p class="eyebrow">Performance report</p><h1>{{ title }}</h1><p>Revenue less recorded fuel, trip expenses, and driver batta.</p></div></div><section class="panel"><div class="panel-heading"><h2>Report rows</h2></div><table class="data-table"><thead><tr><th>Name</th><th>Revenue</th><th>Cost</th><th>Profit</th></tr></thead><tbody>{% for row in rows %}<tr><td><strong>{{ row.group }}</strong></td><td>{{ row.revenue|floatformat:2 }}</td><td>{{ row.cost|floatformat:2 }}</td><td>{{ row.profit|floatformat:2 }}</td></tr>{% empty %}<tr><td class="empty" colspan="4">No eligible completed trips yet.</td></tr>{% endfor %}</tbody></table></section>{% endblock %}

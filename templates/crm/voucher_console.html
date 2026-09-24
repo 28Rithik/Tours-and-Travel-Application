@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Supplier Service Vouchers &amp; Purchase Orders | TravelERP CRM{% endblock %}
+{% block header_title %}Service Vouchers &amp; Supplier Purchase Orders (LPO){% endblock %}
+
+{% block content %}
+<style>
+  .voucher-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .metric-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .metric-card .val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .metric-card .sub {
+    font-size: 12px;
+    color: #0d5c58;
+    margin-top: 2px;
+  }
+
+  .filter-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .filter-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .select-filter {
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    font-size: 13.5px;
+  }
+  .data-table th, .data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+  .data-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .badge-status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .status-draft { background: #f1f5f9; color: #475569; }
+  .status-issued { background: #fef3c7; color: #b45309; }
+  .status-confirmed { background: #dcfce7; color: #15803d; }
+  .status-amended { background: #f3e8ff; color: #7e22ce; }
+  .status-cancelled { background: #fee2e2; color: #b91c1c; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 640px;
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+  }
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .form-group { margin-bottom: 12px; }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+</style>
+
+<!-- Metrics Overview -->
+<div class="voucher-metrics">
+  <div class="metric-card">
+    <div class="title">Total Vouchers</div>
+    <div class="val">{{ total_count }}</div>
+    <div class="sub">Generated Orders</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Confirmed by Suppliers</div>
+    <div class="val" style="color: #059669;">{{ confirmed_count }}</div>
+    <div class="sub">Guaranteed Reservations</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Awaiting Confirmation</div>
+    <div class="val" style="color: #d97706;">{{ issued_count }}</div>
+    <div class="sub">Issued to Desk</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Total Payable Commitment</div>
+    <div class="val">₹{{ total_payable|floatformat:0 }}</div>
+    <div class="sub">Settlement Obligation</div>
+  </div>
+</div>
+
+<!-- Filters & Actions Toolbar -->
+<div class="filter-bar">
+  <form method="get" class="filter-group">
+    <select name="status" class="select-filter" onchange="this.form.submit()">
+      <option value="">-- All Statuses --</option>
+      {% for val, lbl in status_choices %}
+        <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ lbl }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="type" class="select-filter" onchange="this.form.submit()">
+      <option value="">-- All Voucher Types --</option>
+      {% for val, lbl in voucher_types %}
+        <option value="{{ val }}" {% if vtype_filter == val %}selected{% endif %}>{{ lbl }}</option>
+      {% endfor %}
+    </select>
+
+    {% if status_filter or vtype_filter %}
+      <a href="{% url 'crm:voucher_console' %}" style="font-size:12px; color:#64748b; text-decoration:none; margin-left:6px;">Clear</a>
+    {% endif %}
+  </form>
+
+  <button onclick="openModal('createVoucherModal')" class="button" style="background: #0d5c58; color: #fff; font-weight: 700; padding: 9px 16px; border-radius: 6px;">
+    + Generate New Voucher (LPO)
+  </button>
+</div>
+
+<!-- Vouchers Table -->
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Voucher Number</th>
+      <th>Voucher Type</th>
+      <th>Supplier / Vendor</th>
+      <th>Lead Guest &amp; Pax</th>
+      <th>Service Window</th>
+      <th>Agreed Settlement</th>
+      <th>Confirmation Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in vouchers %}
+      <tr>
+        <td>
+          <a href="{% url 'crm:voucher_detail' voucher_id=v.id %}" style="color: #0d5c58; font-weight: 800; text-decoration: none;">
+            {{ v.voucher_number }}
+          </a>
+          <div style="font-size: 11px; color: #64748b;">Created {{ v.created_at|date:"d M Y" }}</div>
+        </td>
+        <td>
+          {% if v.voucher_type == 'hotel_reservation' %}
+            <span style="color: #0369a1; font-weight: 600;">🏨 Hotel Stay</span>
+          {% elif v.voucher_type == 'transport_order' %}
+            <span style="color: #0d9488; font-weight: 600;">🚗 Transport</span>
+          {% elif v.voucher_type == 'activity_permit' %}
+            <span style="color: #b45309; font-weight: 600;">🚣 Activity</span>
+          {% else %}
+            <span style="color: #475569; font-weight: 600;">👤 Guide Escort</span>
+          {% endif %}
+        </td>
+        <td>
+          <strong>{{ v.supplier.party.name }}</strong>
+          <div style="font-size: 11.5px; color: #64748b;">📍 {{ v.supplier.destination_city }}</div>
+        </td>
+        <td>
+          <strong>{{ v.guest_name }}</strong>
+          <div style="font-size: 11px; color: #64748b;">👥 {{ v.pax_count }} Guests</div>
+        </td>
+        <td>
+          <div>{{ v.service_date_start|date:"d M Y" }}</div>
+          <div style="font-size: 11.5px; color: #64748b;">to {{ v.service_date_end|date:"d M Y" }} ({{ v.duration_nights }}N)</div>
+        </td>
+        <td>
+          <strong style="color: #0f766e;">₹{{ v.total_payable_to_supplier|floatformat:2 }}</strong>
+        </td>
+        <td>
+          {% if v.status == 'confirmed' %}
+            <span class="badge-status status-confirmed">✅ Confirmed</span>
+            {% if v.confirmation_reference %}
+              <div style="font-size: 11px; color: #15803d; margin-top: 2px;">Ref: <code>{{ v.confirmation_reference }}</code></div>
+            {% endif %}
+          {% elif v.status == 'issued' %}
+            <span class="badge-status status-issued">⏳ Awaiting Supplier</span>
+          {% elif v.status == 'amended' %}
+            <span class="badge-status status-amended">⚠️ Amended</span>
+          {% elif v.status == 'cancelled' %}
+            <span class="badge-status status-cancelled">❌ Cancelled</span>
+          {% else %}
+            <span class="badge-status status-draft">Draft</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display: flex; gap: 6px;">
+            <a href="{% url 'crm:voucher_detail' voucher_id=v.id %}" class="button" style="font-size: 11px; padding: 4px 8px; background: #0284c7; color: #fff; border-radius: 4px; text-decoration: none;">
+              👁️ View / Print
+            </a>
+            {% if v.status == 'draft' %}
+              <a href="{% url 'crm:voucher_issue' voucher_id=v.id %}" class="button" style="font-size: 11px; padding: 4px 8px; background: #0d5c58; color: #fff; border-radius: 4px; text-decoration: none;" onclick="return confirm('Dispatch voucher to supplier via WhatsApp/Email?');">
+                🚀 Issue
+              </a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 32px; color: #64748b;">
+          No service vouchers found matching the filter criteria.
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Modal: Generate Service Voucher -->
+<div id="createVoucherModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a;">🧾 Generate Official Service Voucher (LPO)</h3>
+      <button type="button" onclick="closeModal('createVoucherModal')" style="border:none; background:none; font-size:18px; cursor:pointer;">&times;</button>
+    </div>
+    <form method="post" action="{% url 'crm:voucher_create' %}">
+      {% csrf_token %}
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Target Supplier / Vendor *</label>
+          <select name="supplier" required>
+            <option value="">-- Select Beneficiary Supplier --</option>
+            {% for s in suppliers %}
+              <option value="{{ s.id }}">{{ s.party.name }} ({{ s.destination_city }} - {{ s.get_supplier_type_display }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Voucher Service Type *</label>
+          <select name="voucher_type" required>
+            <option value="hotel_reservation">🏨 Hotel Accommodation Voucher</option>
+            <option value="transport_order">🚗 Chauffeur Transport Order</option>
+            <option value="activity_permit">🚣 Activity &amp; Sightseeing Voucher</option>
+            <option value="guide_escort">👤 Guide / Escort Booking Voucher</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Link to Customer Quotation (Optional)</label>
+        <select name="quotation">
+          <option value="">-- Independent Voucher (No Quote Linked) --</option>
+          {% for q in quotations %}
+            <option value="{{ q.id }}">{{ q.quotation_number }} - {{ q.guest_name }} ({{ q.destination }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Lead Guest Name *</label>
+          <input type="text" name="guest_name" required placeholder="Mr. Anand Sharma">
+        </div>
+        <div class="form-group">
+          <label>Contact Phone</label>
+          <input type="text" name="guest_phone" placeholder="9887766554">
+        </div>
+        <div class="form-group">
+          <label>Total Pax *</label>
+          <input type="number" name="pax_count" value="2" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Check-in / Start Date *</label>
+          <input type="date" name="service_date_start" required>
+        </div>
+        <div class="form-group">
+          <label>Check-out / End Date *</label>
+          <input type="date" name="service_date_end" required>
+        </div>
+        <div class="form-group">
+          <label>Nights *</label>
+          <input type="number" name="duration_nights" value="1" min="1" required>
+        </div>
+      </div>
+
+      <div style="font-weight: 700; font-size: 13px; color: #0d5c58; margin: 12px 0 8px 0; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+        Service Specifications (Accommodation / Fleet)
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Room Type (Hotels)</label>
+          <input type="text" name="hotel_room_type" placeholder="Deluxe Valley View Room">
+        </div>
+        <div class="form-group">
+          <label>Meal Plan</label>
+          <select name="hotel_meal_plan">
+            <option value="EP">EP (Room Only)</option>
+            <option value="CP" selected>CP (Bed &amp; Breakfast)</option>
+            <option value="MAP">MAP (Breakfast + Dinner)</option>
+            <option value="AP">AP (All Meals)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>No. of Rooms</label>
+          <input type="number" name="room_count" value="1" min="1">
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Vehicle Type / Segment (Transporters)</label>
+          <input type="text" name="vehicle_type_name" placeholder="Innova Crysta AC">
+        </div>
+        <div class="form-group">
+          <label>Pickup Location</label>
+          <input type="text" name="pickup_location" placeholder="Coimbatore Airport (CJB)">
+        </div>
+      </div>
+
+      <div style="font-weight: 700; font-size: 13px; color: #0d5c58; margin: 12px 0 8px 0; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+        Agreed Settlement &amp; Purchase Obligation
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Contracted Unit Rate (₹)</label>
+          <input type="number" name="contracted_unit_cost" step="50" placeholder="e.g. 4200">
+        </div>
+        <div class="form-group">
+          <label>Total Payable to Supplier (₹) *</label>
+          <input type="number" name="total_payable_to_supplier" step="50" required placeholder="e.g. 8400">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Special Instructions / Requests</label>
+        <textarea name="special_instructions" rows="2" placeholder="e.g. Non-smoking room, extra towels, early check-in requested"></textarea>
+      </div>
+
+      <div style="text-align: right; margin-top: 16px;">
+        <button type="button" onclick="closeModal('createVoucherModal')" class="button" style="background:#e2e8f0; color:#334155; margin-right:8px;">Cancel</button>
+        <button type="submit" class="button button-primary" style="background:#0d5c58; color:#fff; font-weight:700;">Generate Voucher</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+</script>
+{% endblock %}

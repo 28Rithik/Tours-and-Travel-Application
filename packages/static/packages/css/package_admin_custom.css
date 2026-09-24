@@ -1,0 +1,1084 @@
+/* ==========================================================================
+   Siva Gayathri Tours and Travels — Custom Admin Enhancements
+   ========================================================================== */
+
+/* Animated Fieldsets */
+.grp-devotional-specs,
+.grp-international-specs,
+.grp-pricing-dual,
+.grp-coach-specs,
+#temple_slots-group,
+#intl_documents-group {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Devotional Vertical Accent */
+.grp-devotional-specs {
+    border-left: 4px solid #8b5cf6 !important;
+    background: rgba(139, 92, 246, 0.04) !important;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+.grp-devotional-specs h2 {
+    background: linear-gradient(90deg, #6d28d9, #8b5cf6) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* International Vertical Accent */
+.grp-international-specs {
+    border-left: 4px solid #0284c7 !important;
+    background: rgba(2, 132, 199, 0.04) !important;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+.grp-international-specs h2 {
+    background: linear-gradient(90deg, #0369a1, #0284c7) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* 4 to 60-Seater Vehicle Tariffs Accent */
+.grp-coach-specs {
+    border-left: 4px solid #10b981 !important;
+    background: rgba(16, 185, 129, 0.03) !important;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+/* 1. Sleek Unified Top Toolbar (Presets + Live Snapshot + Actions) */
+.sg-unified-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px 12px;
+    margin: 8px 0 10px;
+    padding: 7px 12px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.sg-toolbar-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.sg-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sg-snap-price-pill {
+    background: #064e3b;
+    color: #34d399;
+    border: 1px solid #059669;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+.sg-btn-action {
+    padding: 4px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    color: #fff;
+}
+.sg-btn-proposal {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    border-color: #38bdf8;
+}
+.sg-btn-proposal:hover {
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    transform: translateY(-1px);
+}
+.sg-btn-wa {
+    background: #16a34a;
+    border-color: #22c55e;
+}
+.sg-btn-wa:hover {
+    background: #22c55e;
+    transform: translateY(-1px);
+}
+
+.sg-preset-bar-title {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+}
+.sg-btn-preset {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    color: #fff;
+}
+.sg-btn-preset:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+.sg-btn-devotional { background-color: #7c3aed; }
+.sg-btn-iv { background-color: #d97706; }
+.sg-btn-intl { background-color: #0284c7; }
+.sg-btn-holiday { background-color: #059669; }
+.sg-btn-local { background-color: #0ea5e9; }
+
+/* Active preset button indicator */
+.sg-btn-preset.sg-btn-active {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 10px rgba(56, 189, 248, 0.65) !important;
+    transform: translateY(-1px) scale(1.02);
+    font-weight: 800;
+}
+
+/* Category Intelligence Hero Card - Compact & Collapsible */
+.sg-category-intel-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 7px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+.sg-category-intel-card.intel-college_iv {
+    border-left: 4px solid #f59e0b;
+}
+.sg-category-intel-card.intel-devotional,
+.sg-category-intel-card.intel-pilgrimage {
+    border-left: 4px solid #8b5cf6;
+}
+.sg-category-intel-card.intel-international {
+    border-left: 4px solid #0284c7;
+}
+.sg-category-intel-card.intel-holiday,
+.sg-category-intel-card.intel-hill_station,
+.sg-category-intel-card.intel-family_vacation {
+    border-left: 4px solid #10b981;
+}
+.sg-category-intel-card.intel-local_tour {
+    border-left: 4px solid #0ea5e9;
+}
+
+.sg-intel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+}
+.sg-intel-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.sg-intel-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.sg-intel-toggle-pill {
+    background: #334155;
+    color: #94a3b8;
+    border: 1px solid #475569;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+.sg-intel-toggle-pill:hover {
+    color: #f8fafc;
+    background: #475569;
+}
+
+.sg-intel-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px 16px;
+    margin-bottom: 12px;
+}
+.sg-rule-item {
+    font-size: 12px;
+    color: #cbd5e1;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.45;
+}
+.sg-rule-icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    margin-top: 1px;
+}
+.sg-rule-label {
+    font-weight: 700;
+    color: #f1f5f9;
+}
+
+.sg-intel-jumps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #334155;
+}
+.sg-intel-jumps-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+}
+.sg-jump-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #334155;
+    color: #38bdf8;
+    border: 1px solid #475569;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+}
+.sg-jump-pill:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    transform: translateY(-1px);
+}
+
+/* Tab Highlight Badges */
+.nav-tabs .nav-link.sg-tab-highlight {
+    font-weight: 700 !important;
+    position: relative;
+}
+.nav-tabs .nav-link.sg-tab-highlight::after {
+    content: "•";
+    color: #38bdf8;
+    margin-left: 5px;
+    font-size: 14px;
+    animation: sg-pulse 1.5s infinite ease-in-out;
+}
+@keyframes sg-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Real-time Indicator Pill */
+.sg-calc-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    margin-left: 10px;
+}
+.sg-calc-green { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.sg-calc-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+.sg-calc-blue { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+.sg-calc-purple { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+
+/* Preset Toast Alert */
+.sg-preset-toast {
+    display: inline-block;
+    margin-left: auto;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(2, 132, 199, 0.15);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* ==========================================================================
+   Group Expedition Mode Selector Toolbar (College / Corporate / School / Family)
+   ========================================================================== */
+.sg-group-type-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 16px;
+    padding: 12px 16px;
+    background: #1e293b;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.sg-group-bar-title {
+    color: #94a3b8;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 8px;
+}
+.sg-group-type-btn {
+    padding: 7px 15px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s ease;
+    color: #f8fafc;
+    background: #334155;
+}
+.sg-group-type-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+.sg-group-type-btn.active {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 12px rgba(56, 189, 248, 0.6) !important;
+    transform: translateY(-1px) scale(1.03);
+    font-weight: 800;
+}
+.sg-group-type-btn.sg-group-college.active { background-color: #f59e0b !important; color: #ffffff !important; }
+.sg-group-type-btn.sg-group-corporate.active { background-color: #3b82f6 !important; color: #ffffff !important; }
+.sg-group-type-btn.sg-group-school.active { background-color: #10b981 !important; color: #ffffff !important; }
+.sg-group-type-btn.sg-group-family.active { background-color: #8b5cf6 !important; color: #ffffff !important; }
+
+.sg-calc-gold { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+
+/* Transit Mode Dynamic Notices */
+.sg-transit-notice {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s ease-in-out;
+}
+.grp-flybus-specs {
+    border-left: 4px solid #0284c7 !important;
+    background: rgba(2, 132, 199, 0.04) !important;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+.grp-flybus-specs h2 {
+    background: linear-gradient(90deg, #0f172a, #0284c7) !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   5 Master Steps Navigation Stepper Styling
+   ========================================================================== */
+#jazzy-tabs {
+    border-bottom: 2px solid #334155 !important;
+    margin-bottom: 20px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+}
+
+#jazzy-tabs .nav-link {
+    border-radius: 8px 8px 0 0 !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    padding: 10px 16px !important;
+    color: #94a3b8 !important;
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-bottom: none !important;
+    transition: all 0.2s ease-in-out !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+#jazzy-tabs .nav-link:hover {
+    background: #334155 !important;
+    color: #38bdf8 !important;
+    transform: translateY(-1px);
+}
+
+#jazzy-tabs .nav-link.active {
+    background: #0f172a !important;
+    color: #38bdf8 !important;
+    border-top: 3px solid #0284c7 !important;
+    border-left: 1px solid #0284c7 !important;
+    border-right: 1px solid #0284c7 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 -2px 10px rgba(2, 132, 199, 0.25) !important;
+}
+
+/* Fieldset Section Headers */
+.grp-pricing-dual, .grp-transit-specs, .grp-stay-experience {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+/* Compact Symmetric Inputs */
+.form-group .vTextField, 
+.form-group select, 
+.form-group textarea {
+    border-radius: 6px !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.form-group .vTextField:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
+}
+
+/* ==========================================================================
+   Quick-Fill Checklist Chips Toolbar (Step 5)
+   ========================================================================== */
+.sg-chip-btn {
+    padding: 5px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #475569;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #334155;
+    color: #f8fafc;
+    transition: all 0.15s ease-in-out;
+}
+
+.sg-chip-btn:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+}
+
+.sg-chip-iv:hover { background: #f59e0b; border-color: #f59e0b; }
+.sg-chip-holiday:hover { background: #10b981; border-color: #10b981; }
+.sg-chip-devotional:hover { background: #8b5cf6; border-color: #8b5cf6; }
+.sg-chip-flight:hover { background: #6366f1; border-color: #6366f1; }
+.sg-chip-corporate:hover { background: #3b82f6; border-color: #3b82f6; }
+
+/* Sticky Live Tour Snapshot Bar */
+.sg-tour-snapshot {
+    position: sticky;
+    top: 55px;
+    z-index: 990;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    transition: all 0.2s ease-in-out;
+}
+
+/* ==========================================================================
+   10. 1-Click Itinerary Circuit Builder Toolbar
+   ========================================================================== */
+.sg-itinerary-builder-toolbar,
+.sg-tariff-builder-toolbar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.sg-itinerary-builder-toolbar {
+    border-left: 5px solid #38bdf8;
+}
+
+.sg-tariff-builder-toolbar {
+    border-left: 5px solid #10b981;
+}
+
+.sg-toolbar-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sg-circuit-select {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    border: 1px solid #475569 !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    min-width: 320px;
+    max-width: 450px;
+    cursor: pointer;
+}
+
+.sg-circuit-select:focus {
+    border-color: #38bdf8 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25) !important;
+}
+
+.sg-btn-builder-action {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    border: 1px solid #38bdf8;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.sg-btn-builder-action:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.sg-btn-tariff-action {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #ffffff;
+    border: 1px solid #34d399;
+    border-radius: 6px;
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+.sg-btn-tariff-action:hover {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.sg-btn-builder-clear {
+    background: #334155;
+    color: #cbd5e1;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.sg-btn-builder-clear:hover {
+    background: #475569;
+    color: #ef4444;
+}
+
+.sg-row-flash {
+    animation: sgHighlightPulse 1.2s ease-out;
+}
+
+@keyframes sgHighlightPulse {
+    0% { background-color: rgba(56, 189, 248, 0.35); }
+    100% { background-color: transparent; }
+}
+
+/* ==========================================================================
+   12. Live Proposal Modal Preview
+   ========================================================================== */
+.sg-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(6px);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.sg-modal-dialog {
+    background: #0f172a;
+    border: 1px solid #38bdf8;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 1100px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    animation: sgModalZoom 0.25s ease-out;
+}
+
+@keyframes sgModalZoom {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.sg-modal-header {
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sg-modal-title {
+    color: #f8fafc;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.sg-modal-body {
+    flex: 1;
+    background: #334155;
+    position: relative;
+}
+
+.sg-btn-modal-print,
+.sg-btn-modal-newtab {
+    padding: 6px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s ease;
+}
+
+.sg-btn-modal-print {
+    background: #0284c7;
+    color: #fff;
+    border: none;
+}
+.sg-btn-modal-print:hover {
+    background: #0369a1;
+}
+
+.sg-btn-modal-newtab {
+    background: #334155;
+    color: #38bdf8;
+    border: 1px solid #475569;
+}
+.sg-btn-modal-newtab:hover {
+    background: #475569;
+    color: #fff;
+}
+
+.sg-btn-modal-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 6px;
+}
+.sg-btn-modal-close:hover {
+    color: #ef4444;
+}
+
+/* ==========================================================================
+   13. Live Profit Margin & Cost Breakeven Sheet
+   ========================================================================== */
+.sg-margin-sheet-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    border-left: 5px solid #f59e0b;
+    border-radius: 8px;
+    margin-top: 14px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+
+.sg-margin-header {
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.sg-margin-header:hover {
+    background: #273549;
+}
+#sg-margin-caret {
+    transition: transform 0.25s ease;
+}
+
+.sg-margin-title {
+    color: #f8fafc;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.sg-margin-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+.badge-green { background: #065f46; color: #34d399; border: 1px solid #10b981; }
+.badge-yellow { background: #78350f; color: #fbbf24; border: 1px solid #f59e0b; }
+.badge-red { background: #7f1d1d; color: #f87171; border: 1px solid #ef4444; }
+
+.sg-margin-body {
+    padding: 14px 18px;
+}
+
+.sg-margin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.sg-margin-col {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+
+.sg-col-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 6px;
+}
+
+.sg-metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+    color: #cbd5e1;
+}
+
+.sg-metric-highlight {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #475569;
+}
+
+.sg-mini-input {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 4px;
+    color: #f8fafc;
+    padding: 3px 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+}
+.sg-mini-input:focus {
+    border-color: #38bdf8;
+    outline: none;
+}
+
+.sg-kpi-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+}
+
+.sg-kpi-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    display: block;
+}
+
+.sg-kpi-val {
+    font-size: 20px;
+    font-weight: 800;
+    display: block;
+    margin-top: 2px;
+}
+
+.sg-kpi-breakeven {
+    margin-top: 10px;
+    background: #0f172a;
+    border: 1px solid #f59e0b;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    color: #fef08a;
+    text-align: center;
+}
+
+/* ==========================================================================
+   14. 1-Click WhatsApp Trip Briefing Generator
+   ========================================================================== */
+.sg-whatsapp-dialog {
+    max-width: 800px !important;
+    height: auto !important;
+    max-height: 85vh !important;
+}
+
+.sg-wa-tabs {
+    display: flex;
+    gap: 8px;
+    background: #0f172a;
+    padding: 10px 16px;
+    border-bottom: 1px solid #334155;
+}
+
+.sg-wa-tab-btn {
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sg-wa-tab-btn.active {
+    background: #25d366;
+    color: #0f172a;
+    border-color: #25d366;
+    font-weight: 700;
+}
+
+.sg-wa-content {
+    padding: 16px 20px;
+}
+
+.sg-wa-textarea {
+    width: 100%;
+    height: 260px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #f8fafc;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    padding: 12px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.sg-wa-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.sg-btn-wa-copy {
+    background: #334155;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.sg-btn-wa-copy:hover {
+    background: #475569;
+    color: #fff;
+}
+
+.sg-btn-wa-send {
+    background: #25d366;
+    color: #0f172a;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+.sg-btn-wa-send:hover {
+    background: #22c55e;
+    color: #0f172a;
+}
+
+/* ==========================================================================
+   15. Package Admin Change List Table Styling & Defenses
+   ========================================================================== */
+#result_list th,
+#result_list td {
+    vertical-align: middle !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+#result_list .field-name_display {
+    max-width: 320px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+#result_list .field-destination_badge {
+    max-width: 180px;
+}
+
+#result_list .field-hotel_and_room_display {
+    max-width: 220px;
+}
+
+/* ==========================================================================
+   16. Clean Form Layout, Streamlined Help Text & Sticky Action Controls
+   ========================================================================== */
+.sg-help-hidden {
+    display: none !important;
+}
+
+.sg-tooltip-badge {
+    cursor: help;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.15);
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 6px;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+}
+.sg-tooltip-badge:hover {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 0 6px rgba(2, 132, 199, 0.5);
+}
+
+/* Clean Input Focus & Placeholder Styling */
+.change-form input[type="text"]::placeholder,
+.change-form input[type="number"]::placeholder,
+.change-form textarea::placeholder {
+    color: #64748b !important;
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* Form Group & FieldBox Alignment */
+.change-form .form-group .row {
+    align-items: center;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+.change-form .fieldBox {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.change-form .fieldBox select,
+.change-form .fieldBox .select2-container {
+    min-width: 240px;
+}
+
+/* Sticky Right-Hand Action Bar */
+@media (min-width: 992px) {
+    .change-form .col-lg-3 .card {
+        position: sticky;
+        top: 75px;
+        z-index: 10;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+}
+
+/* Dynamic Field Highlight Flash */
+.sg-field-flash {
+    animation: sgHighlightPulse 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes sgHighlightPulse {
+    0% {
+        background-color: rgba(56, 189, 248, 0.35) !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.7) !important;
+        border-color: #38bdf8 !important;
+    }
+    100% {
+        background-color: inherit;
+        box-shadow: none;
+    }
+}
+

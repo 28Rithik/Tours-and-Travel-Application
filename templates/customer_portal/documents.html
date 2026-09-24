@@ -1,0 +1,25 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "My Documents" %} | Customer Portal{% endblock %}
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1>{% trans "My Documents" %}</h1>
+    <p style="color: var(--text-muted);">{% trans "Access your tickets, visas, vouchers, and insurance." %}</p>
+</div>
+
+<div class="grid">
+    {% for doc in documents %}
+    <div class="glass-card">
+        <h3>{{ doc.title }}</h3>
+        <p><strong>{% trans "Type" %}:</strong> {{ doc.get_document_type_display }}</p>
+        <p><strong>{% trans "Added" %}:</strong> {{ doc.uploaded_at|date:"M d, Y" }}</p>
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 1rem 0;">
+        <a href="{{ doc.file.url }}" target="_blank" class="btn-primary" style="width: 100%; text-align: center; display: block; box-sizing: border-box;">{% trans "Download" %}</a>
+    </div>
+    {% empty %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+        <p style="color: var(--text-muted);">{% trans "No documents available." %}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

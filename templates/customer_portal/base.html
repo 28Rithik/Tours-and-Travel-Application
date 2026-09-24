@@ -1,0 +1,54 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Customer Portal | Sivagayathiri Travels{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/portal.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{% url 'customer_portal:home' %}" class="nav-brand">Sivagayathiri Travels</a>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'customer_portal:home' %}">{% trans "Dashboard" %}</a>
+                <a href="{% url 'customer_portal:bookings' %}">{% trans "My Bookings" %}</a>
+                <a href="{% url 'customer_portal:documents' %}">{% trans "Documents" %}</a>
+                <a href="{% url 'customer_portal:logout' %}">{% trans "Logout" %}</a>
+            {% else %}
+                <a href="{% url 'customer_portal:login' %}">{% trans "Login" %}</a>
+            {% endif %}
+            <form action="{% url 'set_language' %}" method="post" style="display: inline-block; margin-left: 1rem;">
+                {% csrf_token %}
+                <select name="language" onchange="this.form.submit()" style="padding: 0.2rem; border-radius: 4px; border: 1px solid var(--border);">
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    {% for lang in LANGUAGES %}
+                        <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %}selected{% endif %}>
+                            {{ lang.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: #D1FAE5; color: #065F46; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

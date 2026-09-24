@@ -1,0 +1,69 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Package Profitability Dashboard</h1>
+    <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 20px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #ccc;">
+                <th style="padding: 10px;">Package Name</th>
+                <th style="padding: 10px;">Total Bookings</th>
+                <th style="padding: 10px;">Revenue (INR)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in package_data %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;">{{ item.package_name }}</td>
+                <td style="padding: 10px;">{{ item.total_bookings }}</td>
+                <td style="padding: 10px;">₹{{ item.revenue|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="padding: 10px;">No package data available</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 40px;">Top Customer Profitability</h2>
+    <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #ccc;">
+                <th style="padding: 10px;">Customer Name</th>
+                <th style="padding: 10px;">Total Bookings</th>
+                <th style="padding: 10px;">Total Revenue (INR)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in customer_data %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;">{{ item.name }}</td>
+                <td style="padding: 10px;">{{ item.total_bookings }}</td>
+                <td style="padding: 10px;">₹{{ item.revenue|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="padding: 10px;">No customer data available</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 40px;">Seasonal Demand Forecasting (12-Month Trend)</h2>
+    <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px;">
+        <thead>
+            <tr style="border-bottom: 2px solid #ccc;">
+                <th style="padding: 10px;">Month</th>
+                <th style="padding: 10px;">Total Bookings</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in forecast_data %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 10px;">{{ item.month }}</td>
+                <td style="padding: 10px;">{{ item.bookings }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" style="padding: 10px;">No forecasting data available</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Login" %} | Customer Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 4rem auto;">
+    <div class="glass-card">
+        <h2 style="text-align: center; margin-bottom: 2rem;">{% trans "Welcome Back" %}</h2>
+        <form method="POST" action="{% url 'customer_portal:login' %}">
+            {% csrf_token %}
+            <div>
+                <label class="form-label" for="username">{% trans "Username / Phone" %}</label>
+                <input type="text" id="username" name="username" class="input-field" required>
+            </div>
+            <div>
+                <label class="form-label" for="password">{% trans "Password" %}</label>
+                <input type="password" id="password" name="password" class="input-field" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">{% trans "Login securely" %}</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

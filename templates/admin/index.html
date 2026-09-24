@@ -1,0 +1,132 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box shadow">
+            <span class="info-box-icon bg-info elevation-1"><i class="fas fa-road"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Active Trips</span>
+                <span class="info-box-number">{{ active_trips_count|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box shadow">
+            <span class="info-box-icon bg-success elevation-1"><i class="fas fa-user-tie"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Active Drivers</span>
+                <span class="info-box-number">{{ active_drivers_count|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box shadow">
+            <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-calendar-check text-white"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Pending Bookings</span>
+                <span class="info-box-number">{{ pending_bookings_count|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+        <div class="info-box shadow">
+            <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-money-bill-wave"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Unsettled Advances</span>
+                <span class="info-box-number">{{ unsettled_advances_count|default:"0" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enterprise Systemic Sections Navigator -->
+<div class="card card-outline card-primary shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap" style="border-bottom: 1px solid #e2e8f0; padding: 12px 20px;">
+        <div class="d-flex align-items-center mb-1 mb-md-0">
+            <span class="mr-2" style="font-size: 18px;">⚡</span>
+            <strong style="font-size: 15px; color: #0d5c58;">Enterprise Operations Directory</strong>
+            <span class="badge badge-light ml-2" style="border: 1px solid #cbd5e1; color: #475569;">8 Business Domains</span>
+        </div>
+        <div class="w-100 w-md-auto" style="min-width: 280px;">
+            <input type="text" id="adminModelFilter" class="form-control form-control-sm" placeholder="🔍 Quick filter any module (e.g. quote, trip, fuel, invoice)..." onkeyup="filterAdminModels()" style="border-radius: 20px; padding: 6px 16px;">
+        </div>
+    </div>
+    <div class="card-body py-2" style="background: #f8fafc;">
+        <div class="d-flex flex-wrap gap-2" style="gap: 8px;">
+            <span class="badge badge-pill badge-primary p-2" style="cursor: pointer; font-size: 11.5px; background: #0d5c58;" onclick="filterByDomain('all')">All Domains</span>
+            <span class="badge badge-pill badge-info p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('crm')">🎯 CRM &amp; Quotations</span>
+            <span class="badge badge-pill badge-success p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('operations')">🚗 Fleet Dispatch</span>
+            <span class="badge badge-pill badge-warning p-2 text-white" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('packages')">📦 Tour Packages</span>
+            <span class="badge badge-pill badge-secondary p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('contracts')">🏢 Contracts &amp; Shuttles</span>
+            <span class="badge badge-pill badge-danger p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('maintenance')">🛠️ Vehicles &amp; Workshop</span>
+            <span class="badge badge-pill badge-dark p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('crew')">👤 Drivers &amp; Portal</span>
+            <span class="badge badge-pill badge-success p-2" style="cursor: pointer; font-size: 11.5px; background: #047857;" onclick="filterByDomain('finance')">💰 Finance, Fuel &amp; Payroll</span>
+            <span class="badge badge-pill badge-secondary p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('governance')">🛡️ Governance &amp; Auth</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterAdminModels() {
+    var input = document.getElementById("adminModelFilter");
+    var filter = input.value.toLowerCase().trim();
+    var cards = document.querySelectorAll(".card");
+
+    cards.forEach(function(card) {
+        // Skip the KPI row and search card
+        if (card.closest(".mb-4") || card.querySelector("#adminModelFilter")) return;
+
+        var header = card.querySelector(".card-header");
+        var rows = card.querySelectorAll("tbody tr");
+        var hasVisibleRow = false;
+
+        rows.forEach(function(row) {
+            var text = row.textContent.toLowerCase();
+            if (filter === "" || text.indexOf(filter) > -1) {
+                row.style.display = "";
+                hasVisibleRow = true;
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        if (header && (filter === "" || header.textContent.toLowerCase().indexOf(filter) > -1 || hasVisibleRow)) {
+            card.style.display = "";
+            if (header.textContent.toLowerCase().indexOf(filter) > -1 && filter !== "") {
+                rows.forEach(function(r) { r.style.display = ""; });
+            }
+        } else {
+            card.style.display = hasVisibleRow ? "" : "none";
+        }
+    });
+}
+
+function filterByDomain(domain) {
+    var searchInput = document.getElementById("adminModelFilter");
+    if(domain === 'all') {
+        searchInput.value = '';
+    } else if(domain === 'crm') {
+        searchInput.value = 'crm';
+    } else if(domain === 'operations') {
+        searchInput.value = 'operations';
+    } else if(domain === 'packages') {
+        searchInput.value = 'package';
+    } else if(domain === 'contracts') {
+        searchInput.value = 'contract';
+    } else if(domain === 'maintenance') {
+        searchInput.value = 'maintenance';
+    } else if(domain === 'crew') {
+        searchInput.value = 'driver';
+    } else if(domain === 'finance') {
+        searchInput.value = 'finance';
+    } else if(domain === 'governance') {
+        searchInput.value = 'governance';
+    }
+    filterAdminModels();
+}
+</script>
+
+{{ block.super }}
+{% endblock %}

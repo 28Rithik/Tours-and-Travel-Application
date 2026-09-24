@@ -1,0 +1,105 @@
+/* Vehicle Status Toggle Switch & Badges */
+.vehicle-toggle-wrapper {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    vertical-align: middle !important;
+}
+
+.vehicle-switch {
+    position: relative !important;
+    display: inline-block !important;
+    width: 38px !important;
+    height: 20px !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+    cursor: pointer !important;
+}
+
+.vehicle-switch input {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+}
+
+.vehicle-slider {
+    position: absolute !important;
+    cursor: pointer !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: #4b5563 !important; /* Slate gray when Not Available */
+    transition: all 0.25s ease-in-out !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-sizing: border-box !important;
+}
+
+.vehicle-slider:before {
+    position: absolute !important;
+    content: "" !important;
+    height: 14px !important;
+    width: 14px !important;
+    left: 2px !important;
+    bottom: 2px !important;
+    background-color: #ffffff !important;
+    transition: all 0.25s ease-in-out !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+.vehicle-switch input:checked + .vehicle-slider {
+    background-color: #10b981 !important; /* Vibrant emerald green when Available */
+    border-color: #059669 !important;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5) !important;
+}
+
+.vehicle-switch input:checked + .vehicle-slider:before {
+    transform: translateX(18px) !important;
+}
+
+.vehicle-switch input:disabled + .vehicle-slider {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+
+.vehicle-status-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.3px !important;
+    transition: color 0.2s ease !important;
+    user-select: none !important;
+    white-space: nowrap !important;
+}
+
+.vehicle-badge-trip {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+    color: #ffffff !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35) !important;
+    border: 1px solid rgba(147, 197, 253, 0.3) !important;
+}
+
+.vehicle-badge-maintenance {
+    background: linear-gradient(135deg, #b45309, #d97706) !important;
+    color: #ffffff !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35) !important;
+}
