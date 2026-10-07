@@ -1,0 +1,793 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}📲 WhatsApp Business Bot & Driver Handover Studio | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="{% url 'admin:operations_trip_changelist' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Fleet Dispatch</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">📲 WhatsApp Bot & Handover Studio</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --wa-dark-bg: #090e17;
+    --wa-panel-bg: rgba(17, 24, 39, 0.9);
+    --wa-panel-border: rgba(51, 65, 85, 0.45);
+    --wa-green: #25d366;
+    --wa-green-glow: rgba(37, 211, 102, 0.35);
+    --wa-dark-green: #075e54;
+    --wa-bubble-in: #1f2937;
+    --wa-bubble-out: #056162;
+    --wa-cyan: #38bdf8;
+    --wa-amber: #f59e0b;
+    --wa-red: #ef4444;
+}
+
+.studio-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f1f5f9;
+    background: radial-gradient(circle at 10% 10%, rgba(37, 211, 102, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(56, 189, 248, 0.06) 0%, transparent 40%),
+                var(--wa-dark-bg);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Metric Cards Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.kpi-card {
+    background: var(--wa-panel-bg);
+    border: 1px solid var(--wa-panel-border);
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--kpi-color, var(--wa-green)), transparent);
+}
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--kpi-bg, rgba(37, 211, 102, 0.15));
+    color: var(--kpi-color, var(--wa-green));
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+}
+
+/* Main Studio Layout: 2 Columns (Phone simulator left, desks right) */
+.studio-main-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 1100px) {
+    .studio-main-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SMARTPHONE MOCKUP */
+.phone-mock {
+    background: #000;
+    border: 4px solid #2d3748;
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 20px rgba(37, 211, 102, 0.15);
+    height: 680px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.phone-notch {
+    background: #000;
+    height: 24px;
+    width: 140px;
+    margin: 0 auto;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    z-index: 10;
+}
+.phone-header {
+    background: #1f2c34;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.phone-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+}
+.phone-brand-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.phone-status {
+    font-size: 11px;
+    color: #25d366;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chat-viewport {
+    flex: 1;
+    background: #0b141a url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png') repeat;
+    background-size: 260px;
+    padding: 14px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Chat Bubbles */
+.chat-msg {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    position: relative;
+    word-break: break-word;
+}
+.chat-msg.inbound {
+    align-self: flex-start;
+    background: #202c33;
+    color: #e9edef;
+    border-top-left-radius: 2px;
+}
+.chat-msg.outbound {
+    align-self: flex-end;
+    background: #005c4b;
+    color: #e9edef;
+    border-top-right-radius: 2px;
+}
+.chat-time {
+    font-size: 9.5px;
+    color: rgba(255, 255, 255, 0.6);
+    float: right;
+    margin-left: 8px;
+    margin-top: 4px;
+}
+
+/* Preset test chips */
+.chip-row {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #182229;
+    overflow-x: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.test-chip {
+    background: rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    border: none;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+}
+.test-chip:hover {
+    background: var(--wa-green);
+    color: #000;
+}
+
+/* Phone Input Bar */
+.phone-input-bar {
+    background: #202c33;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sim-input {
+    flex: 1;
+    background: #2a3942;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+}
+.sim-send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #00a884;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 15px;
+}
+
+/* Desks & Panels */
+.desk-card {
+    background: var(--wa-panel-bg);
+    border: 1px solid var(--wa-panel-border);
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    margin-bottom: 1.5rem;
+}
+.desk-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+/* Handover Sessions Table */
+.studio-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.studio-table th {
+    background: rgba(30, 41, 59, 0.7);
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--wa-panel-border);
+}
+.studio-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.25);
+    color: #cbd5e1;
+    vertical-align: middle;
+}
+.studio-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.img-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.img-thumb:hover { transform: scale(1.1); }
+
+.badge-tag {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.badge-start { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-end { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-approved { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+.badge-submitted { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+.badge-flagged { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+.btn-action-small {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+}
+.btn-approve { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.btn-approve:hover { background: #10b981; color: #fff; }
+.btn-flag { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+.btn-flag:hover { background: #ef4444; color: #fff; }
+.btn-dispatch { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); color: #fff; box-shadow: 0 4px 12px var(--wa-green-glow); }
+.btn-dispatch:hover { transform: translateY(-1px); }
+
+/* Modal for Image Preview */
+.modal-photo {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    place-items: center;
+    padding: 20px;
+}
+.modal-photo img {
+    max-width: 90vw;
+    max-height: 85vh;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+</style>
+
+<div class="studio-wrapper">
+
+    <!-- Header Section -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px;">
+                <span style="color: var(--wa-green);">📲</span> WhatsApp Business Bot & Driver Handover Studio
+            </h1>
+            <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
+                Automated luxury passenger dispatch sheets, digital odometer start/end handover audit, and 24x7 control room SOS radar.
+            </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; background: rgba(37, 211, 102, 0.15); border: 1px solid rgba(37, 211, 102, 0.3); font-size: 12px; font-weight: 700; color: #25d366;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #25d366; box-shadow: 0 0 8px #25d366;"></span>
+                Meta Cloud API v17.0 Active
+            </span>
+            <a href="{% url 'admin:operations_whatsappbotmessage_changelist' %}" class="btn-action-small" style="background: rgba(255,255,255,0.08); color: #fff;">
+                📜 Raw Message Logs
+            </a>
+        </div>
+    </div>
+
+    <!-- 5 Key Metric Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-color: #25d366; --kpi-bg: rgba(37, 211, 102, 0.15);">
+            <div class="kpi-icon">💬</div>
+            <div>
+                <div class="kpi-label">Total Bot Messages</div>
+                <div class="kpi-value">{{ total_messages }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #38bdf8; --kpi-bg: rgba(56, 189, 248, 0.15);">
+            <div class="kpi-icon">📥</div>
+            <div>
+                <div class="kpi-label">Inbound Handled</div>
+                <div class="kpi-value">{{ inbound_count }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #818cf8; --kpi-bg: rgba(129, 140, 248, 0.15);">
+            <div class="kpi-icon">📤</div>
+            <div>
+                <div class="kpi-label">Outbound Alerts</div>
+                <div class="kpi-value">{{ outbound_count }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #f59e0b; --kpi-bg: rgba(245, 158, 11, 0.15);">
+            <div class="kpi-icon">📋</div>
+            <div>
+                <div class="kpi-label">Pending Handover Audits</div>
+                <div class="kpi-value" id="kpiPendingAudits">{{ pending_audits }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-color: #ef4444; --kpi-bg: rgba(239, 68, 68, 0.15);">
+            <div class="kpi-icon">🚨</div>
+            <div>
+                <div class="kpi-label">Active SOS Alerts</div>
+                <div class="kpi-value">{{ active_sos }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-Column Studio Layout -->
+    <div class="studio-main-grid">
+
+        <!-- COLUMN 1: LIVE SMARTPHONE WHATSAPP SIMULATOR -->
+        <div>
+            <div class="phone-mock">
+                <div class="phone-notch"></div>
+                <div class="phone-header">
+                    <div class="phone-avatar">🚖</div>
+                    <div style="flex: 1;">
+                        <div class="phone-brand-title">
+                            Sivagayathiri Travels
+                            <span style="color: #25d366; font-size: 13px;">✔</span>
+                        </div>
+                        <div class="phone-status">
+                            <span>●</span> Online & Ready
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Viewport -->
+                <div id="simChatViewport" class="chat-viewport">
+                    <!-- Initial Welcome Inbound & Bot Message -->
+                    <div class="chat-msg outbound">
+                        Namaste! Welcome to Sivagayathiri Travels 24x7 WhatsApp Business Bot. 🙏<br>
+                        Reply *TRIP*, *START*, *END*, *PAY*, or *SOS* anytime!
+                        <span class="chat-time">10:00 AM</span>
+                    </div>
+                </div>
+
+                <!-- Quick Action Preset Chips -->
+                <div class="chip-row">
+                    <button type="button" class="test-chip" onclick="simulateChip('TRIP')">🚗 TRIP</button>
+                    <button type="button" class="test-chip" onclick="simulateChip('START')">🟢 START</button>
+                    <button type="button" class="test-chip" onclick="simulateChip('END')">🏁 END</button>
+                    <button type="button" class="test-chip" onclick="simulateChip('PAY')">💳 PAY</button>
+                    <button type="button" class="test-chip" onclick="simulateChip('INVOICE')">🧾 INVOICE</button>
+                    <button type="button" class="test-chip" onclick="simulateChip('SOS')" style="color: #ef4444;">🚨 SOS</button>
+                    <button type="button" class="test-chip" onclick="simulateChip('HI')">👋 MENU</button>
+                </div>
+
+                <!-- Chat Input Form -->
+                <form id="simForm" onsubmit="submitSimMessage(event)" class="phone-input-bar">
+                    <input type="text" id="simPhone" style="width: 90px; background: #111b21; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 6px 8px; color: #fff; font-size: 11px; font-family: 'JetBrains Mono', monospace;" value="919876543210" title="Sender Phone Number">
+                    <input type="text" id="simTextInput" class="sim-input" placeholder="Type WhatsApp message..." required autocomplete="off">
+                    <button type="submit" class="sim-send-btn">➤</button>
+                </form>
+            </div>
+            <div style="font-size: 11px; color: #64748b; text-align: center; margin-top: 8px;">
+                Interactive WhatsApp Cloud API Webhook Simulator
+            </div>
+        </div>
+
+        <!-- COLUMN 2: OPERATIONAL AUDIT DESKS -->
+        <div>
+
+            <!-- DESK 1: DRIVER ODOMETER HANDOVER AUDIT DESK -->
+            <div class="desk-card">
+                <div class="desk-title">
+                    <span style="color: var(--wa-amber);">📸</span> Driver Digital Handover & Odometer Audit Desk
+                </div>
+
+                {% if handover_sessions %}
+                <div style="overflow-x: auto;">
+                    <table class="studio-table">
+                        <thead>
+                            <tr>
+                                <th>Trip & Duty</th>
+                                <th>Captain & Vehicle</th>
+                                <th>Type</th>
+                                <th>Odometer</th>
+                                <th>Photo Proof</th>
+                                <th>Status</th>
+                                <th>Audit Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in handover_sessions %}
+                            <tr id="sessionRow{{ s.id }}">
+                                <td>
+                                    <strong style="color: #38bdf8;">#{{ s.trip.trip_id }}</strong><br>
+                                    <span style="font-size: 11px; color: #94a3b8;">{{ s.created_at|date:"d M, H:i" }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ s.driver.name }}</strong><br>
+                                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fbbf24;">{{ s.vehicle.registration_number }}</span>
+                                </td>
+                                <td>
+                                    {% if s.session_type == 'start' %}
+                                        <span class="badge-tag badge-start">🟢 Start Duty</span>
+                                    {% else %}
+                                        <span class="badge-tag badge-end">🏁 End Duty</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fff;">{{ s.odometer_reading }} KM</span><br>
+                                    <span style="font-size: 10px; color: #94a3b8;">Fuel: {{ s.fuel_level_percent }}%</span>
+                                </td>
+                                <td>
+                                    {% if s.odometer_photo %}
+                                        <img src="{{ s.odometer_photo.url }}" class="img-thumb" onclick="openPhotoModal('{{ s.odometer_photo.url }}')" title="Click to enlarge odometer photo">
+                                    {% else %}
+                                        <span style="color: #64748b; font-size: 11px;">No Photo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span id="badgeStatus{{ s.id }}" class="badge-tag badge-{{ s.status }}">
+                                        {{ s.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px;">
+                                        <button type="button" class="btn-action-small btn-approve" onclick="auditSession({{ s.id }}, 'approve')">
+                                            ✓ Approve
+                                        </button>
+                                        <button type="button" class="btn-action-small btn-flag" onclick="auditSession({{ s.id }}, 'flag')">
+                                            ✕ Flag
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="padding: 2rem; text-align: center; color: #64748b; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                    No driver handover sessions logged yet. Test with the simulator or the driver mobile portal!
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- DESK 2: 1-CLICK PASSENGER DISPATCH ALERT DISPATCHER -->
+            <div class="desk-card">
+                <div class="desk-title">
+                    <span style="color: var(--wa-green);">🚖</span> 1-Click Passenger WhatsApp Trip Sheet Dispatcher
+                </div>
+
+                {% if upcoming_trips %}
+                <div style="overflow-x: auto;">
+                    <table class="studio-table">
+                        <thead>
+                            <tr>
+                                <th>Trip Reference</th>
+                                <th>Guest & Chauffeur</th>
+                                <th>Schedule & Route</th>
+                                <th>Vehicle Assigned</th>
+                                <th>Broadcasts</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in upcoming_trips %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'admin:operations_trip_change' t.id %}" style="font-weight: 700; color: #38bdf8;">#{{ t.trip_id }}</a><br>
+                                    <span style="font-size: 10px; color: #94a3b8;">{{ t.get_status_display }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ t.guest_name|default:"Valued Guest" }}</strong><br>
+                                    <span style="font-size: 11px; color: #94a3b8;">Chauffeur: {{ t.driver.name|default:"Pending" }}</span>
+                                </td>
+                                <td>
+                                    <span>{{ t.start_date }} @ {{ t.start_time|default:"10:00" }}</span><br>
+                                    <span style="font-size: 11px; color: #cbd5e1;">{{ t.pickup_location|truncatechars:20 }} ➔ {{ t.destination|truncatechars:20 }}</span>
+                                </td>
+                                <td>
+                                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fbbf24;">{{ t.vehicle.registration_number|default:"Pending" }}</span>
+                                </td>
+                                <td>
+                                    <span id="tripBroadcastBadge{{ t.id }}" style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #25d366;">
+                                        {{ t.whatsapp_broadcast_count }} Sent
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                        <button type="button" class="btn-action-small btn-dispatch" onclick="dispatchTripSheet({{ t.id }})">
+                                            📲 WhatsApp
+                                        </button>
+                                        <a href="/customer/trip/{{ t.id }}/invoice/" target="_blank" class="btn-action-small" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="View Customer GST Invoice">
+                                            🧾 Invoice
+                                        </a>
+                                        <a href="/trip/{{ t.id }}/handover/" target="_blank" class="btn-action-small" style="background: rgba(255,255,255,0.08); color: #fff;" title="Open Driver Mobile Portal">
+                                            📱 Portal
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="padding: 2rem; text-align: center; color: #64748b;">
+                    No active trips found.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- DESK 3: REAL-TIME EMERGENCY SOS CONTROL ROOM RADAR FEED -->
+            {% if sos_alerts %}
+            <div class="desk-card" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(30, 15, 20, 0.65);">
+                <div class="desk-title" style="color: #ef4444;">
+                    <span>🚨</span> Central Control Room Emergency SOS Incidents
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                    {% for a in sos_alerts %}
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #ef4444;">#{{ a.incident_id }}</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; font-weight: 700;">{{ a.get_incident_type_display }}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #e2e8f0; margin-bottom: 4px;">
+                            Vehicle: <strong>{{ a.vehicle.registration_number }}</strong> | Captain: <strong>{{ a.driver.name }}</strong>
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
+                            {{ a.description|truncatechars:80 }}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            {% if a.latitude and a.longitude %}
+                                <a href="https://maps.google.com/?q={{ a.latitude }},{{ a.longitude }}" target="_blank" style="font-size: 11px; color: #38bdf8; text-decoration: underline;">
+                                    📍 Live GPS Map
+                                </a>
+                            {% else %}
+                                <span style="font-size: 11px; color: #64748b;">GPS Pending</span>
+                            {% endif %}
+                            <a href="{% url 'admin:operations_emergencyincidentalert_change' a.id %}" class="btn-action-small" style="background: #ef4444; color: #fff; font-size: 11px;">
+                                Manage SOS
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Image Modal -->
+<div id="photoModal" class="modal-photo" onclick="closePhotoModal()">
+    <img id="photoModalImg" src="" alt="Enlarged Odometer Proof">
+</div>
+
+<script>
+// Smartphone Chat Simulator AJAX Handler
+function submitSimMessage(e) {
+    e.preventDefault();
+    const phone = document.getElementById('simPhone').value;
+    const textInput = document.getElementById('simTextInput');
+    const text = textInput.value.trim();
+    if (!text) return;
+
+    // Append Inbound Bubble
+    appendBubble(text, 'inbound');
+    textInput.value = '';
+
+    // POST to backend API simulator
+    const formData = new FormData();
+    formData.append('sender_phone', phone);
+    formData.append('message_text', text);
+
+    fetch('/api/whatsapp/simulate/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            appendBubble(data.reply, 'outbound', data.timestamp);
+        } else {
+            appendBubble("⚠️ Error: " + (data.error || "Simulation failed"), 'outbound');
+        }
+    })
+    .catch(err => {
+        appendBubble("⚠️ Network error: " + err, 'outbound');
+    });
+}
+
+function simulateChip(cmd) {
+    document.getElementById('simTextInput').value = cmd;
+    document.getElementById('simForm').dispatchEvent(new Event('submit'));
+}
+
+function appendBubble(content, direction, timeStr) {
+    const vp = document.getElementById('simChatViewport');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg ' + direction;
+    const now = timeStr || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    
+    // Replace newlines with <br> and format markdown bold *text*
+    let formatted = content.replace(/\n/g, '<br>').replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+    msg.innerHTML = formatted + `<span class="chat-time">${now}</span>`;
+    vp.appendChild(msg);
+    vp.scrollTop = vp.scrollHeight;
+}
+
+// Handover Audit Actions (Approve / Flag)
+function auditSession(sessionId, action) {
+    const fd = new FormData();
+    fd.append('action', action);
+
+    fetch(`/api/whatsapp/handover/${sessionId}/audit/`, {
+        method: 'POST',
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            const badge = document.getElementById('badgeStatus' + sessionId);
+            if (badge) {
+                badge.innerText = data.badge_label;
+                badge.className = 'badge-tag badge-' + data.new_status;
+            }
+            // Update counter if approved
+            const kpi = document.getElementById('kpiPendingAudits');
+            if (kpi && parseInt(kpi.innerText) > 0) {
+                kpi.innerText = parseInt(kpi.innerText) - 1;
+            }
+        }
+    });
+}
+
+// 1-Click Passenger Trip Sheet Dispatch
+function dispatchTripSheet(tripId) {
+    fetch(`/api/whatsapp/trip/${tripId}/dispatch/`, {
+        method: 'POST'
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            const badge = document.getElementById('tripBroadcastBadge' + tripId);
+            if (badge) {
+                badge.innerText = `${data.broadcast_count} Sent`;
+            }
+            alert(`✅ Luxury WhatsApp Trip Sheet broadcast dispatched for Trip #${tripId}!`);
+        }
+    });
+}
+
+// Photo Zoom Modal
+function openPhotoModal(url) {
+    document.getElementById('photoModalImg').src = url;
+    document.getElementById('photoModal').style.display = 'grid';
+}
+function closePhotoModal() {
+    document.getElementById('photoModal').style.display = 'none';
+}
+</script>
+{% endblock %}

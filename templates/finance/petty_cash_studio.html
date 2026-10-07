@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petty Cash Float Register & Cash Wallet Studio | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 28, 45, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow circles */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(130px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { top: -100px; left: -100px; width: 450px; height: 450px; background: rgba(99, 102, 241, 0.15); }
+    .glow-2 { bottom: -100px; right: -100px; width: 500px; height: 500px; background: rgba(16, 185, 129, 0.12); }
+
+    /* Top Sticky Navigation Bar */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .studio-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .studio-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn-success:hover { transform: translateY(-1px); }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* Main Container */
+    .studio-container {
+      max-width: 1360px;
+      margin: 24px auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* KPI Metrics Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: all 0.2s;
+    }
+    .kpi-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+    .kpi-meta h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .kpi-meta .kpi-num {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    /* Account Float Cards Carousel / Grid */
+    .accounts-section {
+      margin-bottom: 28px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .accounts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .account-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .account-card:hover, .account-card.selected {
+      border-color: var(--primary);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+    }
+    .account-card.low-balance {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: linear-gradient(135deg, rgba(30, 20, 30, 0.85) 0%, rgba(22, 28, 45, 0.85) 100%);
+    }
+
+    .acc-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .acc-type-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      text-transform: uppercase;
+    }
+    .acc-name {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .acc-balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .acc-balance {
+      font-size: 20px;
+      font-weight: 800;
+      color: #34d399;
+    }
+    .account-card.low-balance .acc-balance {
+      color: #f87171;
+    }
+    .acc-limit {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Progress bar of float utilization */
+    .acc-progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .acc-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #38bdf8);
+      border-radius: 10px;
+    }
+    .account-card.low-balance .acc-progress-fill {
+      background: #ef4444;
+    }
+
+    /* Transactions Table Card */
+    .ledger-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+    .ledger-toolbar {
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-select {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    .ledger-table th {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 12px 18px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .ledger-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      vertical-align: middle;
+    }
+    .ledger-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .voucher-link {
+      font-weight: 700;
+      color: #818cf8;
+      font-family: monospace;
+    }
+    .amount-inflow {
+      color: #34d399;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .amount-outflow {
+      color: #f87171;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .status-approved { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .status-submitted { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .status-rejected { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+    .audit-action-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .audit-action-btn:hover { background: rgba(255, 255, 255, 0.15); }
+    .audit-action-btn.approve:hover { background: #10b981; color: #fff; }
+    .audit-action-btn.reject:hover { background: #ef4444; color: #fff; }
+
+    /* Modal dialog styling */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      place-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 520px;
+      padding: 26px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .form-input, .form-select, .form-textarea {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 700;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+    }
+    #toast.success { border-color: var(--accent); color: #34d399; }
+    #toast.error { border-color: var(--danger); color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Top Sticky Header -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <a href="{% url 'admin:index' %}" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i> ERP Admin
+      </a>
+      <div class="studio-title">
+        <i class="fa-solid fa-wallet" style="color: #6366f1;"></i>
+        <span>Petty Cash Float Register</span>
+        <span class="studio-badge">Phase 5 Live</span>
+      </div>
+    </div>
+
+    <div class="action-group">
+      <button type="button" class="btn btn-success" id="btnOpenTopUp">
+        <i class="fa-solid fa-plus-circle"></i> Top-Up Float
+      </button>
+      <button type="button" class="btn btn-primary" id="btnOpenDisburse">
+        <i class="fa-solid fa-receipt"></i> Log Expense Voucher
+      </button>
+      <a href="{% url 'driver-mobile-wallet' %}" target="_blank" class="btn btn-outline">
+        <i class="fa-solid fa-mobile-screen"></i> Driver Wallet
+      </a>
+    </div>
+  </header>
+
+  <!-- Studio Main Container -->
+  <main class="studio-container">
+    
+    <!-- Top 4 KPI Metrics -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="fa-solid fa-vault"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Total Float in Circulation</h3>
+          <div class="kpi-num" style="color: #34d399;">₹{{ total_circulation|floatformat:2 }}</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Today's Cash Outflow</h3>
+          <div class="kpi-num" style="color: #f87171;">₹{{ today_disbursed|floatformat:2 }}</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Pending Audit Reviews</h3>
+          <div class="kpi-num" style="color: #fbbf24;">{{ pending_audits }} Vouchers</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(6, 182, 212, 0.15); color: #38bdf8;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Low-Float Accounts</h3>
+          <div class="kpi-num" style="color: {% if low_balance_count > 0 %}#f87171{% else %}#38bdf8{% endif %};">
+            {{ low_balance_count }} Alerts
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Petty Cash Accounts Grid -->
+    <section class="accounts-section">
+      <div class="section-header">
+        <div class="section-title">
+          <i class="fa-solid fa-cash-register" style="color: #818cf8;"></i>
+          <span>Active Floats & Custodian Wallets</span>
+          <span style="font-size: 12px; color: var(--text-muted);">({{ accounts|length }} Wallets Active)</span>
+        </div>
+      </div>
+
+      <div class="accounts-grid">
+        {% for acc in accounts %}
+        <div class="account-card {% if acc.is_low_balance %}low-balance{% endif %} {% if selected_account_id == acc.id|stringformat:'s' %}selected{% endif %}"
+             onclick="window.location.href='?account_id={{ acc.id }}'">
+          <div class="acc-top">
+            <span class="acc-type-pill">{{ acc.get_account_type_display }}</span>
+            {% if acc.is_low_balance %}
+              <span style="font-size: 11px; color: #f87171; font-weight: 700;"><i class="fa-solid fa-triangle-exclamation"></i> Low Balance</span>
+            {% endif %}
+          </div>
+          <div class="acc-name">{{ acc.account_name }}</div>
+          <div class="acc-balance-row">
+            <span class="acc-balance">₹{{ acc.current_balance|floatformat:2 }}</span>
+            <span class="acc-limit">Cap: ₹{{ acc.allocated_limit|floatformat:0 }}</span>
+          </div>
+          <div class="acc-progress-bar">
+            <div class="acc-progress-fill" style="width: {% widthratio acc.current_balance acc.allocated_limit 100 %}%;"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- Ledger & Audit Trail Table -->
+    <div class="ledger-card">
+      <div class="ledger-toolbar">
+        <div style="font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-list-check" style="color: #38bdf8;"></i>
+          <span>Voucher Audit Trail & Ledger</span>
+        </div>
+
+        <form method="GET" class="filter-group">
+          <select name="account_id" class="filter-select" onchange="this.form.submit()">
+            <option value="">-- All Accounts --</option>
+            {% for a in accounts %}
+              <option value="{{ a.id }}" {% if selected_account_id == a.id|stringformat:'s' %}selected{% endif %}>{{ a.account_name }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="category" class="filter-select" onchange="this.form.submit()">
+            <option value="">-- All Categories --</option>
+            {% for cat_key, cat_label in categories %}
+              <option value="{{ cat_key }}" {% if selected_category == cat_key %}selected{% endif %}>{{ cat_label }}</option>
+            {% endfor %}
+          </select>
+
+          <select name="status" class="filter-select" onchange="this.form.submit()">
+            <option value="">-- All Statuses --</option>
+            <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="submitted" {% if selected_status == 'submitted' %}selected{% endif %}>Pending Review</option>
+            <option value="rejected" {% if selected_status == 'rejected' %}selected{% endif %}>Rejected</option>
+          </select>
+
+          {% if selected_account_id or selected_category or selected_status %}
+            <a href="?" class="btn btn-outline" style="padding: 5px 10px; font-size: 11px;">Reset Filters</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Voucher #</th>
+              <th>Account</th>
+              <th>Category</th>
+              <th>Vendor / Purpose</th>
+              <th>Amount</th>
+              <th>Run Balance</th>
+              <th>Trip #</th>
+              <th>Status</th>
+              <th>Receipt</th>
+              <th>Audit Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions %}
+            <tr>
+              <td style="color: var(--text-muted); font-size: 12px; white-space: nowrap;">
+                {{ t.date|date:"d M Y" }}
+              </td>
+              <td class="voucher-link">{{ t.voucher_number }}</td>
+              <td style="font-weight: 600;">{{ t.account.account_name }}</td>
+              <td>{{ t.get_category_display }}</td>
+              <td style="color: #cbd5e1;">
+                <div>{{ t.recipient_or_vendor|default:"Direct Cash Handover" }}</div>
+                {% if t.notes %}
+                  <div style="font-size: 11px; color: var(--text-muted);">{{ t.notes|truncatechars:40 }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.transaction_type in 'top_up,settlement_refund,adjustment' %}
+                  <span class="amount-inflow">+₹{{ t.amount|floatformat:2 }}</span>
+                {% else %}
+                  <span class="amount-outflow">-₹{{ t.amount|floatformat:2 }}</span>
+                {% endif %}
+              </td>
+              <td style="font-weight: 700; color: #e2e8f0;">₹{{ t.balance_after|floatformat:2 }}</td>
+              <td>
+                {% if t.trip %}
+                  <a href="/admin/operations/trip/{{ t.trip.id }}/change/" target="_blank" style="color: #38bdf8; font-weight: 700;">#{{ t.trip.trip_id }}</a>
+                {% else %}
+                  <span style="color: var(--text-muted);">-</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="status-badge status-{{ t.status }}">
+                  {{ t.get_status_display }}
+                </span>
+              </td>
+              <td>
+                {% if t.receipt_photo %}
+                  <a href="{{ t.receipt_photo.url }}" target="_blank" style="color: #38bdf8; font-size: 14px;" title="View Attached Bill">
+                    <i class="fa-solid fa-file-invoice"></i>
+                  </a>
+                {% else %}
+                  <span style="color: var(--text-muted);">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if t.status == 'submitted' %}
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" class="audit-action-btn approve" onclick="auditTransaction({{ t.id }}, 'approve')">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                    <button type="button" class="audit-action-btn reject" onclick="auditTransaction({{ t.id }}, 'reject')">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                {% else %}
+                  <span style="color: var(--text-muted); font-size: 11px;">Audited</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="11" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fa-solid fa-receipt" style="font-size: 28px; margin-bottom: 8px; display: block; opacity: 0.3;"></i>
+                No cash transactions found for the selected filters.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Modal 1: Top-Up Cash Float -->
+  <div class="modal-backdrop" id="topupModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-circle-plus" style="color: #10b981;"></i> Float Cash Top-Up</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="topupForm">
+        <div class="form-group">
+          <label class="form-label">Destination Account / Float</label>
+          <select name="account_id" class="form-select" required>
+            {% for a in accounts %}
+              <option value="{{ a.id }}">{{ a.account_name }} (Bal: ₹{{ a.current_balance|floatformat:2 }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Replenishment Amount (₹)</label>
+          <input type="number" step="0.01" name="amount" class="form-input" placeholder="e.g. 5000" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cashier Reference / Cheque #</label>
+          <input type="text" name="reference_number" class="form-input" placeholder="e.g. Main Safe / Petty Cash Handover #44">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Remarks / Purpose</label>
+          <textarea name="notes" class="form-textarea" placeholder="e.g. Weekly highway toll & emergency float top-up"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
+          <i class="fa-solid fa-check"></i> Authorize & Credit Float
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Log Cash Disbursement Voucher -->
+  <div class="modal-backdrop" id="disburseModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-receipt" style="color: #6366f1;"></i> Log Out-of-Pocket Expense</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="disburseForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Deduct From Account</label>
+          <select name="account_id" class="form-select" required>
+            {% for a in accounts %}
+              <option value="{{ a.id }}">{{ a.account_name }} (Available: ₹{{ a.current_balance|floatformat:2 }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expense Category</label>
+          <select name="category" class="form-select" required>
+            {% for cat_key, cat_label in categories %}
+              {% if cat_key != 'top_up_receipt' %}
+                <option value="{{ cat_key }}">{{ cat_label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Disbursement Amount (₹)</label>
+          <input type="number" step="0.01" name="amount" class="form-input" placeholder="e.g. 850" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Recipient / Vendor / Plaza</label>
+          <input type="text" name="recipient_or_vendor" class="form-input" placeholder="e.g. NH-44 Toll Plaza Fastag Cash / MRF Tyre Repair">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Link to Customer Trip (Optional)</label>
+          <select name="trip_id" class="form-select">
+            <option value="">-- No Specific Trip (General Float Expense) --</option>
+            {% for t in trips %}
+              <option value="{{ t.id }}">#{{ t.trip_id }} ({{ t.guest_name|default:t.party.name }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Receipt Photograph / Bill</label>
+          <input type="file" name="receipt_photo" class="form-input" accept="image/*,.pdf">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Voucher Notes / Explanation</label>
+          <textarea name="notes" class="form-textarea" placeholder="e.g. Emergency rear tyre puncture vulcanization on Bangalore bypass"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Issue Cash Voucher
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMessage">Success</span>
+  </div>
+
+  <script>
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMessage');
+      toast.className = type;
+      msg.innerText = message;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    function closeModals() {
+      document.getElementById('topupModal').style.display = 'none';
+      document.getElementById('disburseModal').style.display = 'none';
+    }
+
+    document.getElementById('btnOpenTopUp').onclick = () => {
+      document.getElementById('topupModal').style.display = 'grid';
+    };
+    document.getElementById('btnOpenDisburse').onclick = () => {
+      document.getElementById('disburseModal').style.display = 'grid';
+    };
+
+    // Close on backdrop click
+    window.onclick = (e) => {
+      if (e.target.classList.contains('modal-backdrop')) {
+        closeModals();
+      }
+    };
+
+    // Submit Top-Up
+    document.getElementById('topupForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('/api/finance/petty-cash/topup/', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+          closeModals();
+          setTimeout(() => window.location.reload(), 600);
+        } else {
+          showToast(data.message || 'Error executing top-up', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+
+    // Submit Disbursement
+    document.getElementById('disburseForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch('/api/finance/petty-cash/disburse/', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+          closeModals();
+          setTimeout(() => window.location.reload(), 600);
+        } else {
+          showToast(data.message || 'Error logging disbursement', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+
+    // 1-Click Audit Approve or Reject
+    async function auditTransaction(txnId, action) {
+      if (!confirm(`Are you sure you want to ${action} this petty cash voucher?`)) return;
+
+      try {
+        const res = await fetch(`/api/finance/petty-cash/audit-action/${txnId}/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+          setTimeout(() => window.location.reload(), 500);
+        } else {
+          showToast(data.message, 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>

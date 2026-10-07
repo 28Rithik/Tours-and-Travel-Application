@@ -1,24 +1,261 @@
 {% extends "customer_portal/base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Login" %} | Customer Portal{% endblock %}
+{% block title %}Guest & Customer Portal Login | Sivagayathiri Travels{% endblock %}
 
 {% block content %}
-<div style="max-width: 400px; margin: 4rem auto;">
-    <div class="glass-card">
-        <h2 style="text-align: center; margin-bottom: 2rem;">{% trans "Welcome Back" %}</h2>
-        <form method="POST" action="{% url 'customer_portal:login' %}">
-            {% csrf_token %}
-            <div>
-                <label class="form-label" for="username">{% trans "Username / Phone" %}</label>
-                <input type="text" id="username" name="username" class="input-field" required>
+<div style="min-height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem; background: radial-gradient(circle at 50% 20%, rgba(30, 58, 138, 0.08) 0%, rgba(15, 23, 42, 0.02) 100%);">
+    <div style="width: 100%; max-width: 480px;" x-data="{
+        activeTab: 'otp', // 'otp' or 'password'
+        phone: '',
+        otpCode: '',
+        otpSent: false,
+        isLoading: false,
+        errorMessage: '',
+        successMessage: '',
+        devOtpHint: '',
+        timer: 60,
+        timerInterval: null,
+
+        startTimer() {
+            this.timer = 60;
+            if (this.timerInterval) clearInterval(this.timerInterval);
+            this.timerInterval = setInterval(() => {
+                if (this.timer > 0) {
+                    this.timer--;
+                } else {
+                    clearInterval(this.timerInterval);
+                }
+            }, 1000);
+        },
+
+        async requestOtp() {
+            this.errorMessage = '';
+            this.successMessage = '';
+            const cleanPhone = this.phone.replace(/\D/g, '');
+            if (cleanPhone.length !== 10) {
+                this.errorMessage = 'Please enter a valid 10-digit mobile number.';
+                return;
+            }
+
+            this.isLoading = true;
+            try {
+                const response = await fetch('{% url 'customer_portal:api_request_otp' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ phone: cleanPhone })
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    this.otpSent = true;
+                    this.successMessage = data.message;
+                    if (data.dev_otp) {
+                        this.devOtpHint = data.dev_otp;
+                        this.otpCode = data.dev_otp; // Auto-fill for friction-free testing
+                    }
+                    this.startTimer();
+                } else {
+                    this.errorMessage = data.message || 'Unable to send OTP. Please try again.';
+                }
+            } catch (err) {
+                this.errorMessage = 'Network connection error. Please try again.';
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        async verifyOtp() {
+            this.errorMessage = '';
+            if (!this.otpCode || this.otpCode.length < 4) {
+                this.errorMessage = 'Please enter the 6-digit OTP code received.';
+                return;
+            }
+
+            this.isLoading = true;
+            try {
+                const response = await fetch('{% url 'customer_portal:api_verify_otp' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        phone: this.phone.replace(/\D/g, ''),
+                        otp: this.otpCode.trim()
+                    })
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'success') {
+                    this.successMessage = data.message;
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url || '{% url 'customer_portal:bookings' %}';
+                    }, 500);
+                } else {
+                    this.errorMessage = data.message || 'Invalid OTP. Please check the code and try again.';
+                }
+            } catch (err) {
+                this.errorMessage = 'Failed to verify OTP. Please try again.';
+            } finally {
+                this.isLoading = false;
+            }
+        }
+    }">
+
+        <!-- Portal Branding Badge -->
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: white; font-size: 2rem; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4); margin-bottom: 1rem;">
+                🚌
             </div>
-            <div>
-                <label class="form-label" for="password">{% trans "Password" %}</label>
-                <input type="password" id="password" name="password" class="input-field" required>
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0; letter-spacing: -0.02em;">Customer & Guest Access</h1>
+            <p style="color: #64748b; font-size: 0.95rem; margin: 0;">Access your live radar trips, e-tickets, and GST tax invoices.</p>
+        </div>
+
+        <!-- Card Container -->
+        <div class="glass-card" style="padding: 2rem; border-radius: 1.25rem; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);">
+            
+            <!-- Dual Mode Navigation Tabs -->
+            <div style="display: flex; background: #f1f5f9; padding: 0.35rem; border-radius: 0.75rem; margin-bottom: 1.75rem;">
+                <button type="button" @click="activeTab = 'otp'" 
+                    :style="activeTab === 'otp' ? 'background: #ffffff; color: #0f172a; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.06);' : 'background: transparent; color: #64748b; font-weight: 500;'"
+                    style="flex: 1; padding: 0.65rem 0.5rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <span>⚡ Mobile OTP</span>
+                    <span style="background: #10b981; color: white; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 800;">FAST</span>
+                </button>
+                <button type="button" @click="activeTab = 'password'"
+                    :style="activeTab === 'password' ? 'background: #ffffff; color: #0f172a; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.06);' : 'background: transparent; color: #64748b; font-weight: 500;'"
+                    style="flex: 1; padding: 0.65rem 0.5rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <span>🔑 Password Login</span>
+                </button>
             </div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">{% trans "Login securely" %}</button>
-        </form>
+
+            <!-- Dynamic Alert Messages -->
+            <div x-show="errorMessage" x-cloak style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>⚠️</span>
+                <span x-text="errorMessage"></span>
+            </div>
+            <div x-show="successMessage" x-cloak style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>✅</span>
+                <span x-text="successMessage"></span>
+            </div>
+
+            <!-- TAB 1: Instant Mobile OTP Login -->
+            <div x-show="activeTab === 'otp'">
+                <!-- Step 1: Phone Entry -->
+                <div x-show="!otpSent">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;">
+                        Registered Mobile Number
+                    </label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
+                        <span style="display: inline-flex; align-items: center; padding: 0.75rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; color: #475569; font-weight: 600; font-size: 0.95rem;">
+                            🇮🇳 +91
+                        </span>
+                        <input type="tel" x-model="phone" maxlength="10" placeholder="98425 33777" autofocus
+                            @keydown.enter.prevent="requestOtp"
+                            style="flex: 1; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.05em; color: #0f172a; outline: none; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
+                    </div>
+
+                    <!-- Quick Demo Numbers Pills -->
+                    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                        <span style="font-size: 0.75rem; color: #64748b;">Try demo numbers:</span>
+                        <button type="button" @click="phone = '9842533888'" style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 4px; padding: 0.15rem 0.45rem; cursor: pointer; font-weight: 600;">9842533888 (Kavitha)</button>
+                        <button type="button" @click="phone = '9842533777'" style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 4px; padding: 0.15rem 0.45rem; cursor: pointer; font-weight: 600;">9842533777 (VIP)</button>
+                    </div>
+
+                    <button type="button" @click="requestOtp" :disabled="isLoading"
+                        style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: none; border-radius: 0.65rem; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: transform 0.15s ease;"
+                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                        <span x-show="!isLoading">⚡ Send Instant Verification Code</span>
+                        <span x-show="isLoading" x-cloak>Sending OTP...</span>
+                    </button>
+                </div>
+
+                <!-- Step 2: OTP Verification -->
+                <div x-show="otpSent" x-cloak>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.65rem; padding: 0.85rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Sent code to</div>
+                            <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">+91 <span x-text="phone"></span></div>
+                        </div>
+                        <button type="button" @click="otpSent = false; otpCode = '';" style="background: none; border: none; color: #0284c7; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                            Change Number
+                        </button>
+                    </div>
+
+                    <!-- Developer Hint Banner -->
+                    <div x-show="devOtpHint" style="background: #ecfdf5; border: 1px dashed #059669; border-radius: 0.5rem; padding: 0.6rem 0.85rem; font-size: 0.8rem; color: #065f46; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Auto-filled Sandbox OTP: <strong x-text="devOtpHint"></strong></span>
+                        <span style="font-size: 0.7rem; background: #059669; color: white; padding: 0.1rem 0.3rem; border-radius: 3px; font-weight: 700;">DEV READY</span>
+                    </div>
+
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;">
+                        Enter 6-Digit One-Time Password
+                    </label>
+                    <input type="text" x-model="otpCode" maxlength="6" placeholder="• • • • • •" autofocus
+                        @keydown.enter.prevent="verifyOtp"
+                        style="width: 100%; box-sizing: border-box; padding: 0.85rem; border: 2px solid #0284c7; border-radius: 0.5rem; font-size: 1.4rem; font-weight: 800; letter-spacing: 0.4em; text-align: center; color: #0f172a; margin-bottom: 1.25rem; outline: none;">
+
+                    <button type="button" @click="verifyOtp" :disabled="isLoading"
+                        style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0.65rem; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: transform 0.15s ease; margin-bottom: 1rem;"
+                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                        <span x-show="!isLoading">Verify & Enter My Portal &rarr;</span>
+                        <span x-show="isLoading" x-cloak>Verifying Code...</span>
+                    </button>
+
+                    <div style="text-align: center; font-size: 0.85rem; color: #64748b;">
+                        <span x-show="timer > 0">Resend code in <strong x-text="timer"></strong>s</span>
+                        <button type="button" x-show="timer === 0" @click="requestOtp" style="background: none; border: none; color: #0284c7; font-weight: 700; cursor: pointer; text-decoration: underline;">
+                            Resend Code via WhatsApp / SMS
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Corporate Password Login -->
+            <div x-show="activeTab === 'password'" x-cloak>
+                <form method="POST" action="{% url 'customer_portal:login' %}{% if next %}?next={{ next }}{% endif %}">
+                    {% csrf_token %}
+                    <div style="margin-bottom: 1.25rem;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;" for="username">
+                            Corporate Username / Email
+                        </label>
+                        <input type="text" id="username" name="username" required
+                            style="width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; color: #0f172a; outline: none;">
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;" for="password">
+                            Password
+                        </label>
+                        <input type="password" id="password" name="password" required
+                            style="width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; color: #0f172a; outline: none;">
+                    </div>
+                    <button type="submit"
+                        style="width: 100%; padding: 0.85rem; background: #0f172a; color: white; border: none; border-radius: 0.65rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s;">
+                        Corporate Sign In &rarr;
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Booking Lookup Anchor -->
+            <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.85rem; color: #64748b;">
+                <span>Have a quick booking reference?</span>
+                <a href="{% url 'customer_portal:home' %}#track-booking-section" style="color: #0284c7; font-weight: 700; text-decoration: none; margin-left: 0.25rem;">
+                    Quick Reference Search &rarr;
+                </a>
+            </div>
+        </div>
+
+        <!-- Privacy & Trust Badges -->
+        <div style="margin-top: 1.75rem; display: flex; justify-content: center; align-items: center; gap: 1.5rem; color: #64748b; font-size: 0.8rem;">
+            <span>🔒 256-Bit SSL Encrypted</span>
+            <span>•</span>
+            <span>📱 Zero Password Friction</span>
+            <span>•</span>
+            <span>🛡️ AIS-140 Compliant</span>
+        </div>
     </div>
 </div>
 {% endblock %}

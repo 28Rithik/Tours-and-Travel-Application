@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -15,7 +16,7 @@ from .models import (
 # ==========================================================================
 
 @admin.register(InstallmentPlanProxy)
-class InstallmentPlanProxyAdmin(admin.ModelAdmin):
+class InstallmentPlanProxyAdmin(ModelAdmin):
     list_display = ('booking_link', 'total_amount_display', 'installments_badge', 'active_badge', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('booking__booking_number',)
@@ -61,7 +62,7 @@ class InstallmentPlanProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(PaymentLinkProxy)
-class PaymentLinkProxyAdmin(admin.ModelAdmin):
+class PaymentLinkProxyAdmin(ModelAdmin):
     list_display = (
         'booking_link', 'amount_display', 'razorpay_display',
         'status_badge', 'expiry_display', 'created_at',
@@ -132,7 +133,7 @@ class PaymentLinkProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(PaymentWebhookEventProxy)
-class PaymentWebhookEventProxyAdmin(admin.ModelAdmin):
+class PaymentWebhookEventProxyAdmin(ModelAdmin):
     list_display = ('event_id_display', 'event_type_badge', 'processed_badge', 'created_at')
     list_filter = ('event_type', 'processed')
     search_fields = ('event_id',)
@@ -193,7 +194,7 @@ class PaymentWebhookEventProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(CustomerAccountProxy)
-class CustomerAccountProxyAdmin(admin.ModelAdmin):
+class CustomerAccountProxyAdmin(ModelAdmin):
     list_display = ('user_display', 'client_link', 'verification_badge', 'created_at')
     list_filter = ('is_email_verified',)
     search_fields = ('user__username', 'client_record__name')
@@ -234,7 +235,7 @@ class CustomerAccountProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(CustomerDocumentProxy)
-class CustomerDocumentProxyAdmin(admin.ModelAdmin):
+class CustomerDocumentProxyAdmin(ModelAdmin):
     list_display = ('title_display', 'customer_link', 'booking_link', 'doc_type_badge', 'uploaded_at')
     list_filter = ('document_type', 'uploaded_at')
     search_fields = ('title', 'customer__name', 'booking__booking_number')

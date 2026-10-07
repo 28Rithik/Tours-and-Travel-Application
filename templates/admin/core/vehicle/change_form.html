@@ -44,6 +44,18 @@
         }
     }
 
+    function hideFieldsets(className) {
+        document.querySelectorAll('.' + className).forEach(function(el) {
+            el.style.display = 'none';
+        });
+    }
+
+    function showFieldsets(className) {
+        document.querySelectorAll('.' + className).forEach(function(el) {
+            el.style.display = '';
+        });
+    }
+
     function applyToggle() {
         var sel = document.getElementById('id_ownership_type');
         if (!sel) return;
@@ -55,6 +67,8 @@
             if (ownerPartyRow) ownerPartyRow.style.display = 'none';
             OUTSOURCED_HIDDEN_TABS.forEach(showTab);
             OWNED_HIDDEN_TABS.forEach(hideTab);
+            showFieldsets('owned-only-tab');
+            hideFieldsets('outsourced-only-tab');
             showTab('amenities-tab');
 
             // Auto-switch to Basic Info if current tab was hidden
@@ -73,6 +87,8 @@
             if (ownerPartyRow) ownerPartyRow.style.display = '';
             OUTSOURCED_HIDDEN_TABS.forEach(hideTab);
             OWNED_HIDDEN_TABS.forEach(showTab);
+            hideFieldsets('owned-only-tab');
+            showFieldsets('outsourced-only-tab');
             showTab('amenities-tab');
 
             // Auto-switch to Basic Info if current tab was hidden

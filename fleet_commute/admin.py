@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline, StackedInline
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -12,6 +13,8 @@ from .models import (
     CommuterManifestProxy,
     DailyTripLog,
     NightSafetyEscort,
+    CommuterBoardingPass,
+    ESGCarbonMetric,
 )
 
 
@@ -19,14 +22,14 @@ from .models import (
 # Inlines
 # ==============================================================================
 
-class RouteStopInline(admin.TabularInline):
+class RouteStopInline(TabularInline):
     model = BaseRouteStop
     extra = 1
     fields = ('stop_order', 'name', 'scheduled_offset_minutes', 'pickup_landmark', 'expected_passenger_count', 'is_active')
     ordering = ('stop_order',)
 
 
-class NightSafetyEscortInline(admin.StackedInline):
+class NightSafetyEscortInline(StackedInline):
     model = BaseNightSafetyEscortLog
     extra = 0
     fields = (
@@ -64,7 +67,7 @@ def mark_safe_drop_verified(modeladmin, request, queryset):
 # ==============================================================================
 
 @admin.register(CommuteRoute)
-class CommuteRouteAdmin(admin.ModelAdmin):
+class CommuteRouteAdmin(ModelAdmin):
     list_display = (
         'name_display', 'contract_link', 'path_display',
         'distance_badge', 'stops_count', 'rate_display', 'is_active_badge'
@@ -140,7 +143,7 @@ class CommuteRouteAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(RouteStop)
-class RouteStopAdmin(admin.ModelAdmin):
+class RouteStopAdmin(ModelAdmin):
     list_display = ('stop_order_badge', 'name', 'route_link', 'offset_display', 'expected_passenger_count', 'is_active')
     list_filter = ('route__contract', 'route', 'is_active')
     search_fields = ('name', 'pickup_landmark', 'route__name')
@@ -175,7 +178,7 @@ class RouteStopAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(CommuteShift)
-class CommuteShiftAdmin(admin.ModelAdmin):
+class CommuteShiftAdmin(ModelAdmin):
     list_display = ('shift_label', 'route_display', 'direction_pill', 'timing_display', 'days_of_week', 'escort_pill')
     list_filter = ('direction', 'escort_guard_required', 'route__contract')
     search_fields = ('shift_name', 'route__name')
@@ -232,7 +235,7 @@ class CommuteShiftAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(CommuterManifestProxy)
-class CommuterManifestAdmin(admin.ModelAdmin):
+class CommuterManifestAdmin(ModelAdmin):
     list_display = (
         'name_with_id', 'type_badge', 'gender_badge',
         'contract_link', 'boarding_stop_display', 'emergency_contact_display',
@@ -327,7 +330,7 @@ class CommuterManifestAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(DailyTripLog)
-class DailyTripLogAdmin(admin.ModelAdmin):
+class DailyTripLogAdmin(ModelAdmin):
     list_display = (
         'shift_display', 'date', 'vehicle_link', 'driver_link',
         'timing_execution_display', 'km_display', 'passenger_badge',
@@ -483,7 +486,7 @@ class DailyTripLogAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(NightSafetyEscort)
-class NightSafetyEscortAdmin(admin.ModelAdmin):
+class NightSafetyEscortAdmin(ModelAdmin):
     list_display = (
         'escort_guard_name', 'security_agency', 'trip_link',
         'female_passengers_badge', 'timing_span', 'verification_status_badge'
@@ -534,3 +537,82 @@ class NightSafetyEscortAdmin(admin.ModelAdmin):
             '</span>',
             color, icon, label
         )
+
+
+@admin.register(CommuterBoardingPass)
+class CommuterBoardingPassAdmin(ModelAdmin):
+    list_display = (
+        'commuter_link',
+        'date',
+        'otp_badge',
+        'boarding_status_badge',
+        'night_drop_badge',
+        'ivr_status_badge',
+        'pass_link',
+    )
+    list_filter = ('is_boarded', 'is_isolated_night_drop', 'ivr_status', 'date')
+    search_fields = ('commuter__name', 'commuter__commuter_id', 'boarding_otp', 'pass_token')
+    date_hierarchy = 'date'
+
+    @admin.display(description='Commuter Passenger')
+    def commuter_link(self, obj):
+        return format_html(
+            '<strong>{}</strong> <span style="color:#94a3b8;font-size:11px;">({})</span>',
+            obj.commuter.name, obj.commuter.commuter_id
+        )
+
+    @admin.display(description='4-Digit OTP')
+    def otp_badge(self, obj):
+        return format_html(
+            '<span style="font-family: monospace; font-weight: 800; background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 6px; letter-spacing: 2px;">{}</span>',
+            obj.boarding_otp
+        )
+
+    @admin.display(description='Boarding Status')
+    def boarding_status_badge(self, obj):
+        if obj.is_boarded:
+            return format_html('<span style="color: #10b981; font-weight: 700;">✅ Boarded</span>')
+        return format_html('<span style="color: #f59e0b; font-weight: 600;">⏳ Waiting</span>')
+
+    @admin.display(description='Night Safety')
+    def night_drop_badge(self, obj):
+        if obj.is_isolated_night_drop:
+            return format_html('<span style="background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700;">⚠️ Isolated Drop</span>')
+        return format_html('<span style="color: #94a3b8; font-size: 11px;">Normal</span>')
+
+    @admin.display(description='IVR Drop Check')
+    def ivr_status_badge(self, obj):
+        colors = {
+            'safe_confirmed': '#10b981',
+            'sos_escalated': '#ef4444',
+            'initiated': '#38bdf8',
+            'pending': '#64748b'
+        }
+        color = colors.get(obj.ivr_status, '#64748b')
+        return format_html('<span style="color: {}; font-weight: 700; font-size: 11px;">{}</span>', color, obj.get_ivr_status_display())
+
+    @admin.display(description='Mobile Pass')
+    def pass_link(self, obj):
+        return format_html(
+            '<a href="/commute/pass/{}/" target="_blank" style="color: #38bdf8; font-weight: 600; text-decoration: none;">📱 Open Pass &rarr;</a>',
+            obj.pass_token
+        )
+
+
+@admin.register(ESGCarbonMetric)
+class ESGCarbonMetricAdmin(ModelAdmin):
+    list_display = ('date', 'vehicle', 'fuel_type', 'trip_km', 'co2_emitted_badge', 'co2_saved_badge', 'green_score_badge')
+    list_filter = ('fuel_type', 'date')
+    search_fields = ('vehicle__registration_number',)
+
+    @admin.display(description='CO2 Emitted')
+    def co2_emitted_badge(self, obj):
+        return format_html('<span style="font-family: monospace; color: #f87171;">{} kg</span>', obj.co2_emitted_kg)
+
+    @admin.display(description='CO2 Saved (Group Commute)')
+    def co2_saved_badge(self, obj):
+        return format_html('<span style="font-family: monospace; color: #10b981; font-weight: 700;">{} kg</span>', obj.co2_saved_kg)
+
+    @admin.display(description='Green Score')
+    def green_score_badge(self, obj):
+        return format_html('<span style="background: rgba(16,185,129,0.15); color: #34d399; padding: 2px 8px; border-radius: 6px; font-weight: 700;">{} / 100</span>', obj.green_efficiency_score)

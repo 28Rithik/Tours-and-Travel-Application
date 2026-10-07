@@ -6,6 +6,9 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Fleet ERP Driver Portal — Manage trips, inspections, fuel logs and emergency SOS from your mobile device.">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/pwa/icon-192.png">
     <title>{% block title %}Driver Portal | Fleet ERP{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -336,5 +339,20 @@
     {% endif %}
 
     {% block extra_scripts %}{% endblock %}
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/static/sw.js', { scope: '/driver/' })
+                .then(function(reg) {
+                    console.log('[PWA] Service Worker registered, scope:', reg.scope);
+                })
+                .catch(function(err) {
+                    console.warn('[PWA] Service Worker registration failed:', err);
+                });
+        });
+    }
+    </script>
 </body>
 </html>

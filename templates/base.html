@@ -6,36 +6,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}TravelERP{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'app.css' %}">
+  <style>
+    /* ── Phase 6: Notification Bell ── */
+    .notif-bell-wrap { position: relative; display: inline-flex; align-items: center; }
+    #notif-bell-btn {
+      background: none; border: none; cursor: pointer; font-size: 1.35rem;
+      line-height: 1; padding: 6px 10px; border-radius: 8px; color: inherit;
+      transition: background .15s; position: relative;
+    }
+    #notif-bell-btn:hover { background: rgba(255,255,255,.1); }
+    #notif-badge {
+      display: none; position: absolute; top: 2px; right: 2px;
+      background: #ef4444; color: #fff; font-size: .65rem; font-weight: 700;
+      min-width: 16px; height: 16px; border-radius: 99px; padding: 0 3px;
+      line-height: 16px; text-align: center; pointer-events: none;
+    }
+    #notif-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      width: 360px; max-height: 420px; overflow-y: auto;
+      background: #1e293b; border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.5); z-index: 9999;
+    }
+    #notif-dropdown.open { display: block; }
+    .notif-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,.08);
+      font-size: .8rem; font-weight: 700; color: #94a3b8;
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    .notif-mark-all { font-size: .75rem; color: #60a5fa; cursor: pointer; font-weight: 600; }
+    .notif-mark-all:hover { text-decoration: underline; }
+    .notif-item {
+      display: flex; gap: 10px; padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      cursor: pointer; transition: background .12s;
+    }
+    .notif-item:hover { background: rgba(255,255,255,.06); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-icon { font-size: 1.2rem; flex-shrink: 0; line-height: 1.4; }
+    .notif-content { flex: 1; min-width: 0; }
+    .notif-title { font-size: .85rem; font-weight: 600; color: #e2e8f0; line-height: 1.3; }
+    .notif-body { font-size: .75rem; color: #94a3b8; margin-top: 2px; }
+    .notif-time { font-size: .7rem; color: #64748b; margin-top: 3px; }
+    .notif-empty { padding: 32px 16px; text-align: center; color: #64748b; font-size: .85rem; }
+    /* ── One-Click Copy ── */
+    .copy-field-wrap { display: inline-flex; align-items: center; gap: 4px; }
+    .copy-btn {
+      background: none; border: 1px solid rgba(255,255,255,.15);
+      border-radius: 4px; padding: 1px 5px; cursor: pointer;
+      font-size: .7rem; color: #94a3b8; transition: all .15s;
+    }
+    .copy-btn:hover { background: rgba(96,165,250,.15); color: #60a5fa; border-color: #60a5fa; }
+    .copy-btn.copied { color: #34d399; border-color: #34d399; }
+
+    /* ── RBAC Section Headings & User Role Pill ── */
+    .nav-section-title {
+      color: #94a3b8;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 1.25rem 10px 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .user-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+    }
+    .role-icon {
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+    .role-name {
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.01em;
+      font-size: 0.82rem;
+    }
+    .role-pill-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">S</span><span>Sivagayathiri</span></a>
-      <p class="eyebrow">Operations desk</p>
       <nav class="nav-list" aria-label="Main navigation">
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">📊 DMC Executive Dashboard</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'booking-list' %}">Bookings</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">Statements</a>
+        <!-- 1. Universal Operations Desk (All Staff) -->
+        <p class="nav-section-title"><span>⚡</span> Operations Desk</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">🛰️ Control Room</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">📋 Dispatch Control</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'admin-whatsapp-bot-studio' %}">📱 Handover &amp; Bot Studio</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-tara-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-tara-copilot-studio' %}" style="color: #a5b4fc; font-weight: 700;">🧠 TARA AI Copilot</a>
+
+        <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
+        {% if is_fleet_manager or is_superuser %}
+        <p class="nav-section-title"><span>🚛</span> Fleet &amp; Telematics</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live Fleet Map</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">🚗 2D Vehicle Damage Studio</a>
+        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance &amp; Maint.</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">📊 Fleet Analytics &amp; CPK</a>
+        <a class="nav-link" href="{% url 'admin:core_vehicle_changelist' %}">🚗 Vehicle Assets</a>
+        <a class="nav-link" href="{% url 'admin:core_driver_changelist' %}">👨‍✈️ Chauffeurs &amp; Drivers</a>
+        {% endif %}
+
+        <!-- 3. Sales, CRM & DMC Packages (Booking Managers & Superusers) -->
+        {% if is_booking_manager or is_superuser %}
+        <p class="nav-section-title"><span>💼</span> Sales &amp; CRM</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">📊 DMC Executive Board</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'inquiry_pipeline' %}is-active{% endif %}" href="{% url 'crm:inquiry_pipeline' %}">🔎 Query Tracker 2.0</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'quotation_create' or request.resolver_match.url_name == 'quotation_builder' or request.resolver_match.url_name == 'quotation_preview' %}is-active{% endif %}" href="{% url 'crm:quotation_create' %}">📑 Quotation Studio</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'partner_list' %}is-active{% endif %}" href="{% url 'crm:partner_list' %}">🏢 Partners &amp; FTOs</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">🏨 Suppliers &amp; Rates</a>
+        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">🏨 Hotel Vouchers</a>
+        <a class="nav-link {% if request.resolver_match.app_name == 'marketing' %}is-active{% endif %}" href="{% url 'marketing:campaign-studio' %}">📢 Marketing Campaigns</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'voucher_console' or request.resolver_match.url_name == 'voucher_detail' %}is-active{% endif %}" href="{% url 'crm:voucher_console' %}">🧾 Service Vouchers</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'document_vault' %}is-active{% endif %}" href="{% url 'crm:document_vault' %}">📂 Document Vault</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'complaint_list' %}is-active{% endif %}" href="{% url 'crm:complaint_list' %}">🚨 Quality &amp; Grievances</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">📈 DMC Reports</a>
+        {% endif %}
+
+        <!-- 4. Finance, Invoicing & Accounts (Finance Team & Superusers) -->
+        {% if is_finance_user or is_superuser %}
+        <p class="nav-section-title"><span>💰</span> Finance &amp; Billing</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">🧾 Invoices &amp; Billing</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">📑 Statements &amp; Ledgers</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'requisition_list' %}is-active{% endif %}" href="{% url 'crm:requisition_list' %}">💸 Accounts Payable</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">⏳ Pending Receivables</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">🧾 Invoices &amp; Billing</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">📈 DMC Reports</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live fleet map</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">📊 Fleet analytics & CPK</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">Vehicle profit</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">Party profit</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">💰 Tally, Zoho & Payroll</a>
-        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance & Maintenance</a>
-        <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">🏨 Tariffs & Master Data</a>
+        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">🤝 Outsourced Settlements</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">💰 Tally, Zoho &amp; Payroll</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">📈 Vehicle Profitability</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">📈 Party Profitability</a>
+        {% endif %}
+
+        <!-- 5. System Administration (Superusers only) -->
+        {% if is_superuser %}
+        <p class="nav-section-title"><span>⚙️</span> Administration</p>
+        <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">🏨 Tariffs &amp; Master Data</a>
         <a class="nav-link" href="{% url 'admin:index' %}">Admin workspace</a>
+        {% endif %}
       </nav>
       <div class="sidebar-footer">
         <span class="status-dot"></span><span>System online</span>
@@ -44,10 +169,156 @@
     <div class="main-shell">
       <header class="topbar">
         <div><span class="topbar-kicker">COIMBATORE, TAMIL NADU</span><strong>{% block header_title %}Control room{% endblock %}</strong></div>
-        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button button-quiet" type="submit">Sign out</button></form>
+        <div style="display:flex;align-items:center;gap:12px;">
+          {% if user.is_authenticated %}
+          <!-- RBAC User Role Badge -->
+          <div class="user-role-badge" title="Role Clearance: {{ user_role_label }}">
+            <span class="role-icon">{{ user_role_icon }}</span>
+            <span class="role-name">{{ user.first_name|default:user.username }}</span>
+            <span class="role-pill-tag" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}55;">
+              {{ user_role_label }}
+            </span>
+          </div>
+
+          <!-- 🔔 Phase 6: Notification Bell -->
+          <div class="notif-bell-wrap" id="notif-bell-wrap">
+            <button id="notif-bell-btn" title="Staff Notifications" onclick="toggleNotifDropdown(event)">
+              🔔
+              <span id="notif-badge"></span>
+            </button>
+            <div id="notif-dropdown">
+              <div class="notif-header">
+                <span>Notifications</span>
+                <span class="notif-mark-all" onclick="markAllRead()">Mark all read</span>
+              </div>
+              <div id="notif-list">
+                <div class="notif-empty">Loading…</div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button button-quiet" type="submit">Sign out</button></form>
+        </div>
       </header>
       <main class="content">{% block content %}{% endblock %}</main>
     </div>
   </div>
+
+  <!-- TARA AI Operations Copilot Floating Widget -->
+  {% include "components/tara_copilot_widget.html" %}
+
+  {% if user.is_authenticated %}
+  <script>
+  // ============================================================
+  // Phase 6: Notification Bell — polls every 30s
+  // ============================================================
+  const NOTIF_POLL_URL = '/crm/api/notifications/poll/';
+  const NOTIF_MARK_URL = '/crm/api/notifications/mark-read/';
+
+  function getCsrf() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+
+  async function fetchNotifications() {
+    try {
+      const res = await fetch(NOTIF_POLL_URL, { credentials: 'same-origin' });
+      if (!res.ok) return;
+      const data = await res.json();
+      renderNotifications(data);
+    } catch (e) { /* silently ignore network errors */ }
+  }
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function renderNotifications(data) {
+    const badge = document.getElementById('notif-badge');
+    const list  = document.getElementById('notif-list');
+    if (!badge || !list) return;
+
+    if (data.count > 0) {
+      badge.style.display = 'block';
+      badge.textContent = data.count > 9 ? '9+' : String(data.count);
+    } else {
+      badge.style.display = 'none';
+    }
+
+    if (!data.notifications || data.notifications.length === 0) {
+      list.innerHTML = '<div class="notif-empty">✅ You\'re all caught up!</div>';
+      return;
+    }
+    list.innerHTML = data.notifications.map(n => `
+      <div class="notif-item" onclick="handleNotifClick(${n.id},'${escHtml(n.link)}')">
+        <div class="notif-icon">${escHtml(n.icon)}</div>
+        <div class="notif-content">
+          <div class="notif-title">${escHtml(n.title)}</div>
+          ${n.body ? `<div class="notif-body">${escHtml(n.body)}</div>` : ''}
+          <div class="notif-time">${escHtml(n.created_at)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function toggleNotifDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('notif-dropdown').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    const d = document.getElementById('notif-dropdown');
+    if (d) d.classList.remove('open');
+  });
+  const dd = document.getElementById('notif-dropdown');
+  if (dd) dd.addEventListener('click', e => e.stopPropagation());
+
+  function handleNotifClick(id, link) {
+    fetch(NOTIF_MARK_URL, {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+      body: JSON.stringify({ ids: [id] })
+    }).then(() => fetchNotifications());
+    if (link) window.location.href = link;
+  }
+
+  function markAllRead() {
+    fetch(NOTIF_MARK_URL, {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
+      body: JSON.stringify({ all: true })
+    }).then(() => {
+      const badge = document.getElementById('notif-badge');
+      if (badge) badge.style.display = 'none';
+      const list = document.getElementById('notif-list');
+      if (list) list.innerHTML = '<div class="notif-empty">✅ All cleared!</div>';
+    });
+  }
+
+  fetchNotifications();
+  setInterval(fetchNotifications, 30000);
+
+  // ============================================================
+  // Phase 6: One-Click Copy — attach to [data-copy-value] elements
+  // ============================================================
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-copy-value]').forEach(el => {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.title = 'Copy to clipboard';
+      btn.innerHTML = '📋';
+      btn.type = 'button';
+      btn.onclick = (e) => {
+        e.preventDefault();
+        navigator.clipboard.writeText(el.dataset.copyValue || el.textContent.trim()).then(() => {
+          btn.innerHTML = '✅';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.innerHTML = '📋'; btn.classList.remove('copied'); }, 1500);
+        });
+      };
+      el.insertAdjacentElement('afterend', btn);
+    });
+  });
+  </script>
+  {% endif %}
 </body>
 </html>

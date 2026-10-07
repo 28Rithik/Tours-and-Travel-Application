@@ -1,0 +1,305 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}About Us - 15+ Years of Passenger Transport Excellence | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+.about-hero {
+    background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%);
+    color: white;
+    padding: 4.5rem 1.5rem 5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.about-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
+    opacity: 0.16;
+    filter: brightness(0.8);
+    pointer-events: none;
+}
+.about-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 880px;
+    margin: 0 auto;
+}
+.about-badge {
+    display: inline-block;
+    background: rgba(99, 102, 241, 0.25);
+    border: 1px solid rgba(165, 180, 252, 0.4);
+    color: #e0e7ff;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+}
+.about-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+}
+.about-hero h1 span {
+    background: linear-gradient(120deg, #f59e0b, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.about-hero p {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    max-width: 740px;
+    margin: 0 auto;
+}
+
+/* Metric Counter Strip */
+.about-stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    max-width: 1040px;
+    margin: -3rem auto 4rem;
+    position: relative;
+    z-index: 3;
+    padding: 0 1rem;
+}
+.about-stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+    box-shadow: 0 15px 30px -10px rgba(15, 23, 42, 0.1);
+    transition: transform 0.2s;
+}
+.about-stat-card:hover {
+    transform: translateY(-4px);
+    border-color: #0284c7;
+}
+.about-stat-number {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: var(--brand-navy);
+    line-height: 1;
+    margin-bottom: 0.35rem;
+}
+.about-stat-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Story Split Grid */
+.about-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3.5rem;
+    align-items: center;
+    margin-bottom: 4.5rem;
+}
+@media (max-width: 868px) {
+    .about-split-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+.about-split-img {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.2);
+}
+.about-split-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.about-split-text h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: var(--brand-navy);
+    margin-bottom: 1.25rem;
+    line-height: 1.25;
+}
+.about-split-text p {
+    color: #475569;
+    font-size: 0.98rem;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+/* Values & Accreditations */
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2.5rem 0 4.5rem;
+}
+.value-card {
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1.75rem 1.5rem;
+    transition: all 0.2s;
+}
+.value-card:hover {
+    background: white;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+    border-color: #38bdf8;
+}
+.value-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+}
+.value-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.4rem;
+}
+.value-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Banner -->
+<section class="about-hero">
+    <div class="about-hero-bg"></div>
+    <div class="about-hero-content">
+        <span class="about-badge">ESTABLISHED 2011 • COIMBATORE, TAMIL NADU</span>
+        <h1>15+ Years of Passenger Transport <span>Excellence & Trust</span></h1>
+        <p>
+            From a humble 3-bus fleet in Gandhipuram to one of South India's foremost corporate mobility and leisure expedition operators. Dedicated to passenger safety, punctuality, and zero-compromise service.
+        </p>
+    </div>
+</section>
+
+<!-- 2. Metric Counters Strip -->
+<div class="about-stats-container">
+    <div class="about-stat-card">
+        <div class="about-stat-number" style="color: #0284c7;">15+</div>
+        <div class="about-stat-label">Years Operating Legacy</div>
+    </div>
+    <div class="about-stat-card">
+        <div class="about-stat-number" style="color: #10b981;">320+</div>
+        <div class="about-stat-label">Commercial Fleet Units</div>
+    </div>
+    <div class="about-stat-card">
+        <div class="about-stat-number" style="color: #4f46e5;">50,000+</div>
+        <div class="about-stat-label">Annual Happy Travelers</div>
+    </div>
+    <div class="about-stat-card">
+        <div class="about-stat-number" style="color: #f59e0b;">99.8%</div>
+        <div class="about-stat-label">On-Time Departure SLA</div>
+    </div>
+</div>
+
+<!-- 3. The Story Behind Sivagayathiri Travels -->
+<main class="section-wrapper" style="padding-top: 1rem; padding-bottom: 4rem;">
+    <div class="about-split-grid">
+        <div class="about-split-img">
+            <img src="/static/images/fleet_lineup.jpg" alt="Sivagayathiri Fleet Lineup">
+        </div>
+        <div class="about-split-text">
+            <span class="section-subtitle-tag">OUR JOURNEY & ROOTS</span>
+            <h2>Built on Punctuality, Safety, and Direct Honest Pricing</h2>
+            <p>
+                Founded in 2011 in the industrial heart of Coimbatore, <strong>Sivagayathiri Travels and Transport LLP</strong> began with a clear purpose: to bridge the gap between unorganized road travel and premium corporate transit standards.
+            </p>
+            <p>
+                What started as a modest tourist taxi and mini bus service has steadily grown into a 320+ commercial fleet operation. Today, we handle daily tech park staff commutes, campus school bus networks, university Industrial Visits (IVs), and thousands of unforgettable holiday expeditions across Tamil Nadu, Kerala, Karnataka, and Andhra Pradesh.
+            </p>
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #0f172a; font-size: 0.9rem;">
+                    <span style="color: #10b981; font-size: 1.2rem;">✓</span> ISO 9001:2015 Certified
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #0f172a; font-size: 0.9rem;">
+                    <span style="color: #10b981; font-size: 1.2rem;">✓</span> Ministry of Tourism Recognized
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: #0f172a; font-size: 0.9rem;">
+                    <span style="color: #10b981; font-size: 1.2rem;">✓</span> AIS-140 GPS Monitored
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Our 4 Operational Pillars -->
+    <div style="text-align: center; max-width: 720px; margin: 0 auto;">
+        <span class="section-subtitle-tag">CORE PHILOSOPHY</span>
+        <h2 class="section-title">The Four Pillars of Our Operations</h2>
+        <p class="section-desc">
+            How we maintain unwavering quality and passenger satisfaction across every single kilometer.
+        </p>
+    </div>
+
+    <div class="values-grid">
+        <div class="value-card">
+            <div class="value-icon">🛡️</div>
+            <h3>Safety Without Compromise</h3>
+            <p>Every commercial vehicle is fitted with electronic speed governors, dual CCTV cameras, fire suppression gear, and emergency exit doors verified before every departure.</p>
+        </div>
+
+        <div class="value-card">
+            <div class="value-icon">📡</div>
+            <h3>24x7 Mission Control Desk</h3>
+            <p>Our centralized depot in Gandhipuram, Coimbatore continuously tracks active fleet positions, speed metrics, and traffic bottlenecks with real-time satellite telemetry.</p>
+        </div>
+
+        <div class="value-card">
+            <div class="value-icon">🏷️</div>
+            <h3>Direct Operator Rates</h3>
+            <p>We own and manage our core fleet. Customers deal directly with the transport operator, eliminating middleman broker commissions and unexpected surcharge surprises.</p>
+        </div>
+
+        <div class="value-card">
+            <div class="value-icon">🌱</div>
+            <h3>Eco-Efficient Modern Fleet</h3>
+            <p>Over 80% of our fleet complies with Euro-VI and BS-VI low-emission norms, including self-charging hybrid MPVs for urban executive shuttles.</p>
+        </div>
+    </div>
+
+    <!-- 5. Mission Control Callout -->
+    <div style="background: linear-gradient(135deg, #090d16, #1e1b4b); border-radius: var(--radius-xl); padding: 3.5rem 2.5rem; color: white; display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem; align-items: center; box-shadow: var(--shadow-xl);">
+        <div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+                CENTRALIZED OPERATIONS
+            </span>
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 800; margin: 0 0 1rem;">
+                Coimbatore Central Operations & Maintenance Depot
+            </h2>
+            <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">
+                Situated centrally near the Gandhipuram transit corridor, our modern 2.5-acre depot houses automated mechanical inspection pits, tyre balancing bays, and our 24x7 telematics mission control center.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="tel:+919842533777" class="btn" style="background: #f59e0b; color: #090d16; font-weight: 800; padding: 0.75rem 1.25rem; border-radius: 8px; text-decoration: none;">
+                    📞 24x7 Control Desk: +91 98425 33777
+                </a>
+                <a href="{% url 'customer_portal:fleet' %}" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.75rem 1.25rem; border-radius: 8px;">
+                    Explore 320+ Fleets →
+                </a>
+            </div>
+        </div>
+        <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <img src="/static/images/corporate_employee_transport.jpg" alt="Coimbatore Central Depot" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+    </div>
+</main>
+{% endblock %}

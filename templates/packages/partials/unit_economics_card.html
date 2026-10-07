@@ -1,0 +1,83 @@
+<!-- Siva Gayathri Real-Time Unit Economics & Convoy P&L Card -->
+<div id="sg-unit-economics-deck" class="rounded-lg border border-slate-700 bg-slate-900/95 text-slate-100 p-4 mb-4 shadow-xl">
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3 mb-3">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-400">monitoring</span>
+            <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wide m-0">
+                Operating Unit Economics & Gross Profit P&L
+            </h3>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold {{ health_color }} shadow-sm">
+                {{ health_label }}
+            </span>
+            <span class="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded border border-slate-700">
+                Convoy Basis: <strong class="text-sky-400">{{ min_pax }} Pax</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- 4-Column Metric Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <!-- Direct Cost Per Head -->
+        <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700/80">
+            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Direct Cost / Head</div>
+            <div class="text-lg font-extrabold text-rose-400 mt-1">
+                ₹{{ total_direct_cost|floatformat:0 }}
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">
+                (Without Meals: ₹{{ total_direct_no_meals|floatformat:0 }})
+            </div>
+        </div>
+
+        <!-- Selling Price Per Head -->
+        <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700/80">
+            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Selling Rate (With Food)</div>
+            <div class="text-lg font-extrabold text-sky-400 mt-1">
+                ₹{{ price_with_food|floatformat:0 }}
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">
+                Without Food: ₹{{ price_without_food|floatformat:0 }}
+            </div>
+        </div>
+
+        <!-- Gross Margin Per Head -->
+        <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700/80">
+            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Unit Gross Margin</div>
+            <div class="text-lg font-extrabold {% if unit_margin_with_food > 0 %}text-emerald-400{% else %}text-rose-400{% endif %} mt-1">
+                {% if unit_margin_with_food > 0 %}+{% endif %}₹{{ unit_margin_with_food|floatformat:0 }}
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">
+                Margin: <strong>{{ margin_pct_with_food|floatformat:1 }}%</strong> (Without Food: {{ margin_pct_no_food|floatformat:1 }}%)
+            </div>
+        </div>
+
+        <!-- Convoy Gross Profit -->
+        <div class="p-3 rounded-lg bg-slate-800/80 border border-slate-700/80">
+            <div class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Convoy Gross Profit</div>
+            <div class="text-lg font-extrabold {% if convoy_gross_profit > 0 %}text-emerald-400{% else %}text-rose-400{% endif %} mt-1">
+                {% if convoy_gross_profit > 0 %}+{% endif %}₹{{ convoy_gross_profit|floatformat:0 }}
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">
+                Turnover: ₹{{ convoy_turnover|floatformat:0 }} ({{ min_pax }} Pax)
+            </div>
+        </div>
+    </div>
+
+    <!-- Procurement Cost Breakdown & Breakeven Strip -->
+    <div class="p-2.5 rounded bg-slate-950/70 border border-slate-800 flex flex-wrap items-center justify-between text-xs text-slate-300 gap-2">
+        <div class="flex flex-wrap items-center gap-3">
+            <span><strong>Cost Breakdown:</strong></span>
+            <span class="text-slate-400">Hotel: <strong class="text-slate-200">₹{{ cost_hotel|floatformat:0 }}</strong></span>
+            <span class="text-slate-400">Coach: <strong class="text-slate-200">₹{{ cost_coach|floatformat:0 }}</strong></span>
+            <span class="text-slate-400">Meals: <strong class="text-slate-200">₹{{ cost_meals|floatformat:0 }}</strong></span>
+            <span class="text-slate-400">Activities: <strong class="text-slate-200">₹{{ cost_activities|floatformat:0 }}</strong></span>
+            <span class="text-slate-400">Misc: <strong class="text-slate-200">₹{{ cost_misc|floatformat:0 }}</strong></span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-amber-400 font-semibold">Breakeven Rate: ₹{{ breakeven_rate|floatformat:0 }} / head</span>
+            <span class="text-slate-500">|</span>
+            <span class="text-sky-400">Breakeven Seats: {{ breakeven_pax }} / {{ min_pax }} Pax</span>
+        </div>
+    </div>
+</div>

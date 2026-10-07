@@ -1,0 +1,715 @@
+<!-- ═══════════════════════════════════════════════════════════════════
+     TARA AI - Operations Business Copilot Floating Widget
+     Sivagayathiri Travels & Tours ERP
+     ═══════════════════════════════════════════════════════════════════ -->
+<style>
+  /* Root TARA Copilot Widget Styles */
+  #tara-copilot-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99999;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  /* Floating Launch Button */
+  #tara-trigger-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(139, 92, 246, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: taraPulse 3s infinite;
+  }
+  #tara-trigger-btn:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 12px 35px rgba(99, 102, 241, 0.65), 0 0 15px rgba(217, 70, 239, 0.5);
+  }
+  @keyframes taraPulse {
+    0% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 0 0 0 rgba(139, 92, 246, 0.4); }
+    70% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 0 0 12px rgba(139, 92, 246, 0); }
+    100% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 0 0 0 rgba(139, 92, 246, 0); }
+  }
+
+  /* Badge Counter */
+  #tara-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    background: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    border: 2px solid #0f172a;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+  }
+
+  /* Slide-Out Chat Panel */
+  #tara-panel {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    width: 440px;
+    max-width: calc(100vw - 36px);
+    height: 640px;
+    max-height: calc(100vh - 120px);
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 30px rgba(99, 102, 241, 0.2);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 99999;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Panel Header */
+  .tara-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tara-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  }
+  .tara-title-wrap {
+    margin-left: 12px;
+    flex: 1;
+  }
+  .tara-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tara-status-pill {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .tara-subtitle {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  .tara-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tara-icon-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tara-icon-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+
+  /* Quick Prompt Pills */
+  .tara-quick-pills {
+    padding: 10px 14px;
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tara-quick-pills::-webkit-scrollbar { display: none; }
+  .tara-pill {
+    white-space: nowrap;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    color: #c7d2fe;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tara-pill:hover {
+    background: rgba(99, 102, 241, 0.28);
+    color: #ffffff;
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(-1px);
+  }
+
+  /* Message Stream */
+  #tara-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  #tara-messages::-webkit-scrollbar { width: 6px; }
+  #tara-messages::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+
+  /* Chat Bubbles */
+  .tara-msg {
+    max-width: 90%;
+    line-height: 1.45;
+    font-size: 13px;
+    animation: fadeIn 0.25s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tara-msg-user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    padding: 10px 14px;
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+  }
+
+  .tara-msg-ai {
+    align-self: flex-start;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: 16px 16px 16px 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+  .tara-msg-ai h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #f8fafc;
+    font-weight: 700;
+  }
+  .tara-msg-ai h4 {
+    margin: 10px 0 4px 0;
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .tara-msg-ai ul {
+    margin: 6px 0;
+    padding-left: 18px;
+  }
+  .tara-msg-ai li {
+    margin-bottom: 4px;
+  }
+  .tara-msg-ai code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #38bdf8;
+    font-family: monospace;
+  }
+  .tara-msg-ai a {
+    color: #818cf8;
+    text-decoration: underline;
+  }
+
+  /* Metric Cards Inside AI Messages */
+  .tara-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .tara-kpi-card {
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tara-kpi-val {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .tara-kpi-lbl {
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  /* Action Buttons */
+  .tara-actions-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .tara-action-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+  }
+  .tara-action-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: white;
+  }
+  .tara-action-primary:hover {
+    opacity: 0.9;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+  }
+  .tara-action-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .tara-action-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+
+  /* Input Box */
+  .tara-footer {
+    padding: 12px 14px;
+    background: rgba(15, 23, 42, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  #tara-input {
+    flex: 1;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #f8fafc;
+    font-size: 13px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  #tara-input:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25);
+  }
+  #tara-send-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  #tara-send-btn:hover {
+    transform: scale(1.05);
+  }
+
+  /* Groq API Key Settings Overlay */
+  #tara-key-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+    justify-content: center;
+  }
+</style>
+
+<!-- TARA AI HTML Markup -->
+<div id="tara-copilot-container">
+  <!-- Trigger Button -->
+  <button id="tara-trigger-btn" onclick="toggleTaraPanel()" title="Ask TARA AI • Operations Brain">
+    <span style="font-size: 26px;">🧠</span>
+    <span id="tara-badge">...</span>
+  </button>
+
+  <!-- Slide-Out Chat Drawer -->
+  <div id="tara-panel">
+    <!-- Header -->
+    <div class="tara-header">
+      <div style="display: flex; align-items: center;">
+        <div class="tara-avatar">✨</div>
+        <div class="tara-title-wrap">
+          <div class="tara-title">
+            <span>TARA AI</span>
+            <span class="tara-status-pill" id="tara-engine-tag">Online</span>
+          </div>
+          <div class="tara-subtitle">Sivagayathiri Operations Brain • Groq / LLaMA 3.3</div>
+        </div>
+      </div>
+      <div class="tara-header-actions">
+        <button class="tara-icon-btn" onclick="toggleKeyModal()" title="Groq API Key Settings">⚙️</button>
+        <button class="tara-icon-btn" onclick="clearTaraChat()" title="Clear Chat History">🗑️</button>
+        <button class="tara-icon-btn" onclick="toggleTaraPanel()" title="Close Drawer">✕</button>
+      </div>
+    </div>
+
+    <!-- Quick Prompt Pills -->
+    <div class="tara-quick-pills">
+      <button class="tara-pill" onclick="sendQuickPrompt('How many tours are running today?')">🚌 Active Tours Today</button>
+      <button class="tara-pill" onclick="sendQuickPrompt('Which vehicles need insurance renewal?')">⚠️ Expiring Insurance &amp; PUC</button>
+      <button class="tara-pill" onclick="sendQuickPrompt('What is our revenue and collection rate this month?')">💰 Revenue &amp; Collection</button>
+      <button class="tara-pill" onclick="sendQuickPrompt('Show driver safety scorecard anomalies')">🛡️ Driver Safety Alerts</button>
+      <button class="tara-pill" onclick="sendQuickPrompt('Which vehicles are available for tomorrow?')">🚗 Available Vehicles</button>
+      <button class="tara-pill" onclick="sendQuickPrompt('Show CRM inquiries and overdue SLAs')">📋 CRM Leads</button>
+    </div>
+
+    <!-- Message Stream -->
+    <div id="tara-messages">
+      <!-- Initial AI Welcome -->
+      <div class="tara-msg tara-msg-ai">
+        <h3>👋 Welcome to TARA AI Operations Brain</h3>
+        <p style="margin: 4px 0 10px 0; color: #cbd5e1;">
+          I'm connected to your live Django ORM database and telemetry pipeline. Ask me anything about today's active tours, expiring compliance documents, driver behavior anomalies, or revenue collections!
+        </p>
+        <div class="tara-cards-grid" id="tara-intro-cards">
+          <!-- Dynamically populated via quick stats -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div id="tara-typing" style="display: none; padding: 8px 16px; font-size: 11px; color: #a5b4fc; font-style: italic;">
+      ⚡ TARA is querying live fleet telemetry &amp; database...
+    </div>
+
+    <!-- Input Footer -->
+    <div class="tara-footer">
+      <input type="text" id="tara-input" placeholder="Ask TARA anything about your fleet or tours..." onkeydown="handleTaraInputKey(event)" />
+      <button id="tara-send-btn" onclick="sendTaraMessage()" title="Send Query">➤</button>
+    </div>
+
+    <!-- Groq API Key Configuration Modal -->
+    <div id="tara-key-modal">
+      <div style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 6px;">⚡ Groq API Key Configuration</div>
+      <p style="font-size: 12px; color: #94a3b8; margin-bottom: 16px; line-height: 1.4;">
+        TARA uses high-speed Groq inference (<code>llama-3.3-70b-versatile</code>). Paste your Groq API key below to activate ultra-low latency LLM reasoning. (If key is empty, TARA operates automatically via local semantic tools).
+      </p>
+      <input type="password" id="tara-groq-key-input" placeholder="gsk_..." style="width: 100%; box-sizing: border-box; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px 12px; color: white; font-size: 13px; margin-bottom: 12px;" />
+      <div id="tara-key-feedback" style="font-size: 12px; margin-bottom: 14px; min-height: 16px;"></div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="saveGroqKey()" style="flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer;">Validate &amp; Save</button>
+        <button onclick="toggleKeyModal()" style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TARA Client JavaScript Logic -->
+<script>
+  let taraConversationHistory = [];
+
+  // Toggle Panel Open/Close
+  function toggleTaraPanel() {
+    const panel = document.getElementById('tara-panel');
+    const isVisible = panel.style.display === 'flex';
+    panel.style.display = isVisible ? 'none' : 'flex';
+    if (!isVisible) {
+      document.getElementById('tara-input').focus();
+      fetchTaraQuickStats();
+    }
+  }
+
+  // Toggle Groq Key Modal
+  function toggleKeyModal() {
+    const modal = document.getElementById('tara-key-modal');
+    modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  // Clear Chat History
+  function clearTaraChat() {
+    taraConversationHistory = [];
+    const msgs = document.getElementById('tara-messages');
+    msgs.innerHTML = `
+      <div class="tara-msg tara-msg-ai">
+        <h3>🧹 Chat Reset</h3>
+        <p style="margin: 4px 0; color: #cbd5e1;">Memory cleared. Ask me any live operational or financial query.</p>
+      </div>
+    `;
+  }
+
+  // Fetch Live Summary Stats for Widget Badge & Header
+  async function fetchTaraQuickStats() {
+    try {
+      const res = await fetch('/api/tara/quick-stats/');
+      const data = await res.json();
+      if (data.status === 'success') {
+        const badge = document.getElementById('tara-badge');
+        badge.innerText = data.active_tours || '0';
+        badge.title = `${data.active_tours} Active Tours, ${data.compliance_alerts} Compliance Alerts`;
+
+        const tag = document.getElementById('tara-engine-tag');
+        if (data.has_groq_key) {
+          tag.innerText = 'Groq Online';
+          tag.style.background = 'rgba(99, 102, 241, 0.2)';
+          tag.style.color = '#a5b4fc';
+        } else {
+          tag.innerText = 'Local Ready';
+          tag.style.background = 'rgba(16, 185, 129, 0.15)';
+          tag.style.color = '#34d399';
+        }
+
+        const introCards = document.getElementById('tara-intro-cards');
+        if (introCards) {
+          introCards.innerHTML = `
+            <div class="tara-kpi-card" style="border-left: 3px solid #0284c7;">
+              <div>
+                <div class="tara-kpi-val" style="color: #38bdf8;">${data.active_tours}</div>
+                <div class="tara-kpi-lbl">Active Tours</div>
+              </div>
+            </div>
+            <div class="tara-kpi-card" style="border-left: 3px solid #ef4444;">
+              <div>
+                <div class="tara-kpi-val" style="color: #f87171;">${data.compliance_alerts}</div>
+                <div class="tara-kpi-lbl">Doc Expiries (30d)</div>
+              </div>
+            </div>
+            <div class="tara-kpi-card" style="border-left: 3px solid #10b981;">
+              <div>
+                <div class="tara-kpi-val" style="color: #34d399;">${data.collection_rate}%</div>
+                <div class="tara-kpi-lbl">Collection Rate</div>
+              </div>
+            </div>
+            <div class="tara-kpi-card" style="border-left: 3px solid #8b5cf6;">
+              <div>
+                <div class="tara-kpi-val" style="color: #c084fc;">AI Ready</div>
+                <div class="tara-kpi-lbl">Groq LLaMA 3.3</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+    } catch (e) {
+      console.warn('TARA quick stats error:', e);
+    }
+  }
+
+  // Handle Input Keypress (Enter)
+  function handleTaraInputKey(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendTaraMessage();
+    }
+  }
+
+  // Quick Prompt Pill Trigger
+  function sendQuickPrompt(promptText) {
+    document.getElementById('tara-input').value = promptText;
+    sendTaraMessage();
+  }
+
+  // Send Message to TARA API
+  async function sendTaraMessage() {
+    const input = document.getElementById('tara-input');
+    const query = input.value.trim();
+    if (!query) return;
+
+    input.value = '';
+    const messagesContainer = document.getElementById('tara-messages');
+
+    // Append User Message
+    const userMsgDiv = document.createElement('div');
+    userMsgDiv.className = 'tara-msg tara-msg-user';
+    userMsgDiv.innerText = query;
+    messagesContainer.appendChild(userMsgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    // Show Typing Indicator
+    const typing = document.getElementById('tara-typing');
+    typing.style.display = 'block';
+
+    try {
+      const response = await fetch('/api/tara/chat/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: query,
+          history: taraConversationHistory
+        })
+      });
+
+      const resData = await response.json();
+      typing.style.display = 'none';
+
+      // Build AI Response Bubble
+      const aiMsgDiv = document.createElement('div');
+      aiMsgDiv.className = 'tara-msg tara-msg-ai';
+
+      let innerHtml = renderSimpleMarkdown(resData.reply || 'No response generated.');
+
+      // Render KPI Cards if returned
+      if (resData.kpi_cards && resData.kpi_cards.length > 0) {
+        innerHtml += '<div class="tara-cards-grid">';
+        resData.kpi_cards.forEach(card => {
+          innerHtml += `
+            <div class="tara-kpi-card" style="border-left: 3px solid ${card.color || '#6366f1'};">
+              <div>
+                <div class="tara-kpi-val" style="color: ${card.color || '#f8fafc'};">${card.value}</div>
+                <div class="tara-kpi-lbl">${card.label}</div>
+              </div>
+            </div>
+          `;
+        });
+        innerHtml += '</div>';
+      }
+
+      // Render Action Buttons
+      if (resData.action_buttons && resData.action_buttons.length > 0) {
+        innerHtml += '<div class="tara-actions-wrap">';
+        resData.action_buttons.forEach(act => {
+          const btnClass = act.primary ? 'tara-action-primary' : 'tara-action-secondary';
+          innerHtml += `<a href="${act.url}" class="tara-action-btn ${btnClass}">${act.label}</a>`;
+        });
+        innerHtml += '</div>';
+      }
+
+      // Render Suggested Follow-up Prompts
+      if (resData.suggested_queries && resData.suggested_queries.length > 0) {
+        innerHtml += '<div style="margin-top: 12px; font-size: 11px; color: #94a3b8; font-weight: 600;">SUGGESTED FOLLOW-UPS:</div>';
+        innerHtml += '<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">';
+        resData.suggested_queries.forEach(sq => {
+          innerHtml += `<button class="tara-pill" onclick="sendQuickPrompt('${sq.replace(/'/g, "\\'")}')">${sq}</button>`;
+        });
+        innerHtml += '</div>';
+      }
+
+      aiMsgDiv.innerHTML = innerHtml;
+      messagesContainer.appendChild(aiMsgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Update Conversation History
+      taraConversationHistory.push({ role: 'user', content: query });
+      taraConversationHistory.push({ role: 'assistant', content: resData.reply });
+      if (taraConversationHistory.length > 12) {
+        taraConversationHistory = taraConversationHistory.slice(-12);
+      }
+
+    } catch (err) {
+      typing.style.display = 'none';
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'tara-msg tara-msg-ai';
+      errorDiv.style.borderLeft = '3px solid #ef4444';
+      errorDiv.innerHTML = `<span style="color: #f87171;">⚠️ Error contacting TARA Copilot engine:</span> ${err.message}`;
+      messagesContainer.appendChild(errorDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }
+
+  // Save / Validate Groq API Key
+  async function saveGroqKey() {
+    const keyInput = document.getElementById('tara-groq-key-input');
+    const feedback = document.getElementById('tara-key-feedback');
+    const key = keyInput.value.trim();
+
+    if (!key) {
+      feedback.innerHTML = '<span style="color: #ef4444;">Please enter a valid Groq API key (starts with gsk_)</span>';
+      return;
+    }
+
+    feedback.innerHTML = '<span style="color: #a5b4fc;">Validating with Groq API...</span>';
+
+    try {
+      const res = await fetch('/api/tara/set-key/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        feedback.innerHTML = `<span style="color: #34d399;">✓ ${data.message}</span>`;
+        setTimeout(() => {
+          toggleKeyModal();
+          fetchTaraQuickStats();
+        }, 1200);
+      } else {
+        feedback.innerHTML = `<span style="color: #ef4444;">✗ ${data.message}</span>`;
+      }
+    } catch (e) {
+      feedback.innerHTML = `<span style="color: #ef4444;">✗ Network error validating key.</span>`;
+    }
+  }
+
+  // Lightweight safe markdown parser
+  function renderSimpleMarkdown(text) {
+    if (!text) return '';
+    let html = text
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
+      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+      .replace(/`([^`]+)`/gim, '<code>$1</code>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
+      .replace(/^\s*-\s+(.*$)/gim, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>')
+      .replace(/\n{2,}/gim, '<br/><br/>')
+      .replace(/\n/gim, '<br/>');
+    return html;
+  }
+
+  // Auto-init stats when DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchTaraQuickStats();
+  });
+</script>

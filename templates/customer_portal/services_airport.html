@@ -1,0 +1,327 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Airport Transfers & Flight-Synchronized Chauffeur Service | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+.service-hero {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
+    color: white;
+    padding: 4.5rem 1.5rem 5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.service-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/fleet/innova_crysta.jpg') center/cover no-repeat;
+    opacity: 0.22;
+    filter: brightness(0.7) contrast(1.1);
+    pointer-events: none;
+}
+.service-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(56, 189, 248, 0.2);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #bae6fd;
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 span {
+    background: linear-gradient(120deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.service-hero p {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    line-height: 1.65;
+    max-width: 780px;
+    margin: 0 auto 2.5rem;
+}
+.stats-strip {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.stat-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    min-width: 130px;
+}
+.stat-pill-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #38bdf8;
+    line-height: 1;
+}
+.stat-pill-lbl {
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+}
+
+/* Feature Grid */
+.features-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+.feature-box-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+    transition: all 0.3s ease;
+}
+.feature-box-card:hover {
+    transform: translateY(-4px);
+    border-color: #38bdf8;
+    box-shadow: 0 15px 35px -8px rgba(15, 23, 42, 0.12);
+}
+.feature-box-icon {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+.feature-box-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.5rem;
+}
+.feature-box-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Airport Corridors Matrix */
+.corridor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+}
+.corridor-item {
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s;
+}
+.corridor-item:hover {
+    background: #ffffff;
+    border-color: #0284c7;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+.corridor-code {
+    display: inline-block;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+.corridor-name {
+    font-weight: 700;
+    color: var(--brand-navy);
+    font-size: 1.05rem;
+    margin-bottom: 0.25rem;
+}
+.corridor-desc {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* Call to Action Banner */
+.cta-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2.5rem;
+    color: white;
+    text-align: center;
+    margin: 4rem auto 1rem;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Section -->
+<section class="service-hero">
+    <div class="service-hero-bg"></div>
+    <div class="service-hero-content">
+        <div class="service-badge">
+            <span>✈️</span> EXECUTIVE AVIATION TRANSIT & CHAUFFEUR DESK
+        </div>
+        <h1>
+            Airport Transfers & <span>Flight-Synchronized</span> Chauffeur Service
+        </h1>
+        <p>
+            Dedicated point-to-point transit for corporate executives, NRI travelers, and discerning families across major South Indian international airports with zero delay penalty and terminal meet-and-greet.
+        </p>
+
+        <div class="stats-strip">
+            <div class="stat-pill">
+                <div class="stat-pill-num">0 mins</div>
+                <div class="stat-pill-lbl">Delay Penalty</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">100%</div>
+                <div class="stat-pill-lbl">Flight Synced</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">6+</div>
+                <div class="stat-pill-lbl">Airports Covered</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">24/7</div>
+                <div class="stat-pill-lbl">Chauffeur Desk</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Main Content & Value Pillars -->
+<main class="section-wrapper">
+    <nav style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;" aria-label="Breadcrumbs">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <a href="{% url 'customer_portal:services_overview' %}" style="color: var(--text-secondary); text-decoration: none;">Services</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <strong style="color: var(--brand-navy);">Airport Transfers</strong>
+    </nav>
+
+    <div style="text-align: center; max-width: 760px; margin: 0 auto;">
+        <span class="section-subtitle-tag">FLIGHT-READY MOBILITY</span>
+        <h2 class="section-title">The Executive Airport Advantage</h2>
+        <p class="section-desc">
+            Designed for stress-free departures and arrivals with automated radar flight tracking and white-glove luggage assistance.
+        </p>
+    </div>
+
+    <div class="features-grid-3">
+        <div class="feature-box-card">
+            <div class="feature-box-icon">📡</div>
+            <h3>Real-Time Flight Radar Tracking</h3>
+            <p>Our dispatch desk tracks your flight's live status. If your inbound flight is delayed by hours, your chauffeur automatically adjusts arrival with zero extra waiting surcharge.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🤝</div>
+            <h3>Terminal Meet-and-Greet</h3>
+            <p>Uniformed chauffeurs wait at the airport arrival gate with a personalized name placard, escorting you directly to the car and managing your baggage effortlessly.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🚗</div>
+            <h3>Premium Executive Fleet</h3>
+            <p>Spotless, sanitized luxury vehicles including Toyota Innova Crysta ZX, Toyota Invicto Hybrid, and executive sedans equipped with chilled mineral water and phone chargers.</p>
+        </div>
+    </div>
+
+    <!-- 3. Key Airport Hubs & Corridors -->
+    <div style="margin: 4rem 0;">
+        <div style="text-align: center; max-width: 680px; margin: 0 auto 1.5rem;">
+            <span class="section-subtitle-tag">SOUTH INDIA CORRIDORS</span>
+            <h2 class="section-title">Covering Major International & Domestic Gateways</h2>
+        </div>
+
+        <div class="corridor-grid">
+            <div class="corridor-item">
+                <span class="corridor-code">CJB</span>
+                <div class="corridor-name">Coimbatore Airport</div>
+                <div class="corridor-desc">Peelamedu • Tiruppur • Ooty • Pollachi Transfers</div>
+            </div>
+
+            <div class="corridor-item">
+                <span class="corridor-code">BLR</span>
+                <div class="corridor-name">Bangalore Kempegowda</div>
+                <div class="corridor-desc">Whitefield • Electronic City • Hosur Corridor</div>
+            </div>
+
+            <div class="corridor-item">
+                <span class="corridor-code">COK</span>
+                <div class="corridor-name">Cochin International</div>
+                <div class="corridor-desc">Nedumbassery • Ernakulam • Munnar • Thrissur</div>
+            </div>
+
+            <div class="corridor-item">
+                <span class="corridor-code">TRZ</span>
+                <div class="corridor-name">Tiruchirappalli Airport</div>
+                <div class="corridor-desc">Central Tamil Nadu • Thanjavur • Dindigul</div>
+            </div>
+
+            <div class="corridor-item">
+                <span class="corridor-code">IXM</span>
+                <div class="corridor-name">Madurai Airport</div>
+                <div class="corridor-desc">Southern Tamil Nadu • Kodaikanal • Rameshwaram</div>
+            </div>
+
+            <div class="corridor-item">
+                <span class="corridor-code">MAA</span>
+                <div class="corridor-name">Chennai International</div>
+                <div class="corridor-desc">OMR IT Corridor • Sriperumbudur • Kanchipuram</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. CTA & Direct Quote -->
+    <div class="cta-banner">
+        <span style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
+            NEED AN AIRPORT PICKUP OR DROP?
+        </span>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0 0 1rem;">
+            Book Your Flight-Synchronized Chauffeur
+        </h2>
+        <p style="color: #cbd5e1; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
+            Share your flight number and landing time for an instant flat-rate quotation with zero hidden parking or toll surcharges.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="https://wa.me/919842533777?text=Hi%20Sivagayathiri%20Travels,%20I%20need%20an%20Airport%20Transfer%20quote" class="btn btn-primary" style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem;">
+                💬 WhatsApp Airport Desk
+            </a>
+            <button type="button" onclick="openCustomTripModal('airport_transfer')" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem;">
+                📄 Request Airport Quotation
+            </button>
+        </div>
+    </div>
+</main>
+{% endblock %}

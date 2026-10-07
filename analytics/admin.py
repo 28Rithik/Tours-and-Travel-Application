@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.utils.html import format_html, mark_safe
 from .models import DriverScorecard, ReportLog
 from .services import calculate_driver_scorecard
@@ -14,7 +15,7 @@ def recalculate_scorecards(modeladmin, request, queryset):
 
 
 @admin.register(DriverScorecard)
-class DriverScorecardAdmin(admin.ModelAdmin):
+class DriverScorecardAdmin(ModelAdmin):
     list_display = (
         'driver_link',
         'month_display',
@@ -140,6 +141,6 @@ class DriverScorecardAdmin(admin.ModelAdmin):
 
 
 @admin.register(ReportLog)
-class ReportLogAdmin(admin.ModelAdmin):
+class ReportLogAdmin(ModelAdmin):
     list_display = ('report_name', 'generated_at', 'generated_by')
     readonly_fields = ('generated_at',)

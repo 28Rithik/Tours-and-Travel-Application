@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from django.db.models import Prefetch, Q
 from django.utils import timezone
 from django.utils.html import format_html
@@ -42,7 +43,7 @@ def format_phone_display(phone_raw):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @admin.register(Party)
-class PartyAdmin(admin.ModelAdmin):
+class PartyAdmin(ModelAdmin):
 	search_fields = ('name', 'phone', 'email')
 
 	def has_module_permission(self, request):
@@ -50,7 +51,7 @@ class PartyAdmin(admin.ModelAdmin):
 
 
 @admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
+class ClientAdmin(ModelAdmin):
 	def has_module_permission(self, request):
 		return False
 
@@ -182,7 +183,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 
 @admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
+class SupplierAdmin(ModelAdmin):
 	def has_module_permission(self, request):
 		return False
 
@@ -308,7 +309,7 @@ class SupplierAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @admin.register(LicenseClass)
-class LicenseClassAdmin(admin.ModelAdmin):
+class LicenseClassAdmin(ModelAdmin):
 	def has_module_permission(self, request):
 		return False
 
@@ -334,7 +335,7 @@ class LicenseClassAdmin(admin.ModelAdmin):
 
 
 @admin.register(VehicleType)
-class VehicleTypeAdmin(admin.ModelAdmin):
+class VehicleTypeAdmin(ModelAdmin):
 	list_display = ('name', 'category_badge', 'seating_capacity_display', 'fleet_count_display', 'rates_summary_display', 'features_summary')
 	search_fields = ('name', 'category')
 	list_filter = ('category', 'fuel_type', 'toll_class', 'transmission_type', 'has_ac', 'is_luxury')
@@ -460,14 +461,14 @@ class LicenseExpiryFilter(admin.SimpleListFilter):
 		return queryset
 
 
-class DriverEmploymentPeriodInline(admin.TabularInline):
+class DriverEmploymentPeriodInline(TabularInline):
 	model = DriverEmploymentPeriod
 	extra = 0
 	fields = ('joined_on', 'left_on', 'notes')
 
 
 @admin.register(Driver)
-class DriverAdmin(admin.ModelAdmin):
+class DriverAdmin(ModelAdmin):
 	def has_module_permission(self, request):
 		return False
 
@@ -628,14 +629,14 @@ class DriverAdmin(admin.ModelAdmin):
 		self.message_user(request, f"{updated} drivers marked as on leave.")
 
 
-class CleanerEmploymentPeriodInline(admin.TabularInline):
+class CleanerEmploymentPeriodInline(TabularInline):
 	model = CleanerEmploymentPeriod
 	extra = 0
 	fields = ('joined_on', 'left_on', 'notes')
 
 
 @admin.register(Cleaner)
-class CleanerAdmin(admin.ModelAdmin):
+class CleanerAdmin(ModelAdmin):
 	def has_module_permission(self, request):
 		return False
 
@@ -790,13 +791,13 @@ class VehicleComplianceFilter(admin.SimpleListFilter):
 		return queryset
 
 
-class VehiclePhotoInline(admin.TabularInline):
+class VehiclePhotoInline(TabularInline):
 	model = VehiclePhoto
 	extra = 1
 
 
 @admin.register(Vehicle)
-class VehicleAdmin(admin.ModelAdmin):
+class VehicleAdmin(ModelAdmin):
 	list_display = (
 		'registration_number_display',
 		'vehicle_type',
@@ -806,6 +807,7 @@ class VehicleAdmin(admin.ModelAdmin):
 		'has_open_defects_display',
 		'service_alerts_display',
 		'status_toggle_display',
+		'live_map_link',
 	)
 	list_filter = ('ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
 	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name')
@@ -1003,6 +1005,30 @@ class VehicleAdmin(admin.ModelAdmin):
 				obj.pk, label_class, label_text
 			)
 
+	@admin.display(description='Live Radar')
+	def live_map_link(self, obj):
+		return format_html(
+			'<a href="/fleet/live/?search={}" target="_blank" class="badge" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Track {} on Live Fleet Map">'
+			'<span class="material-symbols-outlined" style="font-size: 14px;">location_on</span> Live'
+			'</a>',
+			obj.registration_number, obj.registration_number
+		)
+
+	def changelist_view(self, request, extra_context=None):
+		extra_context = extra_context or {}
+		qs = self.get_queryset(request)
+		total_count = qs.count()
+		available_count = qs.filter(status='available').count()
+		on_trip_count = qs.filter(status='on_trip').count()
+		maintenance_count = qs.filter(status__in=['maintenance', 'out_of_service']).count()
+		extra_context['fleet_kpi'] = {
+			'total': total_count,
+			'available': available_count,
+			'on_trip': on_trip_count,
+			'maintenance': maintenance_count,
+		}
+		return super().changelist_view(request, extra_context=extra_context)
+
 	def get_urls(self):
 		from django.urls import path
 		urls = super().get_urls()
@@ -1069,7 +1095,7 @@ class VehicleAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @admin.register(RateCard)
-class RateCardAdmin(admin.ModelAdmin):
+class RateCardAdmin(ModelAdmin):
 	def has_module_permission(self, request):
 		return False
 

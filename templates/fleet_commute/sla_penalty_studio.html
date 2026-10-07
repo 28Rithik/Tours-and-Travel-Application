@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Sivagayathiri TravelERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: rgba(18, 24, 38, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .header-title h1 {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid var(--border-glass);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 18px;
+            position: relative;
+        }
+
+        .kpi-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .kpi-val {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 6px;
+        }
+
+        .table-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-glass);
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #e2e8f0;
+        }
+
+        .badge-penalty {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-waived {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        #waiverModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <header class="header">
+            <div class="header-title">
+                <h1>
+                    <i class="fas fa-stopwatch" style="color: #f59e0b;"></i>
+                    SLA Performance & Penalty Studio
+                </h1>
+                <p>Contract delay tracking, penalty deduction audits, and executive waiver management</p>
+            </div>
+            <div>
+                <a href="/commute/roster-dispatcher/" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Roster Dispatcher
+                </a>
+                <a href="/admin/fleet_contracts/contractmonthlyinvoice/" class="btn btn-primary">
+                    <i class="fas fa-file-invoice-dollar"></i> Monthly Invoices
+                </a>
+            </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Gross Penalties Incurred</div>
+                <div class="kpi-val" style="color: #ef4444;">₹{{ total_penalties|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">{{ penalties.count }} Logged Infractions</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Management Waived</div>
+                <div class="kpi-val" style="color: #10b981;">₹{{ waived_penalties|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Via Client Negotiations</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Net Invoice Deductions</div>
+                <div class="kpi-val" style="color: #38bdf8;">₹{{ net_deductions|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Applied to Monthly Invoices</div>
+            </div>
+        </div>
+
+        <!-- Penalties Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>Contract SLA Infractions (Recent {{ penalties.count }})</h3>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Contract & Client</th>
+                            <th>Infraction Type</th>
+                            <th>Trip & Crew</th>
+                            <th>Penalty Amount</th>
+                            <th>Status</th>
+                            <th>Incident Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in penalties %}
+                        <tr>
+                            <td>{{ p.date|date:"Y-m-d" }}</td>
+                            <td>
+                                <strong>{{ p.contract.name }}</strong>
+                                <div style="font-size: 12px; color: var(--text-muted);">{{ p.contract.customer.name }}</div>
+                            </td>
+                            <td>
+                                <span class="badge-penalty">{{ p.get_penalty_type_display }}</span>
+                            </td>
+                            <td>
+                                {% if p.trip_log %}
+                                <div>{{ p.trip_log.vehicle.registration_number|default:"N/A" }} ({{ p.trip_log.driver.name|default:"Unassigned" }})</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">{{ p.trip_log.shift.route.name|default:"" }}</div>
+                                {% else %}
+                                <span>General Contract Infraction</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong style="color: #ef4444; font-size: 15px;">₹{{ p.penalty_amount|floatformat:2 }}</strong>
+                            </td>
+                            <td>
+                                {% if p.waived %}
+                                <span class="badge-waived">✅ Waived</span>
+                                <div style="font-size: 10px; color: #10b981; margin-top: 2px;">{{ p.waiver_reason }}</div>
+                                {% else %}
+                                <span class="badge-penalty">Deduction Active</span>
+                                {% endif %}
+                            </td>
+                            <td style="max-width: 250px; font-size: 12px; color: #cbd5e1;">
+                                {{ p.description|default:"SLA breach recorded." }}
+                            </td>
+                            <td>
+                                {% if not p.waived %}
+                                <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;" onclick="openWaiverModal({{ p.id }}, '{{ p.contract.name|escapejs }}', {{ p.penalty_amount }})">
+                                    <i class="fas fa-hand-holding-usd"></i> Waive
+                                </button>
+                                {% else %}
+                                <span style="color: var(--text-muted); font-size: 12px;">No action needed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-check-circle" style="font-size: 32px; color: #10b981; margin-bottom: 12px; display: block;"></i>
+                                Excellent! No active SLA penalty infractions recorded.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiver Modal -->
+    <div id="waiverModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 12px; color: #fff;">🛡️ Waive SLA Penalty</h3>
+            <p id="waiverPromptText" style="color: #cbd5e1; font-size: 14px; margin-bottom: 16px;"></p>
+            <input type="hidden" id="waiverPenaltyId">
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Audit Justification / Waiver Reason:</label>
+                <input type="text" id="waiverReasonInput" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; font-size: 14px;" value="Waived per Client Mutual Agreement (Force Majeure Traffic)">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-secondary" onclick="closeWaiverModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitWaiver()">Confirm Waiver</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openWaiverModal(id, contract, amount) {
+            document.getElementById('waiverPenaltyId').value = id;
+            document.getElementById('waiverPromptText').innerText = `Waive penalty of ₹${amount.toLocaleString()} on contract '${contract}'? This will remove the deduction from monthly billing.`;
+            document.getElementById('waiverModal').style.display = 'flex';
+        }
+
+        function closeWaiverModal() {
+            document.getElementById('waiverModal').style.display = 'none';
+        }
+
+        async function submitWaiver() {
+            const id = document.getElementById('waiverPenaltyId').value;
+            const reason = document.getElementById('waiverReasonInput').value;
+
+            try {
+                const formData = new FormData();
+                formData.append('penalty_id', id);
+                formData.append('waiver_reason', reason);
+
+                const res = await fetch('/commute/api/sla-penalties/waive/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (err) {
+                alert('Connection error.');
+            }
+        }
+    </script>
+</body>
+</html>

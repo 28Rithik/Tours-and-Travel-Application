@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +12,14 @@ from .models import (
     DriverSettlement,
     DriverSalaryProfile,
     DriverPayslip,
+    Account,
+    JournalEntry,
+    JournalItem,
+    CorporateGSTInvoice,
+    InvoiceLineItem,
+    EWayBill,
+    PettyCashAccount,
+    PettyCashTransaction,
 )
 
 
@@ -81,7 +90,7 @@ class SettlementStatusFilter(admin.SimpleListFilter):
 
 # ── Inlines ───────────────────────────────────────────────────────────────────
 
-class DriverAdvanceAllocationInline(admin.TabularInline):
+class DriverAdvanceAllocationInline(TabularInline):
     model = DriverAdvanceAllocation
     extra = 1
     autocomplete_fields = ['trip']
@@ -90,7 +99,7 @@ class DriverAdvanceAllocationInline(admin.TabularInline):
 # ── Admins ────────────────────────────────────────────────────────────────────
 
 @admin.register(TripExpense)
-class TripExpenseAdmin(admin.ModelAdmin):
+class TripExpenseAdmin(ModelAdmin):
     list_display = (
         'trip_or_contract',
         'date',
@@ -101,6 +110,7 @@ class TripExpenseAdmin(admin.ModelAdmin):
         'receipt_link',
     )
     list_filter = ('expense_type', 'paid_by', 'billable_to_customer', 'date')
+    list_select_related = ('trip',)
     search_fields = (
         'trip__trip_id',
         'contract_trip__shift__route__name',
@@ -179,7 +189,7 @@ class TripExpenseAdmin(admin.ModelAdmin):
 
 
 @admin.register(DriverAdvance)
-class DriverAdvanceAdmin(admin.ModelAdmin):
+class DriverAdvanceAdmin(ModelAdmin):
     inlines = [DriverAdvanceAllocationInline]
     list_display = (
         'driver_badge',
@@ -191,6 +201,7 @@ class DriverAdvanceAdmin(admin.ModelAdmin):
         'notes',
     )
     list_filter = ('date', 'driver', UnallocatedAdvanceFilter)
+    list_select_related = ('driver', 'trip', 'contract_trip')
     search_fields = (
         'driver__name',
         'trip__trip_id',
@@ -254,7 +265,7 @@ class DriverAdvanceAdmin(admin.ModelAdmin):
 
 
 @admin.register(DriverSettlement)
-class DriverSettlementAdmin(admin.ModelAdmin):
+class DriverSettlementAdmin(ModelAdmin):
     list_display = (
         'driver_badge',
         'trip_or_contract',
@@ -268,6 +279,7 @@ class DriverSettlementAdmin(admin.ModelAdmin):
         'settled_badge',
     )
     list_filter = ('settled_on', 'driver', SettlementStatusFilter)
+    list_select_related = ('driver', 'trip', 'contract_trip')
     search_fields = (
         'driver__name',
         'trip__trip_id',
@@ -355,7 +367,7 @@ class DriverSettlementAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupplierTripCost)
-class SupplierTripCostAdmin(admin.ModelAdmin):
+class SupplierTripCostAdmin(ModelAdmin):
     list_display = (
         'date',
         'trip_or_contract',
@@ -419,7 +431,7 @@ class SupplierTripCostAdmin(admin.ModelAdmin):
 
 
 @admin.register(DriverSalaryProfile)
-class DriverSalaryProfileAdmin(admin.ModelAdmin):
+class DriverSalaryProfileAdmin(ModelAdmin):
     list_display = ('driver_link', 'basic_salary_display', 'allowances_display', 'epf_info', 'esi_info')
     search_fields = ('driver__name', 'driver__phone', 'epf_number', 'esi_number')
     autocomplete_fields = ('driver',)
@@ -453,7 +465,7 @@ class DriverSalaryProfileAdmin(admin.ModelAdmin):
 
 
 @admin.register(DriverPayslip)
-class DriverPayslipAdmin(admin.ModelAdmin):
+class DriverPayslipAdmin(ModelAdmin):
     list_display = (
         'driver_link', 'period_display', 'days_present_badge',
         'gross_display', 'deductions_display', 'net_payable_badge', 'actions_display'
@@ -500,4 +512,353 @@ class DriverPayslipAdmin(admin.ModelAdmin):
             '<a href="/finance/payslips/{}/" target="_blank" class="button" style="padding: 3px 8px; font-size: 11px;">📄 View Slip</a>',
             obj.pk
         )
+
+
+class JournalItemInline(TabularInline):
+    model = JournalItem
+    extra = 2
+    fields = ('account', 'party', 'debit', 'credit', 'memo')
+
+
+@admin.register(Account)
+class AccountAdmin(ModelAdmin):
+    list_display = ('code', 'name', 'account_type_badge', 'currency', 'balance_display', 'is_active')
+    list_filter = ('account_type', 'is_active')
+    search_fields = ('code', 'name', 'description')
+
+    @admin.display(description='Account Type')
+    def account_type_badge(self, obj):
+        colors = {
+            'asset': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
+            'liability': 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
+            'equity': 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20',
+            'income': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
+            'expense': 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
+        }
+        badge_style = colors.get(obj.account_type, 'bg-gray-100 text-gray-800')
+        return format_html(
+            '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold {}">{}</span>',
+            badge_style,
+            obj.get_account_type_display()
+        )
+
+    @admin.display(description='Current Balance')
+    def balance_display(self, obj):
+        bal = obj.current_balance
+        color = "text-emerald-600 dark:text-emerald-400" if bal >= 0 else "text-rose-600 dark:text-rose-400"
+        return format_html('<span class="font-mono font-bold {}">{}</span>', color, f'₹{bal:,.2f}')
+
+
+@admin.register(JournalEntry)
+class JournalEntryAdmin(ModelAdmin):
+    list_display = ('entry_number', 'date', 'entry_type_badge', 'reference_id', 'total_debit_display', 'total_credit_display', 'balanced_badge', 'is_posted_badge')
+    list_filter = ('entry_type', 'is_posted', 'date')
+    search_fields = ('entry_number', 'reference_id', 'narration')
+    inlines = [JournalItemInline]
+
+    @admin.display(description='Entry Type')
+    def entry_type_badge(self, obj):
+        return format_html(
+            '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">{}</span>',
+            obj.get_entry_type_display()
+        )
+
+    @admin.display(description='Total Debit (DR)')
+    def total_debit_display(self, obj):
+        return format_html('<span class="font-mono font-bold text-slate-800 dark:text-slate-100">{}</span>', f'₹{obj.total_debit:,.2f}')
+
+    @admin.display(description='Total Credit (CR)')
+    def total_credit_display(self, obj):
+        return format_html('<span class="font-mono font-bold text-slate-800 dark:text-slate-100">{}</span>', f'₹{obj.total_credit:,.2f}')
+
+    @admin.display(description='Balanced')
+    def balanced_badge(self, obj):
+        if obj.is_balanced:
+            return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">✓ BALANCED</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 animate-pulse">⚠ UNBALANCED</span>')
+
+    @admin.display(description='Status')
+    def is_posted_badge(self, obj):
+        if obj.is_posted:
+            return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">POSTED</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">DRAFT</span>')
+
+
+class InvoiceLineItemInline(TabularInline):
+    model = InvoiceLineItem
+    extra = 1
+    fields = ('item_description', 'sac_code', 'quantity', 'unit', 'rate', 'taxable_amount', 'cgst_amount', 'sgst_amount', 'igst_amount', 'total_amount')
+
+
+@admin.register(CorporateGSTInvoice)
+class CorporateGSTInvoiceAdmin(ModelAdmin):
+    list_display = (
+        'invoice_number',
+        'recipient_legal_name',
+        'invoice_date',
+        'supply_type_badge',
+        'taxable_value_display',
+        'tax_summary_display',
+        'total_invoice_value_display',
+        'payment_status_badge',
+        'eway_bill_badge',
+        'quick_actions',
+    )
+    list_filter = ('invoice_type', 'supply_type', 'payment_status', 'is_reverse_charge', 'recipient_state_code')
+    search_fields = ('invoice_number', 'recipient_legal_name', 'recipient_gstin', 'supplier_gstin')
+    readonly_fields = ('invoice_number', 'cgst_rate', 'cgst_amount', 'sgst_rate', 'sgst_amount', 'igst_rate', 'igst_amount', 'total_tax', 'round_off', 'total_invoice_value', 'created_at', 'updated_at', 'qr_code_preview')
+    inlines = [InvoiceLineItemInline]
+
+    fieldsets = (
+        ('Invoice Header & Legal Entities', {
+            'fields': (
+                ('invoice_number', 'invoice_date', 'due_date'),
+                ('invoice_type', 'supply_type', 'is_reverse_charge'),
+                ('party', 'trip', 'transport_contract'),
+                ('supplier_legal_name', 'supplier_gstin', 'supplier_state_code'),
+                ('recipient_legal_name', 'recipient_gstin', 'recipient_state_code'),
+                ('recipient_address', 'place_of_supply'),
+            )
+        }),
+        ('Taxation & Financial Breakdown', {
+            'fields': (
+                ('sac_code', 'gst_rate_percent', 'taxable_value'),
+                ('cgst_rate', 'cgst_amount'),
+                ('sgst_rate', 'sgst_amount'),
+                ('igst_rate', 'igst_amount'),
+                ('cess_amount', 'total_tax', 'round_off', 'total_invoice_value'),
+            )
+        }),
+        ('Payment & General Ledger Posting', {
+            'fields': (
+                ('payment_status', 'paid_amount'),
+                'gl_journal_entry',
+                'qr_code_preview',
+            )
+        }),
+    )
+
+    @admin.display(description='Supply')
+    def supply_type_badge(self, obj):
+        if obj.supply_type == 'intra_state':
+            return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">INTRA (CGST+SGST)</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">INTER (IGST)</span>')
+
+    @admin.display(description='Taxable Val')
+    def taxable_value_display(self, obj):
+        return format_html('<span class="font-mono font-bold text-slate-800 dark:text-slate-100">{}</span>', f'₹{obj.taxable_value:,.2f}')
+
+    @admin.display(description='Tax (CGST/SGST/IGST)')
+    def tax_summary_display(self, obj):
+        if obj.supply_type == 'intra_state':
+            return format_html('<span class="text-xs font-mono text-slate-600 dark:text-slate-400">{}</span>', f'C: ₹{obj.cgst_amount:,.0f} | S: ₹{obj.sgst_amount:,.0f}')
+        return format_html('<span class="text-xs font-mono text-indigo-600 dark:text-indigo-400 font-bold">{}</span>', f'IGST: ₹{obj.igst_amount:,.0f}')
+
+    @admin.display(description='Total Invoice')
+    def total_invoice_value_display(self, obj):
+        return format_html('<span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">{}</span>', f'₹{obj.total_invoice_value:,.2f}')
+
+    @admin.display(description='Payment')
+    def payment_status_badge(self, obj):
+        colors = {
+            'paid': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+            'partially_paid': 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+            'unpaid': 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+        }
+        cls = colors.get(obj.payment_status, 'bg-slate-500/10 text-slate-600')
+        return format_html('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border {}">{}</span>', cls, obj.get_payment_status_display().upper())
+
+    @admin.display(description='E-Way Bill')
+    def eway_bill_badge(self, obj):
+        if hasattr(obj, 'eway_bill'):
+            ewb = obj.eway_bill
+            return format_html('<a href="/admin/finance/ewaybill/{}/change/" class="font-mono text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline">EWB #{}</a>', ewb.pk, ewb.eway_bill_number[:8] + '...')
+        return format_html('<a href="/admin/finance/gst-studio/?tab=workbench&inv={}" class="text-xs text-amber-600 dark:text-amber-400 hover:underline">+ Generate</a>', obj.pk)
+
+    @admin.display(description='Actions')
+    def quick_actions(self, obj):
+        return format_html(
+            '<div class="flex items-center gap-1.5">'
+            '<a href="/finance/invoice/{}/view/" target="_blank" class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">📄 Tax Invoice</a>'
+            '<a href="/api/finance/invoice/{}/eway-json/" download="EWB_{}.json" class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20">📥 NIC JSON</a>'
+            '<button type="button" onclick="sendInvoiceWhatsApp({}, this)" class="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1" title="Dispatch GST Invoice PDF & Payment Link via WhatsApp">💬 Send WA</button>'
+            '</div>'
+            '<script>'
+            'if(!window._waInvHook){{window._waInvHook=true;'
+            'window.sendInvoiceWhatsApp=function(id,btn){{'
+            'if(!confirm("Send official GST Tax Invoice PDF & UPI link to customer via WhatsApp?")) return;'
+            'const orig=btn.innerHTML; btn.innerHTML="⏳..."; btn.disabled=true;'
+            'fetch(`/finance/api/invoice/${{id}}/whatsapp/`,{{method:"POST",headers:{{"X-CSRFToken":(document.cookie.match(/csrftoken=([^;]+)/)||[])[1]||"","Content-Type":"application/json"}}}})'
+            '.then(r=>r.json())'
+            '.then(d=>{{if(d.success){{alert("✅ "+d.message);btn.innerHTML="✅ Sent";btn.style.background="#059669";}}else{{alert("❌ "+(d.error||"Dispatch failed"));btn.innerHTML=orig;btn.disabled=false;}}}})'
+            '.catch(e=>{{alert("Error: "+e);btn.innerHTML=orig;btn.disabled=false;}});'
+            '}};'
+            '}}'
+            '</script>',
+            obj.pk, obj.pk, obj.invoice_number.replace('/', '_'), obj.pk
+        )
+
+    @admin.display(description='Digital QR Code Stamp')
+    def qr_code_preview(self, obj):
+        if obj.qr_code_svg:
+            return format_html('<div style="width: 140px; height: 140px; padding: 6px; background: white; border-radius: 8px;">{}</div>', mark_safe(obj.qr_code_svg))
+        return mark_safe('<span class="text-slate-400 text-xs">QR Stamp will be generated on invoice finalization</span>')
+
+
+@admin.register(EWayBill)
+class EWayBillAdmin(ModelAdmin):
+    list_display = (
+        'eway_bill_number',
+        'invoice_link',
+        'vehicle_number',
+        'trans_distance_km',
+        'eway_bill_date',
+        'valid_until',
+        'status_badge',
+        'actions_col',
+    )
+    list_filter = ('status', 'vehicle_type', 'eway_bill_date')
+    search_fields = ('eway_bill_number', 'vehicle_number', 'invoice__invoice_number', 'invoice__recipient_legal_name')
+    readonly_fields = ('eway_bill_number', 'eway_bill_date', 'valid_until', 'created_at', 'updated_at')
+
+    @admin.display(description='Tax Invoice')
+    def invoice_link(self, obj):
+        return format_html('<a href="/admin/finance/corporategstinvoice/{}/change/" class="font-bold text-sky-600 dark:text-sky-400 hover:underline">{}</a>', obj.invoice.pk, obj.invoice.invoice_number)
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'active': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+            'draft': 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+            'expired': 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+            'cancelled': 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+        }
+        cls = colors.get(obj.status, 'bg-slate-500/10 text-slate-600')
+        return format_html('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border {}">{}</span>', cls, obj.get_status_display().upper())
+
+    @admin.display(description='NIC Actions')
+    def actions_col(self, obj):
+        return format_html(
+            '<div class="flex items-center gap-2">'
+            '<a href="/api/finance/invoice/{}/eway-json/" download="EWB_{}.json" class="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700">📥 Export NIC JSON</a>'
+            '</div>',
+            obj.invoice.pk, obj.eway_bill_number
+        )
+
+
+# ==============================================================================
+# Phase 5: Petty Cash Float Register & Cash Wallet Studio Admin Registration
+# ==============================================================================
+
+class PettyCashTransactionInline(TabularInline):
+    model = PettyCashTransaction
+    extra = 0
+    fields = ('voucher_number', 'date', 'transaction_type', 'category', 'amount', 'recipient_or_vendor', 'status')
+    readonly_fields = ('voucher_number', 'date')
+    ordering = ['-date', '-created_at']
+
+
+@admin.register(PettyCashAccount)
+class PettyCashAccountAdmin(ModelAdmin):
+    list_display = (
+        'account_name',
+        'account_type_badge',
+        'holder_display',
+        'current_balance_badge',
+        'allocated_limit',
+        'warning_threshold',
+        'studio_link',
+    )
+    list_filter = ('account_type', 'is_active')
+    search_fields = ('account_name', 'holder_driver__name', 'holder_user__username')
+    inlines = [PettyCashTransactionInline]
+
+    @admin.display(description='Type')
+    def account_type_badge(self, obj):
+        colors = {
+            'branch': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+            'driver': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+            'tour_manager': 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+            'dispatcher': 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+        }
+        cls = colors.get(obj.account_type, 'bg-slate-500/10 text-slate-600')
+        return format_html('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border {}">{}</span>', cls, obj.get_account_type_display())
+
+    @admin.display(description='Custodian / Holder')
+    def holder_display(self, obj):
+        if obj.holder_driver:
+            return format_html('<span>🧑‍✈️ {}</span>', obj.holder_driver.name)
+        elif obj.holder_user:
+            return format_html('<span>👤 {}</span>', obj.holder_user.username)
+        return mark_safe('<span class="text-slate-400">Office Float</span>')
+
+    @admin.display(description='Cash Balance')
+    def current_balance_badge(self, obj):
+        bal_str = f"{obj.current_balance:,.2f}"
+        if obj.is_low_balance:
+            return format_html('<span style="color: #ef4444; font-weight: 800; background: rgba(239,68,68,0.1); padding: 3px 8px; border-radius: 6px;">⚠️ ₹{} (Low)</span>', bal_str)
+        return format_html('<span style="color: #10b981; font-weight: 800; background: rgba(16,185,129,0.1); padding: 3px 8px; border-radius: 6px;">₹{}</span>', bal_str)
+
+    @admin.display(description='Studio')
+    def studio_link(self, obj):
+        return format_html('<a href="/admin/finance/petty-cash-studio/?account_id={}" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 11px;">💵 Open Studio</a>', obj.pk)
+
+
+@admin.register(PettyCashTransaction)
+class PettyCashTransactionAdmin(ModelAdmin):
+    list_display = (
+        'voucher_number',
+        'date',
+        'account_link',
+        'type_badge',
+        'category_badge',
+        'amount_display',
+        'recipient_or_vendor',
+        'status_badge',
+        'trip_link',
+    )
+    list_filter = ('transaction_type', 'category', 'status', 'date')
+    search_fields = ('voucher_number', 'recipient_or_vendor', 'notes', 'account__account_name')
+    readonly_fields = ('voucher_number', 'balance_after', 'created_at', 'updated_at')
+
+    @admin.display(description='Account')
+    def account_link(self, obj):
+        return format_html('<a href="/admin/finance/pettycashaccount/{}/change/" style="font-weight: 700; color: #818cf8;">{}</a>', obj.account.pk, obj.account.account_name)
+
+    @admin.display(description='Type')
+    def type_badge(self, obj):
+        if obj.transaction_type in ['top_up', 'settlement_refund', 'adjustment']:
+            return mark_safe('<span style="background: rgba(16,185,129,0.15); color: #34d399; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">INFLOW (+)</span>')
+        return mark_safe('<span style="background: rgba(239,68,68,0.15); color: #f87171; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">OUTFLOW (-)</span>')
+
+    @admin.display(description='Category')
+    def category_badge(self, obj):
+        return format_html('<span style="font-size: 12px; font-weight: 600;">{}</span>', obj.get_category_display())
+
+    @admin.display(description='Amount')
+    def amount_display(self, obj):
+        sign = "+" if obj.transaction_type in ['top_up', 'settlement_refund', 'adjustment'] else "-"
+        color = "#10b981" if sign == "+" else "#ef4444"
+        amt_str = f"{obj.amount:,.2f}"
+        return format_html('<span style="color: {}; font-weight: 800; font-size: 13px;">{}₹{}</span>', color, sign, amt_str)
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'approved': ('#047857', '#d1fae5', '✅ Approved'),
+            'submitted': ('#b45309', '#fef3c7', '⏳ Review Pending'),
+            'rejected': ('#b91c1c', '#fee2e2', '❌ Rejected'),
+            'draft': ('#4b5563', '#f3f4f6', 'Draft'),
+        }
+        fg, bg, label = colors.get(obj.status, ('#4b5563', '#f3f4f6', obj.status))
+        return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">{}</span>', bg, fg, label)
+
+    @admin.display(description='Trip')
+    def trip_link(self, obj):
+        if obj.trip:
+            return format_html('<a href="/admin/operations/trip/{}/change/" style="color: #38bdf8; font-weight: 600;">#{}</a>', obj.trip.pk, obj.trip.trip_id)
+        return mark_safe('<span style="color: #94a3b8;">-</span>')
+
+
+
 

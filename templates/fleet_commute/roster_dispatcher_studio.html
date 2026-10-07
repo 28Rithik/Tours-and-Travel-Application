@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Sivagayathiri TravelERP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: rgba(18, 24, 38, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent-primary: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.07) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Top Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .header-title h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .badge-scale {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-primary);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .controls-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-glass);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid var(--border-glass);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* KPI Metric Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-primary);
+        }
+
+        .kpi-card.green::before { background: var(--accent-success); }
+        .kpi-card.orange::before { background: var(--accent-warning); }
+        .kpi-card.blue::before { background: var(--accent-primary); }
+
+        .kpi-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .kpi-val {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 6px;
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Dispatch Action Banner */
+        .dispatch-banner {
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.35) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .dispatch-info h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .dispatch-info p {
+            color: #cbd5e1;
+            font-size: 14px;
+            max-width: 650px;
+            line-height: 1.5;
+        }
+
+        .dispatch-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Trip Schedule Table */
+        .table-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-glass);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #e2e8f0;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-scheduled { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        .status-en_route { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .status-delayed { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .status-completed { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+
+        /* Modal Alert */
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #111827;
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h3 { font-size: 18px; color: #fff; }
+        .close-btn { color: #94a3b8; cursor: pointer; font-size: 20px; }
+
+        .result-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <header class="header">
+            <div class="header-title">
+                <h1>
+                    <i class="fas fa-bolt" style="color: #38bdf8;"></i>
+                    Batch Roster Dispatcher
+                    <span class="badge-scale">300+ Fleet Engine</span>
+                </h1>
+                <p>Automated daily shift provisioning, compliance validation, and commuter pass generation</p>
+            </div>
+            <div class="controls-bar">
+                <input type="date" id="datePicker" class="date-input" value="{{ target_date_str }}">
+                <button class="btn btn-secondary" onclick="changeDate()">
+                    <i class="fas fa-calendar-day"></i> View Date
+                </button>
+                <a href="/admin/fleet_contracts/contractfleetroster/" class="btn btn-secondary">
+                    <i class="fas fa-users-cog"></i> Manage Master Roster
+                </a>
+                <a href="/commute/sla-penalties/" class="btn btn-secondary">
+                    <i class="fas fa-stopwatch"></i> SLA Penalties
+                </a>
+            </div>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card blue">
+                <div class="kpi-label">Active Dedicated Fleet</div>
+                <div class="kpi-val">{{ total_rostered_vehicles }} Buses / Cabs</div>
+                <div class="kpi-sub">Across {{ active_contracts.count }} Active Contracts</div>
+            </div>
+            <div class="kpi-card green">
+                <div class="kpi-label">Today's Scheduled Trips</div>
+                <div class="kpi-val">{{ total_trips_count }} Trips</div>
+                <div class="kpi-sub">{{ scheduled_count }} Pending | {{ en_route_count }} En Route</div>
+            </div>
+            <div class="kpi-card orange">
+                <div class="kpi-label">Rostered Drivers</div>
+                <div class="kpi-val">{{ total_rostered_drivers }} Verified Crew</div>
+                <div class="kpi-sub">Commercial TR Badge Compliant</div>
+            </div>
+            <div class="kpi-card blue">
+                <div class="kpi-label">Completed Shifts</div>
+                <div class="kpi-val">{{ completed_count }} Completed</div>
+                <div class="kpi-sub">{{ delayed_count }} Delayed Breaches</div>
+            </div>
+        </div>
+
+        <!-- 1-Click Dispatch Action Banner -->
+        <div class="dispatch-banner">
+            <div class="dispatch-info">
+                <h2>⚡ 1-Click Daily Shift Scheduler & Dispatch</h2>
+                <p>
+                    Evaluates all active contracts, shifts, and dedicated roster allocations for 
+                    <strong>{{ target_date|date:"l, F d, Y" }}</strong>. Checks statutory vehicle fitness & commercial driver license validity, 
+                    auto-assigns primary or standby backup buses, and creates passenger boarding passes with live tracking tokens.
+                </p>
+            </div>
+            <div class="dispatch-actions">
+                <button id="dispatchBtn" class="btn btn-primary" onclick="runBatchDispatch()">
+                    <i class="fas fa-play"></i> Generate Shifts for {{ target_date|date:"M d" }}
+                </button>
+            </div>
+        </div>
+
+        <!-- Schedule Trip List -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>Daily Shift Execution Board ({{ total_trips_count }} Dispatched Trips)</h3>
+                <span style="color: var(--text-muted); font-size: 13px;">Date: {{ target_date|date:"Y-m-d" }}</span>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Trip #</th>
+                            <th>Contract & Route</th>
+                            <th>Shift / Direction</th>
+                            <th>Departure Time</th>
+                            <th>Vehicle</th>
+                            <th>Captain / Driver</th>
+                            <th>Passengers</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trip in existing_trips %}
+                        <tr>
+                            <td><strong>#{{ trip.id }}</strong></td>
+                            <td>
+                                <div style="font-weight: 600;">{{ trip.shift.route.contract.name }}</div>
+                                <div style="color: var(--text-muted); font-size: 12px;">{{ trip.shift.route.name }}</div>
+                            </td>
+                            <td>
+                                <span>{{ trip.shift.get_direction_display }}</span>
+                                <div style="color: var(--text-muted); font-size: 11px;">{{ trip.shift.shift_name }}</div>
+                            </td>
+                            <td>
+                                <strong style="color: #38bdf8;">{{ trip.scheduled_departure_time|time:"h:i A" }}</strong>
+                            </td>
+                            <td>
+                                {% if trip.vehicle %}
+                                <span style="background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 6px; font-weight: 600;">
+                                    {{ trip.vehicle.registration_number }}
+                                </span>
+                                {% if trip.is_replacement_vehicle %}
+                                <span style="color: #f59e0b; font-size: 11px; margin-left: 4px;">(Standby)</span>
+                                {% endif %}
+                                {% else %}
+                                <span style="color: #ef4444;">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if trip.driver %}
+                                {{ trip.driver.name }}
+                                <div style="color: var(--text-muted); font-size: 11px;">{{ trip.driver.phone|default:"" }}</div>
+                                {% else %}
+                                <span style="color: #ef4444;">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <i class="fas fa-users mr-1" style="color: #94a3b8;"></i>
+                                {{ trip.passenger_count }} Commuters
+                            </td>
+                            <td>
+                                <span class="status-pill status-{{ trip.status }}">
+                                    {{ trip.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="/admin/fleet_contracts/contracttriplog/{{ trip.id }}/change/" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px;">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+                                No shift trips generated for {{ target_date|date:"F d, Y" }}. Click "Generate Shifts" above to batch-provision.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dispatch Results Modal -->
+    <div id="resultModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Shift Generation Complete</h3>
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody">
+                <!-- Dynamically filled -->
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-primary" onclick="location.reload()">Refresh Schedule</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function changeDate() {
+            const date = document.getElementById('datePicker').value;
+            if (date) {
+                window.location.href = `/commute/roster-dispatcher/?date=${date}`;
+            }
+        }
+
+        async function runBatchDispatch() {
+            const btn = document.getElementById('dispatchBtn');
+            const targetDate = document.getElementById('datePicker').value;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Provisioning Shifts...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/commute/api/roster-dispatcher/generate/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_date: targetDate, force_refresh: true })
+                });
+
+                const data = await response.json();
+                btn.innerHTML = '<i class="fas fa-play"></i> Generate Shifts';
+                btn.disabled = false;
+
+                if (data.status === 'success') {
+                    showModal(data);
+                } else {
+                    alert('Error: ' + (data.message || 'Dispatch failed'));
+                }
+            } catch (err) {
+                btn.innerHTML = '<i class="fas fa-play"></i> Generate Shifts';
+                btn.disabled = false;
+                alert('Connection error. Please try again.');
+            }
+        }
+
+        function showModal(data) {
+            const modal = document.getElementById('resultModal');
+            const body = document.getElementById('modalBody');
+
+            let substitutionsHtml = '';
+            if (data.compliance_substitutions && data.compliance_substitutions.length > 0) {
+                substitutionsHtml = `
+                    <div style="margin-top: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 10px; border-radius: 8px;">
+                        <strong style="color: #f59e0b;">Standby Vehicle Substitutions (${data.compliance_substitutions.length}):</strong>
+                        <ul style="font-size: 12px; margin-left: 18px; margin-top: 4px; color: #cbd5e1;">
+                            ${data.compliance_substitutions.map(s => `<li>${s.contract}: Primary ${s.primary} swapped with Standby ${s.standby}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            body.innerHTML = `
+                <div class="result-stat">
+                    <span>Target Date:</span>
+                    <strong>${data.target_date} (${data.target_day_name})</strong>
+                </div>
+                <div class="result-stat">
+                    <span>Active Contracts Evaluated:</span>
+                    <strong>${data.active_contracts_evaluated}</strong>
+                </div>
+                <div class="result-stat">
+                    <span>Trips Created / Provisioned:</span>
+                    <strong style="color: #10b981;">+${data.trips_created} New Trips</strong>
+                </div>
+                <div class="result-stat">
+                    <span>Pre-existing Trips Synchronized:</span>
+                    <strong>${data.trips_existing}</strong>
+                </div>
+                <div class="result-stat">
+                    <span>Passenger Boarding Passes Created:</span>
+                    <strong style="color: #38bdf8;">${data.passes_created} Passes</strong>
+                </div>
+                <div class="result-stat">
+                    <span>Roster Coverage Gaps:</span>
+                    <strong style="color: ${data.roster_gaps_count > 0 ? '#ef4444' : '#10b981'};">${data.roster_gaps_count} Unassigned Shifts</strong>
+                </div>
+                ${substitutionsHtml}
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

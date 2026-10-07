@@ -1,9 +1,10 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import DriverPortalAccount
 
 
 @admin.register(DriverPortalAccount)
-class DriverPortalAccountAdmin(admin.ModelAdmin):
+class DriverPortalAccountAdmin(ModelAdmin):
     list_display = ('driver', 'phone_number', 'quick_pin', 'is_active', 'last_login_at', 'created_at')
     list_filter = ('is_active',)
     search_fields = ('driver__name', 'driver__phone', 'user__username')

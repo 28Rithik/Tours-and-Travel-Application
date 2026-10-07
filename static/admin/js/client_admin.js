@@ -9,15 +9,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (type === 'individual') {
             billingFieldset.style.display = 'none';
         } else {
-            billingFieldset.style.display = 'block';
+            billingFieldset.style.display = '';
         }
     }
     
     // Initial toggle
     toggleBillingFields();
     
-    // Toggle on change
+    // Toggle on change / input
     if (partyTypeSelect) {
         partyTypeSelect.addEventListener('change', toggleBillingFields);
+        partyTypeSelect.addEventListener('input', toggleBillingFields);
+
+        var lastType = partyTypeSelect.value;
+        setInterval(function() {
+            if (partyTypeSelect.value !== lastType) {
+                lastType = partyTypeSelect.value;
+                toggleBillingFields();
+            }
+        }, 200);
     }
 });
+

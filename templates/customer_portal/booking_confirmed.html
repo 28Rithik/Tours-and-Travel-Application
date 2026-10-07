@@ -1,0 +1,205 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Booking Confirmed #{{ booking.booking_number }} | Sivagayathiri Travels{% endblock %}
+
+{% block content %}
+<section class="voucher-container">
+    <div class="voucher-card">
+        <!-- Top Voucher Header -->
+        <div class="voucher-header">
+            <div style="font-size: 2.75rem; margin-bottom: 0.25rem;">🎉</div>
+            <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem;">
+                Booking Confirmed!
+            </h1>
+            <p style="font-size: 0.95rem; opacity: 0.9;">
+                Thank you for traveling with Sivagayathiri Travels & Expeditions. Your trip is officially reserved.
+            </p>
+            <div class="voucher-ref-pill">
+                BOOKING REF: {{ booking.booking_number }}
+            </div>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div style="background: #f8fafc; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;" class="no-print">
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <button onclick="window.print()" class="btn btn-outline" style="font-size: 0.85rem;">
+                    🖨️ Print Travel Voucher
+                </button>
+                <a href="{{ whatsapp_share_url }}" target="_blank" class="btn btn-emerald" style="font-size: 0.85rem;">
+                    💬 Share on WhatsApp
+                </a>
+            </div>
+
+            <div>
+                <a href="{% url 'customer_portal:home' %}" class="btn btn-primary" style="font-size: 0.85rem;">
+                    Return to Homepage 🏠
+                </a>
+            </div>
+        </div>
+
+        <!-- Voucher Body -->
+        <div style="padding: 2.5rem 2rem;">
+            <!-- Grid: Trip & Passenger Details -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Passenger Info -->
+                <div style="background: var(--bg-surface-alt); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-light);">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1rem; border-bottom: 1px solid var(--border-medium); padding-bottom: 0.5rem;">
+                        Lead Passenger Details
+                    </h3>
+                    <div class="result-row">
+                        <span>Passenger Name:</span>
+                        <strong>{{ booking.guest_name }}</strong>
+                    </div>
+                    <div class="result-row">
+                        <span>Contact Number:</span>
+                        <strong>{{ booking.guest_phone }}</strong>
+                    </div>
+                    <div class="result-row">
+                        <span>Boarding Location:</span>
+                        <strong>{{ booking.pickup_location }}</strong>
+                    </div>
+                    <div class="result-row">
+                        <span>Travel Group Size:</span>
+                        <strong>{{ booking.pax_count|default:1 }} Passengers</strong>
+                    </div>
+                </div>
+
+                <!-- Trip Logistics -->
+                <div style="background: var(--bg-surface-alt); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-light);">
+                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1rem; border-bottom: 1px solid var(--border-medium); padding-bottom: 0.5rem;">
+                        Trip Logistics & Coach
+                    </h3>
+                    <div class="result-row">
+                        <span>Destination / Circuit:</span>
+                        <strong>{{ booking.destination }}</strong>
+                    </div>
+                    <div class="result-row">
+                        <span>Departure Date:</span>
+                        <strong>{{ booking.pickup_date|date:"D, d M Y" }}</strong>
+                    </div>
+                    <div class="result-row">
+                        <span>Reporting Time:</span>
+                        <strong>{{ booking.pickup_time|time:"H:i A" }}</strong>
+                    </div>
+                    <div class="result-row">
+                        <span>Coach Type:</span>
+                        <strong>{{ booking.vehicle_type.name|default:'Luxury Tour Coach' }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connecting Intercity Night Bus Transit Section (If Booked) -->
+            {% if booking.travel_pnr %}
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-radius: var(--radius-xl); padding: 1.5rem 1.75rem; margin-bottom: 2rem; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.65rem;">
+                        <span style="font-size: 1.5rem;">🚌</span>
+                        <div>
+                            <h3 style="font-size: 1.1rem; font-weight: 800; color: #38bdf8; margin: 0;">
+                                Connecting Intercity Night Bus Transit (Port 8005)
+                            </h3>
+                            <small style="color: #94a3b8; font-size: 0.8rem;">
+                                Guaranteed seat reservation connected to your holiday tour package
+                            </small>
+                        </div>
+                    </div>
+                    <div style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 800; font-family: monospace; font-size: 0.95rem;">
+                        PNR: {{ booking.travel_pnr }}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                    <div style="background: rgba(255,255,255,0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Partner Fleet</div>
+                        <div style="font-weight: 700; color: #f8fafc; font-size: 0.9rem; margin-top: 0.2rem;">Sivagayathiri Intercity CRS</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Reservation Status</div>
+                        <div style="font-weight: 700; color: #34d399; font-size: 0.9rem; margin-top: 0.2rem;">Confirmed & Synchronized ✅</div>
+                    </div>
+                    {% if intercity_tracking_url %}
+                    <div style="background: rgba(255,255,255,0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">M-Ticket & Telematics</div>
+                        <div style="font-weight: 700; color: #38bdf8; font-size: 0.9rem; margin-top: 0.2rem;">Live GPS Telematics Active</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if intercity_tracking_url %}
+                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                    <a href="{{ intercity_tracking_url }}" target="_blank" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.6rem 1.25rem; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none;">
+                        <span>🛰️</span> Live GPS Bus Tracking & M-Ticket (Port 8005 ↗)
+                    </a>
+                    <span style="font-size: 0.75rem; color: #94a3b8;">
+                        Direct telematics feed from Sivagayathiri Intercity Bus CRS
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Financial Settlement Box -->
+            <div style="border: 2px solid var(--border-light); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 2rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1rem;">
+                    Payment & Settlement Status
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; text-align: center; margin-bottom: 1.5rem;">
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Booking Price</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--brand-navy); margin-top: 0.25rem;">
+                            ₹{{ booking.quoted_price|floatformat:0 }}
+                        </div>
+                    </div>
+
+                    <div style="background: #d1fae5; padding: 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.75rem; color: #065f46; font-weight: 700; text-transform: uppercase;">Amount Paid & Verified</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #059669; margin-top: 0.25rem;">
+                            ₹{{ total_paid|floatformat:0 }}
+                        </div>
+                    </div>
+
+                    <div style="background: {% if balance_due > 0 %}#fef3c7{% else %}#eef2ff{% endif %}; padding: 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Remaining Balance Due</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: {% if balance_due > 0 %}#d97706{% else %}#4f46e5{% endif %}; margin-top: 0.25rem;">
+                            ₹{{ balance_due|floatformat:0 }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- If balance is due, show UPI QR Code to clear balance -->
+                {% if balance_due > 0 and balance_upi_package %}
+                <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-lg); padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;" class="no-print">
+                    <div>
+                        <h4 style="font-size: 0.95rem; font-weight: 700; color: #92400e; margin-bottom: 0.25rem;">
+                            Settle Remaining Balance Anytime
+                        </h4>
+                        <p style="font-size: 0.82rem; color: #78350f; margin: 0;">
+                            Scan this Dynamic UPI QR or pay cash/UPI to your tour manager on departure day.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <img src="{{ balance_upi_package.qr_base64 }}" alt="Balance UPI QR" style="width: 80px; height: 80px; border-radius: 6px; border: 1px solid #d97706;">
+                        <div>
+                            <div style="font-family: monospace; font-size: 0.8rem; font-weight: 700;">{{ balance_upi_package.vpa }}</div>
+                            <small style="color: var(--text-muted);">Ref: {{ booking.booking_number }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Emergency & Contact Info -->
+            <div style="border-top: 1px solid var(--border-light); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text-secondary); flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <strong>24x7 Control Room & Breakdown SOS:</strong> +91 98425 33777 / +91 94381 7131
+                </div>
+                <div>
+                    <strong>Email Support:</strong> support@sivagayathiritravels.com
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

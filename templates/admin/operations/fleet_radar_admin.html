@@ -1,0 +1,2214 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🛰️ Live Fleet Telematics GPS Radar Map | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="{% url 'admin:core_vehicle_changelist' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations & Fleet</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🛰️ Live Telematics GPS Radar Map</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- External Leaflet CSS & Fonts -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="radar-admin-container">
+    <!-- Top Command & KPI Bar -->
+    <div class="radar-top-bar">
+        <div class="radar-title-box">
+            <div class="radar-live-badge">
+                <span class="radar-live-dot"></span>
+                <span>GPS RADAR ACTIVE</span>
+            </div>
+            <div>
+                <h1 class="radar-h1">🛰️ Fleet Telematics Operations Radar</h1>
+                <div class="radar-subtitle">
+                    Live GPS Telemetry &bull; Real-Time Speed Gauges &bull; Geofence Perimeter Grid
+                    <span id="radarSyncTime" class="radar-sync-stamp">Syncing...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Status Counters -->
+        <div class="radar-kpi-group">
+            <div class="radar-kpi-pill kpi-total" title="Total Fleet Size">
+                <span class="kpi-icon">🚗</span>
+                <span class="kpi-num" id="kpiTotalCount">--</span>
+                <span class="kpi-lbl">Total</span>
+            </div>
+            <div class="radar-kpi-pill kpi-moving" title="Moving On Active Trips">
+                <span class="kpi-icon">🟢</span>
+                <span class="kpi-num" id="kpiActiveCount">--</span>
+                <span class="kpi-lbl">On Duty</span>
+            </div>
+            <div class="radar-kpi-pill kpi-standby" title="Available Standby Vehicles">
+                <span class="kpi-icon">🔵</span>
+                <span class="kpi-num" id="kpiStandbyCount">--</span>
+                <span class="kpi-lbl">Standby</span>
+            </div>
+            <div class="radar-kpi-pill kpi-workshop" title="In Workshop or Defect Maintenance">
+                <span class="kpi-icon">🟠</span>
+                <span class="kpi-num" id="kpiWorkshopCount">--</span>
+                <span class="kpi-lbl">Workshop</span>
+            </div>
+            <div class="radar-kpi-pill kpi-geofence" title="Geofence Boundary Violations">
+                <span class="kpi-icon">⚠️</span>
+                <span class="kpi-num" id="kpiGeofenceCount">0</span>
+                <span class="kpi-lbl">Zone Alerts</span>
+            </div>
+            <div class="radar-kpi-pill kpi-sos" id="kpiSosWrapper" title="Critical Emergency SOS Incidents">
+                <span class="kpi-icon">🚨</span>
+                <span class="kpi-num" id="kpiSosCount">0</span>
+                <span class="kpi-lbl">SOS</span>
+            </div>
+        </div>
+
+        <!-- Action Tools -->
+        <div class="radar-actions-group">
+            <button id="btnSimulateTick" class="radar-btn btn-sim" title="Simulate realistic GPS telemetry movement step">
+                <span class="btn-icon">📡</span>
+                <span id="simBtnText">Live GPS Sim: OFF</span>
+            </button>
+            <button id="btnSoundToggle" class="radar-btn btn-sound" title="Toggle Tactical Audio Alerts">
+                <span id="soundIcon">🔊</span> Audio
+            </button>
+            <button id="btnDevPauseMap" class="radar-btn" title="Developer Mode: Toggle map auto-loading and background polling" style="border: 1px dashed #f59e0b; color: #fbbf24; background: rgba(245, 158, 11, 0.12); font-weight: 700;">
+                <span id="devPauseIcon">⏸️</span> <span id="devPauseText">Dev: Map Paused</span>
+            </button>
+            <button id="btnManualRefresh" class="radar-btn btn-refresh" title="Force Telematics Ping Refresh">
+                <span id="refreshSpinner" class="spinner-icon">↻</span> Refresh
+            </button>
+            <a href="{% url 'admin:core_vehicle_changelist' %}" class="radar-btn btn-secondary">
+                Vehicle List &rarr;
+            </a>
+        </div>
+    </div>
+
+    <!-- Hazard Alert Banner (Active when Geofence breach or SOS detected) -->
+    <div id="radarAlertBanner" class="radar-alert-banner" style="display: none;">
+        <div class="alert-content">
+            <span class="alert-beacon">🚨</span>
+            <div>
+                <strong id="alertBannerTitle">GEOFENCE BOUNDARY BREACH DETECTED</strong>
+                <p id="alertBannerDesc">Vehicle exceeded speed limit in active perimeter zone.</p>
+            </div>
+        </div>
+        <div class="alert-actions">
+            <button id="btnDismissAlert" class="btn-dismiss">&times; Dismiss</button>
+        </div>
+    </div>
+
+    <!-- Filter & Map Controls Toolbar -->
+    <div class="radar-toolbar">
+        <div class="filter-pills" id="radarFilterPills">
+            <button class="pill is-active" data-filter="all">All Fleet (<span id="pillAllCount">0</span>)</button>
+            <button class="pill" data-filter="on_trip">🟢 Moving (<span id="pillActiveCount">0</span>)</button>
+            <button class="pill" data-filter="standby">🔵 Standby (<span id="pillStandbyCount">0</span>)</button>
+            <button class="pill" data-filter="workshop">🟠 Workshop (<span id="pillWorkshopCount">0</span>)</button>
+            <button class="pill" data-filter="sos_alert">🔴 SOS Alert (<span id="pillSosCount">0</span>)</button>
+        </div>
+
+        <div class="search-wrap">
+            <span class="search-glyph">🔍</span>
+            <input type="text" id="radarSearchInput" placeholder="Search Reg (e.g. TN-38), Driver, Model, City..." />
+            <button id="clearSearchBtn" class="clear-btn" style="display:none;">&times;</button>
+        </div>
+
+        <div class="map-quick-tools">
+            <button id="btnToggleRoutes" class="tool-btn" title="Toggle active trip route polylines">🧭 Active Routes</button>
+            <button id="btnToggleRings" class="tool-btn is-active" title="Toggle concentric radar distance range circles">🎯 Range Rings</button>
+            <button id="btnFocusDepot" class="tool-btn" title="Focus Coimbatore HQ Yard">📍 HQ Depot</button>
+            <button id="btnFitAllFleet" class="tool-btn" title="Fit all fleet markers">⛶ Fit Fleet</button>
+            <div class="refresh-rate-select">
+                <span>Auto-Sync:</span>
+                <select id="autoRefreshInterval">
+                    <option value="5000" selected>5s</option>
+                    <option value="10000">10s</option>
+                    <option value="15000">15s</option>
+                    <option value="0">Off</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Live Workspace: Leaflet Tactical Map + Cockpit Telemetry Drawer -->
+    <div class="radar-workspace">
+        <!-- Interactive Map Container -->
+        <div class="map-viewport-wrapper" style="position: relative;">
+            <div id="liveTelematicsRadarMap" class="tactical-map"></div>
+
+            <!-- 🛠️ Developer Mode: Map Paused Placeholder -->
+            <div id="devMapPlaceholder" style="display: none; position: absolute; inset: 0; z-index: 1000; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); flex-direction: column; align-items: center; justify-content: center; color: #f8fafc; text-align: center; padding: 24px;">
+                <div style="font-size: 52px; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.4));">🗺️</div>
+                <h3 style="font-size: 22px; font-weight: 800; color: #38bdf8; margin: 0 0 8px;">Map Auto-Load Paused (Developer Mode)</h3>
+                <p style="font-size: 13px; color: #94a3b8; max-width: 480px; margin: 0 0 24px; line-height: 1.6;">
+                    Map rendering, WebGL tiles, and live GPS background polling (<code>/api/fleet/live-feed/</code>) are paused to save browser memory and stop terminal query spam while you develop.
+                </p>
+                <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
+                    <button id="btnDevLoadMapNow" style="padding: 11px 22px; background: linear-gradient(135deg, #0284c7, #10b981); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); display: flex; align-items: center; gap: 6px;">
+                        ▶️ Load Map Now
+                    </button>
+                    <button id="btnDevAlwaysAutoLoad" style="padding: 11px 20px; background: rgba(51, 65, 85, 0.6); color: #cbd5e1; border: 1px solid #475569; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+                        ⚙️ Always Auto-Load Map
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tactical Radar Range Sweep Overlay -->
+            <div class="radar-sweep-effect" id="radarSweepOverlay" pointer-events="none"></div>
+
+            <!-- Map Floating Legend Overlay -->
+            <div class="tactical-legend">
+                <div class="legend-header">Tactical Legend</div>
+                <div class="legend-item"><span class="dot green"></span> Moving On Duty</div>
+                <div class="legend-item"><span class="dot blue"></span> Ready Standby</div>
+                <div class="legend-item"><span class="dot orange"></span> In Maintenance</div>
+                <div class="legend-item"><span class="dot red pulse"></span> SOS / Breach</div>
+                <div class="legend-item"><span class="box-geofence"></span> Geofence Perimeter</div>
+                <div class="legend-item"><span class="line-route"></span> Active Trip Route</div>
+            </div>
+
+            <!-- Signal & Satellites Status Badge -->
+            <div class="signal-badge">
+                <span class="signal-bars">📶</span>
+                <span>GPS LOCK: <strong id="mapSatLock">9 Sats</strong> (HDOP 0.8)</span>
+            </div>
+        </div>
+
+        <!-- Cockpit Telemetry & Fleet Inspector Drawer -->
+        <aside class="radar-cockpit">
+            <div class="cockpit-tabs">
+                <button class="tab-btn is-active" data-tab="telemetry">⚡ Telemetry & Gauges</button>
+                <button class="tab-btn" data-tab="roster">📋 Roster (<span id="cockpitRosterCount">0</span>)</button>
+                <button class="tab-btn" data-tab="geofences">🛡️ Geofences (<span id="cockpitGeofenceCount">0</span>)</button>
+                <button class="tab-btn" data-tab="violations">⚠️ Safety (<span id="cockpitViolationsCount">0</span>)</button>
+            </div>
+
+            <!-- TAB 1: Real-time Telemetry & Speed Gauges -->
+            <div class="cockpit-tab-panel is-active" id="panelTelemetry">
+                <div id="emptyTelemetryState" class="empty-state">
+                    <div class="empty-icon">🛰️</div>
+                    <h3>Select a Fleet Vehicle</h3>
+                    <p>Click any vehicle marker on the radar or pick from the fleet roster to inspect live speedometer gauges, engine telemetry, breadcrumbs, and active passenger trip routes.</p>
+                </div>
+
+                <div id="activeTelemetryDetails" class="telemetry-details" style="display: none;">
+                    <!-- Vehicle Title & Status -->
+                    <div class="vehicle-title-card">
+                        <div>
+                            <div class="reg-code" id="detailReg">TN-38-BZ-1234</div>
+                            <div class="model-line" id="detailModel">Toyota Innova Crysta 2.4 VX</div>
+                        </div>
+                        <div class="status-tag" id="detailStatusTag">🟢 On Duty</div>
+                    </div>
+
+                    <!-- ═══ Dynamic SVG Speedometer Gauge ═══ -->
+                    <div class="speedometer-box">
+                        <div class="gauge-title-row">
+                            <span>SPEED TELEMETRY</span>
+                            <span id="detailIgnitionTag" class="ignition-tag engine-on">ENGINE ON</span>
+                        </div>
+                        <div class="speedometer-canvas-wrap">
+                            <svg class="speedometer-svg" viewBox="0 0 200 120">
+                                <!-- Background Track Arc -->
+                                <path d="M 25 100 A 75 75 0 0 1 175 100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12" stroke-linecap="round" />
+                                <!-- Safe Zone Arc (0-60 km/h) -->
+                                <path d="M 25 100 A 75 75 0 0 1 80 35" fill="none" stroke="#10b981" stroke-width="12" stroke-opacity="0.8" stroke-linecap="round" />
+                                <!-- Moderate Arc (60-80 km/h) -->
+                                <path d="M 80 35 A 75 75 0 0 1 120 35" fill="none" stroke="#f59e0b" stroke-width="12" stroke-opacity="0.85" />
+                                <!-- High Speed Hazard Arc (80-140 km/h) -->
+                                <path d="M 120 35 A 75 75 0 0 1 175 100" fill="none" stroke="#ef4444" stroke-width="12" stroke-opacity="0.9" stroke-linecap="round" />
+                                <!-- Dynamic Needle -->
+                                <g id="speedNeedleGroup" style="transform-origin: 100px 100px; transform: rotate(-90deg); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                    <line x1="100" y1="100" x2="100" y2="35" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" filter="drop-shadow(0 0 4px #0284c7)" />
+                                    <circle cx="100" cy="100" r="8" fill="#0284c7" stroke="#38bdf8" stroke-width="2" />
+                                </g>
+                            </svg>
+                            <div class="speed-digital-display">
+                                <span class="speed-number" id="detailSpeedNumber">0</span>
+                                <span class="speed-unit">KM/H</span>
+                            </div>
+                        </div>
+                        <div id="overspeedAlertPill" class="overspeed-pill" style="display:none;">
+                            ⚠️ SPEED LIMIT EXCEEDED
+                        </div>
+                    </div>
+
+                    <!-- Aux Telemetry Meters: Fuel, Odometer, Satellites -->
+                    <div class="aux-gauges-grid">
+                        <div class="aux-gauge-card">
+                            <span class="aux-label">Fuel Level</span>
+                            <div class="aux-val" id="detailFuelVal">75%</div>
+                            <div class="meter-bar-wrap">
+                                <div class="meter-bar-fill fuel" id="detailFuelBar" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                        <div class="aux-gauge-card">
+                            <span class="aux-label">Odometer</span>
+                            <div class="aux-val" id="detailOdoVal">42,500 <small>km</small></div>
+                            <div class="aux-sub" id="detailFuelType">Diesel</div>
+                        </div>
+                        <div class="aux-gauge-card">
+                            <span class="aux-label">GPS Satellites</span>
+                            <div class="aux-val" id="detailSatVal">10 <small>Sats</small></div>
+                            <div class="aux-sub" id="detailAltitude">Alt: 425m</div>
+                        </div>
+                    </div>
+
+                    <!-- Geofence Status Pill -->
+                    <div id="detailGeofenceBox" class="geofence-status-box" style="display: none;">
+                        <div class="gf-head">
+                            <span class="gf-icon">📍</span>
+                            <strong id="detailGfName">Coimbatore International Airport</strong>
+                        </div>
+                        <div class="gf-desc" id="detailGfDesc">
+                            Inside Zone &bull; Limit: 35 km/h &bull; <span id="detailGfAlertText" class="gf-status-safe">Compliant</span>
+                        </div>
+                    </div>
+
+                    <!-- Location & Ping Tracker -->
+                    <div class="info-row-strip">
+                        <span class="strip-icon">📍</span>
+                        <div class="strip-text">
+                            <strong id="detailLocationText">Coimbatore Operational Sector</strong>
+                            <span id="detailLastPingTime">Ping: Just now</span>
+                        </div>
+                        <button id="btnCenterOnMap" class="icon-btn" title="Center Radar on this vehicle">🎯 Focus</button>
+                    </div>
+
+                    <!-- ═══ Active Trip Card & Route Geometry ═══ -->
+                    <div id="detailTripCard" class="cockpit-card trip-card" style="display: none;">
+                        <div class="card-header-line">
+                            <span class="card-title">🧭 Active Passenger Trip</span>
+                            <span class="trip-badge" id="detailTripBookingNo">TRP-1042</span>
+                        </div>
+                        <div class="trip-corridor-visual">
+                            <div class="corridor-point">
+                                <span class="corridor-dot pickup"></span>
+                                <span class="corridor-name" id="detailTripPickup">Coimbatore Junction</span>
+                            </div>
+                            <div class="corridor-line">
+                                <span class="corridor-arrow">&rarr;</span>
+                            </div>
+                            <div class="corridor-point">
+                                <span class="corridor-dot dest"></span>
+                                <span class="corridor-name" id="detailTripDest">Ooty Boat House</span>
+                            </div>
+                        </div>
+                        <div class="trip-meta-grid">
+                            <div>Passenger: <strong id="detailTripGuest">Rithick Kumar</strong></div>
+                            <div id="detailTripPhone">📞 +91 98765 43210</div>
+                            <div>ETA: <strong id="detailTripEta">42 mins</strong></div>
+                            <div>Route Status: <span class="text-emerald-400 font-semibold" id="detailTripStatus">In Transit</span></div>
+                        </div>
+                        <div class="trip-action-buttons">
+                            <a id="detailTripAdminLink" href="#" target="_blank" class="radar-btn btn-sm btn-secondary">
+                                Open Trip Sheet in Admin ↗
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Assigned Driver Captain Card -->
+                    <div id="detailDriverCard" class="cockpit-card driver-card" style="display: none;">
+                        <div class="card-header-line">
+                            <span class="card-title">👨‍✈️ Assigned Captain</span>
+                            <span class="grade-badge" id="detailDriverGrade">Grade A+ (98%)</span>
+                        </div>
+                        <div class="driver-row">
+                            <div class="driver-avatar" id="detailDriverAvatar">M</div>
+                            <div class="driver-text">
+                                <strong id="detailDriverName">Murugan S.</strong>
+                                <span id="detailDriverPhone">+91 94432 11223</span>
+                            </div>
+                            <a id="detailDriverCallBtn" href="tel:" class="call-btn" title="Call Driver">
+                                📞 Call
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Fleet Roster List -->
+            <div class="cockpit-tab-panel" id="panelRoster">
+                <div class="roster-scroll-list" id="radarRosterContainer">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- TAB 3: Geofence Zones Directory -->
+            <div class="cockpit-tab-panel" id="panelGeofences">
+                <div class="geofence-list" id="radarGeofenceContainer">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- TAB 4: Safety & Violations Feed -->
+            <div class="cockpit-tab-panel" id="panelViolations">
+                <div class="violations-feed" id="radarViolationsContainer">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<style>
+/* ═══ Tactical Live Telematics Radar Stylesheet ═══ */
+.radar-admin-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 110px);
+    background: #080d19;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 8px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid rgba(56, 189, 248, 0.15);
+}
+
+/* ── Leaflet Layer Switcher & Control Dark Theme Overrides ── */
+.leaflet-control-layers {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+    color: #e2e8f0 !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+}
+.leaflet-control-layers-expanded {
+    padding: 10px 14px !important;
+}
+.leaflet-control-layers-toggle {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+}
+.leaflet-control-layers label {
+    margin-bottom: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+}
+.leaflet-control-zoom a {
+    background: rgba(15, 23, 42, 0.92) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+.leaflet-control-zoom a:hover {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+}
+.leaflet-container {
+    background: #090e17 !important;
+}
+
+/* Top Bar */
+.radar-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: #0f172a;
+    border-bottom: 1px solid #1e293b;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.radar-title-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.radar-live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid #10b981;
+    color: #10b981;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+}
+
+.radar-live-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: livePulse 1.5s infinite;
+}
+
+@keyframes livePulse {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.radar-h1 {
+    font-size: 17px;
+    font-weight: 800;
+    margin: 0;
+    color: #f8fafc;
+    letter-spacing: -0.01em;
+}
+
+.radar-subtitle {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 1px;
+}
+
+.radar-sync-stamp {
+    font-family: 'JetBrains Mono', monospace;
+    color: #38bdf8;
+    margin-left: 8px;
+    font-size: 10px;
+}
+
+/* KPI Group */
+.radar-kpi-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.radar-kpi-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+}
+
+.radar-kpi-pill .kpi-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #fff;
+}
+
+.radar-kpi-pill.kpi-moving { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); color: #34d399; }
+.radar-kpi-pill.kpi-standby { border-color: rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.1); color: #60a5fa; }
+.radar-kpi-pill.kpi-workshop { border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+.radar-kpi-pill.kpi-geofence { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); color: #f87171; }
+.radar-kpi-pill.kpi-sos { border-color: #ef4444; background: rgba(239, 68, 68, 0.25); color: #fca5a5; animation: sosFlash 1s infinite alternate; }
+
+@keyframes sosFlash {
+    from { background: rgba(239, 68, 68, 0.2); }
+    to { background: rgba(239, 68, 68, 0.5); }
+}
+
+/* Action Buttons */
+.radar-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.radar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-sim {
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid #0284c7;
+    color: #38bdf8;
+}
+
+.btn-sim.is-active {
+    background: #0284c7;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+}
+
+.btn-sound {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+}
+
+.btn-refresh {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+}
+
+.spinner-icon.spin {
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Alert Banner */
+.radar-alert-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 18px;
+    background: linear-gradient(90deg, #991b1b, #b91c1c);
+    color: #fff;
+    font-size: 12px;
+    border-bottom: 1px solid #ef4444;
+}
+
+.radar-alert-banner .alert-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-dismiss {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+/* Toolbar */
+.radar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 18px;
+    background: #0b1120;
+    border-bottom: 1px solid #1e293b;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-pills .pill {
+    padding: 4px 10px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-pills .pill.is-active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #fff;
+}
+
+.search-wrap {
+    position: relative;
+    flex: 1;
+    max-width: 320px;
+}
+
+.search-wrap input {
+    width: 100%;
+    padding: 5px 28px 5px 28px;
+    border-radius: 6px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f8fafc;
+    font-size: 12px;
+}
+
+.search-glyph {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.map-quick-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tool-btn {
+    padding: 4px 10px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tool-btn.is-active {
+    background: #0284c7;
+    color: #fff;
+    border-color: #38bdf8;
+}
+
+.refresh-rate-select {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.refresh-rate-select select {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+/* Workspace */
+.radar-workspace {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.map-viewport-wrapper {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+}
+
+.tactical-map {
+    width: 100%;
+    height: 100%;
+    background: #080d19;
+}
+
+/* Concentric Radar Overlay & Sweep */
+.radar-sweep-effect {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.03) 0%, transparent 70%);
+}
+
+.tactical-legend {
+    position: absolute;
+    bottom: 24px;
+    left: 14px;
+    z-index: 900;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #cbd5e1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+
+.legend-header {
+    font-weight: 800;
+    color: #38bdf8;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-item .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.legend-item .dot.green { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.legend-item .dot.blue { background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+.legend-item .dot.orange { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+.legend-item .dot.red { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.legend-item .box-geofence { width: 12px; height: 12px; border: 1.5px dashed #38bdf8; border-radius: 3px; background: rgba(56, 189, 248, 0.15); }
+.legend-item .line-route { width: 14px; height: 3px; background: #38bdf8; border-radius: 2px; }
+
+.signal-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 900;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #e2e8f0;
+}
+
+/* Right Side Cockpit Drawer */
+.radar-cockpit {
+    width: 380px;
+    background: #0d1527;
+    border-left: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    z-index: 950;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.4);
+}
+
+.cockpit-tabs {
+    display: flex;
+    background: #090e1a;
+    border-bottom: 1px solid #1e293b;
+}
+
+.cockpit-tabs .tab-btn {
+    flex: 1;
+    padding: 10px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.cockpit-tabs .tab-btn * {
+    pointer-events: none;
+}
+
+.cockpit-tabs .tab-btn.is-active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+}
+
+.cockpit-tab-panel {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+}
+
+.cockpit-tab-panel.is-active {
+    display: block;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px 14px;
+    color: #64748b;
+}
+
+.empty-state .empty-icon {
+    font-size: 44px;
+    margin-bottom: 12px;
+}
+
+.empty-state h3 {
+    font-size: 15px;
+    color: #cbd5e1;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.empty-state p {
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Vehicle Title Card */
+.vehicle-title-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 12px;
+}
+
+.reg-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.model-line {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.status-tag {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.08);
+}
+
+/* Dynamic Speedometer Box */
+.speedometer-box {
+    background: #111b30;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.gauge-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.ignition-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+}
+
+.ignition-tag.engine-on { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+.ignition-tag.engine-off { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid #64748b; }
+
+.speedometer-canvas-wrap {
+    position: relative;
+    width: 200px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.speedometer-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.speed-digital-display {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.speed-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    color: #f8fafc;
+}
+
+.speed-unit {
+    font-size: 9px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.1em;
+}
+
+.overspeed-pill {
+    margin-top: 8px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+    animation: flashAlert 0.8s infinite alternate;
+}
+
+@keyframes flashAlert { from { opacity: 0.8; } to { opacity: 1; transform: scale(1.02); } }
+
+/* Aux Meters */
+.aux-gauges-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.aux-gauge-card {
+    background: #111b30;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+}
+
+.aux-label {
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.aux-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-top: 3px;
+}
+
+.aux-sub {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.meter-bar-wrap {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.meter-bar-fill.fuel {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #f59e0b 40%, #10b981 100%);
+}
+
+/* Geofence Status Box */
+.geofence-status-box {
+    background: rgba(2, 132, 199, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+}
+
+.geofence-status-box .gf-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #38bdf8;
+    font-size: 12px;
+}
+
+.geofence-status-box .gf-desc {
+    font-size: 11px;
+    color: #cbd5e1;
+    margin-top: 3px;
+}
+
+.gf-status-safe { color: #34d399; font-weight: 700; }
+.gf-status-hazard { color: #f87171; font-weight: 800; }
+
+/* Info Row Strip */
+.info-row-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #111b30;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+}
+
+.strip-icon { font-size: 16px; margin-right: 8px; }
+.strip-text { flex: 1; font-size: 11px; }
+.strip-text strong { display: block; color: #f8fafc; }
+.strip-text span { color: #64748b; font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+.icon-btn { background: #1e293b; border: 1px solid #334155; color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+/* Cockpit Cards */
+.cockpit-card {
+    background: #111b30;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.card-header-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.card-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.trip-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid #0284c7;
+    color: #38bdf8;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.trip-corridor-visual {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #090e1a;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+}
+
+.corridor-point {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.corridor-dot { width: 8px; height: 8px; border-radius: 50%; }
+.corridor-dot.pickup { background: #10b981; }
+.corridor-dot.dest { background: #f59e0b; }
+.corridor-line { color: #64748b; font-size: 12px; }
+
+.trip-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.trip-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.driver-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.driver-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7, #6366f1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+.driver-text { flex: 1; font-size: 12px; }
+.driver-text strong { display: block; color: #f8fafc; }
+.driver-text span { color: #64748b; font-size: 11px; }
+
+.call-btn {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid #10b981;
+    color: #10b981;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.grade-badge {
+    font-size: 10px;
+    font-weight: 800;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid #10b981;
+    color: #34d399;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Roster Cards */
+.roster-card {
+    background: #111b30;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.roster-card:hover { border-color: #38bdf8; background: #162442; }
+.roster-card.is-selected { border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
+.roster-reg { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; color: #fff; }
+.roster-meta { font-size: 11px; color: #94a3b8; }
+.roster-speed { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 800; color: #38bdf8; }
+
+/* Geofence Cards */
+.gf-card {
+    background: #111b30;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.gf-card:hover { border-color: #38bdf8; }
+.gf-title { font-weight: 700; color: #f8fafc; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.gf-meta { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
+/* Custom Leaflet Marker Styling */
+.tactical-vehicle-marker {
+    background: transparent;
+    border: none;
+}
+
+.marker-halo {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    border: 2px solid #fff;
+}
+
+.marker-halo.green { background: #10b981; border-color: #34d399; }
+.marker-halo.blue { background: #0284c7; border-color: #38bdf8; }
+.marker-halo.orange { background: #f59e0b; border-color: #fbbf24; }
+.marker-halo.red { background: #ef4444; border-color: #f87171; animation: redPing 1s infinite alternate; }
+
+@keyframes redPing { from { transform: scale(1); } to { transform: scale(1.15); } }
+
+.marker-heading-arrow {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 7px solid #38bdf8;
+}
+
+.marker-plate {
+    position: absolute;
+    top: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #334155;
+    color: #f8fafc;
+    font-size: 10px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+</style>
+
+<!-- Leaflet Library & Full Radar Engine Script -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function() {
+    // --- Radar State ---
+    let map = null;
+    let vehicleMarkers = {};
+    let breadcrumbLayers = {};
+    let activeRoutePolyline = null;
+    let originMarker = null;
+    let destMarker = null;
+    let geofenceLayers = [];
+    let radarRangeRings = [];
+    let fleetData = [];
+    let geofencesData = [];
+    let selectedVehicleId = null;
+    let currentFilter = 'all';
+    let autoRefreshTimer = null;
+    let simIntervalTimer = null;
+    let isFetching = false;
+    let isSimulating = false;
+    let soundEnabled = true;
+    let showRoutes = true;
+    let showRings = true;
+
+    const DEPOT_COORDS = [11.0168, 76.9558]; // Coimbatore HQ
+
+    // --- Web Audio Tactical Chime (Zero External Files) ---
+    function playTacticalChime(type = 'ping') {
+        if (!soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            if (type === 'hazard') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            }
+        } catch(e) {}
+    }
+
+    // --- Initialize Leaflet Map ---
+    function initMap() {
+        map = L.map('liveTelematicsRadarMap', {
+            center: DEPOT_COORDS,
+            zoom: 11,
+            zoomControl: false
+        });
+
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        // 🛰️ Multi-Layer High-Performance Tile Providers (100% Free, Zero Watermark, Zero API Key)
+        // 1. Esri World Dark Gray Canvas (Clean, contrast tactical radar basemap)
+        const darkMatterLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+            maxZoom: 16
+        });
+
+        // 2. Esri World Street Map (Detailed street names, landmarks, highways)
+        const streetVoyagerLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom',
+            maxZoom: 19
+        });
+
+        // 3. Esri World Imagery (High-resolution satellite topography)
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP',
+            maxZoom: 19
+        });
+
+        // 4. OpenStreetMap Standard (Open collaborative map data)
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap France &mdash; Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 20
+        });
+
+        // Add default dark theme layer
+        darkMatterLayer.addTo(map);
+
+        const baseMaps = {
+            "<span style='color:#38bdf8;font-weight:700;'>🌙 Tactical Dark</span>": darkMatterLayer,
+            "<span style='color:#0284c7;font-weight:700;'>🗺️ Clean Streets</span>": streetVoyagerLayer,
+            "<span style='color:#10b981;font-weight:700;'>🛰️ Satellite Imagery</span>": satelliteLayer,
+            "<span style='color:#f59e0b;font-weight:700;'>🌐 OpenStreetMap</span>": osmLayer
+        };
+        L.control.layers(baseMaps, null, { position: 'topright', collapsed: true }).addTo(map);
+
+        // Tactical Depot Marker
+        const depotIcon = L.divIcon({
+            className: 'depot-marker',
+            html: '<div style="background:#0284c7;color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid #38bdf8;box-shadow:0 0 14px rgba(2,132,199,0.8);">🏢</div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+        });
+        L.marker(DEPOT_COORDS, { icon: depotIcon })
+            .bindTooltip("🏢 SIVA GAYATHRI TOURS HQ DEPOT (Coimbatore)", { direction: 'top', permanent: false })
+            .addTo(map);
+
+        drawRangeRings();
+    }
+
+    // --- Draw Concentric Radar Range Rings (10km, 25km, 50km, 100km) ---
+    function drawRangeRings() {
+        radarRangeRings.forEach(r => map.removeLayer(r));
+        radarRangeRings = [];
+
+        if (!showRings) return;
+
+        const radii = [
+            { r: 10000, label: "10 KM RADAR ZONE" },
+            { r: 25000, label: "25 KM RADAR ZONE" },
+            { r: 50000, label: "50 KM SUB-DISTRICT" },
+            { r: 100000, label: "100 KM REGIONAL" }
+        ];
+
+        radii.forEach(item => {
+            const ring = L.circle(DEPOT_COORDS, {
+                radius: item.r,
+                color: '#38bdf8',
+                weight: 1,
+                dashArray: '4, 8',
+                opacity: 0.25,
+                fill: false,
+                interactive: false
+            }).addTo(map);
+            radarRangeRings.push(ring);
+        });
+    }
+
+    // --- Fetch Real-Time Live Feed ---
+    async function fetchLiveFeed(isAuto = false) {
+        if (isFetching) return;
+        isFetching = true;
+        const spinner = document.getElementById('refreshSpinner');
+        if (spinner) spinner.classList.add('spin');
+
+        try {
+            const resp = await fetch('/api/fleet/live-feed/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const data = await resp.json();
+
+            fleetData = data.vehicles || [];
+            geofencesData = data.geofences || [];
+
+            updateKPICounters(data.summary || {});
+            renderGeofences(geofencesData);
+            renderVehicleMarkers(fleetData);
+            renderRosterList(fleetData);
+            renderGeofenceList(geofencesData);
+            renderViolationsList(data.recent_violations || [], data.active_incidents || []);
+            checkPerimeterBreaches(fleetData, data.active_incidents || []);
+
+            const syncText = document.getElementById('radarSyncTime');
+            if (syncText) {
+                const d = new Date();
+                syncText.innerText = `Synced ${d.toLocaleTimeString()}`;
+            }
+
+            if (selectedVehicleId) {
+                const v = fleetData.find(x => x.id === selectedVehicleId);
+                if (v) selectVehicle(v, false);
+            }
+        } catch (e) {
+            console.error('Radar sync error:', e);
+        } finally {
+            isFetching = false;
+            if (spinner) spinner.classList.remove('spin');
+        }
+    }
+
+    // --- Update KPI Counters ---
+    function updateKPICounters(s) {
+        document.getElementById('kpiTotalCount').innerText = s.total_vehicles || 0;
+        document.getElementById('kpiActiveCount').innerText = s.active_count || 0;
+        document.getElementById('kpiStandbyCount').innerText = s.standby_count || 0;
+        document.getElementById('kpiWorkshopCount').innerText = s.workshop_count || 0;
+        document.getElementById('kpiGeofenceCount').innerText = s.geofence_breaches_count || 0;
+        document.getElementById('kpiSosCount').innerText = s.sos_count || 0;
+
+        document.getElementById('pillAllCount').innerText = s.total_vehicles || 0;
+        document.getElementById('pillActiveCount').innerText = s.active_count || 0;
+        document.getElementById('pillStandbyCount').innerText = s.standby_count || 0;
+        document.getElementById('pillWorkshopCount').innerText = s.workshop_count || 0;
+        document.getElementById('pillSosCount').innerText = s.sos_count || 0;
+
+        document.getElementById('cockpitRosterCount').innerText = s.total_vehicles || 0;
+        document.getElementById('cockpitGeofenceCount').innerText = geofencesData.length;
+        document.getElementById('cockpitViolationsCount').innerText = (s.violations_count || 0) + (s.active_alerts_count || 0);
+
+        const sosWrapper = document.getElementById('kpiSosWrapper');
+        if (s.sos_count > 0) {
+            sosWrapper.style.display = 'flex';
+        }
+    }
+
+    // --- Check Geofence Perimeter Breaches & Hazard Banner ---
+    function checkPerimeterBreaches(vehicles, activeIncidents) {
+        const banner = document.getElementById('radarAlertBanner');
+        const breachVehicles = vehicles.filter(v => v.geofence_status && (v.geofence_status.is_speeding || v.geofence_status.is_restricted));
+
+        if (activeIncidents.length > 0) {
+            const inc = activeIncidents[0];
+            document.getElementById('alertBannerTitle').innerText = `🚨 CRITICAL EMERGENCY SOS: ${inc.incident_id} (${inc.vehicle_reg})`;
+            document.getElementById('alertBannerDesc').innerText = `${inc.incident_type} reported at ${inc.location}. ${inc.description}`;
+            banner.style.display = 'flex';
+            playTacticalChime('hazard');
+        } else if (breachVehicles.length > 0) {
+            const bv = breachVehicles[0];
+            const gf = bv.geofence_status;
+            document.getElementById('alertBannerTitle').innerText = `⚠️ GEOFENCE BREACH: ${bv.registration_number} (${gf.alert_text})`;
+            document.getElementById('alertBannerDesc').innerText = `Inside ${gf.zone_name}. Recorded Speed: ${bv.speed_kmh} km/h (Zone Max: ${gf.speed_limit_kmh} km/h).`;
+            banner.style.display = 'flex';
+            playTacticalChime('hazard');
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    // --- Render Geofence Zones ---
+    function renderGeofences(geofences) {
+        geofenceLayers.forEach(l => map.removeLayer(l));
+        geofenceLayers = [];
+
+        geofences.forEach(g => {
+            let color = '#38bdf8';
+            let fillColor = '#0284c7';
+            if (g.zone_code === 'restricted_zone') {
+                color = '#ef4444';
+                fillColor = '#dc2626';
+            } else if (g.zone_code === 'airport') {
+                color = '#10b981';
+                fillColor = '#059669';
+            } else if (g.zone_code === 'fuel_station') {
+                color = '#f59e0b';
+                fillColor = '#d97706';
+            } else if (g.zone_code === 'client_site') {
+                color = '#6366f1';
+                fillColor = '#4f46e5';
+            }
+
+            const circle = L.circle([g.lat, g.lng], {
+                radius: g.radius,
+                color: color,
+                fillColor: fillColor,
+                fillOpacity: 0.12,
+                weight: 2,
+                dashArray: '6, 6'
+            }).addTo(map);
+
+            circle.bindTooltip(`📍 <strong>${g.name}</strong><br>Type: ${g.zone_type}<br>Speed Limit: ${g.speed_limit} km/h<br>Radius: ${g.radius}m`, {
+                direction: 'top'
+            });
+
+            circle.on('click', () => {
+                map.flyTo([g.lat, g.lng], 14, { duration: 1.0 });
+                switchTab('geofences');
+            });
+
+            geofenceLayers.push(circle);
+        });
+    }
+
+    // --- Render Custom Vehicle Markers & Direction Heading ---
+    function renderVehicleMarkers(vehicles) {
+        const currentIds = new Set();
+        const searchVal = (document.getElementById('radarSearchInput').value || '').trim().toLowerCase();
+
+        vehicles.forEach(v => {
+            currentIds.add(v.id);
+
+            // Filter Check
+            let matchesFilter = (currentFilter === 'all') || (v.status_code === currentFilter);
+            let matchesSearch = true;
+            if (searchVal) {
+                const hay = `${v.registration_number} ${v.model_name} ${v.location_name} ${v.driver ? v.driver.name : ''}`.toLowerCase();
+                matchesSearch = hay.includes(searchVal);
+            }
+
+            const visible = matchesFilter && matchesSearch;
+
+            // Icon Symbol & Color
+            let symbol = '🚗';
+            let color = 'blue';
+            if (v.vehicle_type && v.vehicle_type.toLowerCase().includes('bus')) symbol = '🚌';
+            else if (v.vehicle_type && v.vehicle_type.toLowerCase().includes('tempo')) symbol = '🚐';
+
+            if (v.status_code === 'sos_alert' || (v.geofence_status && v.geofence_status.is_restricted)) {
+                color = 'red';
+                symbol = '🚨';
+            } else if (v.status_code === 'workshop') {
+                color = 'orange';
+                symbol = '🔧';
+            } else if (v.status_code === 'on_trip') {
+                color = 'green';
+            }
+
+            const heading = v.heading_degrees || 0;
+            const customHtml = `
+                <div class="marker-halo ${color}" style="transform: rotate(${heading}deg);">
+                    <span class="marker-heading-arrow"></span>
+                    <span style="transform: rotate(-${heading}deg);">${symbol}</span>
+                </div>
+                <div class="marker-plate">${v.registration_number}</div>
+            `;
+
+            const icon = L.divIcon({
+                className: 'tactical-vehicle-marker',
+                html: customHtml,
+                iconSize: [32, 48],
+                iconAnchor: [16, 16]
+            });
+
+            if (vehicleMarkers[v.id]) {
+                const marker = vehicleMarkers[v.id];
+                marker.setLatLng([v.lat, v.lng]);
+                marker.setIcon(icon);
+                if (visible) {
+                    if (!map.hasLayer(marker)) marker.addTo(map);
+                } else {
+                    if (map.hasLayer(marker)) map.removeLayer(marker);
+                }
+            } else {
+                const marker = L.marker([v.lat, v.lng], { icon: icon });
+                marker.on('click', () => selectVehicle(v, true));
+                if (visible) marker.addTo(map);
+                vehicleMarkers[v.id] = marker;
+            }
+        });
+
+        // Cleanup
+        Object.keys(vehicleMarkers).forEach(id => {
+            if (!currentIds.has(Number(id))) {
+                map.removeLayer(vehicleMarkers[id]);
+                delete vehicleMarkers[id];
+            }
+        });
+    }
+
+    // --- Select Vehicle & Update Cockpit Gauges ---
+    function selectVehicle(v, pan = true) {
+        selectedVehicleId = v.id;
+        switchTab('telemetry');
+
+        // Highlight in Roster
+        document.querySelectorAll('.roster-card').forEach(c => c.classList.remove('is-selected'));
+        const activeCard = document.getElementById(`roster-${v.id}`);
+        if (activeCard) activeCard.classList.add('is-selected');
+
+        document.getElementById('emptyTelemetryState').style.display = 'none';
+        document.getElementById('activeTelemetryDetails').style.display = 'block';
+
+        // Base Info
+        document.getElementById('detailReg').innerText = v.registration_number;
+        document.getElementById('detailModel').innerText = `${v.model_name} (${v.vehicle_type} • ${v.capacity} Seater)`;
+
+        const statusTag = document.getElementById('detailStatusTag');
+        statusTag.innerText = v.status_label;
+        statusTag.style.color = v.status_color;
+
+        // ═══ Speedometer Needle & Digital Gauge ═══
+        const speed = Math.round(v.speed_kmh || 0);
+        document.getElementById('detailSpeedNumber').innerText = speed;
+
+        // Needle rotation: -90deg is 0 km/h, +90deg is 140 km/h
+        const needleAngle = -90 + (Math.min(speed, 140) / 140) * 180;
+        document.getElementById('speedNeedleGroup').style.transform = `rotate(${needleAngle}deg)`;
+
+        // Overspeed Warning
+        const overspeedPill = document.getElementById('overspeedAlertPill');
+        const isSpeeding = (speed > 80) || (v.geofence_status && v.geofence_status.is_speeding);
+        overspeedPill.style.display = isSpeeding ? 'block' : 'none';
+        if (isSpeeding && v.geofence_status && v.geofence_status.is_speeding) {
+            overspeedPill.innerText = `⚠️ ZONE SPEED EXCEEDED (${speed} KM/H > ${v.geofence_status.speed_limit_kmh} KM/H)`;
+        } else if (speed > 80) {
+            overspeedPill.innerText = `⚠️ HIGHWAY OVERSPEED (${speed} KM/H > 80 KM/H)`;
+        }
+
+        // Ignition
+        const ignitionTag = document.getElementById('detailIgnitionTag');
+        if (v.ignition_on) {
+            ignitionTag.className = 'ignition-tag engine-on';
+            ignitionTag.innerText = 'ENGINE ON';
+        } else {
+            ignitionTag.className = 'ignition-tag engine-off';
+            ignitionTag.innerText = 'ENGINE OFF';
+        }
+
+        // Fuel & Odo
+        const fuel = Math.round(v.fuel_level_pct || 75);
+        document.getElementById('detailFuelVal').innerText = `${fuel}%`;
+        document.getElementById('detailFuelBar').style.width = `${fuel}%`;
+        document.getElementById('detailOdoVal').innerHTML = `${(v.current_km || 0).toLocaleString()} <small>km</small>`;
+        document.getElementById('detailFuelType').innerText = v.fuel_type || 'Diesel';
+        document.getElementById('detailSatVal').innerHTML = `${v.satellites || 10} <small>Sats</small>`;
+        document.getElementById('detailAltitude').innerText = `Alt: ${Math.round(v.altitude_m || 420)}m`;
+
+        // Location & Ping
+        document.getElementById('detailLocationText').innerText = v.location_name;
+        document.getElementById('detailLastPingTime').innerText = `Updated: ${v.last_ping_time}`;
+
+        // Geofence status box
+        const gfBox = document.getElementById('detailGeofenceBox');
+        if (v.geofence_status) {
+            gfBox.style.display = 'block';
+            document.getElementById('detailGfName').innerText = v.geofence_status.zone_name;
+            const alertText = document.getElementById('detailGfAlertText');
+            if (v.geofence_status.is_restricted) {
+                alertText.className = 'gf-status-hazard';
+                alertText.innerText = 'RESTRICTED INTRUSION';
+            } else if (v.geofence_status.is_speeding) {
+                alertText.className = 'gf-status-hazard';
+                alertText.innerText = 'OVERSPEEDING';
+            } else {
+                alertText.className = 'gf-status-safe';
+                alertText.innerText = 'Compliant';
+            }
+        } else {
+            gfBox.style.display = 'none';
+        }
+
+        // ═══ Active Trip Card & Route Polylines ═══
+        const tripCard = document.getElementById('detailTripCard');
+        if (v.trip) {
+            tripCard.style.display = 'block';
+            document.getElementById('detailTripBookingNo').innerText = v.trip.booking_number;
+            document.getElementById('detailTripPickup').innerText = v.trip.pickup;
+            document.getElementById('detailTripDest').innerText = v.trip.destination;
+            document.getElementById('detailTripGuest').innerText = v.trip.guest_name;
+            document.getElementById('detailTripPhone').innerText = v.trip.guest_phone ? `📞 ${v.trip.guest_phone}` : '';
+            document.getElementById('detailTripStatus').innerText = v.trip.status;
+            document.getElementById('detailTripAdminLink').href = `/admin/operations/trip/${v.trip.id}/change/`;
+
+            if (v.trip_route && showRoutes) {
+                drawActiveTripRoute(v.trip_route);
+            }
+        } else {
+            tripCard.style.display = 'none';
+            clearActiveTripRoute();
+        }
+
+        // Driver
+        const driverCard = document.getElementById('detailDriverCard');
+        if (v.driver) {
+            driverCard.style.display = 'block';
+            document.getElementById('detailDriverName').innerText = v.driver.name;
+            document.getElementById('detailDriverPhone').innerText = v.driver.phone || 'No phone registered';
+            document.getElementById('detailDriverGrade').innerText = `Grade ${v.driver.grade} (${v.driver.safety_score}%)`;
+            document.getElementById('detailDriverAvatar').innerText = v.driver.name.charAt(0);
+            document.getElementById('detailDriverCallBtn').href = `tel:${v.driver.phone || ''}`;
+        } else {
+            driverCard.style.display = 'none';
+        }
+
+        // Draw Breadcrumb trail for selected vehicle
+        drawBreadcrumbTrail(v);
+
+        if (pan && map) {
+            map.flyTo([v.lat, v.lng], 14, { duration: 1.0 });
+        }
+    }
+
+    // --- Draw Active Trip Route Polyline via Enterprise OSRM Engine ---
+    async function drawActiveTripRoute(route) {
+        clearActiveTripRoute();
+
+        if (!route) return;
+
+        let pathCoords = route.route_path || [];
+
+        // Check if origin and destination coordinates are available to fetch high-res OSRM road network
+        if (route.origin_coords && route.dest_coords) {
+            try {
+                const oLat = route.origin_coords[0];
+                const oLng = route.origin_coords[1];
+                const dLat = route.dest_coords[0];
+                const dLng = route.dest_coords[1];
+                const resp = await fetch(`/api/routing/route/?origin_lat=${oLat}&origin_lng=${oLng}&dest_lat=${dLat}&dest_lng=${dLng}`);
+                if (resp.ok) {
+                    const osrmData = await resp.json();
+                    if (osrmData.geometry && osrmData.geometry.length > 0) {
+                        // Convert GeoJSON [lng, lat] to Leaflet [lat, lng]
+                        pathCoords = osrmData.geometry.map(coord => [coord[1], coord[0]]);
+                    }
+                }
+            } catch (err) {
+                console.debug('OSRM route fetch fallback to default path:', err);
+            }
+        }
+
+        if (pathCoords.length > 0) {
+            activeRoutePolyline = L.polyline(pathCoords, {
+                color: '#38bdf8',
+                weight: 4.0,
+                dashArray: '10, 8',
+                opacity: 0.95
+            }).addTo(map);
+        }
+
+        // Origin Pin
+        if (route.origin_coords) {
+            const origIcon = L.divIcon({
+                html: '<div style="background:#10b981;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid #fff;box-shadow:0 0 10px rgba(16,185,129,0.8);">🚩</div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+            originMarker = L.marker(route.origin_coords, { icon: origIcon })
+                .bindTooltip(`📍 Pickup: ${route.origin_name || 'Origin'}`, { direction: 'top' })
+                .addTo(map);
+        }
+
+        // Dest Pin
+        if (route.dest_coords) {
+            const destIcon = L.divIcon({
+                html: '<div style="background:#f59e0b;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid #fff;box-shadow:0 0 10px rgba(245,158,11,0.8);">🏁</div>',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+            destMarker = L.marker(route.dest_coords, { icon: destIcon })
+                .bindTooltip(`🏁 Destination: ${route.dest_name || 'Destination'}`, { direction: 'top' })
+                .addTo(map);
+        }
+    }
+
+    function clearActiveTripRoute() {
+        if (activeRoutePolyline) { map.removeLayer(activeRoutePolyline); activeRoutePolyline = null; }
+        if (originMarker) { map.removeLayer(originMarker); originMarker = null; }
+        if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
+    }
+
+    // --- Draw Breadcrumb Trajectory ---
+    function drawBreadcrumbTrail(v) {
+        if (breadcrumbLayers[v.id]) {
+            map.removeLayer(breadcrumbLayers[v.id]);
+            delete breadcrumbLayers[v.id];
+        }
+
+        if (v.breadcrumbs && v.breadcrumbs.length > 1) {
+            const trail = L.polyline(v.breadcrumbs, {
+                color: '#34d399',
+                weight: 2.5,
+                opacity: 0.7,
+                dashArray: '3, 6'
+            }).addTo(map);
+            breadcrumbLayers[v.id] = trail;
+        }
+    }
+
+    // --- Tab Switching ---
+    function switchTab(tab) {
+        document.querySelectorAll('.cockpit-tabs .tab-btn').forEach(btn => {
+            btn.classList.toggle('is-active', btn.dataset.tab === tab);
+        });
+        document.querySelectorAll('.cockpit-tab-panel').forEach(panel => {
+            panel.classList.toggle('is-active', panel.id === `panel${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+        });
+    }
+
+    // --- Render Sidebar Roster List ---
+    function renderRosterList(vehicles) {
+        const c = document.getElementById('radarRosterContainer');
+        if (!c) return;
+        c.innerHTML = '';
+
+        const searchVal = (document.getElementById('radarSearchInput').value || '').trim().toLowerCase();
+
+        vehicles.forEach(v => {
+            if (currentFilter !== 'all' && v.status_code !== currentFilter) return;
+            if (searchVal) {
+                const hay = `${v.registration_number} ${v.model_name} ${v.location_name} ${v.driver ? v.driver.name : ''}`.toLowerCase();
+                if (!hay.includes(searchVal)) return;
+            }
+
+            const card = document.createElement('div');
+            card.className = `roster-card ${selectedVehicleId === v.id ? 'is-selected' : ''}`;
+            card.id = `roster-${v.id}`;
+            card.innerHTML = `
+                <div>
+                    <div class="roster-reg">${v.registration_number}</div>
+                    <div class="roster-meta">${v.model_name} &bull; ${v.driver ? v.driver.name : 'Unassigned'}</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="roster-speed">${v.speed_kmh > 0 ? v.speed_kmh + ' km/h' : 'Parked'}</div>
+                    <div style="font-size: 10px; color: ${v.status_color}; font-weight: 700;">${v.status_label}</div>
+                </div>
+            `;
+            card.addEventListener('click', () => selectVehicle(v, true));
+            c.appendChild(card);
+        });
+    }
+
+    // --- Render Geofences Tab List ---
+    function renderGeofenceList(geofences) {
+        const c = document.getElementById('radarGeofenceContainer');
+        if (!c) return;
+        c.innerHTML = '';
+
+        geofences.forEach(g => {
+            const card = document.createElement('div');
+            card.className = 'gf-card';
+            card.innerHTML = `
+                <div class="gf-title">📍 ${g.name}</div>
+                <div class="gf-meta">Type: <strong>${g.zone_type}</strong> &bull; Speed Limit: <strong>${g.speed_limit} km/h</strong></div>
+                <div class="gf-meta">Radius: ${g.radius}m &bull; Coords: ${g.lat.toFixed(4)}, ${g.lng.toFixed(4)}</div>
+            `;
+            card.addEventListener('click', () => {
+                map.flyTo([g.lat, g.lng], 15, { duration: 1.0 });
+            });
+            c.appendChild(card);
+        });
+    }
+
+    // --- Render Violations Tab Feed ---
+    function renderViolationsList(violations, incidents) {
+        const c = document.getElementById('radarViolationsContainer');
+        if (!c) return;
+        c.innerHTML = '';
+
+        incidents.forEach(inc => {
+            const el = document.createElement('div');
+            el.className = 'cockpit-card';
+            el.style.borderColor = '#ef4444';
+            el.style.background = 'rgba(239, 68, 68, 0.1)';
+            el.innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:#fca5a5;">
+                    <span>🚨 ${inc.incident_id} (${inc.vehicle_reg})</span>
+                    <span>${inc.reported_at}</span>
+                </div>
+                <div style="font-size:12px; color:#fff; font-weight:700; margin-top:4px;">${inc.incident_type}</div>
+                <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">${inc.description}</div>
+            `;
+            c.appendChild(el);
+        });
+
+        violations.forEach(v => {
+            const el = document.createElement('div');
+            el.className = 'cockpit-card';
+            el.innerHTML = `
+                <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700; color:#94a3b8;">
+                    <span>${v.vehicle_reg} &bull; ${v.driver_name}</span>
+                    <span>${v.time}</span>
+                </div>
+                <div style="font-size:12px; color:#fbbf24; font-weight:700; margin-top:3px;">
+                    ⚠️ ${v.event_type} (${v.speed} km/h, limit: ${v.limit} km/h)
+                </div>
+            `;
+            c.appendChild(el);
+        });
+
+        if (c.children.length === 0) {
+            c.innerHTML = '<div style="color: #64748b; font-size: 12px; text-align: center; padding: 24px;">✅ No safety violations recorded in the last 24 hours.</div>';
+        }
+    }
+
+    // --- Real-time Simulation Engine Toggle ---
+    async function triggerSimTick() {
+        try {
+            const resp = await fetch('/api/fleet/simulate-tick/', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (resp.ok) {
+                fetchLiveFeed(true);
+            }
+        } catch(e) {}
+    }
+
+    function toggleSimulation() {
+        isSimulating = !isSimulating;
+        const btn = document.getElementById('btnSimulateTick');
+        const text = document.getElementById('simBtnText');
+
+        if (isSimulating) {
+            btn.classList.add('is-active');
+            text.innerText = 'Live GPS Sim: ON';
+            triggerSimTick();
+            simIntervalTimer = setInterval(triggerSimTick, 4000);
+        } else {
+            btn.classList.remove('is-active');
+            text.innerText = 'Live GPS Sim: OFF';
+            if (simIntervalTimer) clearInterval(simIntervalTimer);
+        }
+    }
+
+    // --- Fit All Fleet on Map ---
+    function fitAllFleet() {
+        const markers = Object.values(vehicleMarkers).filter(m => map.hasLayer(m));
+        if (markers.length > 0) {
+            const g = L.featureGroup(markers);
+            map.fitBounds(g.getBounds().pad(0.12));
+        } else {
+            map.setView(DEPOT_COORDS, 11);
+        }
+    }
+
+    // --- Bind DOM Events ---
+    function bindEvents() {
+        // Tab switching
+        document.querySelectorAll('.cockpit-tabs .tab-btn').forEach(b => {
+            const targetTab = b.dataset.tab;
+            b.addEventListener('click', () => switchTab(targetTab));
+        });
+
+        // Filter Pills
+        document.querySelectorAll('#radarFilterPills .pill').forEach(p => {
+            p.addEventListener('click', () => {
+                document.querySelectorAll('#radarFilterPills .pill').forEach(x => x.classList.remove('is-active'));
+                p.classList.add('is-active');
+                currentFilter = p.dataset.filter;
+                renderVehicleMarkers(fleetData);
+                renderRosterList(fleetData);
+            });
+        });
+
+        // Search
+        const sInput = document.getElementById('radarSearchInput');
+        const clearBtn = document.getElementById('clearSearchBtn');
+        sInput.addEventListener('input', () => {
+            clearBtn.style.display = sInput.value ? 'block' : 'none';
+            renderVehicleMarkers(fleetData);
+            renderRosterList(fleetData);
+        });
+        clearBtn.addEventListener('click', () => {
+            sInput.value = '';
+            clearBtn.style.display = 'none';
+            renderVehicleMarkers(fleetData);
+            renderRosterList(fleetData);
+        });
+
+        // Simulation
+        document.getElementById('btnSimulateTick').addEventListener('click', toggleSimulation);
+
+        // Sound Toggle
+        document.getElementById('btnSoundToggle').addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+        });
+
+        // Refresh
+        document.getElementById('btnManualRefresh').addEventListener('click', () => fetchLiveFeed(false));
+
+        // Center on depot
+        document.getElementById('btnFocusDepot').addEventListener('click', () => {
+            map.flyTo(DEPOT_COORDS, 13, { duration: 1.0 });
+        });
+
+        // Fit all
+        document.getElementById('btnFitAllFleet').addEventListener('click', fitAllFleet);
+
+        // Toggle Rings
+        const btnRings = document.getElementById('btnToggleRings');
+        btnRings.addEventListener('click', () => {
+            showRings = !showRings;
+            btnRings.classList.toggle('is-active', showRings);
+            drawRangeRings();
+        });
+
+        // Toggle Routes
+        const btnRoutes = document.getElementById('btnToggleRoutes');
+        btnRoutes.addEventListener('click', () => {
+            showRoutes = !showRoutes;
+            btnRoutes.classList.toggle('is-active', showRoutes);
+            if (!showRoutes) clearActiveTripRoute();
+            else if (selectedVehicleId) {
+                const v = fleetData.find(x => x.id === selectedVehicleId);
+                if (v && v.trip_route) drawActiveTripRoute(v.trip_route);
+            }
+        });
+
+        // Focus selected vehicle
+        document.getElementById('btnCenterOnMap').addEventListener('click', () => {
+            if (selectedVehicleId) {
+                const v = fleetData.find(x => x.id === selectedVehicleId);
+                if (v) map.flyTo([v.lat, v.lng], 15, { duration: 1.0 });
+            }
+        });
+
+        // Dismiss alert
+        document.getElementById('btnDismissAlert').addEventListener('click', () => {
+            document.getElementById('radarAlertBanner').style.display = 'none';
+        });
+
+        // Auto Refresh Interval
+        const select = document.getElementById('autoRefreshInterval');
+        select.addEventListener('change', () => {
+            if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+            const val = parseInt(select.value, 10);
+            if (val > 0) {
+                autoRefreshTimer = setInterval(() => fetchLiveFeed(true), val);
+            }
+        });
+
+        // URL parameter search support (?search=TN-38)
+        const params = new URLSearchParams(window.location.search);
+        const searchParam = params.get('search');
+        if (searchParam) {
+            sInput.value = searchParam;
+            clearBtn.style.display = 'block';
+        }
+    }
+
+    // --- Developer Mode: Map Auto-Load Controller ---
+    let isMapLoaded = false;
+    let isDevMapPaused = localStorage.getItem('travelerp_dev_pause_maps') !== 'false';
+
+    function updateDevPauseUI() {
+        const btnText = document.getElementById('devPauseText');
+        const btnIcon = document.getElementById('devPauseIcon');
+        const btn = document.getElementById('btnDevPauseMap');
+        const placeholder = document.getElementById('devMapPlaceholder');
+
+        if (isDevMapPaused && !isMapLoaded) {
+            if (placeholder) placeholder.style.display = 'flex';
+            if (btnText) btnText.innerText = 'Dev: Map Paused';
+            if (btnIcon) btnIcon.innerText = '⏸️';
+            if (btn) {
+                btn.style.border = '1px dashed #f59e0b';
+                btn.style.color = '#fbbf24';
+                btn.style.background = 'rgba(245, 158, 11, 0.15)';
+            }
+        } else {
+            if (placeholder) placeholder.style.display = 'none';
+            if (btnText) btnText.innerText = 'Dev: Map Active';
+            if (btnIcon) btnIcon.innerText = '▶️';
+            if (btn) {
+                btn.style.border = '1px solid #10b981';
+                btn.style.color = '#34d399';
+                btn.style.background = 'rgba(16, 185, 129, 0.15)';
+            }
+        }
+    }
+
+    function activateMapNow() {
+        if (isMapLoaded) return;
+        isMapLoaded = true;
+        const placeholder = document.getElementById('devMapPlaceholder');
+        if (placeholder) placeholder.style.display = 'none';
+        initMap();
+        fetchLiveFeed(false);
+        if (!autoRefreshTimer) {
+            autoRefreshTimer = setInterval(() => fetchLiveFeed(true), 5000);
+        }
+        updateDevPauseUI();
+    }
+
+    function toggleDevMapPause() {
+        isDevMapPaused = !isDevMapPaused;
+        localStorage.setItem('travelerp_dev_pause_maps', isDevMapPaused ? 'true' : 'false');
+        if (isDevMapPaused) {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+            if (!isMapLoaded) {
+                updateDevPauseUI();
+            } else {
+                const btnText = document.getElementById('devPauseText');
+                if (btnText) btnText.innerText = 'Dev: Paused on Reload';
+            }
+        } else {
+            activateMapNow();
+        }
+        updateDevPauseUI();
+    }
+
+    // --- Bootstrap on Load ---
+    document.addEventListener('DOMContentLoaded', () => {
+        bindEvents();
+        updateDevPauseUI();
+
+        // Check if developer paused the map
+        if (isDevMapPaused) {
+            const placeholder = document.getElementById('devMapPlaceholder');
+            if (placeholder) placeholder.style.display = 'flex';
+            console.log('[TravelERP Dev Mode] Map auto-load is PAUSED via localStorage. Click "Load Map Now" or toggle Dev button to activate.');
+        } else {
+            activateMapNow();
+        }
+
+        // Attach event listeners for Dev Pause controls
+        const devBtn = document.getElementById('btnDevPauseMap');
+        if (devBtn) devBtn.addEventListener('click', toggleDevMapPause);
+
+        const loadNowBtn = document.getElementById('btnDevLoadMapNow');
+        if (loadNowBtn) loadNowBtn.addEventListener('click', () => {
+            activateMapNow();
+        });
+
+        const alwaysLoadBtn = document.getElementById('btnDevAlwaysAutoLoad');
+        if (alwaysLoadBtn) alwaysLoadBtn.addEventListener('click', () => {
+            isDevMapPaused = false;
+            localStorage.setItem('travelerp_dev_pause_maps', 'false');
+            activateMapNow();
+        });
+    });
+})();
+</script>
+{% endblock %}

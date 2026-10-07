@@ -1,0 +1,13 @@
+<!-- Live Vehicle Tariff Calculation Fragment -->
+<div class="p-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200">
+    <div class="font-bold text-sky-400 mb-1 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">directions_bus</span>
+        {{ vehicle_type_name }} ({{ seating_capacity }} Seats) &bull; {{ duration_days }} Days
+    </div>
+    <div class="grid grid-cols-2 gap-2 mt-2">
+        <div>Included KM: <strong class="text-white">{{ included_km }} KM</strong></div>
+        <div>Extra KM Rate: <strong class="text-white">₹{{ extra_km_rate|floatformat:2 }}/km</strong></div>
+        <div>Driver Bata: <strong class="text-white">₹{{ driver_bata_per_day|floatformat:0 }}/day</strong></div>
+        <div>Estimated Rate: <strong class="text-emerald-400">₹{{ package_rate|floatformat:0 }}</strong></div>
+    </div>
+</div>

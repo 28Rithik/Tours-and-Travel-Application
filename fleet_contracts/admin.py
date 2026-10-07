@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 from django.contrib import admin, messages
+from unfold.admin import ModelAdmin, TabularInline
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
 from django.utils.html import format_html, escape
@@ -26,20 +27,20 @@ from .models import (
 # Inlines
 # ==============================================================================
 
-class RouteInline(admin.TabularInline):
+class RouteInline(TabularInline):
     model = Route
     extra = 0
     fields = ('name', 'origin', 'destination', 'distance_km', 'rate_override', 'is_active')
 
 
-class ContractFleetRosterInline(admin.TabularInline):
+class ContractFleetRosterInline(TabularInline):
     model = ContractFleetRoster
     extra = 0
     autocomplete_fields = ['primary_vehicle', 'primary_driver', 'standby_vehicle']
     fields = ('primary_vehicle', 'primary_driver', 'standby_vehicle', 'route', 'shift', 'start_date', 'is_active')
 
 
-class ContractSLAPenaltyInline(admin.TabularInline):
+class ContractSLAPenaltyInline(TabularInline):
     model = ContractSLAPenalty
     extra = 0
     fields = ('date', 'penalty_type', 'penalty_amount', 'waived', 'description')
@@ -102,7 +103,7 @@ class ContractHealthFilter(admin.SimpleListFilter):
 # ==============================================================================
 
 @admin.register(TransportContract)
-class TransportContractAdmin(admin.ModelAdmin):
+class TransportContractAdmin(ModelAdmin):
     autocomplete_fields = ['customer']
     list_display = (
         'name', 'category_badge', 'customer_link',
@@ -680,7 +681,7 @@ class TransportContractAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(ContractFleetRoster)
-class ContractFleetRosterAdmin(admin.ModelAdmin):
+class ContractFleetRosterAdmin(ModelAdmin):
     autocomplete_fields = ['contract', 'primary_vehicle', 'primary_driver', 'standby_vehicle', 'route', 'shift']
     list_display = (
         'contract_link', 'primary_vehicle_badge', 'driver_badge',
@@ -864,7 +865,7 @@ class ContractFleetRosterAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(ContractSLAPenalty)
-class ContractSLAPenaltyAdmin(admin.ModelAdmin):
+class ContractSLAPenaltyAdmin(ModelAdmin):
     autocomplete_fields = ['contract', 'trip_log', 'applied_to_invoice']
     list_display = (
         'contract_link', 'date', 'penalty_type_badge', 'severity_badge',
@@ -1083,7 +1084,7 @@ class ContractSLAPenaltyAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(ContractMonthlyInvoice)
-class ContractMonthlyInvoiceAdmin(admin.ModelAdmin):
+class ContractMonthlyInvoiceAdmin(ModelAdmin):
     autocomplete_fields = ['contract']
     list_display = (
         'invoice_number_badge', 'contract_link', 'billing_month_display',
@@ -1503,7 +1504,7 @@ class ContractMonthlyInvoiceAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(ContractTripLog)
-class ContractTripLogAdmin(admin.ModelAdmin):
+class ContractTripLogAdmin(ModelAdmin):
     autocomplete_fields = ['shift', 'vehicle', 'driver', 'replaced_vehicle']
     list_display = (
         'date', 'shift_display', 'vehicle_badge', 'driver_badge',
@@ -1577,7 +1578,7 @@ class ContractTripLogAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(NightSafetyEscortLog)
-class NightSafetyEscortLogAdmin(admin.ModelAdmin):
+class NightSafetyEscortLogAdmin(ModelAdmin):
     autocomplete_fields = ['trip_log']
     list_display = (
         'trip_link', 'guard_badge', 'female_count_badge',
@@ -1668,7 +1669,7 @@ class NightSafetyEscortLogAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(CommuterManifest)
-class CommuterManifestAdmin(admin.ModelAdmin):
+class CommuterManifestAdmin(ModelAdmin):
     autocomplete_fields = ['contract', 'boarding_stop']
     list_display = (
         'name', 'commuter_id', 'contract_link', 'commuter_type_badge',
@@ -1725,21 +1726,21 @@ class CommuterManifestAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(Route)
-class RouteHiddenAdmin(admin.ModelAdmin):
+class RouteHiddenAdmin(ModelAdmin):
     search_fields = ('name',)
     def has_module_permission(self, request):
         return False
 
 
 @admin.register(Shift)
-class ShiftHiddenAdmin(admin.ModelAdmin):
+class ShiftHiddenAdmin(ModelAdmin):
     search_fields = ('shift_name', 'route__name')
     def has_module_permission(self, request):
         return False
 
 
 @admin.register(RouteStop)
-class RouteStopHiddenAdmin(admin.ModelAdmin):
+class RouteStopHiddenAdmin(ModelAdmin):
     search_fields = ('name', 'pickup_landmark')
     def has_module_permission(self, request):
         return False

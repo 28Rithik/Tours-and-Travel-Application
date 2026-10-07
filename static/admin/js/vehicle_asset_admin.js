@@ -37,5 +37,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     assetTypeField.addEventListener("change", updatePositionOptions);
+    assetTypeField.addEventListener("input", updatePositionOptions);
     updatePositionOptions();
+
+    var lastType = assetTypeField.value;
+    setInterval(function() {
+        if (assetTypeField.value !== lastType) {
+            lastType = assetTypeField.value;
+            updatePositionOptions();
+        }
+    }, 200);
 });
+

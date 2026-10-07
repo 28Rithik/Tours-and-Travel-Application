@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live Bus Tracker | {{ commuter.name }} | Sivagayathiri Commute</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --bg-base: #090d16;
+            --bg-card: rgba(18, 24, 38, 0.9);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Mobile Container */
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Top Brand Bar */
+        .top-bar {
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .brand-info h1 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .live-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-success);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Proximity Alert Banner */
+        .alert-banner {
+            padding: 14px 18px;
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .alert-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .alert-text h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .alert-text p {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-top: 2px;
+        }
+
+        /* Map Container */
+        .map-section {
+            height: 340px;
+            width: 100%;
+            position: relative;
+            background: #0f172a;
+        }
+
+        #commuteMap {
+            height: 100%;
+            width: 100%;
+        }
+
+        .map-telemetry-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            z-index: 999;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Commuter & Stop Info Card */
+        .content-scroll {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .card-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Passenger & Stop Details */
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .detail-label { color: var(--text-muted); }
+        .detail-val { color: #fff; font-weight: 500; }
+
+        /* Stepper of Stops */
+        .stops-stepper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .stops-stepper::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .stop-item {
+            position: relative;
+            font-size: 13px;
+        }
+
+        .stop-node {
+            position: absolute;
+            left: -20px;
+            top: 2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #64748b;
+            border: 2px solid var(--bg-base);
+        }
+
+        .stop-item.target .stop-node {
+            background: #38bdf8;
+            box-shadow: 0 0 10px #38bdf8;
+            width: 12px;
+            height: 12px;
+            left: -21px;
+        }
+
+        .stop-item.target strong {
+            color: #38bdf8;
+        }
+
+        /* Driver Contact Card */
+        .driver-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .driver-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .driver-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-primary);
+            font-size: 18px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-call {
+            background: #10b981;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-sos {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--accent-danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <div class="brand-info">
+                <h1>
+                    <i class="fas fa-bus-alt" style="color: #38bdf8;"></i>
+                    Sivagayathiri Commute
+                </h1>
+                <p>{{ contract.name }}</p>
+            </div>
+            <div class="live-pulse">
+                <span class="pulse-dot"></span>
+                <span>LIVE RADAR</span>
+            </div>
+        </header>
+
+        <!-- Proximity Status Banner -->
+        <div class="alert-banner">
+            <div class="alert-icon">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
+            <div class="alert-text">
+                <h3 id="etaHeader">
+                    {% if is_nearby %}
+                    🚍 Bus Approaching (~{{ eta_minutes }} mins)
+                    {% else %}
+                    {{ status_label }}
+                    {% endif %}
+                </h3>
+                <p id="etaSub">
+                    Pickup at <strong>{{ commuter_stop.name|default:"Designated Stop" }}</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Live Leaflet Map -->
+        <div class="map-section">
+            <div id="commuteMap"></div>
+            <div class="map-telemetry-badge">
+                <span><i class="fas fa-tachometer-alt mr-1" style="color: #38bdf8;"></i> <span id="speedTxt">{{ speed }}</span> km/h</span>
+                <span>•</span>
+                <span><i class="fas fa-clock mr-1" style="color: #10b981;"></i> <span id="syncTime">Live</span></span>
+            </div>
+        </div>
+
+        <!-- Content Details -->
+        <div class="content-scroll">
+            <!-- Commuter & Stop Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Commuter & Boarding Node</h3>
+                    <span style="font-size: 12px; color: #38bdf8; font-weight: 600;">OTP: {{ pass.boarding_otp }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Passenger:</span>
+                    <span class="detail-val">{{ commuter.name }} ({{ commuter.commuter_id }})</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Designated Stop:</span>
+                    <span class="detail-val" style="color: #38bdf8;">{{ commuter_stop.name|default:"Main Campus Stop" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Shift & Timing:</span>
+                    <span class="detail-val">{{ shift.shift_name|default:shift.get_direction_display }} @ {{ shift.timing|time:"h:i A" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Vehicle Assigned:</span>
+                    <span class="detail-val">{{ vehicle.registration_number|default:"TN-38-AX-9921" }} ({{ vehicle.model|default:"Mini Bus AC" }})</span>
+                </div>
+            </div>
+
+            <!-- Route Stop Stepper -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Route Progression ({{ route.name|default:"Campus Route" }})</h3>
+                </div>
+                <div class="stops-stepper">
+                    {% for stop in stops %}
+                    <div class="stop-item {% if stop.id == commuter_stop.id %}target{% endif %}">
+                        <span class="stop-node"></span>
+                        <div>
+                            <strong>#{{ stop.stop_order }} {{ stop.name }}</strong>
+                            {% if stop.id == commuter_stop.id %}
+                            <span style="font-size: 11px; color: #38bdf8; margin-left: 6px;">(Your Pickup Stop)</span>
+                            {% endif %}
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted);">
+                            Scheduled: +{{ stop.scheduled_offset_minutes }} mins from start
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="stop-item target">
+                        <span class="stop-node"></span>
+                        <div><strong>Direct Express Route</strong></div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Captain / Driver Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Assigned Captain</h3>
+                    <span style="font-size: 11px; color: #10b981; font-weight: 600;"><i class="fas fa-shield-alt"></i> Verified Crew</span>
+                </div>
+                <div class="driver-card">
+                    <div class="driver-info">
+                        <div class="driver-avatar">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600;" id="driverName">{{ driver.name|default:"Captain Murugan K" }}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);" id="driverPhone">{{ driver.phone|default:"+91 98401 22334" }}</div>
+                        </div>
+                    </div>
+                    <a href="tel:{{ driver.phone|default:'+919840122334' }}" class="btn-call" id="callBtn">
+                        <i class="fas fa-phone-alt"></i> Call
+                    </a>
+                </div>
+            </div>
+
+            <!-- Emergency Hotline Button -->
+            <a href="tel:18004259999" class="btn-sos">
+                <i class="fas fa-phone-volume"></i> Emergency Transport Helpdesk: 1800-425-9999
+            </a>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const initialLat = {{ lat }};
+        const initialLng = {{ lng }};
+        const passToken = "{{ pass.pass_token }}";
+
+        // Initialize Map
+        const map = L.map('commuteMap', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([initialLat, initialLng], 14);
+
+        // OpenStreetMap Dark/Voyager Tiles
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Bus Icon
+        const busIcon = L.divIcon({
+            className: 'custom-bus-pin',
+            html: '<div style="background: #0284c7; color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.5);"><i class="fas fa-bus" style="font-size: 14px;"></i></div>',
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+        });
+
+        // Stop Icon
+        const stopIcon = L.divIcon({
+            className: 'custom-stop-pin',
+            html: '<div style="background: #10b981; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"><i class="fas fa-map-marker-alt" style="font-size: 11px;"></i></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        // Bus Marker
+        const busMarker = L.marker([initialLat, initialLng], { icon: busIcon }).addTo(map);
+
+        // Add Stops to Map if coordinates available
+        const stopMarker = L.marker([initialLat + 0.008, initialLng + 0.006], { icon: stopIcon }).addTo(map)
+            .bindPopup("<strong>Your Pickup Stop:</strong><br>{{ commuter_stop.name|default:'Boarding Point' }}");
+
+        // Real-Time GPS Polling Engine (Every 5 seconds)
+        async function fetchLiveGPS() {
+            try {
+                const response = await fetch(`/commute/api/track/${passToken}/live/`);
+                if (!response.ok) return;
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // Smoothly animate bus marker to new location
+                    busMarker.setLatLng([data.latitude, data.longitude]);
+                    
+                    document.getElementById('speedTxt').innerText = Math.round(data.speed_kmh);
+                    document.getElementById('syncTime').innerText = data.timestamp;
+
+                    if (data.is_nearby) {
+                        document.getElementById('etaHeader').innerHTML = `🚍 Bus Approaching (~${data.eta_minutes} mins)`;
+                    } else if (data.trip_status === 'en_route') {
+                        document.getElementById('etaHeader').innerHTML = `🚍 En Route (~${data.eta_minutes} mins to stop)`;
+                    } else {
+                        document.getElementById('etaHeader').innerText = data.trip_status_display;
+                    }
+                }
+            } catch (err) {
+                console.warn('GPS sync retry in 5s...');
+            }
+        }
+
+        setInterval(fetchLiveGPS, 5000);
+    </script>
+</body>
+</html>

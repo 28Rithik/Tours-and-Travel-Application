@@ -101,16 +101,30 @@
         });
     }
 
-    // Init with django.jQuery when DOM is ready
-    if (window.django && window.django.jQuery) {
-        window.django.jQuery(document).ready(function($) {
+    function bootstrap() {
+        var $ = (window.django && window.django.jQuery) || window.jQuery || window.$;
+        if ($) {
             initPaymentForm($);
-        });
+        } else {
+            var attempts = 0;
+            var interval = setInterval(function() {
+                attempts++;
+                var jq = (window.django && window.django.jQuery) || window.jQuery || window.$;
+                if (jq) {
+                    clearInterval(interval);
+                    initPaymentForm(jq);
+                } else if (attempts > 30) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrap);
     } else {
-        document.addEventListener('DOMContentLoaded', function() {
-            var $ = window.django && window.django.jQuery;
-            if ($) initPaymentForm($);
-        });
+        bootstrap();
     }
 
 })();
+

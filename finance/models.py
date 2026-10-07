@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+from decimal import Decimal
 from core.models import Cleaner, Driver, Vehicle, Party
 from operations.models import Trip
 
@@ -464,3 +466,446 @@ class TripProfitReport(Trip):
 		proxy = True
 		verbose_name = 'Trip P&L Report'
 		verbose_name_plural = 'Trip P&L Reports'
+
+
+class Account(models.Model):
+	ACCOUNT_TYPES = [
+		('asset', 'Asset'),
+		('liability', 'Liability'),
+		('equity', 'Equity'),
+		('income', 'Income'),
+		('expense', 'Expense'),
+	]
+	code = models.CharField(max_length=20, unique=True, help_text="e.g. 1010, 1020, 1030, 1100, 2010, 4010, 5010")
+	name = models.CharField(max_length=150)
+	account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES)
+	currency = models.CharField(max_length=10, default='INR')
+	description = models.TextField(blank=True)
+	is_active = models.BooleanField(default=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['code']
+		verbose_name = 'Chart of Account'
+		verbose_name_plural = 'Chart of Accounts'
+
+	def __str__(self):
+		return f"{self.code} - {self.name} ({self.get_account_type_display()})"
+
+	@property
+	def current_balance(self):
+		from django.db.models import Sum
+		from decimal import Decimal
+		debits = self.journal_items.aggregate(total=Sum('debit'))['total'] or Decimal('0.00')
+		credits = self.journal_items.aggregate(total=Sum('credit'))['total'] or Decimal('0.00')
+		if self.account_type in ['asset', 'expense']:
+			return debits - credits
+		else:
+			return credits - debits
+
+
+class JournalEntry(models.Model):
+	ENTRY_TYPES = [
+		('payment_receipt', 'Payment Receipt'),
+		('invoice_billing', 'Invoice Billing'),
+		('gateway_settlement', 'Gateway Settlement'),
+		('supplier_payout', 'Supplier Payout'),
+		('driver_salary', 'Driver Salary'),
+		('fuel_expense', 'Fuel Expense'),
+		('toll_charge', 'Toll Charge'),
+		('general', 'General Journal'),
+	]
+	entry_number = models.CharField(max_length=50, unique=True, blank=True)
+	date = models.DateField()
+	entry_type = models.CharField(max_length=30, choices=ENTRY_TYPES, default='payment_receipt')
+	reference_id = models.CharField(max_length=100, blank=True, help_text="Reference Booking #, RZP ID, UTR, etc.")
+	narration = models.TextField(help_text="Detailed transaction narration")
+	is_posted = models.BooleanField(default=False)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-date', '-id']
+		verbose_name = 'General Ledger Journal Entry'
+		verbose_name_plural = 'General Ledger Journal Entries'
+
+	def __str__(self):
+		return f"{self.entry_number or f'JE-{self.pk}'} - {self.date} ({self.get_entry_type_display()})"
+
+	def save(self, *args, **kwargs):
+		if not self.entry_number:
+			from django.utils import timezone
+			super().save(*args, **kwargs)
+			today_str = timezone.now().strftime('%Y%m')
+			self.entry_number = f"JE-{today_str}-{self.pk:05d}"
+			super().save(update_fields=['entry_number'])
+		else:
+			super().save(*args, **kwargs)
+
+	@property
+	def total_debit(self):
+		from decimal import Decimal
+		return sum((item.debit for item in self.items.all()), Decimal('0.00'))
+
+	@property
+	def total_credit(self):
+		from decimal import Decimal
+		return sum((item.credit for item in self.items.all()), Decimal('0.00'))
+
+	@property
+	def is_balanced(self):
+		from decimal import Decimal
+		return abs(self.total_debit - self.total_credit) < Decimal('0.01')
+
+
+class JournalItem(models.Model):
+	entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='items')
+	account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name='journal_items')
+	party = models.ForeignKey('core.Party', on_delete=models.SET_NULL, null=True, blank=True, related_name='journal_items')
+	debit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	credit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	memo = models.CharField(max_length=255, blank=True)
+
+	class Meta:
+		verbose_name = 'Journal Line Item'
+		verbose_name_plural = 'Journal Line Items'
+
+	def __str__(self):
+		dr_cr = f"DR: ₹{self.debit}" if self.debit > 0 else f"CR: ₹{self.credit}"
+		return f"{self.account.name} | {dr_cr}"
+
+
+# ==============================================================================
+# CORPORATE GST B2B INVOICE & NIC E-WAY BILL SYSTEM
+# ==============================================================================
+
+class CorporateGSTInvoice(models.Model):
+	INVOICE_TYPES = [
+		('regular_b2b', 'Regular B2B Tax Invoice'),
+		('b2c', 'B2C Retail Invoice'),
+		('sez_with_payment', 'SEZ Unit / Developer (With Tax Payment)'),
+		('sez_without_payment', 'SEZ Unit / Developer (Without Tax Payment / LUT)'),
+		('deemed_export', 'Deemed Export'),
+	]
+	SUPPLY_TYPES = [
+		('intra_state', 'Intra-State (CGST + SGST)'),
+		('inter_state', 'Inter-State (IGST)'),
+	]
+	PAYMENT_STATUSES = [
+		('unpaid', 'Unpaid'),
+		('partially_paid', 'Partially Paid'),
+		('paid', 'Paid'),
+	]
+
+	invoice_number = models.CharField(max_length=50, unique=True, blank=True)
+	invoice_date = models.DateField(default=timezone.now)
+	due_date = models.DateField(blank=True, null=True)
+	invoice_type = models.CharField(max_length=30, choices=INVOICE_TYPES, default='regular_b2b')
+
+	# Linkages
+	party = models.ForeignKey('core.Party', on_delete=models.PROTECT, related_name='corporate_invoices')
+	trip = models.ForeignKey('operations.Trip', on_delete=models.SET_NULL, null=True, blank=True, related_name='gst_invoices')
+	transport_contract = models.ForeignKey('fleet_contracts.TransportContract', on_delete=models.SET_NULL, null=True, blank=True, related_name='gst_invoices')
+	statement = models.ForeignKey('statements.GeneratedStatement', on_delete=models.SET_NULL, null=True, blank=True, related_name='gst_invoices')
+
+	# Supplier Info (Siva Gayathiri Tours & Travels)
+	supplier_legal_name = models.CharField(max_length=255, default="Siva Gayathiri Tours & Travels")
+	supplier_trade_name = models.CharField(max_length=255, default="Sivagayathiri Travels")
+	supplier_gstin = models.CharField(max_length=15, default="33AAAAA0000A1Z5")
+	supplier_state_code = models.CharField(max_length=2, default="33", help_text="e.g. 33 for Tamil Nadu")
+	supplier_address = models.TextField(default="12/4, Gandhi Road, Chennai, Tamil Nadu - 600001")
+	supplier_pincode = models.CharField(max_length=6, default="600001")
+
+	# Recipient / Corporate Customer Info
+	recipient_legal_name = models.CharField(max_length=255)
+	recipient_trade_name = models.CharField(max_length=255, blank=True)
+	recipient_gstin = models.CharField(max_length=15, blank=True, help_text="15-character GSTIN. Blank if unregistered / B2C")
+	recipient_state_code = models.CharField(max_length=2, default="33", help_text="2-digit state code of place of supply")
+	recipient_address = models.TextField(blank=True)
+	recipient_pincode = models.CharField(max_length=6, blank=True)
+	place_of_supply = models.CharField(max_length=100, default="33-Tamil Nadu")
+
+	# Taxation Terms
+	is_reverse_charge = models.BooleanField(default=False, help_text="Tax payable under Reverse Charge (RCM)")
+	sac_code = models.CharField(max_length=10, default="996601", help_text="Transport Service Accounting Code (SAC)")
+	supply_type = models.CharField(max_length=20, choices=SUPPLY_TYPES, default='intra_state')
+
+	# Monetary Breakdown
+	taxable_value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	gst_rate_percent = models.DecimalField(max_digits=5, decimal_places=2, default=5.00)
+	cgst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=2.50)
+	cgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	sgst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=2.50)
+	sgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	igst_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+	igst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	cess_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	total_tax = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	round_off = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+	total_invoice_value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+	# Payment & GL Sync
+	payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUSES, default='unpaid')
+	paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	gl_journal_entry = models.ForeignKey(JournalEntry, on_delete=models.SET_NULL, null=True, blank=True, related_name='gst_invoices')
+	qr_code_data = models.TextField(blank=True, help_text="B2B digital verification payload")
+	qr_code_svg = models.TextField(blank=True, help_text="Vector SVG QR code representation")
+
+	# Timestamps
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-invoice_date', '-id']
+		verbose_name = 'Corporate GST B2B Invoice'
+		verbose_name_plural = 'Corporate GST B2B Invoices'
+
+	def __str__(self):
+		return f"{self.invoice_number or f'INV-{self.pk}'} - {self.recipient_legal_name} (₹{self.total_invoice_value})"
+
+	def compute_taxes(self):
+		"""Computes CGST, SGST, IGST based on place of supply alignment."""
+		supp_state = (self.supplier_state_code or "33").strip()
+		recip_state = (self.recipient_state_code or "33").strip()
+
+		if supp_state == recip_state:
+			self.supply_type = 'intra_state'
+			self.cgst_rate = self.gst_rate_percent / Decimal('2.00')
+			self.sgst_rate = self.gst_rate_percent / Decimal('2.00')
+			self.igst_rate = Decimal('0.00')
+			self.cgst_amount = (self.taxable_value * self.cgst_rate) / Decimal('100.00')
+			self.sgst_amount = (self.taxable_value * self.sgst_rate) / Decimal('100.00')
+			self.igst_amount = Decimal('0.00')
+		else:
+			self.supply_type = 'inter_state'
+			self.cgst_rate = Decimal('0.00')
+			self.sgst_rate = Decimal('0.00')
+			self.igst_rate = self.gst_rate_percent
+			self.cgst_amount = Decimal('0.00')
+			self.sgst_amount = Decimal('0.00')
+			self.igst_amount = (self.taxable_value * self.igst_rate) / Decimal('100.00')
+
+		self.total_tax = self.cgst_amount + self.sgst_amount + self.igst_amount + (self.cess_amount or Decimal('0.00'))
+		unrounded = self.taxable_value + self.total_tax
+		rounded = unrounded.quantize(Decimal('1'), rounding='ROUND_HALF_UP')
+		self.round_off = rounded - unrounded
+		self.total_invoice_value = rounded
+
+	def save(self, *args, **kwargs):
+		self.compute_taxes()
+		is_new = self.pk is None
+		super().save(*args, **kwargs)
+		if not self.invoice_number:
+			year_str = timezone.now().strftime('%y')
+			next_year = str(int(year_str) + 1).zfill(2)
+			fy_str = f"{year_str}-{next_year}"
+			self.invoice_number = f"SGT/{fy_str}/{self.pk:05d}"
+			super().save(update_fields=['invoice_number'])
+
+
+class InvoiceLineItem(models.Model):
+	invoice = models.ForeignKey(CorporateGSTInvoice, on_delete=models.CASCADE, related_name='line_items')
+	item_description = models.CharField(max_length=255)
+	sac_code = models.CharField(max_length=10, default="996601")
+	vehicle = models.ForeignKey('core.Vehicle', on_delete=models.SET_NULL, null=True, blank=True)
+	trip = models.ForeignKey('operations.Trip', on_delete=models.SET_NULL, null=True, blank=True)
+	quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1)
+	unit = models.CharField(max_length=10, default="TRIP")
+	rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	taxable_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	cgst_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	sgst_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	igst_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+	class Meta:
+		verbose_name = 'Invoice Line Item'
+		verbose_name_plural = 'Invoice Line Items'
+
+	def __str__(self):
+		return f"{self.item_description} (₹{self.total_amount})"
+
+
+class EWayBill(models.Model):
+	STATUS_CHOICES = [
+		('draft', 'Draft / Generated'),
+		('active', 'Active & Valid'),
+		('expired', 'Expired'),
+		('cancelled', 'Cancelled'),
+	]
+	eway_bill_number = models.CharField(max_length=12, unique=True, blank=True, null=True, help_text="12-digit NIC E-Way Bill Number")
+	eway_bill_date = models.DateTimeField(default=timezone.now)
+	valid_until = models.DateTimeField(blank=True, null=True)
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+
+	invoice = models.OneToOneField(CorporateGSTInvoice, on_delete=models.CASCADE, related_name='eway_bill')
+
+	supply_type = models.CharField(max_length=10, default="O", help_text="O - Outward, I - Inward")
+	sub_supply_type = models.CharField(max_length=5, default="1", help_text="1 - Supply")
+	doc_type = models.CharField(max_length=5, default="INV", help_text="INV - Tax Invoice")
+
+	transporter_id = models.CharField(max_length=15, blank=True, default="33AAAAA0000A1Z5")
+	transporter_name = models.CharField(max_length=100, default="Siva Gayathiri Tours & Travels")
+	trans_distance_km = models.PositiveIntegerField(default=50, help_text="Approximate transportation distance in KM")
+	trans_mode = models.CharField(max_length=2, default="1", help_text="1 - Road")
+	vehicle_number = models.CharField(max_length=20)
+	vehicle_type = models.CharField(max_length=2, default="R", choices=[('R', 'Regular'), ('O', 'Over Dimensional Cargo')])
+
+	nic_payload_json = models.JSONField(default=dict, help_text="NIC E-Way Bill Schema v1.04 JSON")
+	nic_response_json = models.JSONField(default=dict, blank=True)
+	qr_code_svg = models.TextField(blank=True)
+
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-eway_bill_date', '-id']
+		verbose_name = 'NIC E-Way Bill'
+		verbose_name_plural = 'NIC E-Way Bills'
+
+	def __str__(self):
+		return f"EWB #{self.eway_bill_number or 'Draft'} - {self.vehicle_number} ({self.get_status_display()})"
+
+	def save(self, *args, **kwargs):
+		if not self.valid_until:
+			# Rule 138(10): For normal cargo, 1 day for every 200 km or part thereof, min 24h
+			days = max(1, (self.trans_distance_km + 199) // 200)
+			self.valid_until = timezone.now() + timezone.timedelta(days=days)
+		if not self.eway_bill_number:
+			# 12-digit NIC format: State Code (2 digits) + 10 digits
+			import time
+			state = (self.invoice.supplier_state_code or "33").zfill(2)
+			suffix = str(int(time.time() * 1000))[-10:]
+			self.eway_bill_number = f"{state}{suffix}"
+		super().save(*args, **kwargs)
+
+
+# ==============================================================================
+# Phase 5: Petty Cash Float Register & Driver/Tour Manager Cash Wallet Digital Twin
+# ==============================================================================
+
+class PettyCashAccount(models.Model):
+	ACCOUNT_TYPES = [
+		('branch', '🏢 Branch / Garage Float'),
+		('driver', '🧑‍✈️ Driver / Tour Pilot Float'),
+		('tour_manager', '🧭 Tour Manager / Guide Float'),
+		('dispatcher', '📡 Dispatcher Emergency Float'),
+	]
+
+	account_name = models.CharField(max_length=255, help_text="e.g. Coimbatore Main Depot Float or Driver Karthik Murugan")
+	account_type = models.CharField(max_length=30, choices=ACCOUNT_TYPES, default='driver')
+	holder_user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='held_petty_cash_accounts')
+	holder_driver = models.ForeignKey('core.Driver', on_delete=models.SET_NULL, null=True, blank=True, related_name='held_petty_cash_accounts')
+	allocated_limit = models.DecimalField(max_digits=12, decimal_places=2, default=10000, help_text="Maximum sanctioned float cap (₹)")
+	opening_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Initial float deposit (₹)")
+	current_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Live running available cash balance (₹)")
+	warning_threshold = models.DecimalField(max_digits=12, decimal_places=2, default=1500, help_text="Low cash balance alert trigger (₹)")
+	is_active = models.BooleanField(default=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['account_type', 'account_name']
+		verbose_name = 'Petty Cash Account'
+		verbose_name_plural = 'Petty Cash Accounts (Floats)'
+
+	def __str__(self):
+		return f"{self.account_name} ({self.get_account_type_display()}): ₹{self.current_balance:,.2f}"
+
+	@property
+	def is_low_balance(self):
+		return self.current_balance <= self.warning_threshold
+
+	def recalculate_balance(self):
+		"""Recalculate balance from all approved/submitted transactions."""
+		inflow = self.transactions.filter(
+			transaction_type__in=['top_up', 'settlement_refund', 'adjustment'],
+			status__in=['approved', 'submitted']
+		).aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+
+		outflow = self.transactions.filter(
+			transaction_type__in=['expense', 'trip_advance'],
+			status__in=['approved', 'submitted']
+		).aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+
+		self.current_balance = (self.opening_balance or Decimal('0.00')) + inflow - outflow
+		self.save(update_fields=['current_balance', 'updated_at'])
+		return self.current_balance
+
+	def save(self, *args, **kwargs):
+		if self.pk is None and not self.opening_balance and self.current_balance:
+			self.opening_balance = self.current_balance
+		super().save(*args, **kwargs)
+
+
+class PettyCashTransaction(models.Model):
+	TRANSACTION_TYPES = [
+		('top_up', '📥 Cash Top-Up / Replenishment (Inflow)'),
+		('expense', '📤 Out-of-Pocket Expense (Outflow)'),
+		('trip_advance', '🛣️ Trip Cash Advance Issued (Outflow)'),
+		('settlement_refund', '🔁 Cash Surrender / Return (Inflow)'),
+		('adjustment', '⚖️ Audit Balance Adjustment'),
+	]
+
+	EXPENSE_CATEGORIES = [
+		('fuel', '⛽ Emergency Fuel / Diesel'),
+		('toll_parking', '🛣️ Highway Toll & Airport/Station Parking'),
+		('police_challan', '🚨 Spot Traffic Police Challan / Fine'),
+		('vehicle_repair', '🔧 Emergency Tyre Puncture / Bulb / Breakdown'),
+		('driver_food', '🍱 Driver Food / Batta / Night Halt Refreshment'),
+		('hotel_misc', '🏨 Guest Porterage / Emergency Lodging / Tea'),
+		('office_supplies', '📎 Stationery / Garage Cleaning / Consumables'),
+		('client_entertain', '☕ Client Courtesy / Welcome Drinks'),
+		('top_up_receipt', '💵 Cash Handover / Float Replenishment'),
+		('other', '📝 Other Discretionary Expense'),
+	]
+
+	STATUS_CHOICES = [
+		('draft', 'Draft Entry'),
+		('submitted', 'Pending Audit Review'),
+		('approved', '✅ Audit Approved'),
+		('rejected', '❌ Rejected'),
+	]
+
+	voucher_number = models.CharField(max_length=50, unique=True, blank=True, help_text="e.g. PCV-2026-0001")
+	account = models.ForeignKey(PettyCashAccount, on_delete=models.CASCADE, related_name='transactions')
+	transaction_type = models.CharField(max_length=30, choices=TRANSACTION_TYPES, default='expense')
+	category = models.CharField(max_length=30, choices=EXPENSE_CATEGORIES, default='toll_parking')
+	amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount in ₹")
+	balance_after = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Running float balance after transaction")
+	date = models.DateField(default=timezone.now)
+	recipient_or_vendor = models.CharField(max_length=255, blank=True, help_text="Vendor or person paid/received e.g. NHAI Fastag Cash, Tyre Works")
+	trip = models.ForeignKey('operations.Trip', on_delete=models.SET_NULL, null=True, blank=True, related_name='petty_cash_expenses')
+	receipt_photo = models.ImageField(upload_to='petty_cash_receipts/', null=True, blank=True, help_text="Bill receipt or voucher photograph")
+	notes = models.TextField(blank=True, help_text="Detailed explanation of purchase / reason")
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='approved')
+	authorized_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='authorized_petty_cash_txns')
+	audit_notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-date', '-created_at']
+		verbose_name = 'Petty Cash Voucher Transaction'
+		verbose_name_plural = 'Petty Cash Voucher Transactions'
+
+	def __str__(self):
+		sign = "+" if self.transaction_type in ['top_up', 'settlement_refund', 'adjustment'] else "-"
+		return f"{self.voucher_number or 'Voucher'} [{self.get_category_display()}]: {sign}₹{self.amount} ({self.account.account_name})"
+
+	def save(self, *args, **kwargs):
+		if not self.voucher_number:
+			import time
+			year = timezone.now().year
+			seq = int(time.time() * 1000) % 100000
+			self.voucher_number = f"PCV-{year}-{seq:05d}"
+
+		super().save(*args, **kwargs)
+		# Automatically update account balance
+		self.account.recalculate_balance()
+		if self.balance_after != self.account.current_balance:
+			PettyCashTransaction.objects.filter(pk=self.pk).update(balance_after=self.account.current_balance)
+
+
+

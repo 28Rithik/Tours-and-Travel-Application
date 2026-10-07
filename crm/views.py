@@ -3,6 +3,7 @@ from decimal import Decimal
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
@@ -13,11 +14,11 @@ from core.models import Party, Client, Supplier, VehicleType
 from crm.models import (
     Inquiry, InquiryFollowUp, Quotation, QuotationDay, QuotationItem,
     HotelMaster, MonumentEntranceMaster, ActivityMaster, GuideChargeMaster,
-    PartnerProfile, PartyContactPerson, B2CCustomerProfile,
+    PartnerProfile, PartyContactPerson, B2CCustomerProfile, CustomerPreference,
     SupplierProfile, SupplierContractedRate, SupplierServiceVoucher,
     DmcTask,
     FlightMaster, DmcDocument, TravelComplaint, SupplierPaymentRequisition,
-    DmcInvoice,
+    DmcInvoice, StaffNotification,
 )
 from .analytics import get_dmc_executive_metrics
 
@@ -1354,27 +1355,65 @@ def dmc_invoice_console_view(request):
     Console for Proforma and Tax Invoices with billing status, tax breakdowns,
     and client collections tracking.
     """
-    invoices = DmcInvoice.objects.select_related('party', 'booking', 'quotation').order_by('-invoice_date', '-id')
-    
+    from operations.models import Booking, Trip
+    from django.db.models import Q
+
+    search_term = request.GET.get('search', '').strip()
+    current_tab = request.GET.get('tab', 'all')
     itype = request.GET.get('type')
     status_filter = request.GET.get('status')
+
+    invoices = DmcInvoice.objects.select_related('party', 'booking', 'quotation').order_by('-invoice_date', '-id')
+
+    if search_term:
+        invoices = invoices.filter(
+            Q(invoice_number__icontains=search_term) |
+            Q(billing_name__icontains=search_term) |
+            Q(party__name__icontains=search_term) |
+            Q(client_gstin__icontains=search_term)
+        )
+
+    # Status tabs filter
+    if current_tab == 'unpaid':
+        invoices = invoices.filter(status__in=['issued', 'draft'], balance_due__gt=0)
+    elif current_tab == 'partially_paid':
+        invoices = invoices.filter(status='partially_paid')
+    elif current_tab == 'paid':
+        invoices = invoices.filter(status='paid')
+    elif current_tab == 'proforma':
+        invoices = invoices.filter(invoice_type='proforma')
+    elif current_tab == 'tax_invoice':
+        invoices = invoices.filter(invoice_type='tax_invoice')
+
     if itype:
         invoices = invoices.filter(invoice_type=itype)
     if status_filter:
         invoices = invoices.filter(status=status_filter)
 
-    total_billed = invoices.aggregate(tot=Sum('total_invoice_amount'))['tot'] or Decimal('0.00')
-    total_tax = invoices.aggregate(tot=Sum('total_tax_amount'))['tot'] or Decimal('0.00')
-    total_received = invoices.aggregate(tot=Sum('paid_amount'))['tot'] or Decimal('0.00')
-    total_balance = invoices.aggregate(tot=Sum('balance_due'))['tot'] or Decimal('0.00')
+    # Aggregate metrics over all invoices
+    all_inv_qs = DmcInvoice.objects.all()
+    total_billed = all_inv_qs.aggregate(tot=Sum('total_invoice_amount'))['tot'] or Decimal('0.00')
+    total_tax = all_inv_qs.aggregate(tot=Sum('total_tax_amount'))['tot'] or Decimal('0.00')
+    total_received = all_inv_qs.aggregate(tot=Sum('paid_amount'))['tot'] or Decimal('0.00')
+    total_balance = all_inv_qs.aggregate(tot=Sum('balance_due'))['tot'] or Decimal('0.00')
+
+    # Status tab counters
+    all_count = all_inv_qs.count()
+    unpaid_count = all_inv_qs.filter(status__in=['issued', 'draft'], balance_due__gt=0).count()
+    partially_paid_count = all_inv_qs.filter(status='partially_paid').count()
+    paid_count = all_inv_qs.filter(status='paid').count()
+    proforma_count = all_inv_qs.filter(invoice_type='proforma').count()
+    tax_invoice_count = all_inv_qs.filter(invoice_type='tax_invoice').count()
 
     parties = Party.objects.filter(is_active=True).order_by('name')
-    from operations.models import Booking
     recent_bookings = Booking.objects.order_by('-booking_date')[:30]
     recent_quotes = Quotation.objects.order_by('-created_at')[:30]
+    recent_trips = Trip.objects.select_related('party', 'vehicle', 'driver').order_by('-id')[:30]
 
     context = {
         'invoices': invoices,
+        'current_tab': current_tab,
+        'search_term': search_term,
         'selected_type': itype,
         'selected_status': status_filter,
         'total_billed': total_billed,
@@ -1382,9 +1421,16 @@ def dmc_invoice_console_view(request):
         'total_received': total_received,
         'total_balance': total_balance,
         'invoice_count': invoices.count(),
+        'all_count': all_count,
+        'unpaid_count': unpaid_count,
+        'partially_paid_count': partially_paid_count,
+        'paid_count': paid_count,
+        'proforma_count': proforma_count,
+        'tax_invoice_count': tax_invoice_count,
         'parties': parties,
         'bookings': recent_bookings,
         'quotations': recent_quotes,
+        'trips': recent_trips,
         'invoice_types': DmcInvoice.INVOICE_TYPES,
         'statuses': DmcInvoice.STATUS_CHOICES,
         'tax_regimes': DmcInvoice.TAX_REGIMES,
@@ -1506,6 +1552,43 @@ def dmc_invoice_dispatch_api(request, invoice_id):
     return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
 
 
+@login_required
+def api_record_invoice_payment(request, invoice_id):
+    """
+    POST API to record customer payment receipt against an invoice.
+    Updates paid_amount, balance_due, and advances status to paid/partially_paid.
+    """
+    if request.method == 'POST':
+        invoice = get_object_or_404(DmcInvoice, id=invoice_id)
+        try:
+            amt = Decimal(str(request.POST.get('payment_amount', '0.00')).strip())
+        except Exception:
+            amt = Decimal('0.00')
+
+        if amt <= Decimal('0.00'):
+            return JsonResponse({'status': 'error', 'message': 'Payment amount must be greater than zero.'}, status=400)
+
+        pay_mode = request.POST.get('payment_mode', 'upi')
+        ref_num = request.POST.get('reference_number', '').strip()
+
+        invoice.paid_amount += amt
+        invoice.save()  # Auto-recalculates balance_due and updates status
+
+        msg = f"Receipt of ₹{amt:,.2f} recorded for Invoice {invoice.invoice_number} ({pay_mode.upper()} Ref: {ref_num or 'N/A'})."
+        messages.success(request, msg)
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
+            return JsonResponse({
+                'status': 'success',
+                'message': msg,
+                'paid_amount': str(invoice.paid_amount),
+                'balance_due': str(invoice.balance_due),
+                'invoice_status': invoice.status,
+            })
+        return redirect('crm:invoice_console')
+    return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+
 # ==============================================================================
 # PHASE E: DMC COMPREHENSIVE REPORTS & ANALYTICS HUB
 # ==============================================================================
@@ -1564,6 +1647,30 @@ def dmc_reports_hub_view(request):
             writer.writerow([item['dest'], item['count'], item['pax'], float(item['revenue'])])
         return response
 
+    # Chart.js visual datasets
+    chart_dest_labels = [d['dest'] for d in dest_list[:7]]
+    chart_dest_revenue = [float(d['revenue']) for d in dest_list[:7]]
+
+    inquiries = Inquiry.objects.all()
+    won_leads_cnt = inquiries.filter(status='won').count()
+    negotiating_cnt = inquiries.filter(status='negotiating').count()
+    quoted_leads_cnt = inquiries.filter(status='quoted').count()
+    new_review_cnt = inquiries.filter(status__in=['new', 'in_progress']).count()
+    lost_leads_cnt = inquiries.filter(status='lost').count()
+
+    chart_pipeline_labels = ['Won', 'Negotiating', 'Quoted', 'New / In Review', 'Lost']
+    chart_pipeline_counts = [won_leads_cnt, negotiating_cnt, quoted_leads_cnt, new_review_cnt, lost_leads_cnt]
+
+    lost_reasons_qs = (
+        Inquiry.objects.filter(status='lost')
+        .exclude(lost_reason='')
+        .values('lost_reason')
+        .annotate(cnt=Count('id'))
+        .order_by('-cnt')[:6]
+    )
+    chart_objection_labels = [r['lost_reason'].replace('_', ' ').title() for r in lost_reasons_qs]
+    chart_objection_counts = [r['cnt'] for r in lost_reasons_qs]
+
     context = {
         'dest_list': dest_list[:12],
         'total_quotes': total_quotes,
@@ -1574,6 +1681,1083 @@ def dmc_reports_hub_view(request):
         'top_parties': top_parties,
         'total_bookings': bookings.count(),
         'total_turnover': bookings.aggregate(tot=Sum('quoted_price'))['tot'] or Decimal('0.00'),
+        'chart_dest_labels': json.dumps(chart_dest_labels),
+        'chart_dest_revenue': json.dumps(chart_dest_revenue),
+        'chart_pipeline_labels': json.dumps(chart_pipeline_labels),
+        'chart_pipeline_counts': json.dumps(chart_pipeline_counts),
+        'chart_objection_labels': json.dumps(chart_objection_labels),
+        'chart_objection_counts': json.dumps(chart_objection_counts),
     }
     return render(request, 'crm/reports_hub.html', context)
 
+
+# ==============================================================================
+# Phase 6: Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub
+# ==============================================================================
+
+from django.views.decorators.csrf import csrf_exempt
+
+@login_required
+def crm_kanban_board_view(request):
+    """
+    Phase 6: Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub.
+    Real-time draggable deal stages, lead prioritization, TAT SLA monitors,
+    1-click WhatsApp follow-ups, and instant Booking/Trip conversion.
+    """
+    from .models import Inquiry, InquiryFollowUp
+    from core.models import VehicleType
+    from django.contrib.auth.models import User
+
+    inquiries = Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to', 'converted_booking', 'converted_trip').prefetch_related('follow_ups')
+
+    # Seed initial realistic inquiries if none exist
+    if not Inquiry.objects.exists():
+        first_client = Client.objects.first()
+        if not first_client:
+            from core.models import Party
+            first_client = Party.objects.create(name="Apex Global Corporate Tours", party_type='customer')
+        
+        sample_vtype = VehicleType.objects.first()
+        today = timezone.now().date()
+        
+        Inquiry.objects.create(
+            party=first_client,
+            guest_name="Mr. Rajesh Sharma",
+            guest_phone="9842511223",
+            guest_email="rajesh.sharma@tours.com",
+            pickup_location="Coimbatore Airport",
+            destination="Ooty & Coonoor Hill Tour",
+            pickup_date=today + datetime.timedelta(days=2),
+            pickup_time=datetime.time(9, 30),
+            drop_date=today + datetime.timedelta(days=5),
+            journey_type='outstation',
+            vehicle_type=sample_vtype,
+            adult_count=4,
+            priority='urgent',
+            source='whatsapp',
+            quoted_price=Decimal('28500.00'),
+            estimated_deal_value=Decimal('28500.00'),
+            status='new',
+            notes='VIP family vacation. Needs child booster seat and English speaking driver.'
+        )
+        Inquiry.objects.create(
+            party=first_client,
+            guest_name="Dr. Priya Murugan",
+            guest_phone="9876543210",
+            guest_email="priya.m@hospital.org",
+            pickup_location="Chennai Central",
+            destination="Munnar Tea Gardens",
+            pickup_date=today + datetime.timedelta(days=4),
+            pickup_time=datetime.time(6, 0),
+            drop_date=today + datetime.timedelta(days=7),
+            journey_type='outstation',
+            vehicle_type=sample_vtype,
+            adult_count=6,
+            priority='high',
+            source='website',
+            quoted_price=Decimal('34000.00'),
+            estimated_deal_value=Decimal('34000.00'),
+            status='in_progress',
+            notes='Conference + holiday extension. Requested Toyota Innova Crysta.'
+        )
+        Inquiry.objects.create(
+            party=first_client,
+            guest_name="Vikramaditya Logistics Corp",
+            guest_phone="9443322110",
+            guest_email="travel@vikramlogistics.in",
+            pickup_location="Bangalore Whitefield",
+            destination="Kodaikanal Lake Retreat",
+            pickup_date=today + datetime.timedelta(days=6),
+            pickup_time=datetime.time(8, 0),
+            drop_date=today + datetime.timedelta(days=9),
+            journey_type='outstation',
+            vehicle_type=sample_vtype,
+            adult_count=12,
+            priority='medium',
+            source='agent_referral',
+            quoted_price=Decimal('62000.00'),
+            estimated_deal_value=Decimal('62000.00'),
+            status='quoted',
+            notes='Corporate incentive group trip. Sent proposal with Tempo Traveller.'
+        )
+        Inquiry.objects.create(
+            party=first_client,
+            guest_name="Anand Sundaram",
+            guest_phone="9894123456",
+            guest_email="anand.s@startup.io",
+            pickup_location="Madurai Meenakshi",
+            destination="Rameshwaram & Kanyakumari",
+            pickup_date=today + datetime.timedelta(days=8),
+            pickup_time=datetime.time(7, 30),
+            drop_date=today + datetime.timedelta(days=11),
+            journey_type='outstation',
+            vehicle_type=sample_vtype,
+            adult_count=3,
+            priority='high',
+            source='phone',
+            quoted_price=Decimal('42000.00'),
+            estimated_deal_value=Decimal('42000.00'),
+            status='negotiating',
+            notes='Reviewing final discount on 4-star ocean view hotel package.'
+        )
+
+    # Filters
+    specialist_id = request.GET.get('assigned_to')
+    priority_filter = request.GET.get('priority')
+    source_filter = request.GET.get('source')
+    search_q = request.GET.get('q', '').strip()
+
+    if specialist_id:
+        inquiries = inquiries.filter(assigned_to_id=specialist_id)
+    if priority_filter:
+        inquiries = inquiries.filter(priority=priority_filter)
+    if source_filter:
+        inquiries = inquiries.filter(source=source_filter)
+    if search_q:
+        inquiries = inquiries.filter(
+            Q(inquiry_number__icontains=search_q) |
+            Q(guest_name__icontains=search_q) |
+            Q(guest_phone__icontains=search_q) |
+            Q(destination__icontains=search_q) |
+            Q(party__name__icontains=search_q)
+        )
+
+    all_inqs = list(inquiries.order_by('kanban_order', '-created_at'))
+
+    # Board columns definition
+    columns_spec = [
+        ('new', 'New Leads', 'fa-sparkles', '#6366f1', 'badge-new'),
+        ('in_progress', 'Contacted / Review', 'fa-phone-volume', '#0ea5e9', 'badge-contacted'),
+        ('quoted', 'Proposal Sent', 'fa-file-invoice', '#f59e0b', 'badge-quoted'),
+        ('negotiating', 'Negotiating', 'fa-comments-dollar', '#a855f7', 'badge-negotiating'),
+        ('won', 'Won (Converted)', 'fa-trophy', '#10b981', 'badge-won'),
+        ('lost', 'Closed / Lost', 'fa-circle-xmark', '#ef4444', 'badge-lost'),
+    ]
+
+    columns_data = []
+    total_pipeline_value = Decimal('0.00')
+    active_leads_count = 0
+    won_leads_count = 0
+    total_leads_count = len(all_inqs)
+    overdue_count = 0
+
+    for col_key, col_title, col_icon, col_color, col_badge_class in columns_spec:
+        col_inquiries = [inq for inq in all_inqs if inq.status == col_key]
+        col_total_val = sum((inq.deal_value for inq in col_inquiries), Decimal('0.00'))
+        
+        if col_key not in ['lost']:
+            total_pipeline_value += col_total_val
+        if col_key in ['new', 'in_progress', 'quoted', 'negotiating']:
+            active_leads_count += len(col_inquiries)
+        if col_key == 'won':
+            won_leads_count += len(col_inquiries)
+
+        for inq in col_inquiries:
+            if inq.is_overdue:
+                overdue_count += 1
+
+        columns_data.append({
+            'key': col_key,
+            'title': col_title,
+            'icon': col_icon,
+            'color': col_color,
+            'badge_class': col_badge_class,
+            'count': len(col_inquiries),
+            'total_value': col_total_val,
+            'inquiries': col_inquiries,
+        })
+
+    win_rate = round((won_leads_count / total_leads_count * 100), 1) if total_leads_count > 0 else 0
+
+    specialists = User.objects.filter(is_active=True).order_by('username')
+
+    context = {
+        'columns': columns_data,
+        'total_pipeline_value': total_pipeline_value,
+        'active_leads_count': active_leads_count,
+        'won_leads_count': won_leads_count,
+        'total_leads_count': total_leads_count,
+        'win_rate': win_rate,
+        'overdue_count': overdue_count,
+        'specialists': specialists,
+        'selected_specialist': specialist_id,
+        'selected_priority': priority_filter,
+        'selected_source': source_filter,
+        'search_query': search_q,
+        'priorities': Inquiry.PRIORITY_CHOICES,
+        'sources': Inquiry.SOURCE_CHOICES,
+    }
+    return render(request, 'crm/kanban_board.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_update_stage(request, inquiry_id):
+    """
+    POST endpoint to update inquiry pipeline stage during Kanban drag-and-drop.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryFollowUp
+    import json
+
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    try:
+        new_status = None
+        kanban_order = None
+        if request.content_type == 'application/json' and request.body:
+            data = json.loads(request.body.decode('utf-8'))
+            new_status = data.get('new_status')
+            kanban_order = data.get('kanban_order')
+        else:
+            new_status = request.POST.get('new_status')
+            kanban_order = request.POST.get('kanban_order')
+
+        valid_statuses = dict(Inquiry.STATUS_CHOICES)
+        if new_status not in valid_statuses:
+            return JsonResponse({'status': 'error', 'message': f'Invalid stage: {new_status}'}, status=400)
+
+        old_status_display = inquiry.get_status_display()
+        inquiry.status = new_status
+        if kanban_order is not None:
+            try:
+                inquiry.kanban_order = int(kanban_order)
+            except (ValueError, TypeError):
+                pass
+        
+        inquiry.save()
+
+        # Log transition in follow-up history
+        InquiryFollowUp.objects.create(
+            inquiry=inquiry,
+            performed_by=request.user,
+            interaction_type='meeting',
+            notes=f"Pipeline stage moved from '{old_status_display}' to '{valid_statuses[new_status]}'.",
+            is_done=True,
+            completed_at=timezone.now()
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'inquiry_id': inquiry.id,
+            'new_status': new_status,
+            'new_status_display': valid_statuses[new_status],
+            'deal_value': float(inquiry.deal_value),
+            'message': f"Lead #{inquiry.inquiry_number} updated to {valid_statuses[new_status]}."
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_quick_followup(request, inquiry_id):
+    """
+    POST endpoint to log an interaction follow-up (Call, WhatsApp, Meeting, Email).
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryFollowUp
+    import json
+    from datetime import timedelta
+
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    try:
+        data = {}
+        if request.content_type == 'application/json' and request.body:
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.POST
+
+        interaction_type = data.get('interaction_type', 'phone')
+        notes = data.get('notes', '').strip()
+        next_action = data.get('next_action', '').strip()
+        days_ahead = int(data.get('next_followup_days') or 2)
+
+        now = timezone.now()
+        next_date = now + timedelta(days=days_ahead)
+
+        InquiryFollowUp.objects.create(
+            inquiry=inquiry,
+            performed_by=request.user,
+            interaction_type=interaction_type,
+            notes=notes or f"Follow-up completed via {interaction_type}",
+            next_action=next_action,
+            is_done=True,
+            completed_at=now
+        )
+
+        inquiry.last_followup_at = now
+        inquiry.next_followup_at = next_date
+        inquiry.save(update_fields=['last_followup_at', 'next_followup_at'])
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Follow-up logged for {inquiry.guest_name}. Next action scheduled in {days_ahead} days.",
+            'last_followup_str': now.strftime('%d %b %H:%M'),
+            'next_followup_str': next_date.strftime('%d %b %Y')
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_convert_to_booking(request, inquiry_id):
+    """
+    1-Click Conversion: Converts a CRM Inquiry into a confirmed Booking and active Trip.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryFollowUp
+    from operations.models import Booking, Trip
+    import json
+
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    try:
+        # Check if already converted
+        if inquiry.converted_trip:
+            return JsonResponse({
+                'status': 'info',
+                'message': f'Inquiry #{inquiry.inquiry_number} is already converted to Trip #{inquiry.converted_trip.trip_id}.',
+                'trip_id': inquiry.converted_trip.id,
+                'trip_number': inquiry.converted_trip.trip_id,
+                'booking_id': inquiry.converted_booking_id
+            })
+
+        deal_val = inquiry.deal_value or Decimal('15000.00')
+
+        # 1. Create operations.Booking
+        booking = Booking.objects.create(
+            party=inquiry.party,
+            guest_name=inquiry.guest_name,
+            guest_phone=inquiry.guest_phone,
+            pickup_location=inquiry.pickup_location,
+            destination=inquiry.destination,
+            pickup_date=inquiry.pickup_date,
+            pickup_time=inquiry.pickup_time,
+            drop_date=inquiry.drop_date or inquiry.pickup_date,
+            journey_type=inquiry.journey_type,
+            vehicle_type=inquiry.vehicle_type,
+            expected_km=inquiry.estimated_km or 250,
+            quoted_price=deal_val,
+            special_requirements=inquiry.special_requirements or '',
+            status='confirmed'
+        )
+
+        # 2. Create operations.Trip
+        trip = Trip.objects.create(
+            booking=booking,
+            party=inquiry.party,
+            guest_name=inquiry.guest_name,
+            start_date=inquiry.pickup_date,
+            start_time=inquiry.pickup_time,
+            end_date=inquiry.drop_date or inquiry.pickup_date,
+            fixed_amount=deal_val,
+            status='booked',
+            billing_model='fixed',
+            notes=f"Converted from CRM Lead #{inquiry.inquiry_number} ({inquiry.pickup_location} to {inquiry.destination})"
+        )
+
+        # 3. Update Inquiry state
+        inquiry.status = 'won'
+        inquiry.converted_booking = booking
+        inquiry.converted_trip = trip
+        inquiry.save(update_fields=['status', 'converted_booking', 'converted_trip'])
+
+        # 4. Log Follow-up conversion record
+        InquiryFollowUp.objects.create(
+            inquiry=inquiry,
+            performed_by=request.user,
+            interaction_type='meeting',
+            notes=f"🎉 Converted to Confirmed Booking #{booking.booking_number} & Trip #{trip.trip_id} (Deal value: ₹{deal_val:,.2f}).",
+            is_done=True,
+            completed_at=timezone.now()
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Inquiry #{inquiry.inquiry_number} successfully converted to Trip #{trip.trip_id}!",
+            'booking_id': booking.id,
+            'booking_number': booking.booking_number,
+            'trip_id': trip.id,
+            'trip_number': trip.trip_id,
+            'admin_trip_url': f"/admin/operations/trip/{trip.id}/change/"
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_dispatch_whatsapp(request, inquiry_id):
+    """
+    Constructs and triggers tailored WhatsApp quotation/follow-up message for a CRM lead.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryFollowUp
+    import json
+    import urllib.parse
+
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    try:
+        custom_note = ""
+        if request.body:
+            try:
+                data = json.loads(request.body.decode('utf-8'))
+                custom_note = data.get('custom_note', '')
+            except Exception:
+                pass
+        if not custom_note:
+            custom_note = request.POST.get('custom_note', '')
+
+        # Build professional tour message
+        veh_name = inquiry.vehicle_type.name if inquiry.vehicle_type else "Luxury AC Vehicle"
+        price_str = f"₹{inquiry.deal_value:,.2f}" if inquiry.deal_value else "Custom Quote Available"
+        
+        message_text = (
+            f"Namaste {inquiry.guest_name}! 🙏\n\n"
+            f"Thank you for contacting *Siva Gayathiri Tours & Travels* regarding your upcoming tour.\n\n"
+            f"📍 *Circuit:* {inquiry.pickup_location} ➔ {inquiry.destination}\n"
+            f"📅 *Dates:* {inquiry.pickup_date.strftime('%d-%b-%Y')}\n"
+            f"🚘 *Vehicle Category:* {veh_name}\n"
+            f"👥 *Travelers:* {inquiry.adult_count} Adults, {inquiry.child_count} Children\n"
+            f"💰 *Quoted Estimate:* {price_str}\n\n"
+        )
+        if custom_note:
+            message_text += f"📝 *Note:* {custom_note}\n\n"
+            
+        message_text += (
+            f"To customize your itinerary or confirm your booking, please reply to this message or call our 24x7 helpdesk.\n\n"
+            f"Warm regards,\n"
+            f"*Siva Gayathiri Tours & Travels*\n"
+            f"📞 +91 98425 11223 | www.sivagayathiritravels.com"
+        )
+
+        phone_clean = "".join(filter(str.isdigit, inquiry.guest_phone or ""))
+        if phone_clean.startswith("0"):
+            phone_clean = phone_clean[1:]
+        if len(phone_clean) == 10:
+            phone_clean = "91" + phone_clean
+
+        wa_url = f"https://wa.me/{phone_clean}?text={urllib.parse.quote(message_text)}"
+
+        # Log in Follow-ups
+        InquiryFollowUp.objects.create(
+            inquiry=inquiry,
+            performed_by=request.user,
+            interaction_type='whatsapp',
+            notes=f"Dispatched WhatsApp quotation:\n{message_text}",
+            is_done=True,
+            completed_at=timezone.now()
+        )
+        inquiry.last_followup_at = timezone.now()
+        inquiry.save(update_fields=['last_followup_at'])
+
+        return JsonResponse({
+            'status': 'success',
+            'phone': phone_clean,
+            'message_text': message_text,
+            'wa_url': wa_url,
+            'message': f"WhatsApp message prepared for {inquiry.guest_name} ({phone_clean})."
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def api_crm_kanban_data(request):
+    """
+    Returns live board state as JSON for real-time polling or HTMX board sync.
+    """
+    from .models import Inquiry
+
+    inquiries = Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to').all()
+    stages = dict(Inquiry.STATUS_CHOICES)
+
+    board = {}
+    for st_key in stages.keys():
+        st_inqs = inquiries.filter(status=st_key)
+        board[st_key] = {
+            'count': st_inqs.count(),
+            'total_value': float(sum((i.deal_value for i in st_inqs), Decimal('0.00'))),
+            'items': [
+                {
+                    'id': i.id,
+                    'number': i.inquiry_number,
+                    'guest_name': i.guest_name,
+                    'phone': i.guest_phone,
+                    'destination': i.destination,
+                    'pickup_date': i.pickup_date.strftime('%Y-%m-%d'),
+                    'priority': i.priority,
+                    'deal_value': float(i.deal_value),
+                    'is_overdue': i.is_overdue,
+                    'source': i.source,
+                }
+                for i in st_inqs
+            ]
+        }
+
+    return JsonResponse({'status': 'success', 'board': board})
+
+
+# ==============================================================================
+# PHASE 6 — TutterflyCRM Power-Up APIs
+# ==============================================================================
+
+@login_required
+def api_notifications_poll(request):
+    """
+    GET  /crm/api/notifications/poll/
+    Returns unread notifications for the logged-in user (or broadcast ones).
+    Used by the notification bell widget on the topbar (polling every 30 s).
+    """
+    from django.db.models import Q as dQ
+    notifs = StaffNotification.objects.filter(
+        dQ(recipient=request.user) | dQ(recipient__isnull=True),
+        is_read=False
+    ).order_by('-created_at')[:20]
+
+    data = [
+        {
+            'id': n.pk,
+            'type': n.notification_type,
+            'icon': n.get_notification_type_display().split(' ')[0],
+            'title': n.title,
+            'body': n.body,
+            'link': n.link_url,
+            'created_at': n.created_at.strftime('%d %b, %I:%M %p'),
+        }
+        for n in notifs
+    ]
+    return JsonResponse({'count': len(data), 'notifications': data})
+
+
+@csrf_exempt
+@login_required
+def api_notifications_mark_read(request):
+    """
+    POST /crm/api/notifications/mark-read/
+    Body: {"ids": [1, 2, 3]}   or  {"all": true}
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    from django.db.models import Q as dQ
+    try:
+        payload = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        payload = {}
+
+    if payload.get('all'):
+        updated = StaffNotification.objects.filter(
+            dQ(recipient=request.user) | dQ(recipient__isnull=True),
+            is_read=False
+        ).update(is_read=True)
+    else:
+        ids = payload.get('ids', [])
+        updated = StaffNotification.objects.filter(
+            dQ(recipient=request.user) | dQ(recipient__isnull=True),
+            pk__in=ids
+        ).update(is_read=True)
+
+    return JsonResponse({'status': 'ok', 'marked_read': updated})
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_log_objection(request, inquiry_id):
+    """
+    POST /crm/api/inquiries/<id>/log-objection/
+    Logs why a lead was lost — objection management.
+    Body: {"lost_reason": "price_too_high", "competitor_name": "...",
+           "objection_notes": "...", "win_loss_rating": 3}
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    inquiry.lost_reason = data.get('lost_reason', '')
+    inquiry.competitor_name = data.get('competitor_name', '')
+    inquiry.objection_notes = data.get('objection_notes', '')
+    win_rating = data.get('win_loss_rating')
+    if win_rating is not None:
+        try:
+            inquiry.win_loss_rating = max(1, min(5, int(win_rating)))
+        except (ValueError, TypeError):
+            pass
+    if data.get('mark_lost', True):
+        inquiry.status = 'lost'
+    inquiry.save()
+
+    # Push a notification about lost lead
+    StaffNotification.push(
+        notification_type='lead_lost',
+        title=f'Lead Lost: {inquiry.inquiry_number} — {inquiry.guest_name}',
+        body=f'Reason: {inquiry.get_lost_reason_display() if inquiry.lost_reason else "Not specified"} | Competitor: {inquiry.competitor_name or "Unknown"}',
+        link_url=f'/admin/crm/inquiry/{inquiry.pk}/change/',
+    )
+    return JsonResponse({'status': 'ok', 'inquiry_id': inquiry.pk})
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_mass_reassign(request):
+    """
+    POST /crm/api/inquiries/mass-reassign/
+    Bulk-transfer leads from one user to another.
+    Body: {"from_user_id": 3, "to_user_id": 5, "ids": [1,2,3]}  (ids optional — if omitted, transfers ALL)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    try:
+        payload = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    to_user_id = payload.get('to_user_id')
+    from_user_id = payload.get('from_user_id')
+    ids = payload.get('ids', [])
+
+    if not to_user_id:
+        return JsonResponse({'error': 'to_user_id is required'}, status=400)
+    try:
+        to_user = User.objects.get(pk=to_user_id)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Target user not found'}, status=404)
+
+    qs = Inquiry.objects.all()
+    if from_user_id:
+        qs = qs.filter(assigned_to_id=from_user_id)
+    if ids:
+        qs = qs.filter(pk__in=ids)
+
+    updated = qs.update(assigned_to=to_user)
+    StaffNotification.push(
+        notification_type='system',
+        title=f'Mass Reassignment: {updated} leads transferred to {to_user.get_full_name() or to_user.username}',
+        body=f'Performed by {request.user.username}',
+        recipient=to_user,
+    )
+    return JsonResponse({'status': 'ok', 'reassigned': updated, 'to_user': to_user.username})
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_clone(request, inquiry_id):
+    """
+    POST /crm/api/inquiries/<id>/clone/
+    Clones an Inquiry as a fresh lead (new status, new number, today's date).
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    original = get_object_or_404(Inquiry, pk=inquiry_id)
+    # Create clone
+    original.pk = None  # Django magic — new row on save
+    original.id = None
+    original.inquiry_number = ''  # Let auto-generate
+    original.status = 'new'
+    original.created_at = None
+    original.tat_deadline = None
+    original.converted_booking = None
+    original.converted_trip = None
+    original.lost_reason = ''
+    original.competitor_name = ''
+    original.objection_notes = ''
+    original.win_loss_rating = None
+    original.assigned_to = request.user
+    original.pickup_date = timezone.now().date()
+    original.save()
+
+    StaffNotification.push(
+        notification_type='new_booking',
+        title=f'Inquiry Cloned: {original.inquiry_number}',
+        body=f'Cloned from original by {request.user.username}',
+        link_url=f'/admin/crm/inquiry/{original.pk}/change/',
+        recipient=request.user,
+    )
+    return JsonResponse({
+        'status': 'ok',
+        'cloned_id': original.pk,
+        'cloned_number': original.inquiry_number,
+        'admin_url': f'/admin/crm/inquiry/{original.pk}/change/'
+    })
+
+
+@login_required
+def api_tat_dashboard(request):
+    """
+    GET /crm/api/tat-dashboard/
+    Returns pipeline TAT analytics per stage — time-in-stage averages.
+    """
+    from django.db.models import F, ExpressionWrapper, DurationField, FloatField, Avg, Count
+    from django.db.models.functions import Cast
+    import datetime
+    now = timezone.now()
+
+    stages = ['new', 'in_progress', 'quoted', 'negotiating', 'won', 'lost']
+    stage_data = []
+    for stage in stages:
+        inqs = Inquiry.objects.filter(status=stage)
+        total = inqs.count()
+        overdue = inqs.filter(tat_deadline__lt=now).count() if stage not in ['won', 'lost'] else 0
+        avg_deal = inqs.aggregate(avg=Avg('estimated_deal_value'))['avg'] or 0
+        stage_data.append({
+            'stage': stage,
+            'label': dict(Inquiry.STATUS_CHOICES).get(stage, stage),
+            'count': total,
+            'overdue': overdue,
+            'avg_deal_value': float(avg_deal),
+        })
+
+    # Win/loss objection analysis
+    lost_reasons = (
+        Inquiry.objects.filter(status='lost')
+        .exclude(lost_reason='')
+        .values('lost_reason')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    objection_analysis = [
+        {'reason': r['lost_reason'], 'count': r['count']}
+        for r in lost_reasons
+    ]
+
+    return JsonResponse({
+        'status': 'ok',
+        'pipeline': stage_data,
+        'objection_analysis': objection_analysis,
+    })
+
+
+# ==============================================================================
+# PHASE 6 — TutterflyCRM Extended Power-Ups
+# ==============================================================================
+
+@csrf_exempt
+def api_social_lead_webhook(request):
+    """
+    Webhook for Meta / Facebook Lead Ads & Instagram Direct Leads.
+    GET:  Webhook challenge verification (hub.mode, hub.verify_token, hub.challenge)
+    POST: Ingests lead data, creates Client + Inquiry, triggers StaffNotification
+    """
+    VERIFY_TOKEN = 'tutterfly_crm_token'
+
+    if request.method == 'GET':
+        mode = request.GET.get('hub.mode')
+        token = request.GET.get('hub.verify_token')
+        challenge = request.GET.get('hub.challenge')
+        if mode == 'subscribe' and token == VERIFY_TOKEN:
+            return HttpResponse(challenge, content_type='text/plain')
+        return HttpResponse('Verification token mismatch', status=403)
+
+    if request.method == 'POST':
+        try:
+            payload = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            payload = request.POST.dict()
+
+        # Support direct payload or Meta Graph webhook format
+        source = payload.get('source', 'facebook').lower()
+        if source not in ['facebook', 'instagram']:
+            source = 'facebook'
+
+        # Extract lead fields
+        guest_name = payload.get('full_name') or payload.get('name') or payload.get('guest_name', 'Social Media Lead')
+        guest_phone = payload.get('phone') or payload.get('phone_number') or payload.get('guest_phone', '')
+        guest_email = payload.get('email') or payload.get('guest_email', '')
+        dest_dropdown = payload.get('destination_dropdown', '')
+        destination = payload.get('destination') or (dict(Inquiry.POPULAR_DESTINATIONS).get(dest_dropdown, dest_dropdown) if dest_dropdown else 'Ooty')
+        pickup_loc = payload.get('pickup_location', 'Coimbatore / Transit Hub')
+        journey_type = payload.get('journey_type', 'outstation')
+        ad_name = payload.get('ad_name') or payload.get('campaign_name', 'Meta Ad Campaign')
+        notes = payload.get('notes') or payload.get('message', f'Generated via {source.title()} Ad: {ad_name}')
+        try:
+            adult_count = int(payload.get('adult_count', 2))
+        except (ValueError, TypeError):
+            adult_count = 2
+
+        # Look up or create Client party
+        client = None
+        if guest_phone:
+            client = Client.objects.filter(phone=guest_phone).first()
+        if not client and guest_email:
+            client = Client.objects.filter(email=guest_email).first()
+        if not client:
+            client = Client.objects.create(
+                name=guest_name,
+                phone=guest_phone,
+                email=guest_email,
+                party_type='individual',
+            )
+
+        # Create Inquiry
+        today = timezone.now().date()
+        inquiry = Inquiry.objects.create(
+            party=client,
+            guest_name=guest_name,
+            guest_phone=guest_phone,
+            guest_email=guest_email,
+            pickup_location=pickup_loc,
+            destination=destination,
+            destination_dropdown=dest_dropdown,
+            pickup_date=today + datetime.timedelta(days=2),
+            pickup_time=datetime.time(8, 0),
+            journey_type=journey_type,
+            adult_count=adult_count,
+            source=source,
+            priority='high',
+            target_tat_hours=4,  # Rapid response for social ads!
+            notes=f"[{source.upper()} LEAD ADS] Campaign: {ad_name}\nNotes: {notes}",
+            status='new',
+        )
+
+        # Broadcast StaffNotification
+        StaffNotification.push(
+            notification_type='new_booking',
+            title=f"📱 New {source.title()} Lead: {guest_name} ({inquiry.destination})",
+            body=f"Ad: {ad_name} | Phone: {guest_phone or 'N/A'} | SLA TAT: 4h",
+            link_url=f"/admin/crm/inquiry/{inquiry.pk}/change/",
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'inquiry_id': inquiry.pk,
+            'inquiry_number': inquiry.inquiry_number,
+            'source': source,
+            'client_id': client.pk,
+        })
+
+    return JsonResponse({'error': 'GET or POST required'}, status=405)
+
+
+@login_required
+def api_profile_enhancer(request, party_id):
+    """
+    GET /crm/api/profile-enhancer/<party_id>/
+    360° Profile Intelligence for Accounts, Leads, and Contacts:
+    - Lifetime Value (LTV) and total spend
+    - Booking count & completion stats
+    - Active inquiries & quotes
+    - Travel preferences (diet, vehicle, favourite circuit)
+    - VIP customer tier badge
+    """
+    client = get_object_or_404(Client, pk=party_id)
+    
+    # Bookings & Spend
+    bookings = client.bookings.all()
+    total_bookings = bookings.count()
+    completed_bookings = bookings.filter(status='completed').count()
+    total_spent = bookings.aggregate(sum=Sum('quoted_price'))['sum'] or Decimal('0.00')
+
+    # Inquiries & Quotes
+    inquiries = client.inquiries.all()
+    total_inquiries = inquiries.count()
+    won_inquiries = inquiries.filter(status='won').count()
+    win_rate = round((won_inquiries / total_inquiries * 100), 1) if total_inquiries else 0
+
+    # Customer Tier
+    if total_spent >= 100000:
+        tier = '💎 Platinum VIP (LTV > ₹1,00,000)'
+        tier_color = '#8b5cf6'
+    elif total_spent >= 50000:
+        tier = '🥇 Gold Tier (LTV > ₹50,000)'
+        tier_color = '#f59e0b'
+    elif total_spent >= 15000:
+        tier = '🥈 Silver Member (LTV > ₹15,000)'
+        tier_color = '#0284c7'
+    else:
+        tier = '🥉 Standard Client'
+        tier_color = '#64748b'
+
+    # Customer Preferences
+    pref = getattr(client, 'preferences', None)
+    pref_data = {
+        'dietary': pref.dietary_preference if pref else 'Standard',
+        'seat_preference': pref.seat_preference if pref else 'Any',
+        'special_notes': pref.special_requests if pref else 'None on file',
+    }
+
+    # Favourite destinations
+    fav_dests = (
+        inquiries.exclude(destination='')
+        .values('destination')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:3]
+    )
+
+    # Documents attached
+    doc_count = DmcDocument.objects.filter(related_partner__party=client).count()
+
+    return JsonResponse({
+        'status': 'ok',
+        'client': {
+            'id': client.pk,
+            'name': client.name,
+            'phone': client.phone or '',
+            'email': client.email or '',
+            'party_type': client.get_party_type_display(),
+            'address': client.address or 'Coimbatore, Tamil Nadu',
+            'state_code': client.state_code or '33',
+            'tier': tier,
+            'tier_color': tier_color,
+            'total_bookings': total_bookings,
+            'completed_bookings': completed_bookings,
+            'total_spent': float(total_spent),
+            'total_inquiries': total_inquiries,
+            'win_rate': win_rate,
+            'preferences': pref_data,
+            'favourite_destinations': [d['destination'] for d in fav_dests],
+            'documents_count': doc_count,
+        }
+    })
+
+
+@login_required
+def tenant_admin_logs_view(request):
+    """
+    GET /crm/tenant-admin/logs/
+    Tenant Admin Area: Visual Activity Audit Log viewer showing LogEntry records.
+    """
+    from django.contrib.admin.models import LogEntry
+    logs = LogEntry.objects.select_related('user', 'content_type').order_by('-action_time')[:150]
+    return render(request, 'crm/tenant_admin_logs.html', {
+        'logs': logs,
+        'total_logs': LogEntry.objects.count(),
+    })
+
+
+@login_required
+def api_tenant_admin_logs(request):
+    """
+    GET /crm/api/tenant-admin/logs/
+    JSON API for admin activity audit logs.
+    """
+    from django.contrib.admin.models import LogEntry
+    logs = LogEntry.objects.select_related('user', 'content_type').order_by('-action_time')[:100]
+    data = [
+        {
+            'id': log.pk,
+            'action_time': log.action_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'user': log.user.username,
+            'user_full_name': log.user.get_full_name() or log.user.username,
+            'action_flag': 'ADD' if log.action_flag == 1 else ('CHANGE' if log.action_flag == 2 else 'DELETE'),
+            'content_type': log.content_type.name if log.content_type else 'Unknown',
+            'object_repr': log.object_repr,
+            'change_message': log.change_message,
+        }
+        for log in logs
+    ]
+    return JsonResponse({'status': 'ok', 'count': len(data), 'logs': data})
+
+
+@csrf_exempt
+@login_required
+def api_tenant_admin_user_update(request):
+    """
+    POST /crm/api/tenant-admin/user/update/
+    Allows Tenant Admin to rename a user and change their email address.
+    Body: {"user_id": 3, "first_name": "Rohan", "last_name": "Sharma", "email": "rohan@travelerp.in", "username": "rohan_s"}
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({'error': 'Tenant Admin privileges required'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    user_id = data.get('user_id')
+    if not user_id:
+        return JsonResponse({'error': 'user_id is required'}, status=400)
+
+    target_user = get_object_or_404(User, pk=user_id)
+
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    email = data.get('email')
+    new_username = data.get('username')
+
+    if first_name is not None:
+        target_user.first_name = first_name.strip()
+    if last_name is not None:
+        target_user.last_name = last_name.strip()
+
+    if email is not None:
+        email = email.strip()
+        if email and User.objects.filter(email=email).exclude(pk=target_user.pk).exists():
+            return JsonResponse({'error': f'Email {email} is already taken by another user.'}, status=400)
+        target_user.email = email
+
+    if new_username is not None:
+        new_username = new_username.strip()
+        if new_username and User.objects.filter(username=new_username).exclude(pk=target_user.pk).exists():
+            return JsonResponse({'error': f'Username {new_username} already exists.'}, status=400)
+        target_user.username = new_username
+
+    target_user.save()
+
+    StaffNotification.push(
+        notification_type='system',
+        title=f'User Profile Updated: {target_user.username}',
+        body=f'Renamed to {target_user.get_full_name()} ({target_user.email}) by {request.user.username}',
+        recipient=target_user,
+    )
+
+    return JsonResponse({
+        'status': 'ok',
+        'user': {
+            'id': target_user.pk,
+            'username': target_user.username,
+            'full_name': target_user.get_full_name(),
+            'email': target_user.email,
+        }
+    })
+
+
+@csrf_exempt
+@login_required
+def api_sample_records_generate(request):
+    """
+    POST /crm/api/sample-records/generate/
+    Generates realistic sample inquiries, quotations, follow-ups, and objections for demo/testing.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    from django.core.management import call_command
+    import io
+    out = io.StringIO()
+    call_command('generate_sample_crm_data', stdout=out)
+    return JsonResponse({'status': 'ok', 'message': out.getvalue()})
+
+
+@csrf_exempt
+@login_required
+def api_sample_records_clean(request):
+    """
+    POST /crm/api/sample-records/clean/
+    Wipes all sample records safely without touching real operational data.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    from django.core.management import call_command
+    import io
+    out = io.StringIO()
+    call_command('clean_sample_crm_data', stdout=out)
+    return JsonResponse({'status': 'ok', 'message': out.getvalue()})

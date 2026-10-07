@@ -1,10 +1,11 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from .manifest_import import download_manifest_template_csv, upload_manifest_csv_view
 
 app_name = 'packages'
 
 urlpatterns = [
+    path('htmx/', include('packages.htmx_urls', namespace='htmx_packages')),
     path('quote/preview/', views.preview_tour_quotation, name='preview_tour_quotation'),
     path('quote/<int:package_id>/', views.generate_tour_quotation, name='quotation_proposal'),
     path('voucher/<int:package_id>/', views.generate_tour_voucher, name='tour_voucher'),
@@ -15,3 +16,4 @@ urlpatterns = [
     path('api/template/<int:template_id>/info/', views.api_template_info, name='api_template_info'),
     path('api/vehicle/<int:vehicle_id>/info/', views.api_vehicle_info, name='api_vehicle_info'),
 ]
+

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from django.utils.html import format_html, mark_safe
 from django.utils import timezone
 from django.db.models import Q
@@ -8,6 +9,7 @@ from .models import (
     ServiceRecord, SparePart, PartInventory,
     VehicleAsset, AssetRotationLog, DefectTicket, ServiceReminder,
     PreTripInspectionChecklist,
+    VehicleDamageInspection, VehicleDamageMarker,
 )
 
 
@@ -145,14 +147,14 @@ class AssetReplacementFilter(admin.SimpleListFilter):
 #  2. ServiceRecord Admin
 # ==========================================================================
 
-class SparePartInline(admin.TabularInline):
+class SparePartInline(TabularInline):
     model = SparePart
     extra = 1
     autocomplete_fields = ['inventory_item']
 
 
 @admin.register(ServiceRecord)
-class ServiceRecordAdmin(admin.ModelAdmin):
+class ServiceRecordAdmin(ModelAdmin):
     list_display = (
         'vehicle_link', 'service_type_badge', 'date', 'garage_name',
         'odometer_reading', 'parts_count_display', 'total_cost_display',
@@ -240,13 +242,13 @@ class ServiceRecordAdmin(admin.ModelAdmin):
 #  3. VehicleAsset Admin (Tyres & Batteries)
 # ==========================================================================
 
-class AssetRotationLogInline(admin.TabularInline):
+class AssetRotationLogInline(TabularInline):
     model = AssetRotationLog
     extra = 1
 
 
 @admin.register(VehicleAsset)
-class VehicleAssetAdmin(admin.ModelAdmin):
+class VehicleAssetAdmin(ModelAdmin):
     list_display = (
         'asset_type_badge', 'serial_number', 'vehicle_link', 'position_display',
         'lifecycle_display', 'warranty_status', 'status_badge', 'replacement_alert',
@@ -412,7 +414,7 @@ class VehicleAssetAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(DefectTicket)
-class DefectTicketAdmin(admin.ModelAdmin):
+class DefectTicketAdmin(ModelAdmin):
     list_display = (
         'ticket_id_display', 'vehicle_link', 'description_preview',
         'reported_by', 'date_reported', 'age_display', 'status_badge',
@@ -502,7 +504,7 @@ class DefectTicketAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(ServiceReminder)
-class ServiceReminderAdmin(admin.ModelAdmin):
+class ServiceReminderAdmin(ModelAdmin):
     list_display = (
         'vehicle_link', 'service_task', 'last_service_km_display',
         'due_km_display', 'km_remaining_display', 'is_active', 'service_alert',
@@ -587,7 +589,7 @@ class ServiceReminderAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(PartInventory)
-class PartInventoryAdmin(admin.ModelAdmin):
+class PartInventoryAdmin(ModelAdmin):
     list_display = (
         'part_name', 'sku_display', 'stock_display', 'minimum_stock_level',
         'default_unit_price_display', 'stock_status', 'reorder_alert',
@@ -672,7 +674,7 @@ class PartInventoryAdmin(admin.ModelAdmin):
 
 
 @admin.register(PreTripInspectionChecklist)
-class PreTripInspectionChecklistAdmin(admin.ModelAdmin):
+class PreTripInspectionChecklistAdmin(ModelAdmin):
     list_display = [
         'inspection_number',
         'vehicle_link',
@@ -773,6 +775,113 @@ class PreTripInspectionChecklistAdmin(admin.ModelAdmin):
         if obj.contract_trip:
             return format_html('<a href="/admin/fleet_contracts/contracttriplog/{}/change/">Shift Log #{}</a>', obj.contract_trip.pk, obj.contract_trip.pk)
         return "Ad-hoc / Yard"
+
+
+# ==============================================================================
+#  Interactive 2D Vehicle Damage Marker & Inspection Admins
+# ==============================================================================
+
+class VehicleDamageMarkerInline(TabularInline):
+    model = VehicleDamageMarker
+    extra = 0
+    fields = ('marker_number', 'damage_type', 'severity', 'panel_zone', 'view_angle', 'x_percent', 'y_percent', 'is_new_damage', 'estimated_repair_cost', 'notes')
+    ordering = ('marker_number',)
+
+
+@admin.register(VehicleDamageInspection)
+class VehicleDamageInspectionAdmin(ModelAdmin):
+    list_display = (
+        'inspection_number',
+        'vehicle_badge',
+        'inspection_type_badge',
+        'customer_name',
+        'markers_summary',
+        'security_deposit_held',
+        'new_damage_deductions',
+        'deposit_status_badge',
+        'created_at',
+        'studio_link',
+    )
+    list_filter = ('inspection_type', 'vehicle_body_style', 'deposit_status', 'created_at')
+    search_fields = ('inspection_number', 'vehicle__registration_number', 'customer_name', 'customer_phone', 'inspector_name')
+    inlines = [VehicleDamageMarkerInline]
+    date_hierarchy = 'created_at'
+
+    @admin.display(description="Vehicle", ordering='vehicle__registration_number')
+    def vehicle_badge(self, obj):
+        return format_html(
+            '<span style="font-weight:700; color:#38bdf8;">🚗 {}</span>',
+            obj.vehicle.registration_number
+        )
+
+    @admin.display(description="Type", ordering='inspection_type')
+    def inspection_type_badge(self, obj):
+        if obj.inspection_type == 'checkout':
+            return mark_safe('<span style="background:#0284c7; color:#fff; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700;">🛫 CHECK-OUT</span>')
+        elif obj.inspection_type == 'checkin':
+            return mark_safe('<span style="background:#10b981; color:#fff; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700;">🛬 RETURN CHECK-IN</span>')
+        return mark_safe('<span style="background:#6366f1; color:#fff; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700;">🔍 ROUTINE</span>')
+
+    @admin.display(description="Damage Markers")
+    def markers_summary(self, obj):
+        total = obj.markers.count()
+        new_cnt = obj.markers.filter(is_new_damage=True).count()
+        if total == 0:
+            return mark_safe('<span style="color:#10b981; font-weight:600;">✓ Pristine / Zero Damage</span>')
+        if new_cnt > 0:
+            return format_html(
+                '<span style="color:#ef4444; font-weight:700;">⚠️ {} total ({} NEW)</span>',
+                total, new_cnt
+            )
+        return format_html('<span style="color:#cbd5e1;">{} pre-existing</span>', total)
+
+    @admin.display(description="Deposit Status", ordering='deposit_status')
+    def deposit_status_badge(self, obj):
+        if obj.deposit_status == 'held':
+            return mark_safe('<span style="background:#f59e0b; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">HELD</span>')
+        elif obj.deposit_status == 'settled_refund':
+            return mark_safe('<span style="background:#10b981; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">REFUNDED</span>')
+        elif obj.deposit_status == 'settled_deduction':
+            return mark_safe('<span style="background:#ef4444; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">DEDUCTED</span>')
+        return mark_safe('<span style="color:#94a3b8;">None</span>')
+
+    @admin.display(description="Interactive Studio")
+    def studio_link(self, obj):
+        return format_html(
+            '<a href="/maintenance/damage-marker/?inspection_id={}" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; text-decoration:none;">🎨 2D Studio</a>',
+            obj.pk
+        )
+
+
+@admin.register(VehicleDamageMarker)
+class VehicleDamageMarkerAdmin(ModelAdmin):
+    list_display = (
+        'marker_number',
+        'inspection_link',
+        'damage_type',
+        'severity_badge',
+        'panel_zone',
+        'is_new_damage',
+        'estimated_repair_cost',
+        'created_at',
+    )
+    list_filter = ('damage_type', 'severity', 'is_new_damage', 'panel_zone')
+    search_fields = ('inspection__inspection_number', 'inspection__vehicle__registration_number', 'notes')
+
+    @admin.display(description="Inspection")
+    def inspection_link(self, obj):
+        return format_html(
+            '<a href="/admin/maintenance/vehicledamageinspection/{}/change/">{}</a>',
+            obj.inspection.pk, obj.inspection.inspection_number
+        )
+
+    @admin.display(description="Severity", ordering='severity')
+    def severity_badge(self, obj):
+        if obj.severity == 'severe':
+            return mark_safe('<span style="background:#dc2626; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">SEVERE</span>')
+        elif obj.severity == 'moderate':
+            return mark_safe('<span style="background:#d97706; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">MODERATE</span>')
+        return mark_safe('<span style="background:#16a34a; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">MINOR</span>')
 
 
 

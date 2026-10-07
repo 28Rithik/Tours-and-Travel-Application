@@ -1,0 +1,195 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🌿 ESG Sustainability & Driver Safety Scorecard | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/fleet_commute/commutermanifestproxy/" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🌿 ESG Sustainability & Safety Scorecard</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+.esg-container {
+    padding: 24px;
+    background: #090d16;
+    color: #f8fafc;
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.kpi-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+}
+.kpi-val {
+    font-size: 32px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+}
+.glass-panel {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.table-custom th {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+    color: #94a3b8;
+    font-weight: 600;
+}
+.table-custom td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+}
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #1e293b;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-in-out;
+}
+</style>
+
+<div class="esg-container">
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-size: 26px; font-weight: 800; margin: 0; color: #fff; display: flex; align-items: center; gap: 10px;">
+            🌿 ESG Carbon Sustainability & Driver Behavior Scorecard
+        </h1>
+        <p style="color: #94a3b8; font-size: 13px; margin: 4px 0 0;">
+            Real-time Greenhouse Gas Reduction Metrics &bull; Group Commute Carbon Offsets &bull; 0–100 Telematics Driver Safety Index
+        </p>
+    </div>
+
+    <!-- Carbon Footprint Metrics -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">🌱 Carbon Avoided (Group Commute)</div>
+            <div class="kpi-val" style="color: #10b981;">{{ esg.total_co2_saved_kg }} <span style="font-size: 16px;">kg CO₂</span></div>
+            <div style="font-size: 11px; color: #34d399; margin-top: 4px;">{{ esg.net_carbon_avoidance_pct }}% lower vs individual vehicles</div>
+        </div>
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">🚗 Actual Fleet CO₂ Footprint</div>
+            <div class="kpi-val" style="color: #38bdf8;">{{ esg.total_co2_emitted_kg }} <span style="font-size: 16px;">kg CO₂</span></div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Commercial transit efficiency</div>
+        </div>
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">🌳 Tree Sequestration Equivalent</div>
+            <div class="kpi-val" style="color: #a7f3d0;">{{ esg.trees_equivalent_saved }} <span style="font-size: 16px;">Trees</span></div>
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Annual absorption offset</div>
+        </div>
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">⚡ Green Fleet Efficiency Score</div>
+            <div class="kpi-val" style="color: #f59e0b;">{{ esg.green_fleet_score }} <span style="font-size: 16px;">/ 100</span></div>
+            <div style="font-size: 11px; color: #fcd34d; margin-top: 4px;">High passenger occupancy bonus</div>
+        </div>
+    </div>
+
+    <!-- Driver Safety Scorecard Leaderboard -->
+    <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #fff;">
+                🏆 0–100 Telematics Driver Safety Index Leaderboard
+            </h3>
+            <span style="font-size: 12px; color: #94a3b8;">Scored via Live GPS Telematics & Gyroscope Sensors</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="table-custom">
+                <thead>
+                    <tr>
+                        <th>Driver & Fleet</th>
+                        <th>Safety Index (0–100)</th>
+                        <th>Performance Grade</th>
+                        <th>Overspeeding</th>
+                        <th>Harsh Braking</th>
+                        <th>Excess Idling</th>
+                        <th>Geofence Breaches</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in scorecards %}
+                    <tr>
+                        <td>
+                            <strong style="color: #fff; font-size: 14px;">{{ s.driver_name }}</strong>
+                            <div style="font-size: 11px; color: #94a3b8;">{{ s.assigned_vehicle }} &bull; {{ s.phone }}</div>
+                        </td>
+                        <td style="width: 200px;">
+                            <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-weight: 700; color: {{ s.badge_color }};">
+                                <span>{{ s.safety_index }} pts</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ s.safety_index }}%; background: {{ s.badge_color }};"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="background: rgba(255,255,255,0.06); border: 1px solid {{ s.badge_color }}; color: {{ s.badge_color }}; font-weight: 700; padding: 4px 10px; border-radius: 8px; font-size: 11px;">
+                                {{ s.grade }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: {% if s.violations_breakdown.overspeeding > 0 %}#f87171{% else %}#94a3b8{% endif %}; font-family: 'JetBrains Mono';">
+                                {{ s.violations_breakdown.overspeeding }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: {% if s.violations_breakdown.harsh_braking > 0 %}#fcd34d{% else %}#94a3b8{% endif %}; font-family: 'JetBrains Mono';">
+                                {{ s.violations_breakdown.harsh_braking }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: {% if s.violations_breakdown.idling > 0 %}#fcd34d{% else %}#94a3b8{% endif %}; font-family: 'JetBrains Mono';">
+                                {{ s.violations_breakdown.idling }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="color: {% if s.violations_breakdown.geofence_breaches > 0 %}#ef4444{% else %}#94a3b8{% endif %}; font-family: 'JetBrains Mono';">
+                                {{ s.violations_breakdown.geofence_breaches }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 24px;">
+                            No driver telematics logs recorded yet. Telemetry ticks will populate this leaderboard automatically.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

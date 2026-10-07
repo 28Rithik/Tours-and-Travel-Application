@@ -1,14 +1,16 @@
 {% extends "admin/change_list.html" %}
+
 {% block object-tools-items %}
-    <li>
-        <a href="/packages/manifest/template/download/" class="btn btn-sm btn-info" style="background-color: #0284c7; color: #ffffff; border: none; font-weight: 600; padding: 6px 14px; margin-right: 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px;">
-            <i class="fas fa-download"></i> Download CSV Template
+    <div class="flex flex-row items-center gap-2">
+        <a href="/packages/manifest/template/download/" class="border border-sky-700 bg-sky-800 hover:bg-sky-700 text-white flex items-center h-[38px] px-3.5 -my-1 rounded-default text-xs font-semibold gap-1.5 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-sm">download</span>
+            Download CSV Template
         </a>
-    </li>
-    <li>
-        <a href="/packages/manifest/upload/" class="btn btn-sm btn-success" style="background-color: #059669; color: #ffffff; border: none; font-weight: 600; padding: 6px 14px; margin-right: 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 6px;">
-            <i class="fas fa-file-excel"></i> Bulk Import from Excel/CSV
+        <a href="/packages/manifest/upload/" class="border border-emerald-700 bg-emerald-700 hover:bg-emerald-600 text-white flex items-center h-[38px] px-3.5 -my-1 rounded-default text-xs font-semibold gap-1.5 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-sm">upload_file</span>
+            Bulk Import from Excel/CSV
         </a>
-    </li>
+    </div>
     {{ block.super }}
 {% endblock %}
+

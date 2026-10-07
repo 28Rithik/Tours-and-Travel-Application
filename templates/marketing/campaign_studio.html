@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Marketing &amp; Promotions Campaign Studio | TravelERP{% endblock %}
+{% block header_title %}Marketing &amp; Customer Re-Engagement Studio{% endblock %}
+
+{% block content %}
+<div class="marketing-studio" style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
+
+  <!-- Header Banner -->
+  <div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); border-radius: 12px; padding: 24px; color: #fff; margin-bottom: 24px; border: 1px solid #6d28d9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span style="font-size: 24px;">📢</span>
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Marketing &amp; Promotional Campaign Broadcast Studio</h1>
+        <span style="background: #f59e0b; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; color: #000;">Growth Engine</span>
+      </div>
+      <p style="margin: 0; color: #ddd6fe; font-size: 14px;">
+        Launch targeted WhatsApp &amp; SMS holiday travel campaigns for Diwali, Pongal, Sabarimala, and summer holidays. Automatically re-engage cold CRM leads and past tourists with discount promo vouchers.
+      </p>
+    </div>
+  </div>
+
+  <!-- KPI Metrics -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Campaigns Run</span>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ total_campaigns }}</div>
+      <div style="font-size: 12px; color: #7c3aed; margin-top: 4px;">{{ active_campaigns }} in flight</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Active Promo Coupons</span>
+      <div style="font-size: 26px; font-weight: 800; color: #1e293b; margin-top: 4px;">{{ coupons|length }}</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Configured in registry</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Coupons Redeemed</span>
+      <div style="font-size: 26px; font-weight: 800; color: #16a34a; margin-top: 4px;">{{ total_coupons_used }}</div>
+      <div style="font-size: 12px; color: #16a34a; margin-top: 4px;">Customer redemptions</div>
+    </div>
+  </div>
+
+  <!-- Campaign Creator Grid -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 30px;">
+    
+    <!-- Left: Campaign Builder Form -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px;">
+        ✨ Create New Broadcast Campaign
+      </h2>
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Festival / Tour Pre-Built Template</label>
+        <select id="camp_template" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="applyCampaignTemplate()">
+          <option value="">-- Choose Seasonal Template (Optional) --</option>
+          <option value="diwali">🪔 Diwali Festival Special Outstation &amp; Package Travel</option>
+          <option value="pongal">🌾 Iniya Pongal Thirunaal Tour Packages Special</option>
+          <option value="sabarimala">🕉️ Sabarimala Mandala &amp; Makaravilakku Pilgrimage Van/Bus</option>
+          <option value="summer">☀️ Beat the Heat - Nilgiris &amp; Kerala Summer Escapes</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Campaign Title *</label>
+        <input type="text" id="camp_name" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="e.g. Diwali 2026 Family Outstation Offer" oninput="updateLivePreview()">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Target Audience Cohort *</label>
+          <select id="camp_audience" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="fetchAudienceCount()">
+            <option value="all_tourists" selected>Past Holiday Tour Travelers</option>
+            <option value="corporate_clients">Corporate &amp; Institution Clients</option>
+            <option value="cold_inquiries">Cold CRM Inquiries (Last 90 Days)</option>
+          </select>
+          <div style="margin-top: 4px; font-size: 11px; color: #7c3aed; font-weight: 600;">
+            Estimated Reach: <span id="audience_counter">Calculating...</span>
+          </div>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Discount Promo Coupon</label>
+          <select id="camp_coupon" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="updateLivePreview()">
+            <option value="">None (General Notification)</option>
+            {% for c in coupons %}
+            <option value="{{ c.id }}" data-code="{{ c.code }}">{{ c.code }} ({{ c.discount_percent }}% / ₹{{ c.flat_discount }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">
+          WhatsApp Message Content * 
+          <small style="color: #64748b;">(Use <code>{name}</code> and <code>{coupon_code}</code> for auto-personalization)</small>
+        </label>
+        <textarea id="camp_body" class="form-control" rows="5" style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit; font-size: 13px;" oninput="updateLivePreview()">Vanakkam {name}! Plan your holiday tour with Sivagayathiri Travels. Use coupon code *{coupon_code}* for exclusive savings! Call 98422 12345.</textarea>
+      </div>
+
+      <button onclick="launchCampaign()" class="button" style="width: 100%; background: #7c3aed; color: #fff; padding: 12px; font-size: 14px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer;">
+        🚀 Launch Campaign &amp; Generate WhatsApp Broadcasts
+      </button>
+    </div>
+
+    <!-- Right: Live WhatsApp Phone Simulator -->
+    <div style="background: #e5e7eb; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="width: 320px; background: #fff; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); overflow: hidden; border: 8px solid #1f2937;">
+        
+        <!-- Phone Top Bar -->
+        <div style="background: #075e54; color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; background: #25d366; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">S</div>
+          <div>
+            <div style="font-size: 13px; font-weight: 700;">Sivagayathiri Travels</div>
+            <div style="font-size: 10px; color: #a7f3d0;">Official Verified Business</div>
+          </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div style="background: #efeae2; padding: 14px; min-height: 280px; display: flex; flex-direction: column; justify-content: flex-end;">
+          <div style="background: #dcf8c6; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #111827; box-shadow: 0 1px 2px rgba(0,0,0,0.1); line-height: 1.4; white-space: pre-line;" id="chat_preview">
+            Vanakkam Rajesh Kumar! Plan your holiday tour with Sivagayathiri Travels. Use coupon code *HOLIDAY2026* for exclusive savings! Call 98422 12345.
+          </div>
+          <div style="font-size: 9px; color: #64748b; text-align: right; margin-top: 4px;">10:30 AM ✓✓</div>
+        </div>
+
+        <!-- Phone Footer -->
+        <div style="background: #f0f2f5; padding: 8px 12px; font-size: 11px; color: #9ca3af; text-align: center;">
+          Interactive WhatsApp Preview
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Generated Broadcast Recipient Table (Populated dynamically on Launch) -->
+  <div id="broadcast_results_card" style="display: none; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <div>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #065f46;" id="results_title">Broadcast Manifest</h3>
+        <p style="margin: 0; font-size: 12px; color: #64748b;" id="results_subtitle">Click each WhatsApp link below to dispatch message directly to customer.</p>
+      </div>
+      <button onclick="document.getElementById('broadcast_results_card').style.display='none'" class="button button-quiet" style="border: 1px solid #cbd5e1; font-size: 12px;">Close</button>
+    </div>
+    
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="background: #f8fafc; color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 10px 14px;">Customer Name</th>
+            <th style="padding: 10px 14px;">Mobile Number</th>
+            <th style="padding: 10px 14px;">Segment Type</th>
+            <th style="padding: 10px 14px; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="dispatches_tbody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Main Campaign History Table -->
+  <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+      <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Campaign Broadcast History</h2>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="background: #f8fafc; color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 12px 16px;">Campaign Name</th>
+            <th style="padding: 12px 16px;">Channel</th>
+            <th style="padding: 12px 16px;">Target Cohort</th>
+            <th style="padding: 12px 16px;">Coupon Code</th>
+            <th style="padding: 12px 16px; text-align: center;">Target Reach</th>
+            <th style="padding: 12px 16px; text-align: center;">Status</th>
+            <th style="padding: 12px 16px; text-align: right;">Date Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in campaigns %}
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 12px 16px; font-weight: 600; color: #1e293b;">{{ c.name }}</td>
+            <td style="padding: 12px 16px;">
+              <span style="background: #dcfce7; color: #166534; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px;">
+                💬 {{ c.get_channel_display }}
+              </span>
+            </td>
+            <td style="padding: 12px 16px; color: #475569;">{{ c.get_target_audience_display }}</td>
+            <td style="padding: 12px 16px;">
+              {% if c.coupon %}
+              <strong style="color: #7c3aed; font-family: monospace;">{{ c.coupon.code }}</strong>
+              {% else %}
+              <span style="color: #94a3b8;">None</span>
+              {% endif %}
+            </td>
+            <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: #0f172a;">{{ c.target_count }}</td>
+            <td style="padding: 12px 16px; text-align: center;">
+              <span style="background: #f3e8ff; color: #6b21a8; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">
+                {{ c.get_status_display }}
+              </span>
+            </td>
+            <td style="padding: 12px 16px; text-align: right; color: #64748b;">{{ c.created_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="padding: 30px; text-align: center; color: #64748b;">
+              No promotional campaigns created yet. Build your first broadcast above!
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const templatesData = {
+  diwali: {
+    name: "🪔 Diwali 2026 Family Outstation Travel Special",
+    body: "Vanakkam {name}! 🪔 Celebrate this Diwali with family & friends stress-free! Book our sanitized Innova Crysta, Force Urbania, or Luxury Bus for your hometown trip or holiday. Use Coupon Code *{coupon_code}* to get an instant discount on your booking! Book online at https://sivagayathiri.in or call our 24x7 desk at 98422 12345."
+  },
+  pongal: {
+    name: "🌾 Pongal Thirunaal Tour Packages Special",
+    body: "Iniya Pongal Nalvazhthukkal {name}! 🌾 Plan your 4-day festive holiday to Ooty, Kodaikanal, or Munnar with Sivagayathiri Travels. Deluxe hotels, breakfast + dinner, and private transport included. Apply Promo Code *{coupon_code}* for exclusive savings! Direct link: https://sivagayathiri.in/packages/"
+  },
+  sabarimala: {
+    name: "🕉️ Sabarimala Mandala Season Van/Bus Booking",
+    body: "Swamiye Saranam Ayyappa! 🙏 Planning your Sabarimala Yatra from Coimbatore/Tirupur? Book our 12/17/26 Seater Tempo Travellers & 35-Seater Air Suspended Coaches with experienced ghat-road drivers. Exclusive Pilgrimage Offer Code: *{coupon_code}*. Call 98422 12345 today."
+  },
+  summer: {
+    name: "☀️ Nilgiris & Kerala Summer Holiday Escapes",
+    body: "Hello {name}! ☀️ Plan your summer family vacation to the cool hills of Ooty, Coonoor, Wayanad & Valparai. Enjoy customized itineraries, top-rated resorts, and hassle-free travel. Use voucher *{coupon_code}* for your family booking! Call Sivagayathiri Travels: 98422 12345."
+  }
+};
+
+function applyCampaignTemplate() {
+  const sel = document.getElementById('camp_template').value;
+  if (sel && templatesData[sel]) {
+    document.getElementById('camp_name').value = templatesData[sel].name;
+    document.getElementById('camp_body').value = templatesData[sel].body;
+    updateLivePreview();
+  }
+}
+
+function updateLivePreview() {
+  let body = document.getElementById('camp_body').value;
+  const couponSelect = document.getElementById('camp_coupon');
+  let couponCode = 'DISCOUNT2026';
+  if (couponSelect.selectedIndex > 0) {
+    couponCode = couponSelect.options[couponSelect.selectedIndex].getAttribute('data-code') || 'PROMO2026';
+  }
+
+  body = body.replace(/{name}/g, 'Rajesh Kumar').replace(/{coupon_code}/g, couponCode);
+  document.getElementById('chat_preview').textContent = body;
+}
+
+function fetchAudienceCount() {
+  const aud = document.getElementById('camp_audience').value;
+  document.getElementById('audience_counter').textContent = 'Counting...';
+
+  fetch('/marketing/api/audience-count/?audience=' + aud)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('audience_counter').textContent = data.count + ' contacts';
+    })
+    .catch(() => {
+      document.getElementById('audience_counter').textContent = 'Available';
+    });
+}
+
+function launchCampaign() {
+  const name = document.getElementById('camp_name').value.trim();
+  const body = document.getElementById('camp_body').value.trim();
+  const audience = document.getElementById('camp_audience').value;
+  const couponId = document.getElementById('camp_coupon').value || null;
+
+  if (!name || !body) {
+    alert('Please provide Campaign Title and Message Content.');
+    return;
+  }
+
+  const payload = {
+    name: name,
+    headline: name,
+    message_body: body,
+    channel: 'whatsapp',
+    target_audience: audience,
+    coupon_id: couponId
+  };
+
+  fetch('/marketing/api/campaign/create/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      displayBroadcastResults(data.campaign_name, data.target_count, data.dispatches);
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(err => alert('Network error: ' + err));
+}
+
+function displayBroadcastResults(name, count, dispatches) {
+  document.getElementById('results_title').textContent = "Broadcast Manifest: " + name;
+  document.getElementById('results_subtitle').textContent = "Showing " + dispatches.length + " of " + count + " target recipients with instant click-to-chat links.";
+
+  const tbody = document.getElementById('dispatches_tbody');
+  tbody.innerHTML = '';
+
+  dispatches.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid #f1f5f9';
+    tr.innerHTML = `
+      <td style="padding: 10px 14px; font-weight: 600; color: #1e293b;">${d.name}</td>
+      <td style="padding: 10px 14px; color: #475569;">${d.phone}</td>
+      <td style="padding: 10px 14px;"><span style="background: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px;">${d.type}</span></td>
+      <td style="padding: 10px 14px; text-align: right;">
+        <a href="${d.whatsapp_link}" target="_blank" class="button" style="background: #25d366; color: #fff; padding: 4px 10px; font-size: 11px; border-radius: 4px; text-decoration: none; font-weight: 600;">
+          💬 Send WhatsApp
+        </a>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('broadcast_results_card').style.display = 'block';
+  document.getElementById('broadcast_results_card').scrollIntoView({ behavior: 'smooth' });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  fetchAudienceCount();
+  updateLivePreview();
+});
+</script>
+{% endblock %}

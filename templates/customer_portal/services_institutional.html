@@ -1,0 +1,298 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}School & College Campus Transportation Services | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+.inst-hero {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
+    color: white;
+    padding: 4rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.inst-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/school_campus_buses.jpg') center/cover no-repeat;
+    opacity: 0.22;
+    filter: brightness(0.7) contrast(1.1);
+    pointer-events: none;
+}
+.inst-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 860px;
+    margin: 0 auto;
+}
+.inst-badge {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fde68a;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+}
+.inst-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 3.8vw, 3rem);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+.inst-hero h1 span {
+    color: #fbbf24;
+}
+.inst-hero p {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 720px;
+    margin: 0 auto 2rem;
+}
+.safety-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+.safety-box {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1.75rem 1.5rem;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+    transition: transform 0.2s;
+}
+.safety-box:hover {
+    transform: translateY(-3px);
+    border-color: #f59e0b;
+}
+.safety-icon {
+    font-size: 2.4rem;
+    margin-bottom: 0.75rem;
+}
+.safety-box h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.5rem;
+}
+.safety-box p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero -->
+<section class="inst-hero">
+    <div class="inst-hero-bg"></div>
+    <div class="inst-hero-content">
+        <span class="inst-badge">🏫 INSTITUTIONAL STUDENT TRANSIT</span>
+        <h1>Safe, Compliant & Punctual <span>Student Transportation</span></h1>
+        <p>
+            Trusted by top schools, international academies, and universities across Tamil Nadu. Fitted with strict 40 km/h speed governors, trained female caretakers, and live parent satellite tracking.
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <a href="#school-rfq" class="btn" style="background: #f59e0b; color: #090d16; font-weight: 800; padding: 0.75rem 1.5rem; border-radius: 10px; text-decoration: none;">
+                Request Institutional Proposal →
+            </a>
+            <button type="button" onclick="openCustomTripModal('college_iv')" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.75rem 1.25rem;">
+                🎓 College IV Trips
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Core Safety Standard Blocks -->
+<main class="section-wrapper" style="padding-top: 3rem; padding-bottom: 4rem;">
+    <div style="text-align: center; max-width: 720px; margin: 0 auto;">
+        <span class="section-subtitle-tag">CHILD SAFETY FIRST PROTOCOL</span>
+        <h2 class="section-title">Strict School Transport Safety Standards</h2>
+        <p class="section-desc">
+            We adhere strictly to Supreme Court of India child transit guidelines and Tamil Nadu Motor Vehicles special school bus safety rules.
+        </p>
+    </div>
+
+    <div class="safety-feature-grid">
+        <div class="safety-box">
+            <div class="safety-icon">🛑</div>
+            <h3>40 km/h Speed Limiters</h3>
+            <p>Electronic RTO-sealed speed governors lock vehicle speeds at maximum 40 km/h in city routes and school zones.</p>
+        </div>
+
+        <div class="safety-box">
+            <div class="safety-icon">📱</div>
+            <h3>Live Parent Mobile App</h3>
+            <p>Parents receive live GPS tracking, approaching-stop push notifications, and estimated arrival countdowns on their phones.</p>
+        </div>
+
+        <div class="safety-box">
+            <div class="safety-icon">👩‍🏫</div>
+            <h3>Trained Female Attendants</h3>
+            <p>Every primary school bus is staffed with a vetted female caretaker to assist young students with safe boarding and seating.</p>
+        </div>
+
+        <div class="safety-box">
+            <div class="safety-icon">💳</div>
+            <h3>RFID Student Boarding</h3>
+            <p>Students tap their RFID smart cards upon entering and exiting, triggering an instant automated SMS alert to parents.</p>
+        </div>
+
+        <div class="safety-box">
+            <div class="safety-icon">📹</div>
+            <h3>Dual CCTV & Reverse Cameras</h3>
+            <p>Continuous recording inside the student gangway and exterior blind-spot cameras to guarantee complete perimeter safety.</p>
+        </div>
+
+        <div class="safety-box">
+            <div class="safety-icon">🧯</div>
+            <h3>Emergency Windows & Exit</h3>
+            <p>Equipped with emergency rear doors, break-glass hammers, dry powder fire extinguishers, and comprehensive first aid trauma supplies.</p>
+        </div>
+    </div>
+
+    <!-- Visual Showcase Strip -->
+    <div style="background: linear-gradient(135deg, #090d16, #1e1b4b); border-radius: var(--radius-xl); padding: 3rem 2.5rem; color: white; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center;">
+        <img src="/static/images/school_campus_buses.jpg" alt="School Bus Lineup" style="width: 100%; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+                CAMPUS ANNUAL CONTRACTS
+            </span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; font-weight: 800; margin: 0 0 1rem;">
+                Zero-Capital Fleet Outsourcing for Schools & Colleges
+            </h3>
+            <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                Eliminate the headache of bus capital expenditure, driver payroll, RTO fitness renewals, and insurance paperwork. Sivagayathiri Travels handles 100% of your campus mobility with guaranteed replacement buses and dedicated route marshals.
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem; font-size: 0.9rem; color: #cbd5e1;">
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #10b981;">✓</strong> Complete driver recruitment, payroll & background checks</li>
+                <li style="margin-bottom: 0.5rem;"><strong style="color: #10b981;">✓</strong> Zero maintenance downtime with 320+ depot buffer vehicles</li>
+                <li><strong style="color: #10b981;">✓</strong> Seamless weekend availability for sports matches & inter-school events</li>
+            </ul>
+            <a href="#school-rfq" class="btn" style="background: #f59e0b; color: #090d16; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: 8px; text-decoration: none;">
+                Get Campus Fleet Quote →
+            </a>
+        </div>
+    </div>
+
+    <!-- RFQ Form Section -->
+    <div id="school-rfq" style="background: white; border: 1px solid var(--border-light); border-radius: var(--radius-xl); padding: 3rem 2rem; margin-top: 3.5rem; box-shadow: var(--shadow-sm); max-width: 760px; margin-left: auto; margin-right: auto;">
+        <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--brand-navy); margin: 0 0 0.5rem; text-align: center;">
+            Request an Institutional Campus Proposal
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center; margin: 0 0 2rem;">
+            Fill in your institution details and our transport director will schedule an on-campus route audit.
+        </p>
+
+        <form onsubmit="handleSchoolSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">School / College Name *</label>
+                    <input type="text" id="sc_school" placeholder="e.g. Delhi Public School / PSG Poly" required style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Principal / Administrator Name *</label>
+                    <input type="text" id="sc_name" placeholder="Contact Person" required style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Official Email *</label>
+                    <input type="email" id="sc_email" placeholder="admin@school.edu.in" required style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Mobile / WhatsApp Number *</label>
+                    <input type="tel" id="sc_phone" placeholder="10-digit number" pattern="[0-9]{10}" required style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Campus Location</label>
+                    <input type="text" id="sc_loc" placeholder="e.g. Coimbatore / Pollachi / Tiruppur" style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #334155; margin-bottom: 0.35rem; text-transform: uppercase;">Approximate Bus Requirement</label>
+                    <select id="sc_count" style="width: 100%; padding: 0.7rem; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit; background: white;">
+                        <option value="3">1 - 3 Buses</option>
+                        <option value="6" selected>4 - 8 Buses</option>
+                        <option value="15">10 - 15 Large Campus Fleet</option>
+                        <option value="25">20+ Multi-Campus Network</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" id="sc_btn" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; justify-content: center;">
+                Submit Campus Mobility Request 🎒 →
+            </button>
+        </form>
+    </div>
+</main>
+
+<script>
+async function handleSchoolSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('sc_btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting Request...';
+
+    const school = document.getElementById('sc_school').value;
+    const name = document.getElementById('sc_name').value;
+    const email = document.getElementById('sc_email').value;
+    const phone = document.getElementById('sc_phone').value;
+    const loc = document.getElementById('sc_loc').value;
+    const buses = document.getElementById('sc_count').value;
+
+    const payload = {
+        name: name,
+        phone: phone,
+        email: email,
+        organization: school,
+        trip_type: 'institutional',
+        pickup_location: loc || 'Campus Hub',
+        destination: 'Campus Student Route Network',
+        travel_date: new Date(Date.now() + 10*86400000).toISOString().split('T')[0],
+        duration_days: 180,
+        passengers: parseInt(buses) * 36,
+        vehicle_preference: `${buses} Deluxe School Buses`,
+        inclusions: ['Speed Limiter (40 km/h)', 'AIS-140 GPS', 'Female Attendant', 'RFID Attendance'],
+        notes: `Institutional Fleet Request for ${school}. Approx ${buses} buses. Location: ${loc}`
+    };
+
+    try {
+        const res = await fetch('/customer-portal/api/custom-inquiry/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            window.open(data.whatsapp_url, '_blank');
+            alert(`Campus proposal logged under CRM #${data.inquiry_number}! Our education fleet specialist will contact you shortly.`);
+        } else {
+            alert('Notice: ' + (data.message || 'Error processing request'));
+        }
+    } catch(err) {
+        const fallback = encodeURIComponent(`Hi Sivagayathiri Travels, School Transport Request for ${school}. Contact: ${name} (${phone}).`);
+        window.open(`https://wa.me/919842533777?text=${fallback}`, '_blank');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Submit Campus Mobility Request 🎒 →';
+    }
+}
+</script>
+{% endblock %}

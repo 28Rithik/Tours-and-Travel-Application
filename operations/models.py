@@ -80,7 +80,10 @@ def sync_package_inventory_seats(inv):
 	if not inv:
 		return
 	try:
-		booked = Booking.objects.filter(
+		pax_sum = Booking.objects.filter(
+			package_inventory=inv
+		).exclude(status='cancelled').aggregate(total=models.Sum('pax_count'))['total']
+		booked = pax_sum if pax_sum is not None else Booking.objects.filter(
 			package_inventory=inv
 		).exclude(status='cancelled').count()
 		inv.booked_seats = booked
@@ -140,9 +143,137 @@ class Trip(models.Model):
 	notes = models.TextField(blank=True)
 	tracking_token = models.CharField(max_length=64, unique=True, blank=True, null=True, db_index=True)
 
+	# WhatsApp & Driver Handover Digital Twin
+	opening_odometer_photo = models.ImageField(upload_to='trip_odometers/opening/', null=True, blank=True, help_text="Start duty photo of vehicle odometer")
+	closing_odometer_photo = models.ImageField(upload_to='trip_odometers/closing/', null=True, blank=True, help_text="End duty photo of vehicle odometer")
+	driver_handover_status = models.CharField(
+		max_length=25,
+		choices=[
+			('pending', 'Pending Start Handover'),
+			('started', 'Trip Started & Handover Verified'),
+			('ended', 'Trip Ended & Handover Submitted'),
+			('approved', 'Handover Audit Approved'),
+			('flagged', 'Handover Discrepancy Flagged')
+		],
+		default='pending',
+		help_text="Digital vehicle handover audit workflow state"
+	)
+	whatsapp_broadcast_count = models.PositiveIntegerField(default=0, help_text="Count of automated WhatsApp broadcasts sent for this trip")
+
+	# 7-Milestone Tour Lifecycle Digital Twin
+	TOUR_MILESTONES = [
+		('car_pickup', '1. Car Pickup'),
+		('driver_reached', '2. Driver Reached'),
+		('guest_pickup', '3. Guest Pickup & PIN'),
+		('on_trip', '4. On Trip'),
+		('guest_drop', '5. Guest Drop'),
+		('expenses_photo', '6. Expenses Photo'),
+		('car_drop', '7. Car Drop'),
+	]
+	pickup_pin = models.CharField(max_length=6, blank=True, help_text="Secure 4-digit passenger verification PIN")
+	is_pin_verified = models.BooleanField(default=False, help_text="True once passenger 4-digit PIN is verified")
+	current_milestone = models.CharField(
+		max_length=30,
+		choices=TOUR_MILESTONES,
+		default='car_pickup',
+		help_text="Current stage in the 7-milestone tour lifecycle"
+	)
+	car_pickup_at = models.DateTimeField(null=True, blank=True)
+	driver_reached_at = models.DateTimeField(null=True, blank=True)
+	guest_pickup_at = models.DateTimeField(null=True, blank=True)
+	on_trip_at = models.DateTimeField(null=True, blank=True)
+	guest_drop_at = models.DateTimeField(null=True, blank=True)
+	expenses_photo_at = models.DateTimeField(null=True, blank=True)
+	car_drop_at = models.DateTimeField(null=True, blank=True)
+	driver_handover_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp of latest handover action")
+
+	@property
+	def milestone_index(self):
+		mapping = {
+			'car_pickup': 1,
+			'driver_reached': 2,
+			'guest_pickup': 3,
+			'on_trip': 4,
+			'guest_drop': 5,
+			'expenses_photo': 6,
+			'car_drop': 7,
+		}
+		return mapping.get(self.current_milestone, 1)
+
+	@property
+	def milestone_progress_percent(self):
+		return int((self.milestone_index / 7.0) * 100)
+
+	@property
+	def lifecycle_url(self):
+		return f"/trip/{self.pk}/lifecycle/"
+
+	@property
+	def handover_url(self):
+		return f"/trip/{self.pk}/handover/"
+
 	@property
 	def tracking_url(self):
 		return f"/track/{self.tracking_token}/" if self.tracking_token else ""
+
+	@property
+	def itinerary_builder_url(self):
+		return f"/admin/operations/trip/{self.pk}/itinerary-builder/"
+
+	@property
+	def guest_itinerary_url(self):
+		if self.tracking_token:
+			return f"/tour/itinerary/{self.tracking_token}/"
+		return f"/trip/{self.pk}/itinerary/"
+
+	@property
+	def active_itinerary_day(self):
+		days = list(self.itinerary_days.all())
+		if not days:
+			return None
+		from django.utils import timezone
+		today = timezone.localtime().date()
+		for d in days:
+			if d.date == today or d.is_active_today:
+				return d
+		return days[0]
+
+	def import_package_itinerary(self, package=None):
+		from datetime import timedelta
+		pkg = package or self.package
+		if not pkg:
+			return 0
+		pkg_days = pkg.itinerary_days.all().order_by('day_number')
+		if not pkg_days.exists():
+			return 0
+		self.itinerary_days.all().delete()
+		created_count = 0
+		start = self.start_date
+		for pkg_day in pkg_days:
+			day_num = pkg_day.day_number
+			cal_date = None
+			if start:
+				cal_date = start + timedelta(days=max(0, day_num - 1))
+			TripItineraryDay.objects.create(
+				trip=self,
+				day_number=day_num,
+				date=cal_date,
+				title=pkg_day.title or f"Day {day_num} Tour",
+				route_segment=pkg_day.route_segment or "",
+				morning_plan=pkg_day.morning_activity or pkg_day.activities or "",
+				sightseeing_spots=pkg_day.sightseeing_spots or "",
+				evening_plan=pkg_day.evening_night_activity or "",
+				night_stay_location=pkg_day.night_stay_location or "",
+				hotel_name=pkg_day.hotel_info or "",
+				hotel_booking_status='pending',
+				meals_included=pkg_day.meals_included or "Breakfast, Lunch, Dinner",
+				transport_mode=pkg_day.transport_info or "",
+			)
+			created_count += 1
+		if created_count > self.days_count:
+			self.days_count = created_count
+			self.save(update_fields=['days_count'])
+		return created_count
 
 	@property
 	def pickup_location(self):
@@ -184,7 +315,8 @@ class Trip(models.Model):
 			+ f'- Driver: {self.driver or "To be assigned"}\n'
 			+ f'- Hotel: {hotel_str}\n'
 			+ f'- Hotel status: {hotel_status_str}\n'
-			+ (f'{tracking_line}' if tracking_line else '') + '\n'
+			+ (f'{tracking_line}' if tracking_line else '')
+			+ (f'- Guest Security PIN: {self.pickup_pin} (Share with driver at pickup)\n' if self.pickup_pin else '') + '\n'
 			+ f'Payment Summary:\n'
 			+ f'- Total: Rs. {amount}\n'
 			+ f'- Advance paid: Rs. {self.received_amount}\n'
@@ -490,6 +622,10 @@ class Trip(models.Model):
 		if not self.tracking_token:
 			import uuid
 			self.tracking_token = uuid.uuid4().hex
+
+		if not self.pickup_pin:
+			import random
+			self.pickup_pin = f"{random.randint(1000, 9999)}"
 		
 		# Smart Status Progression
 		if self.status == 'booked' and self.driver_id:
@@ -830,6 +966,7 @@ class EmergencyIncidentAlert(models.Model):
 		('tyre_burst', 'Tyre Burst / Puncture'),
 		('engine_overheat', 'Engine Overheating'),
 		('medical', 'Medical Emergency'),
+		('sos_panic', 'Women Safety SOS / Panic Trigger'),
 		('fuel_exhaustion', 'Out of Fuel / DEF'),
 		('other', 'Other Incident'),
 	]
@@ -980,5 +1117,175 @@ class GeofenceZone(models.Model):
 
 	def __str__(self):
 		return f"{self.name} ({self.get_zone_type_display()}) - Radius: {self.radius_meters}m"
+
+
+class WhatsAppBotMessage(models.Model):
+	DIRECTION_CHOICES = [
+		('inbound', 'Inbound (Received)'),
+		('outbound', 'Outbound (Sent)'),
+	]
+	STATUS_CHOICES = [
+		('received', 'Received'),
+		('sent', 'Sent'),
+		('delivered', 'Delivered'),
+		('read', 'Read'),
+		('failed', 'Failed'),
+		('simulated', 'Simulated'),
+	]
+	INTENT_CHOICES = [
+		('dispatch_alert', 'Passenger Dispatch Alert'),
+		('driver_briefing', 'Driver Trip Assignment'),
+		('start_handover', 'Start Trip Handover'),
+		('end_handover', 'End Trip Handover'),
+		('sos_trigger', 'Emergency SOS Alert'),
+		('trip_status', 'Trip Status / Live Track'),
+		('payment_upi', 'UPI Payment Link / QR'),
+		('general_query', 'General Bot Chat / Fallback'),
+	]
+
+	sender_phone = models.CharField(max_length=30, db_index=True)
+	recipient_phone = models.CharField(max_length=30, db_index=True)
+	message_direction = models.CharField(max_length=15, choices=DIRECTION_CHOICES, default='inbound')
+	intent = models.CharField(max_length=30, choices=INTENT_CHOICES, default='general_query')
+	message_body = models.TextField(blank=True)
+	raw_payload = models.JSONField(default=dict, blank=True)
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='sent')
+	trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='whatsapp_messages')
+	driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='whatsapp_messages')
+	message_id = models.CharField(max_length=120, blank=True, help_text="WhatsApp wamid or local message UUID")
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = "WhatsApp Bot Message"
+		verbose_name_plural = "WhatsApp Bot Messages"
+
+	def __str__(self):
+		return f"[{self.get_message_direction_display()}] {self.sender_phone} -> {self.recipient_phone} ({self.get_intent_display()})"
+
+
+class DriverHandoverSession(models.Model):
+	SESSION_TYPES = [
+		('start', 'Start Duty Handover'),
+		('end', 'End Duty Handover'),
+	]
+	STATUS_CHOICES = [
+		('submitted', 'Submitted by Driver'),
+		('approved', 'Audit Approved'),
+		('flagged', 'Flagged Discrepancy'),
+	]
+
+	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='handover_sessions')
+	driver = models.ForeignKey(Driver, on_delete=models.PROTECT, related_name='handover_sessions')
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name='handover_sessions')
+	session_type = models.CharField(max_length=10, choices=SESSION_TYPES, default='start')
+	odometer_reading = models.PositiveIntegerField(help_text="Odometer reading in KM")
+	odometer_photo = models.ImageField(upload_to='trip_odometers/sessions/', null=True, blank=True, help_text="Dashboard photo verifying odometer")
+	fuel_level_percent = models.PositiveIntegerField(default=100, help_text="Fuel gauge level percentage (0-100%)")
+	gps_latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+	gps_longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+	location_name = models.CharField(max_length=255, blank=True, help_text="GPS Reverse Geocoded or entered location")
+	cleanliness_rating = models.PositiveSmallIntegerField(default=5, help_text="Vehicle cleanliness score 1-5")
+	scratch_damage_notes = models.TextField(blank=True, help_text="Notes on any scratches, dents, or pre-existing marks")
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='submitted')
+	verified_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_handovers')
+	verified_at = models.DateTimeField(null=True, blank=True)
+	audit_notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = "Driver Handover Session"
+		verbose_name_plural = "Driver Handover Sessions"
+
+	def __str__(self):
+		return f"{self.trip.trip_id} - {self.get_session_type_display()} ({self.odometer_reading} KM)"
+
+
+class TripMilestoneEvent(models.Model):
+	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='milestone_events')
+	milestone = models.CharField(max_length=30, choices=Trip.TOUR_MILESTONES)
+	milestone_index = models.PositiveSmallIntegerField(default=1)
+	timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+	odometer_reading = models.PositiveIntegerField(null=True, blank=True)
+	odometer_photo = models.ImageField(upload_to='trip_odometers/milestones/', null=True, blank=True)
+	gps_latitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+	gps_longitude = models.DecimalField(max_digits=10, decimal_places=7, null=True, blank=True)
+	location_name = models.CharField(max_length=255, blank=True)
+	passenger_pin_entered = models.CharField(max_length=6, blank=True)
+	is_pin_verified = models.BooleanField(default=False)
+	notes = models.TextField(blank=True)
+	actor_driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='milestone_events')
+
+	class Meta:
+		ordering = ['timestamp', 'milestone_index']
+		verbose_name = 'Trip Milestone Event'
+		verbose_name_plural = 'Trip Milestone Events'
+
+	def __str__(self):
+		return f"{self.trip.trip_id} - {self.get_milestone_display()} at {self.timestamp.strftime('%H:%M')}"
+
+
+class TripItineraryDay(models.Model):
+	HOTEL_STATUS_CHOICES = [
+		('pending', '⏳ Pending Confirmation'),
+		('confirmed', '✅ Confirmed Voucher'),
+		('checked_in', '🏨 Checked In'),
+	]
+
+	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='itinerary_days')
+	day_number = models.PositiveIntegerField(default=1, help_text="Tour Day sequence number (1, 2, 3...)")
+	date = models.DateField(null=True, blank=True, help_text="Specific calendar date for this itinerary day")
+	title = models.CharField(max_length=255, help_text="Day headline e.g. Mysore Palace & Brindavan Gardens")
+	route_segment = models.CharField(max_length=255, blank=True, help_text="e.g. Bangalore -> Mysore -> Coorg")
+	morning_plan = models.TextField(blank=True, help_text="Morning activity, breakfast stop, departure")
+	sightseeing_spots = models.TextField(blank=True, help_text="Key sightseeing spots, comma or newline separated")
+	evening_plan = models.TextField(blank=True, help_text="Evening highlights, dinner, campfire, sunset view")
+	night_stay_location = models.CharField(max_length=255, blank=True, help_text="City or resort area for overnight stay")
+	hotel_name = models.CharField(max_length=255, blank=True, help_text="Assigned hotel / resort name")
+	hotel_booking_status = models.CharField(max_length=20, choices=HOTEL_STATUS_CHOICES, default='pending')
+	hotel_voucher_number = models.CharField(max_length=100, blank=True, help_text="Hotel confirmation voucher/booking ID")
+	hotel_address = models.CharField(max_length=255, blank=True, help_text="Hotel location or address")
+	meals_included = models.CharField(max_length=255, default="Breakfast, Lunch, Dinner", help_text="Meals provided e.g. Breakfast, Lunch, Dinner")
+	transport_mode = models.CharField(max_length=255, blank=True, help_text="e.g. AC Luxury Coach / 4x4 Jeep Safari")
+	special_notes = models.TextField(blank=True, help_text="Special instructions, timings, entry dress codes")
+	is_active_today = models.BooleanField(default=False, help_text="Explicit flag for today's active tour day")
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['day_number']
+		unique_together = ('trip', 'day_number')
+		verbose_name = 'Trip Itinerary Day'
+		verbose_name_plural = 'Trip Itinerary Days'
+
+	def __str__(self):
+		day_str = f"Day {self.day_number:02d}"
+		return f"{self.trip.trip_id} - {day_str}: {self.title}"
+
+	@property
+	def spots_list(self):
+		"""Return non-empty list of sightseeing spots."""
+		if not self.sightseeing_spots:
+			return []
+		import re
+		spots = re.split(r'[,;\n\r]+', self.sightseeing_spots)
+		return [s.strip() for s in spots if s.strip()]
+
+	@property
+	def meals_list(self):
+		"""Return non-empty list of included meal badges."""
+		if not self.meals_included:
+			return []
+		import re
+		meals = re.split(r'[,;/+]+', self.meals_included)
+		return [m.strip() for m in meals if m.strip()]
+
+	@property
+	def formatted_day_label(self):
+		return f"Day {self.day_number:02d}"
+
+
+
 
 

@@ -450,3 +450,152 @@ class PreTripInspectionChecklist(models.Model):
 	def __str__(self):
 		return f"{self.inspection_number} - {self.vehicle} ({self.get_overall_status_display()})"
 
+
+# ==============================================================================
+# INTERACTIVE 2D VEHICLE DAMAGE MARKER & RENTAL INSPECTION MODELS
+# ==============================================================================
+
+def generate_damage_inspection_number():
+	import random
+	from django.utils import timezone
+	ts = timezone.now().strftime('%Y%m%d%H%M')
+	rn = random.randint(100, 999)
+	return f"DMG-{ts}-{rn}"
+
+
+class VehicleDamageInspection(models.Model):
+	INSPECTION_TYPES = [
+		('checkout', 'Departure / Check-out Handover'),
+		('checkin', 'Return / Check-in Handover'),
+		('routine', 'Depot Routine Inspection / Audit'),
+	]
+	BODY_STYLES = [
+		('suv', 'SUV (Innova Crysta / Ertiga)'),
+		('sedan', 'Sedan (Dzire / Etios)'),
+		('tempo', 'Tempo Traveller (12/17/26 Seater)'),
+		('bus', 'Coach Bus / Volvo Multi-Axle'),
+	]
+	DEPOSIT_STATUSES = [
+		('none', 'No Deposit Held'),
+		('held', 'Security Deposit Held'),
+		('settled_refund', 'Settled - Full Refund Issued'),
+		('settled_deduction', 'Settled - Damage Deducted & Balance Refunded'),
+		('forfeited', 'Forfeited / Unsettled Dispute'),
+	]
+
+	inspection_number = models.CharField(max_length=50, unique=True, default=generate_damage_inspection_number)
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='damage_inspections')
+	trip = models.ForeignKey('operations.Trip', on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_inspections')
+	booking = models.ForeignKey('operations.Booking', on_delete=models.SET_NULL, null=True, blank=True, related_name='damage_inspections')
+
+	customer_name = models.CharField(max_length=150, blank=True, help_text="Guest or self-drive renter name")
+	customer_phone = models.CharField(max_length=30, blank=True)
+	inspection_type = models.CharField(max_length=20, choices=INSPECTION_TYPES, default='checkout')
+	vehicle_body_style = models.CharField(max_length=20, choices=BODY_STYLES, default='suv')
+
+	odometer_reading = models.PositiveIntegerField(default=0, help_text="Odometer reading in KM")
+	fuel_level_percent = models.PositiveIntegerField(default=100, help_text="Fuel gauge percentage (0-100%)")
+	cleanliness_interior = models.PositiveSmallIntegerField(default=5, help_text="Interior cleanliness 1-5")
+	cleanliness_exterior = models.PositiveSmallIntegerField(default=5, help_text="Exterior cleanliness 1-5")
+
+	# Baseline checkout reference for automatic Diff comparison
+	baseline_checkout = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='return_inspections', help_text="Linked checkout inspection to calculate damage diff")
+
+	# Security Deposit & Damage Financials
+	security_deposit_held = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Deposit collected before handover (₹)")
+	new_damage_deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Total estimated deductions for new damages (₹)")
+	deposit_refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Net refund amount to customer (₹)")
+	deposit_status = models.CharField(max_length=30, choices=DEPOSIT_STATUSES, default='none')
+
+	inspector_name = models.CharField(max_length=150, blank=True, help_text="Staff or driver conducting inspection")
+	customer_signature_data = models.TextField(blank=True, help_text="Base64 canvas signature of customer")
+	inspector_signature_data = models.TextField(blank=True, help_text="Base64 canvas signature of inspector")
+	notes = models.TextField(blank=True, help_text="General handover observations")
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = "Vehicle Damage Inspection"
+		verbose_name_plural = "Vehicle Damage Inspections"
+
+	def __str__(self):
+		return f"{self.inspection_number} - {self.vehicle.registration_number} ({self.get_inspection_type_display()})"
+
+	def compute_damage_totals(self):
+		"""Computes total cost of new damage markers and recalculates refund."""
+		new_markers = self.markers.filter(is_new_damage=True)
+		total_new = sum(m.estimated_repair_cost for m in new_markers)
+		self.new_damage_deductions = total_new
+		if self.security_deposit_held > 0:
+			self.deposit_refund_amount = max(0.00, float(self.security_deposit_held) - float(total_new))
+			if total_new > 0:
+				self.deposit_status = 'settled_deduction'
+			else:
+				self.deposit_status = 'settled_refund'
+		self.save(update_fields=['new_damage_deductions', 'deposit_refund_amount', 'deposit_status'])
+
+
+class VehicleDamageMarker(models.Model):
+	DAMAGE_TYPES = [
+		('scratch', 'Scratch / Paint Abrasion'),
+		('dent', 'Dent / Body Depression'),
+		('crack', 'Crack / Fracture / Puncture'),
+		('paint_chip', 'Paint Chip / Peeling'),
+		('broken_glass', 'Broken Light / Glass'),
+		('missing_accessory', 'Missing Accessory / Spare Wheel'),
+		('interior_tear', 'Interior Tear / Burn / Stain'),
+		('other', 'Other Exterior Blemish'),
+	]
+	SEVERITY_LEVELS = [
+		('minor', 'Minor (Surface / Polishable / < 2 in)'),
+		('moderate', 'Moderate (Noticeable Dent / Deep Scratch)'),
+		('severe', 'Severe (Panel Replacement / Structural)'),
+	]
+	PANEL_ZONES = [
+		('front_bumper', 'Front Bumper'),
+		('rear_bumper', 'Rear Bumper'),
+		('hood', 'Engine Hood / Bonnet'),
+		('roof', 'Roof Panel'),
+		('windshield', 'Front Windshield'),
+		('rear_windshield', 'Rear Windshield'),
+		('door_fl', 'Front Left Door'),
+		('door_fr', 'Front Right Door'),
+		('door_rl', 'Rear Left Door'),
+		('door_rr', 'Rear Right Door'),
+		('quarter_panel_l', 'Left Quarter Panel / Fender'),
+		('quarter_panel_r', 'Right Quarter Panel / Fender'),
+		('mirror_l', 'Left Wing Mirror'),
+		('mirror_r', 'Right Wing Mirror'),
+		('trunk', 'Trunk / Boot Lid / Tailgate'),
+		('wheel_rim', 'Wheel Rim / Alloy'),
+		('interior', 'Interior / Seats'),
+	]
+
+	inspection = models.ForeignKey(VehicleDamageInspection, on_delete=models.CASCADE, related_name='markers')
+	marker_number = models.PositiveIntegerField(default=1)
+	damage_type = models.CharField(max_length=30, choices=DAMAGE_TYPES, default='scratch')
+	severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS, default='minor')
+	panel_zone = models.CharField(max_length=30, choices=PANEL_ZONES, default='front_bumper')
+
+	# Pinpoint coordinates on vehicle 2D schematic (percentage 0.00 to 100.00%)
+	x_percent = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
+	y_percent = models.DecimalField(max_digits=5, decimal_places=2, default=50.00)
+	view_angle = models.CharField(max_length=20, default='top')
+
+	is_pre_existing = models.BooleanField(default=False, help_text="True if present prior to customer checkout")
+	is_new_damage = models.BooleanField(default=False, help_text="True if inflicted during trip / checkout duration")
+	estimated_repair_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+	photo = models.ImageField(upload_to='damage_markers/photos/', null=True, blank=True)
+	photo_data_url = models.TextField(blank=True, help_text="Base64 captured photo from mobile camera")
+	notes = models.CharField(max_length=255, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['marker_number']
+		verbose_name = "Vehicle Damage Marker"
+		verbose_name_plural = "Vehicle Damage Markers"
+
+	def __str__(self):
+		return f"#{self.marker_number} {self.get_damage_type_display()} on {self.get_panel_zone_display()} ({self.inspection.vehicle.registration_number})"
+

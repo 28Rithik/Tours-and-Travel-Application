@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tour Itinerary & Travel Companion | Trip #{{ trip.trip_id }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #0b111e;
+      --card-bg: rgba(23, 32, 54, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --glass-blur: blur(14px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background gradient spheres */
+    .ambient-sphere {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .sphere-1 { top: -100px; left: -100px; width: 400px; height: 400px; background: rgba(99, 102, 241, 0.15); }
+    .sphere-2 { top: 30%; right: -120px; width: 450px; height: 450px; background: rgba(16, 185, 129, 0.1); }
+
+    /* Top Navigation Header */
+    .guest-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 17, 30, 0.88);
+      backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .brand-meta h1 {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .live-tour-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .head-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .head-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+    /* Content Area */
+    .portal-container {
+      max-width: 800px;
+      margin: 18px auto;
+      padding: 0 16px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Hero Banner Card */
+    .hero-card {
+      background: linear-gradient(135deg, rgba(30, 41, 69, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      backdrop-filter: var(--glass-blur);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .tour-category-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99, 102, 241, 0.18);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .tour-title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    .tour-guest-greeting {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tour-dates-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .date-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    /* Driver & Pilot Card */
+    .driver-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      backdrop-filter: var(--glass-blur);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .driver-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .driver-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+    }
+    .driver-name {
+      font-weight: 800;
+      font-size: 15px;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .driver-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .driver-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .call-btn {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .call-btn:hover { background: rgba(16, 185, 129, 0.25); }
+
+    .whatsapp-btn {
+      background: #25D366;
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+      transition: all 0.2s;
+    }
+    .whatsapp-btn:hover {
+      background: #20ba59;
+      box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+    }
+
+    .radar-btn {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .radar-btn:hover { background: rgba(99, 102, 241, 0.25); }
+
+    /* Day Navigator Tabs */
+    .day-tabs-slider {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      scrollbar-width: none;
+    }
+    .day-tabs-slider::-webkit-scrollbar { display: none; }
+
+    .day-tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      min-width: 85px;
+    }
+    .day-tab-btn .tab-date {
+      font-size: 10px;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+    .day-tab-btn:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #fff;
+    }
+    .day-tab-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .day-tab-btn.is-today .today-indicator {
+      display: block;
+    }
+    .today-indicator {
+      display: none;
+      background: var(--accent);
+      color: #0b111e;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+
+    /* Day Schedule Detail Card */
+    .day-schedule-card {
+      display: none;
+      animation: fadeIn 0.25s ease-out forwards;
+    }
+    .day-schedule-card.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .schedule-header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px 18px 0 0;
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .route-segment-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #38bdf8;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .schedule-title {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    /* Timeline stops deck */
+    .timeline-deck {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-top: none;
+      border-radius: 0 0 18px 18px;
+      padding: 24px 20px;
+      margin-bottom: 24px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-left: 36px;
+      padding-bottom: 24px;
+    }
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 13px;
+      top: 26px;
+      bottom: -6px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .timeline-item:last-child::before {
+      display: none;
+    }
+
+    .timeline-icon {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1e293b;
+      border: 2px solid var(--primary);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: #fff;
+    }
+    .timeline-icon.morning { border-color: var(--warning); color: var(--warning); }
+    .timeline-icon.spots { border-color: #ec4899; color: #ec4899; }
+    .timeline-icon.evening { border-color: #a855f7; color: #a855f7; }
+    .timeline-icon.hotel { border-color: #38bdf8; color: #38bdf8; }
+
+    .stop-header {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stop-desc {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Sightseeing Spot Pills */
+    .spot-chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .spot-pill {
+      background: rgba(236, 72, 153, 0.15);
+      border: 1px solid rgba(236, 72, 153, 0.3);
+      color: #f472b6;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Hotel Voucher Card */
+    .hotel-voucher-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 10px;
+    }
+    .voucher-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .hotel-name-h {
+      font-weight: 800;
+      font-size: 14px;
+      color: #fff;
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .status-confirmed { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .status-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .status-checked-in { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+    .voucher-meta-row {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    /* Meals Row */
+    .meals-badge-group {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    .meal-badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Fixed Bottom Help Dock */
+    .bottom-dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(11, 17, 30, 0.92);
+      backdrop-filter: var(--glass-blur);
+      border-top: 1px solid var(--card-border);
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .dock-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .dock-phone {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* ========================================================================= */
+    /* Clean Print / PDF Itinerary Voucher Stylesheet                             */
+    /* ========================================================================= */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        padding-bottom: 0;
+      }
+      .ambient-sphere, .top-bar, .header-actions, .bottom-dock, .day-tabs-slider, .radar-btn, .whatsapp-btn, .call-btn {
+        display: none !important;
+      }
+      .guest-header {
+        position: static;
+        background: #fff;
+        border-bottom: 2px solid #0f172a;
+        padding: 0 0 10px 0;
+        margin-bottom: 16px;
+      }
+      .portal-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .hero-card {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        page-break-inside: avoid;
+      }
+      .tour-title { color: #0f172a !important; }
+      .tour-guest-greeting, .date-meta-item { color: #475569 !important; }
+      .driver-card {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+      .driver-name { color: #0f172a !important; }
+      .day-schedule-card {
+        display: block !important;
+        page-break-inside: avoid;
+        margin-bottom: 24px;
+      }
+      .schedule-header {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+      .schedule-title { color: #0f172a !important; }
+      .timeline-deck {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-top: none;
+      }
+      .stop-desc { color: #334155 !important; }
+      .hotel-voucher-card {
+        background: #f8fafc !important;
+        border: 1px solid #94a3b8 !important;
+      }
+      .hotel-name-h { color: #0f172a !important; }
+      .spot-pill {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+      .meal-badge {
+        background: #f1f5f9 !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-sphere sphere-1"></div>
+  <div class="ambient-sphere sphere-2"></div>
+
+  <!-- Guest Sticky Header -->
+  <header class="guest-header">
+    <div class="brand-box">
+      <div class="brand-icon">
+        <i class="fa-solid fa-compass"></i>
+      </div>
+      <div class="brand-meta">
+        <h1>Sivagayathiri Travels</h1>
+        <div class="live-tour-tag">
+          <span class="pulse-dot"></span>
+          <span>Live Tour Companion</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="head-btn" onclick="window.print()">
+        <i class="fa-solid fa-print"></i> Print
+      </button>
+      <button type="button" class="head-btn" onclick="shareItinerary()">
+        <i class="fa-solid fa-share-nodes"></i> Share
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="portal-container">
+    
+    <!-- Hero Tour Card -->
+    <div class="hero-card">
+      <div class="tour-category-badge">
+        <i class="fa-solid fa-map"></i>
+        <span>{{ trip.package.get_category_display|default:"Private Multi-Day Tour" }}</span>
+      </div>
+      <h2 class="tour-title">{{ trip.package.name|default:trip.destination|default:"South India Tour Experience" }}</h2>
+      <div class="tour-guest-greeting">
+        <i class="fa-solid fa-user-circle"></i>
+        <span>Welcome, <strong>{{ trip.guest_name|default:"Valued Guest" }}</strong> • Trip #{{ trip.trip_id }}</span>
+      </div>
+      <div class="tour-dates-row">
+        <div class="date-meta-item">
+          <i class="fa-solid fa-calendar-day" style="color: #818cf8;"></i>
+          <span>{{ trip.start_date|date:"d M Y"|default:"Day 1" }} — {{ trip.end_date|date:"d M Y"|default:"End" }}</span>
+        </div>
+        <div class="date-meta-item">
+          <i class="fa-solid fa-clock" style="color: #38bdf8;"></i>
+          <span>{{ days|length }} Days Tour</span>
+        </div>
+        <div class="date-meta-item">
+          <i class="fa-solid fa-shield-halved" style="color: #34d399;"></i>
+          <span>Verified Booking</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assigned Driver & Vehicle Pilot Card -->
+    <div class="driver-card">
+      <div class="driver-left">
+        <div class="driver-avatar">
+          <i class="fa-solid fa-id-badge"></i>
+        </div>
+        <div>
+          <div class="driver-name">
+            <span>{{ trip.driver.name|default:"Tour Chauffeur" }}</span>
+            <span style="font-size: 11px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; padding: 2px 6px; border-radius: 4px;">
+              ★ 4.9 Expert Pilot
+            </span>
+          </div>
+          <div class="driver-sub">
+            <i class="fa-solid fa-van-shuttle"></i>
+            <span>{{ trip.vehicle.registration_number|default:"Comfort Tour Vehicle" }} {% if trip.vehicle %}({{ trip.vehicle.brand }} {{ trip.vehicle.model }}){% endif %}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="driver-actions">
+        {% if driver_phone %}
+          <a href="tel:{{ driver_phone }}" class="call-btn">
+            <i class="fa-solid fa-phone"></i> Call
+          </a>
+        {% endif %}
+        {% if driver_whatsapp_url %}
+          <a href="{{ driver_whatsapp_url }}" target="_blank" class="whatsapp-btn">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </a>
+        {% endif %}
+        {% if tracking_url %}
+          <a href="{{ tracking_url }}" target="_blank" class="radar-btn">
+            <i class="fa-solid fa-location-crosshairs"></i> Live GPS
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Day Navigation Tabs Slider -->
+    <div class="day-tabs-slider" id="dayTabsSlider">
+      {% for day in days %}
+      <button type="button" 
+              class="day-tab-btn {% if day.day_number == active_day_num %}active{% endif %} {% if day.date == today or day.is_active_today %}is-today{% endif %}"
+              data-target-day="day-card-{{ day.day_number }}">
+        <span class="today-indicator">Today</span>
+        <span>Day {{ day.day_number|stringformat:"02d" }}</span>
+        <span class="tab-date">{{ day.date|date:"D, d M"|default:"" }}</span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- Day Details Deck -->
+    <div id="dayCardsDeck">
+      {% for day in days %}
+      <div class="day-schedule-card {% if day.day_number == active_day_num %}active{% endif %}" id="day-card-{{ day.day_number }}">
+        
+        <div class="schedule-header">
+          {% if day.route_segment %}
+          <div class="route-segment-badge">
+            <i class="fa-solid fa-diamond-turn-right"></i>
+            <span>{{ day.route_segment }}</span>
+          </div>
+          {% endif %}
+          <h3 class="schedule-title">Day {{ day.day_number|stringformat:"02d" }}: {{ day.title }}</h3>
+          {% if day.date %}
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+            <i class="fa-regular fa-calendar"></i> {{ day.date|date:"l, F d, Y" }}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="timeline-deck">
+          
+          <!-- Morning Activity -->
+          {% if day.morning_plan %}
+          <div class="timeline-item">
+            <div class="timeline-icon morning">
+              <i class="fa-solid fa-sun"></i>
+            </div>
+            <div class="stop-header">
+              <span>Morning Plan & Departure</span>
+            </div>
+            <div class="stop-desc">{{ day.morning_plan|linebreaksbr }}</div>
+          </div>
+          {% endif %}
+
+          <!-- Sightseeing Spots -->
+          {% if day.spots_list %}
+          <div class="timeline-item">
+            <div class="timeline-icon spots">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+            <div class="stop-header">
+              <span>Sightseeing & Exploration Highlights</span>
+            </div>
+            <div class="spot-chips-row">
+              {% for spot in day.spots_list %}
+                <span class="spot-pill"><i class="fa-solid fa-location-dot"></i> {{ spot }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Evening / Night Activity -->
+          {% if day.evening_plan %}
+          <div class="timeline-item">
+            <div class="timeline-icon evening">
+              <i class="fa-solid fa-moon"></i>
+            </div>
+            <div class="stop-header">
+              <span>Evening Highlights & Night Experience</span>
+            </div>
+            <div class="stop-desc">{{ day.evening_plan|linebreaksbr }}</div>
+          </div>
+          {% endif %}
+
+          <!-- Hotel Accommodation -->
+          <div class="timeline-item">
+            <div class="timeline-icon hotel">
+              <i class="fa-solid fa-hotel"></i>
+            </div>
+            <div class="stop-header">
+              <span>Overnight Stay Accommodation</span>
+            </div>
+            
+            <div class="hotel-voucher-card">
+              <div class="voucher-top">
+                <div class="hotel-name-h">
+                  <i class="fa-solid fa-bed" style="color: #38bdf8; margin-right: 6px;"></i>
+                  {{ day.hotel_name|default:day.night_stay_location|default:"Standard Hotel / Resort" }}
+                </div>
+                <span class="status-badge {% if day.hotel_booking_status == 'confirmed' %}status-confirmed{% elif day.hotel_booking_status == 'checked_in' %}status-checked-in{% else %}status-pending{% endif %}">
+                  {{ day.get_hotel_booking_status_display }}
+                </span>
+              </div>
+              <div class="voucher-meta-row">
+                {% if day.hotel_voucher_number %}
+                  <span><i class="fa-solid fa-ticket"></i> Voucher: <strong>{{ day.hotel_voucher_number }}</strong></span>
+                {% endif %}
+                {% if day.night_stay_location %}
+                  <span><i class="fa-solid fa-location-dot"></i> {{ day.night_stay_location }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Meals Included -->
+            {% if day.meals_list %}
+            <div class="meals-badge-group">
+              {% for meal in day.meals_list %}
+                <span class="meal-badge"><i class="fa-solid fa-utensils" style="color: #fbbf24;"></i> {{ meal }}</span>
+              {% endfor %}
+              {% if day.transport_mode %}
+                <span class="meal-badge"><i class="fa-solid fa-van-shuttle" style="color: #a78bfa;"></i> {{ day.transport_mode }}</span>
+              {% endif %}
+            </div>
+            {% endif %}
+
+          </div>
+
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
+
+  <!-- Fixed Bottom Helpline Bar -->
+  <footer class="bottom-dock">
+    <div>
+      <div class="dock-title">Tour Helpline & Dispatch Desk</div>
+      <div class="dock-phone"><i class="fa-solid fa-headset" style="color: var(--accent);"></i> +91 98425 33777</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <a href="tel:+919842533777" class="head-btn" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #34d399;">
+        <i class="fa-solid fa-phone"></i> Support
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    // Tab switching for Day-by-Day schedule
+    document.querySelectorAll('.day-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.day-tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const targetId = btn.getAttribute('data-target-day');
+        document.querySelectorAll('.day-schedule-card').forEach(card => card.classList.remove('active'));
+        const targetCard = document.getElementById(targetId);
+        if (targetCard) {
+          targetCard.classList.add('active');
+        }
+      });
+    });
+
+    // Share Itinerary via Web Share API or Clipboard
+    function shareItinerary() {
+      if (navigator.share) {
+        navigator.share({
+          title: '{{ trip.package.name|default:"Tour Itinerary" }} | Sivagayathiri Travels',
+          text: 'View live tour itinerary & driver details for Trip #{{ trip.trip_id }}:',
+          url: window.location.href,
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert('Itinerary link copied to clipboard!');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -52,6 +52,15 @@
         </div>
 
         <div class="mc-header-actions">
+            <button id="btnDevPauseMap" class="mc-btn" title="Developer Mode: Toggle map auto-loading and background polling" style="border: 1px dashed #f59e0b; color: #fbbf24; background: rgba(245, 158, 11, 0.12); font-weight: 700;">
+                <span id="devPauseIcon">⏸️</span> <span id="devPauseText">Dev: Map Paused</span>
+            </button>
+            <button id="btnSimulateTick" class="mc-btn mc-btn-secondary" title="Simulate live GPS movement step">
+                📡 Live GPS Sim: <span id="simStatus">OFF</span>
+            </button>
+            <a href="/admin/operations/fleet-radar/" class="mc-btn mc-btn-secondary" title="Launch Unfold Admin Telematics Grid">
+                🛰️ Unfold Admin Radar
+            </a>
             <a href="{% url 'analytics:fleet_analytics' %}" class="mc-btn mc-btn-secondary" title="View Cost-Per-KM and Fleet Economics">
                 📊 Fleet Analytics & CPK
             </a>
@@ -100,8 +109,25 @@
     <!-- Main Live Command Layout: Interactive Map + Telemetry Panel -->
     <div class="mc-workspace">
         <!-- Interactive Leaflet Map -->
-        <div class="mc-map-wrapper">
+        <div class="mc-map-wrapper" style="position: relative;">
             <div id="liveFleetMap" class="mc-map"></div>
+
+            <!-- 🛠️ Developer Mode: Map Paused Placeholder -->
+            <div id="devMapPlaceholder" style="display: none; position: absolute; inset: 0; z-index: 1000; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); flex-direction: column; align-items: center; justify-content: center; color: #f8fafc; text-align: center; padding: 24px;">
+                <div style="font-size: 52px; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.4));">🗺️</div>
+                <h3 style="font-size: 22px; font-weight: 800; color: #38bdf8; margin: 0 0 8px;">Map Auto-Load Paused (Developer Mode)</h3>
+                <p style="font-size: 13px; color: #94a3b8; max-width: 480px; margin: 0 0 24px; line-height: 1.6;">
+                    Map rendering, WebGL tiles, and live GPS background polling (<code>/api/fleet/live-feed/</code>) are paused to save browser memory and stop terminal query spam while you develop.
+                </p>
+                <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
+                    <button id="btnDevLoadMapNow" style="padding: 11px 22px; background: linear-gradient(135deg, #0284c7, #10b981); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); display: flex; align-items: center; gap: 6px;">
+                        ▶️ Load Map Now
+                    </button>
+                    <button id="btnDevAlwaysAutoLoad" style="padding: 11px 20px; background: rgba(51, 65, 85, 0.6); color: #cbd5e1; border: 1px solid #475569; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+                        ⚙️ Always Auto-Load Map
+                    </button>
+                </div>
+            </div>
 
             <!-- Map Floating Legend Overlay -->
             <div class="mc-map-legend">
@@ -138,13 +164,35 @@
                         <div class="status-badge" id="detailStatusBadge">🟢 On Trip</div>
                     </div>
 
+                    <!-- Dynamic SVG Speedometer -->
+                    <div style="background: #0b1120; border: 1px solid #1e293b; border-radius: 10px; padding: 12px; margin-bottom: 12px; text-align: center;">
+                        <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:#94a3b8; margin-bottom:4px;">
+                            <span>SPEED TELEMETRY</span>
+                            <span id="detailIgnitionTag" style="padding:2px 6px; border-radius:4px; font-weight:800; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid #10b981;">ENGINE ON</span>
+                        </div>
+                        <div style="position:relative; width:190px; height:110px; margin:0 auto;">
+                            <svg viewBox="0 0 200 120" style="width:100%; height:100%;">
+                                <path d="M 25 100 A 75 75 0 0 1 175 100" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12" stroke-linecap="round" />
+                                <path d="M 25 100 A 75 75 0 0 1 80 35" fill="none" stroke="#10b981" stroke-width="12" stroke-opacity="0.85" stroke-linecap="round" />
+                                <path d="M 80 35 A 75 75 0 0 1 120 35" fill="none" stroke="#f59e0b" stroke-width="12" stroke-opacity="0.85" />
+                                <path d="M 120 35 A 75 75 0 0 1 175 100" fill="none" stroke="#ef4444" stroke-width="12" stroke-opacity="0.9" stroke-linecap="round" />
+                                <g id="detailSpeedNeedle" style="transform-origin: 100px 100px; transform: rotate(-90deg); transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                    <line x1="100" y1="100" x2="100" y2="35" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round" />
+                                    <circle cx="100" cy="100" r="7" fill="#0284c7" stroke="#38bdf8" stroke-width="2" />
+                                </g>
+                            </svg>
+                            <div style="position:absolute; bottom:2px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center;">
+                                <span id="detailSpeedLarge" style="font-family:'JetBrains Mono',monospace; font-size:24px; font-weight:800; line-height:1; color:#f8fafc;">0</span>
+                                <span style="font-size:9px; font-weight:800; color:#38bdf8; letter-spacing:0.1em;">KM/H</span>
+                            </div>
+                        </div>
+                        <div id="detailOverspeedPill" style="display:none; margin-top:6px; background:#ef4444; color:#fff; font-size:10px; font-weight:800; padding:3px 8px; border-radius:4px;">
+                            ⚠️ SPEED LIMIT EXCEEDED
+                        </div>
+                    </div>
+
                     <!-- Digital Gauges -->
                     <div class="mc-gauges-grid">
-                        <div class="gauge-card">
-                            <span class="gauge-label">Speed</span>
-                            <div class="gauge-value" id="detailSpeed">0 <small>km/h</small></div>
-                            <div class="gauge-sub" id="detailIgnition">Ignition: OFF</div>
-                        </div>
                         <div class="gauge-card">
                             <span class="gauge-label">Fuel Level</span>
                             <div class="gauge-value" id="detailFuel">75 <small>%</small></div>
@@ -156,6 +204,11 @@
                             <span class="gauge-label">Odometer</span>
                             <div class="gauge-value" id="detailOdometer">42,500 <small>km</small></div>
                             <div class="gauge-sub" id="detailFuelType">Diesel</div>
+                        </div>
+                        <div class="gauge-card">
+                            <span class="gauge-label">Satellites</span>
+                            <div class="gauge-value" id="detailSatellites">10 <small>Sats</small></div>
+                            <div class="gauge-sub" id="detailAltitude">Alt: 425m</div>
                         </div>
                     </div>
 
@@ -1168,6 +1221,9 @@
     let currentFilter = 'all';
     let autoRefreshTimer = null;
     let isFetching = false;
+    let activeRoutePolyline = null;
+    let isSimulating = false;
+    let simTimer = null;
 
     const DEPOT_COORDS = [11.0168, 76.9558]; // Coimbatore HQ
 
@@ -1181,12 +1237,40 @@
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // High contrast dark command tile layer (CartoDB Dark Matter) with OSM fallback
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-            subdomains: 'abcd',
+        // 🛰️ Multi-Layer High-Performance Tile Providers (100% Free, Zero Watermark, Zero API Key)
+        // 1. Esri World Dark Gray Canvas (Clean, contrast tactical radar basemap)
+        const darkMatterLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+            maxZoom: 16
+        });
+
+        // 2. Esri World Street Map (Detailed street names, landmarks, highways)
+        const streetVoyagerLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom',
             maxZoom: 19
-        }).addTo(map);
+        });
+
+        // 3. Esri World Imagery (High-resolution satellite topography)
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP',
+            maxZoom: 19
+        });
+
+        // 4. OpenStreetMap Standard (Open collaborative map data)
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap France &mdash; Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 20
+        });
+
+        darkMatterLayer.addTo(map);
+
+        const baseMaps = {
+            "<span style='color:#38bdf8;font-weight:700;'>🌙 Tactical Dark</span>": darkMatterLayer,
+            "<span style='color:#0284c7;font-weight:700;'>🗺️ Clean Streets</span>": streetVoyagerLayer,
+            "<span style='color:#10b981;font-weight:700;'>🛰️ Satellite Imagery</span>": satelliteLayer,
+            "<span style='color:#f59e0b;font-weight:700;'>🌐 OpenStreetMap</span>": osmLayer
+        };
+        L.control.layers(baseMaps, null, { position: 'topright', collapsed: true }).addTo(map);
     }
 
     // --- Fetch Live Telematics Feed ---
@@ -1464,9 +1548,32 @@
         badge.innerText = v.status_label;
         badge.style.color = v.status_color;
 
-        document.getElementById('detailSpeed').innerHTML = `${v.speed_kmh} <small>km/h</small>`;
-        document.getElementById('detailIgnition').innerText = `Ignition: ${v.ignition_on ? 'ON' : 'OFF'}`;
-        document.getElementById('detailIgnition').style.color = v.ignition_on ? '#10b981' : '#64748b';
+        // Speedometer Needle & Gauges
+        const spd = Math.round(v.speed_kmh || 0);
+        const needleAngle = -90 + (Math.min(spd, 140) / 140) * 180;
+        const needle = document.getElementById('detailSpeedNeedle');
+        if (needle) needle.style.transform = `rotate(${needleAngle}deg)`;
+        const spdLarge = document.getElementById('detailSpeedLarge');
+        if (spdLarge) spdLarge.innerText = spd;
+
+        const overspeedPill = document.getElementById('detailOverspeedPill');
+        if (overspeedPill) {
+            const isSpd = spd > 80 || (v.geofence_status && v.geofence_status.is_speeding);
+            overspeedPill.style.display = isSpd ? 'block' : 'none';
+        }
+
+        const ignTag = document.getElementById('detailIgnitionTag');
+        if (ignTag) {
+            ignTag.innerText = v.ignition_on ? 'ENGINE ON' : 'ENGINE OFF';
+            ignTag.style.background = v.ignition_on ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)';
+            ignTag.style.color = v.ignition_on ? '#34d399' : '#94a3b8';
+            ignTag.style.borderColor = v.ignition_on ? '#10b981' : '#64748b';
+        }
+
+        const satEl = document.getElementById('detailSatellites');
+        if (satEl) satEl.innerHTML = `${v.satellites || 10} <small>Sats</small>`;
+        const altEl = document.getElementById('detailAltitude');
+        if (altEl) altEl.innerText = `Alt: ${Math.round(v.altitude_m || 420)}m`;
 
         document.getElementById('detailFuel').innerHTML = `${v.fuel_level_pct || 75} <small>%</small>`;
         document.getElementById('detailFuelBar').style.width = `${v.fuel_level_pct || 75}%`;
@@ -1477,7 +1584,7 @@
         document.getElementById('detailLocationName').innerText = v.location_name;
         document.getElementById('detailPingTime').innerText = `Updated: ${v.last_ping_time}`;
 
-        // Trip Info
+        // Trip Info & Route Polyline
         const tripCard = document.getElementById('detailTripCard');
         if (v.trip) {
             tripCard.style.display = 'block';
@@ -1487,8 +1594,22 @@
             document.getElementById('detailTripGuest').innerText = v.trip.guest_name;
             document.getElementById('detailTripPhone').innerText = v.trip.guest_phone ? `📞 ${v.trip.guest_phone}` : '';
             document.getElementById('detailTripLink').href = `/trips/${v.trip.id}/`;
+
+            if (v.trip_route && v.trip_route.route_path) {
+                if (activeRoutePolyline) map.removeLayer(activeRoutePolyline);
+                activeRoutePolyline = L.polyline(v.trip_route.route_path, {
+                    color: '#38bdf8',
+                    weight: 3.5,
+                    dashArray: '8, 8',
+                    opacity: 0.9
+                }).addTo(map);
+            }
         } else {
             tripCard.style.display = 'none';
+            if (activeRoutePolyline) {
+                map.removeLayer(activeRoutePolyline);
+                activeRoutePolyline = null;
+            }
         }
 
         // Driver Info
@@ -1589,16 +1710,101 @@
         }
     }
 
-    // --- Setup Listeners ---
-    document.addEventListener('DOMContentLoaded', () => {
+    // --- Developer Mode: Map Auto-Load Controller ---
+    let isMapLoaded = false;
+    let isDevMapPaused = localStorage.getItem('travelerp_dev_pause_maps') !== 'false';
+
+    function updateDevPauseUI() {
+        const btnText = document.getElementById('devPauseText');
+        const btnIcon = document.getElementById('devPauseIcon');
+        const btn = document.getElementById('btnDevPauseMap');
+        const placeholder = document.getElementById('devMapPlaceholder');
+
+        if (isDevMapPaused && !isMapLoaded) {
+            if (placeholder) placeholder.style.display = 'flex';
+            if (btnText) btnText.innerText = 'Dev: Map Paused';
+            if (btnIcon) btnIcon.innerText = '⏸️';
+            if (btn) {
+                btn.style.border = '1px dashed #f59e0b';
+                btn.style.color = '#fbbf24';
+                btn.style.background = 'rgba(245, 158, 11, 0.15)';
+            }
+        } else {
+            if (placeholder) placeholder.style.display = 'none';
+            if (btnText) btnText.innerText = 'Dev: Map Active';
+            if (btnIcon) btnIcon.innerText = '▶️';
+            if (btn) {
+                btn.style.border = '1px solid #10b981';
+                btn.style.color = '#34d399';
+                btn.style.background = 'rgba(16, 185, 129, 0.15)';
+            }
+        }
+    }
+
+    function activateMapNow() {
+        if (isMapLoaded) return;
+        isMapLoaded = true;
+        const placeholder = document.getElementById('devMapPlaceholder');
+        if (placeholder) placeholder.style.display = 'none';
         initMap();
         fetchLiveFeed();
+        if (!autoRefreshTimer) {
+            autoRefreshTimer = setInterval(fetchLiveFeed, 12000);
+        }
+        updateDevPauseUI();
+    }
 
-        // 12s Polling
-        autoRefreshTimer = setInterval(fetchLiveFeed, 12000);
+    function toggleDevMapPause() {
+        isDevMapPaused = !isDevMapPaused;
+        localStorage.setItem('travelerp_dev_pause_maps', isDevMapPaused ? 'true' : 'false');
+        if (isDevMapPaused) {
+            if (autoRefreshTimer) {
+                clearInterval(autoRefreshTimer);
+                autoRefreshTimer = null;
+            }
+            if (!isMapLoaded) {
+                updateDevPauseUI();
+            } else {
+                const btnText = document.getElementById('devPauseText');
+                if (btnText) btnText.innerText = 'Dev: Paused on Reload';
+            }
+        } else {
+            activateMapNow();
+        }
+        updateDevPauseUI();
+    }
+
+    // --- Setup Listeners ---
+    document.addEventListener('DOMContentLoaded', () => {
+        updateDevPauseUI();
+
+        if (isDevMapPaused) {
+            const placeholder = document.getElementById('devMapPlaceholder');
+            if (placeholder) placeholder.style.display = 'flex';
+            console.log('[TravelERP Dev Mode] Map auto-load is PAUSED via localStorage. Click "Load Map Now" or toggle Dev button to activate.');
+        } else {
+            activateMapNow();
+        }
+
+        // Attach event listeners for Dev Pause controls
+        const devBtn = document.getElementById('btnDevPauseMap');
+        if (devBtn) devBtn.addEventListener('click', toggleDevMapPause);
+
+        const loadNowBtn = document.getElementById('btnDevLoadMapNow');
+        if (loadNowBtn) loadNowBtn.addEventListener('click', activateMapNow);
+
+        const alwaysLoadBtn = document.getElementById('btnDevAlwaysAutoLoad');
+        if (alwaysLoadBtn) alwaysLoadBtn.addEventListener('click', () => {
+            isDevMapPaused = false;
+            localStorage.setItem('travelerp_dev_pause_maps', 'false');
+            activateMapNow();
+        });
 
         // Manual Refresh Button
-        document.getElementById('btnManualRefresh').addEventListener('click', fetchLiveFeed);
+        document.getElementById('btnManualRefresh').addEventListener('click', () => {
+            if (!isMapLoaded) activateMapNow();
+            else fetchLiveFeed();
+        });
 
         // Filter Pills
         document.querySelectorAll('.filter-pill').forEach(pill => {
@@ -1654,6 +1860,43 @@
                 openDispatchModal(v && v.incident ? v.incident.id : null);
             });
         }
+        // Simulation Trigger
+        async function triggerSimTick() {
+            try {
+                const resp = await fetch('/api/fleet/simulate-tick/', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (resp.ok) fetchLiveFeed();
+            } catch(e) {}
+        }
+
+        function toggleSimulation() {
+            isSimulating = !isSimulating;
+            const btn = document.getElementById('btnSimulateTick');
+            const status = document.getElementById('simStatus');
+            if (isSimulating) {
+                if (btn) {
+                    btn.style.background = '#0284c7';
+                    btn.style.color = '#fff';
+                }
+                if (status) status.innerText = 'ON';
+                triggerSimTick();
+                simTimer = setInterval(triggerSimTick, 4000);
+            } else {
+                if (btn) {
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }
+                if (status) status.innerText = 'OFF';
+                if (simTimer) clearInterval(simTimer);
+            }
+        }
+
+        const btnSim = document.getElementById('btnSimulateTick');
+        if (btnSim) {
+            btnSim.addEventListener('click', toggleSimulation);
+        }
+
         document.getElementById('btnCloseModal').addEventListener('click', closeModal);
         document.getElementById('btnCancelModal').addEventListener('click', closeModal);
         document.getElementById('standbyDispatchForm').addEventListener('submit', handleStandbySubmit);

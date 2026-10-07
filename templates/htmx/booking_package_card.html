@@ -1,0 +1,88 @@
+<div id="package-htmx-container" style="margin: 12px 0 16px; padding: 16px 20px; border-radius: 10px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f8fafc; border: 1px solid #334155; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.2s;">
+    <!-- Package Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 24px; color: #38bdf8;">beach_access</span>
+            <div>
+                <span style="font-size: 15px; font-weight: 700; color: #38bdf8;">{{ package.name }}</span>
+                <span style="margin-left: 8px; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: #0284c7; color: white; font-weight: 600;">
+                    {{ package.category|default:"Tour Package" }}
+                </span>
+            </div>
+        </div>
+        <div style="font-size: 14px; font-weight: 700; color: #4ade80; display: flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">payments</span>
+            <span>₹{{ package.base_price|default:"0.00" }} / pax</span>
+        </div>
+    </div>
+
+    <!-- Package Metadata Pills -->
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 12px; color: #cbd5e1;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: #94a3b8;">schedule</span>
+            <span>{{ package.duration_days|default:"1" }} Days / {{ package.duration_nights|default:"0" }} Nights</span>
+        </div>
+        {% if package.destination %}
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: #94a3b8;">location_on</span>
+            <span>{{ package.destination }}</span>
+        </div>
+        {% endif %}
+        {% if package.vehicle_type %}
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 16px; color: #94a3b8;">directions_car</span>
+            <span>Vehicle: {{ package.vehicle_type }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Departure Batches Selector -->
+    <div style="border-top: 1px dashed #334155; padding-top: 10px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 15px; color: #38bdf8;">calendar_month</span>
+            <span>Upcoming Departure Batches (Click to Auto-Assign Dates &amp; Batch):</span>
+        </div>
+
+        {% if batches %}
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for b in batches %}
+            <button type="button"
+                    onclick="selectBatchHTMX('{{ b.obj.id }}', '{{ b.obj.departure_date|date:'Y-m-d' }}', '{{ b.obj.return_date|date:'Y-m-d' }}')"
+                    style="padding: 6px 12px; border-radius: 6px; border: 1px solid {% if b.is_sold_out %}#ef4444{% else %}#0284c7{% endif %}; background: {% if b.is_sold_out %}rgba(239,68,68,0.15){% else %}rgba(2,132,199,0.2){% endif %}; color: #f8fafc; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.15s;"
+                    onmouseover="this.style.background='rgba(2,132,199,0.4)'"
+                    onmouseout="this.style.background='{% if b.is_sold_out %}rgba(239,68,68,0.15){% else %}rgba(2,132,199,0.2){% endif %}'"
+                    title="Departure: {{ b.departure_str }}{% if b.return_str %} - Return: {{ b.return_str }}{% endif %}">
+                <span style="font-weight: 700;">{{ b.departure_str }}</span>
+                <span style="font-size: 10px; padding: 2px 6px; border-radius: 3px; background: {% if b.is_sold_out %}#ef4444{% elif b.free_seats < 5 %}#f59e0b{% else %}#10b981{% endif %}; color: white; font-weight: 700;">
+                    {% if b.is_sold_out %}SOLD OUT{% else %}{{ b.free_seats }} seats free{% endif %}
+                </span>
+            </button>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="font-size: 12px; color: #94a3b8; font-style: italic;">
+            No scheduled departures found. Custom dates can be set below.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function selectBatchHTMX(batchId, depDate, retDate) {
+    var invField = document.getElementById('id_package_inventory');
+    if (invField) {
+        invField.value = batchId;
+        invField.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    var depField = document.getElementById('id_pickup_date');
+    if (depField && depDate) {
+        depField.value = depDate;
+        depField.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    var retField = document.getElementById('id_drop_date');
+    if (retField && retDate) {
+        retField.value = retDate;
+        retField.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+}
+</script>

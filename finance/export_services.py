@@ -770,3 +770,299 @@ def generate_batch_payroll(month, year):
         'total_net_payable': total_net,
         'payslips': payslips,
     }
+
+
+# ==============================================================================
+# 5. GSTR-1 B2B E-INVOICE CSV EXPORTER
+# ==============================================================================
+
+def generate_gstr1_b2b_csv(from_date=None, to_date=None):
+    """
+    Generates GSTR-1 Table 4A compliant B2B CSV for GST portal filing.
+    Compatible with ClearTax / Zoho GST / Tally Prime GSTR-1 import format.
+
+    Columns follow the official GST government portal B2B template:
+    GSTIN, Invoice Number, Invoice Date, Invoice Value, Place of Supply,
+    Reverse Charge, Invoice Type, E-Commerce GSTIN, Rate, Taxable Value,
+    Cess Amount, CGST Amount, SGST Amount, IGST Amount.
+    """
+    from finance.models import CorporateGSTInvoice
+
+    qs = CorporateGSTInvoice.objects.filter(invoice_type='regular_b2b')
+    if from_date:
+        d_from = _parse_date(from_date)
+        if d_from:
+            qs = qs.filter(invoice_date__gte=d_from)
+    if to_date:
+        d_to = _parse_date(to_date)
+        if d_to:
+            qs = qs.filter(invoice_date__lte=d_to)
+
+    qs = qs.select_related('party').order_by('invoice_date', 'id')
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # GSTR-1 B2B standard header
+    writer.writerow([
+        'GSTIN/UIN of Recipient',
+        'Receiver Name',
+        'Invoice Number',
+        'Invoice Date',
+        'Invoice Value',
+        'Place of Supply',
+        'Reverse Charge',
+        'Applicable % of Tax Rate',
+        'Invoice Type',
+        'E-Commerce GSTIN',
+        'Rate',
+        'Taxable Value',
+        'Cess Amount',
+        'CGST Amount',
+        'SGST/UTGST Amount',
+        'IGST Amount',
+    ])
+
+    from finance.gst_engine import INDIAN_GST_STATES
+
+    for inv in qs:
+        if not inv.recipient_gstin:
+            continue  # B2B requires GSTIN
+
+        state_code = (inv.recipient_state_code or '33').strip().zfill(2)
+        state_name = INDIAN_GST_STATES.get(state_code, f'State-{state_code}')
+        place_of_supply = f"{state_code}-{state_name}"
+
+        writer.writerow([
+            inv.recipient_gstin,
+            inv.recipient_legal_name or inv.recipient_trade_name or '',
+            inv.invoice_number,
+            inv.invoice_date.strftime('%d-%b-%Y') if inv.invoice_date else '',
+            str(inv.total_invoice_value),
+            place_of_supply,
+            'Y' if inv.is_reverse_charge else 'N',
+            '',  # Applicable % of Tax Rate (blank for standard)
+            'Regular',
+            '',  # E-Commerce GSTIN
+            str(inv.gst_rate_percent),
+            str(inv.taxable_value),
+            str(inv.cess_amount or 0),
+            str(inv.cgst_amount or 0),
+            str(inv.sgst_amount or 0),
+            str(inv.igst_amount or 0),
+        ])
+
+    return output.getvalue()
+
+
+# ==============================================================================
+# 6. INPUT TAX CREDIT (ITC) RECONCILIATION ENGINE
+# ==============================================================================
+
+def reconcile_input_tax_credit(from_date=None, to_date=None):
+    """
+    ITC Reconciliation Engine.
+    Cross-references purchase-side GST paid (fuel, spares, services, tolls)
+    against claimable input tax credits for GSTR-3B filing.
+
+    Categories:
+    - Fuel purchases (FuelRecord) — 100% ITC claimable for transport
+    - Fastag/Toll deductions — no ITC (exempt supply)
+    - Maintenance spares & repairs (TripExpense category='maintenance') — ITC eligible
+    - Professional services — ITC eligible
+    """
+    d_from = _parse_date(from_date)
+    d_to = _parse_date(to_date)
+
+    # 1. Fuel Purchases — ITC on diesel/petrol for commercial transport vehicles
+    fuel_qs = FuelRecord.objects.all()
+    if d_from:
+        fuel_qs = fuel_qs.filter(date__gte=d_from)
+    if d_to:
+        fuel_qs = fuel_qs.filter(date__lte=d_to)
+
+    fuel_total = fuel_qs.aggregate(
+        total_value=Sum('fuel_price') or Decimal('0.00'),
+        total_qty=Sum('fuel_quantity') or Decimal('0.00'),
+    )
+    fuel_value = fuel_total.get('total_value') or Decimal('0.00')
+    fuel_qty = fuel_total.get('total_qty') or Decimal('0.00')
+
+    # Fuel GST: typically 18% on diesel (non-GST, but some states allow ITC)
+    # For transport companies: excise portion treated as deemed ITC @ 5% effective
+    fuel_deemed_itc = (fuel_value * Decimal('0.05')).quantize(Decimal('0.01'))
+
+    # 2. Tolls — Exempt supply, NO ITC
+    toll_qs = FastagTollDeduction.objects.all()
+    if d_from:
+        toll_qs = toll_qs.filter(toll_date__gte=d_from)
+    if d_to:
+        toll_qs = toll_qs.filter(toll_date__lte=d_to)
+
+    toll_total = toll_qs.aggregate(total=Sum('amount'))
+    toll_amount = toll_total.get('total') or Decimal('0.00')
+
+    # 3. Maintenance & Service Expenses — ITC eligible @ applicable GST rate
+    expense_qs = TripExpense.objects.all()
+    if d_from:
+        expense_qs = expense_qs.filter(date__gte=d_from)
+    if d_to:
+        expense_qs = expense_qs.filter(date__lte=d_to)
+
+    # Split by ITC-eligible categories
+    maintenance_expenses = expense_qs.filter(
+        expense_type__in=['maintenance', 'spares', 'repair', 'tyre', 'workshop']
+    )
+    service_expenses = expense_qs.filter(
+        expense_type__in=['professional', 'office', 'software', 'insurance_premium']
+    )
+    non_itc_expenses = expense_qs.exclude(
+        expense_type__in=[
+            'maintenance', 'spares', 'repair', 'tyre', 'workshop',
+            'professional', 'office', 'software', 'insurance_premium'
+        ]
+    )
+
+    maint_total = maintenance_expenses.aggregate(total=Sum('amount')).get('total') or Decimal('0.00')
+    service_total = service_expenses.aggregate(total=Sum('amount')).get('total') or Decimal('0.00')
+    non_itc_total = non_itc_expenses.aggregate(total=Sum('amount')).get('total') or Decimal('0.00')
+
+    # ITC on maintenance: typically 18% GST, full ITC claimable
+    maint_itc = (maint_total * Decimal('18') / Decimal('118')).quantize(Decimal('0.01'))
+    # ITC on services: typically 18% GST
+    service_itc = (service_total * Decimal('18') / Decimal('118')).quantize(Decimal('0.01'))
+
+    # 4. Output Tax Liability (from sales invoices)
+    from finance.models import CorporateGSTInvoice
+    output_qs = CorporateGSTInvoice.objects.all()
+    if d_from:
+        output_qs = output_qs.filter(invoice_date__gte=d_from)
+    if d_to:
+        output_qs = output_qs.filter(invoice_date__lte=d_to)
+
+    output_tax = output_qs.aggregate(
+        total_cgst=Sum('cgst_amount'),
+        total_sgst=Sum('sgst_amount'),
+        total_igst=Sum('igst_amount'),
+        total_tax=Sum('total_tax'),
+        total_taxable=Sum('taxable_value'),
+    )
+
+    output_cgst = output_tax.get('total_cgst') or Decimal('0.00')
+    output_sgst = output_tax.get('total_sgst') or Decimal('0.00')
+    output_igst = output_tax.get('total_igst') or Decimal('0.00')
+    output_total_tax = output_tax.get('total_tax') or Decimal('0.00')
+
+    # 5. Net ITC Summary
+    total_itc_claimable = fuel_deemed_itc + maint_itc + service_itc
+    net_gst_payable = max(Decimal('0.00'), output_total_tax - total_itc_claimable)
+    itc_utilization_percent = (
+        (total_itc_claimable / output_total_tax * 100).quantize(Decimal('0.1'))
+        if output_total_tax > 0 else Decimal('0.0')
+    )
+
+    return {
+        'period': {
+            'from_date': str(d_from) if d_from else 'All Time',
+            'to_date': str(d_to) if d_to else 'Present',
+        },
+        # Output (Sales) Tax
+        'output_tax': {
+            'invoices_count': output_qs.count(),
+            'taxable_value': output_tax.get('total_taxable') or Decimal('0.00'),
+            'cgst': output_cgst,
+            'sgst': output_sgst,
+            'igst': output_igst,
+            'total_output_tax': output_total_tax,
+        },
+        # Input (Purchase) Tax Credits
+        'input_credits': {
+            'fuel': {
+                'total_value': fuel_value,
+                'total_litres': fuel_qty,
+                'records_count': fuel_qs.count(),
+                'deemed_itc': fuel_deemed_itc,
+                'note': 'Deemed ITC @ 5% for commercial transport fuel',
+            },
+            'tolls': {
+                'total_amount': toll_amount,
+                'records_count': toll_qs.count(),
+                'itc_eligible': Decimal('0.00'),
+                'note': 'Tolls are exempt supply — NO ITC available',
+            },
+            'maintenance': {
+                'total_amount': maint_total,
+                'records_count': maintenance_expenses.count(),
+                'itc_claimable': maint_itc,
+                'note': 'ITC @ 18% on maintenance/spares/repairs',
+            },
+            'services': {
+                'total_amount': service_total,
+                'records_count': service_expenses.count(),
+                'itc_claimable': service_itc,
+                'note': 'ITC @ 18% on professional/office services',
+            },
+            'non_eligible': {
+                'total_amount': non_itc_total,
+                'records_count': non_itc_expenses.count(),
+                'itc_claimable': Decimal('0.00'),
+                'note': 'Driver bata, tips, food, etc. — not ITC eligible',
+            },
+        },
+        # Net Summary for GSTR-3B
+        'net_summary': {
+            'total_itc_claimable': total_itc_claimable,
+            'total_output_tax': output_total_tax,
+            'net_gst_payable': net_gst_payable,
+            'itc_utilization_percent': itc_utilization_percent,
+            'itc_breakdown_cgst': (total_itc_claimable / 2).quantize(Decimal('0.01')),
+            'itc_breakdown_sgst': (total_itc_claimable / 2).quantize(Decimal('0.01')),
+        },
+    }
+
+
+def generate_itc_reconciliation_csv(from_date=None, to_date=None):
+    """
+    Generates a CSV report for ITC Reconciliation suitable for CA / audit review.
+    """
+    recon = reconcile_input_tax_credit(from_date, to_date)
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow(['ITC RECONCILIATION REPORT'])
+    writer.writerow([f"Period: {recon['period']['from_date']} to {recon['period']['to_date']}"])
+    writer.writerow([])
+
+    # Output Tax
+    writer.writerow(['SECTION', 'OUTPUT TAX LIABILITY (SALES)'])
+    writer.writerow(['Description', 'Count', 'Amount'])
+    ot = recon['output_tax']
+    writer.writerow(['Total Invoices', ot['invoices_count'], str(ot['taxable_value'])])
+    writer.writerow(['CGST Output', '', str(ot['cgst'])])
+    writer.writerow(['SGST Output', '', str(ot['sgst'])])
+    writer.writerow(['IGST Output', '', str(ot['igst'])])
+    writer.writerow(['Total Output Tax', '', str(ot['total_output_tax'])])
+    writer.writerow([])
+
+    # Input Tax Credits
+    writer.writerow(['SECTION', 'INPUT TAX CREDITS (PURCHASES)'])
+    writer.writerow(['Category', 'Records', 'Total Value', 'ITC Claimable', 'Note'])
+    for cat_key, cat_data in recon['input_credits'].items():
+        writer.writerow([
+            cat_key.replace('_', ' ').title(),
+            cat_data.get('records_count', 0),
+            str(cat_data.get('total_amount', cat_data.get('total_value', 0))),
+            str(cat_data.get('itc_claimable', cat_data.get('deemed_itc', cat_data.get('itc_eligible', 0)))),
+            cat_data.get('note', ''),
+        ])
+    writer.writerow([])
+
+    # Net Summary
+    writer.writerow(['SECTION', 'NET GST PAYABLE (GSTR-3B)'])
+    ns = recon['net_summary']
+    writer.writerow(['Total Output Tax', '', str(ns['total_output_tax'])])
+    writer.writerow(['Total ITC Claimable', '', str(ns['total_itc_claimable'])])
+    writer.writerow(['NET GST PAYABLE', '', str(ns['net_gst_payable'])])
+    writer.writerow(['ITC Utilization %', '', f"{ns['itc_utilization_percent']}%"])
+
+    return output.getvalue()

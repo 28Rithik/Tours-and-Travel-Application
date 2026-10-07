@@ -14,6 +14,8 @@ from .models import (
 
 
 def get_active_rate_card(party, vehicle_type, on_date, vehicle=None):
+    if not on_date:
+        on_date = timezone.now().date()
     return (
         RateCard.objects.filter(party=party, vehicle_type=vehicle_type, effective_from__lte=on_date)
         .filter(Q(effective_to__isnull=True) | Q(effective_to__gte=on_date))

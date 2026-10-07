@@ -1,34 +1,299 @@
 {% extends "customer_portal/base.html" %}
 {% load i18n %}
-{% block title %}{% trans "My Bookings" %} | Customer Portal{% endblock %}
-{% block content %}
-<div style="margin-bottom: 2rem;">
-    <h1>{% trans "My Bookings" %}</h1>
-    <p style="color: var(--text-muted);">{% trans "View all your past and upcoming trips." %}</p>
-</div>
 
-<div class="grid">
-    {% for booking in bookings %}
-    <div class="glass-card">
-        <h3>{{ booking.destination }}</h3>
-        <p><strong>{% trans "Date" %}:</strong> {{ booking.pickup_date }}</p>
-        <p><strong>{% trans "Status" %}:</strong> <span style="background: var(--bg-color); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.875rem;">{{ booking.get_status_display }}</span></p>
-        <p><strong>{% trans "Total Paid" %}:</strong> {{ booking.total_paid }}</p>
-        <p><strong>{% trans "Balance Due" %}:</strong> <span style="{% if booking.balance_due > 0 %}color: red; font-weight: bold;{% else %}color: green;{% endif %}">{{ booking.balance_due }}</span></p>
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 1rem 0;">
-        {% if booking.balance_due > 0 and booking.status != 'cancelled' %}
-            <a href="{% url 'customer_portal:checkout' booking.package_inventory.id %}" class="btn-secondary" style="margin-bottom: 0.5rem; text-align: center; display: block; box-sizing: border-box;">{% trans "Pay Now" %}</a>
-        {% endif %}
-        {% if booking.invoice and booking.invoice.file %}
-            <a href="{{ booking.invoice.file.url }}" target="_blank" class="btn-primary" style="margin-bottom: 0.5rem; background: white; color: var(--primary); border: 1px solid var(--primary); text-align: center; display: block; box-sizing: border-box;">{% trans "Download Invoice" %}</a>
-        {% endif %}
-        <a href="{% url 'customer_portal:booking_detail' booking.id %}" class="btn-primary" style="background: white; color: var(--primary); border: 1px solid var(--primary); width: 100%; text-align: center; display: block; box-sizing: border-box;">{% trans "View Details" %}</a>
+{% block title %}My Expeditions & Live Radar Dashboard | Sivagayathiri Travels{% endblock %}
+
+{% block content %}
+<div style="background: #f8fafc; min-height: calc(100vh - 160px); padding: 2.5rem 1.5rem;" x-data="{
+    activeTab: 'all', // 'all', 'active', 'completed'
+    selectedBookingForUpi: null,
+    showUpiModal: false
+}">
+    <div style="max-width: 1280px; margin: 0 auto;">
+
+        <!-- Header Row -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+                    <h1 style="font-size: 1.85rem; font-weight: 800; color: #0f172a; margin: 0;">
+                        Namaste, {{ client.name|default:user.username }}! 🙏
+                    </h1>
+                    <span style="background: #e0f2fe; color: #0369a1; font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 9999px;">
+                        VERIFIED GUEST
+                    </span>
+                </div>
+                <p style="color: #64748b; font-size: 0.95rem; margin: 0;">
+                    Manage your holiday reservations, track active fleet telematics in real-time, and download GST tax invoices.
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <a href="{% url 'customer_portal:package_list' %}" class="btn-primary" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; padding: 0.65rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+                    <span>✨ Book New Tour</span>
+                </a>
+                <a href="{% url 'customer_portal:logout' %}" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; padding: 0.65rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;"
+                    onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#ffffff'">
+                    Sign Out
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 KPI Stat Counters -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+            <!-- Total Expeditions -->
+            <div class="glass-card" style="padding: 1.25rem 1.5rem; background: #ffffff; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Expeditions</span>
+                    <span style="background: #f1f5f9; padding: 0.4rem; border-radius: 8px; font-size: 1.1rem;">🗺️</span>
+                </div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a;">{{ total_bookings_count }}</div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">Tour packages & outstation rentals</div>
+            </div>
+
+            <!-- Active In-Transit Fleet -->
+            <div class="glass-card" style="padding: 1.25rem 1.5rem; background: #ffffff; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Active Journeys</span>
+                    <span style="display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #dcfce7; color: #15803d; font-size: 0.85rem;">🛰️</span>
+                </div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>{{ active_trips_count }}</span>
+                    {% if active_trips_count > 0 %}
+                    <span class="badge-live-pulse" style="font-size: 0.7rem; padding: 0.15rem 0.5rem; background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 9999px;">
+                        <span class="pulse-dot"></span> LIVE RADAR
+                    </span>
+                    {% endif %}
+                </div>
+                <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem;">Fleet transmitting AIS-140 GPS</div>
+            </div>
+
+            <!-- Total Quoted Value -->
+            <div class="glass-card" style="padding: 1.25rem 1.5rem; background: #ffffff; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Total Booked Value</span>
+                    <span style="background: #f1f5f9; padding: 0.4rem; border-radius: 8px; font-size: 1.1rem;">💎</span>
+                </div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0f172a;">₹{{ total_spent|add:total_balance_due|floatformat:2 }}</div>
+                <div style="font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 0.25rem;">₹{{ total_spent|floatformat:2 }} settled</div>
+            </div>
+
+            <!-- Outstanding Balance -->
+            <div class="glass-card" style="padding: 1.25rem 1.5rem; background: #ffffff; border-radius: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Outstanding Balance</span>
+                    <span style="background: {% if total_balance_due > 0 %}#fef2f2; color: #dc2626;{% else %}#ecfdf5; color: #059669;{% endif %} padding: 0.4rem; border-radius: 8px; font-size: 1.1rem;">💳</span>
+                </div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: {% if total_balance_due > 0 %}#dc2626{% else %}#10b981{% endif %};">
+                    ₹{{ total_balance_due|floatformat:2 }}
+                </div>
+                <div style="font-size: 0.8rem; color: {% if total_balance_due > 0 %}#dc2626{% else %}#10b981{% endif %}; font-weight: 600; margin-top: 0.25rem;">
+                    {% if total_balance_due > 0 %}Pending clearance{% else %}All accounts cleared! ✅{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
+            <button type="button" @click="activeTab = 'all'" 
+                :style="activeTab === 'all' ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #64748b;'"
+                style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                All Bookings ({{ bookings|length }})
+            </button>
+            <button type="button" @click="activeTab = 'active'"
+                :style="activeTab === 'active' ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #64748b;'"
+                style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                Active & Upcoming
+            </button>
+            <button type="button" @click="activeTab = 'completed'"
+                :style="activeTab === 'completed' ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #64748b;'"
+                style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                Completed Past Trips
+            </button>
+        </div>
+
+        <!-- Bookings Grid -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for booking in bookings %}
+            <div class="glass-card booking-card" 
+                x-show="activeTab === 'all' || (activeTab === 'active' && '{{ booking.status }}' !== 'completed' && '{{ booking.status }}' !== 'cancelled') || (activeTab === 'completed' && '{{ booking.status }}' === 'completed')"
+                style="background: #ffffff; border-radius: 1rem; border: 1px solid #e2e8f0; padding: 1.75rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s;">
+                
+                <!-- Card Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+                            <span style="font-family: monospace; font-size: 0.85rem; font-weight: 800; background: #f1f5f9; color: #0f172a; padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                {{ booking.booking_number }}
+                            </span>
+                            <span style="font-size: 0.85rem; color: #64748b;">•</span>
+                            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+                                Booked on {{ booking.created_at|date:"d M Y" }}
+                            </span>
+                        </div>
+                        <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 0;">
+                            {{ booking.destination }}
+                        </h2>
+                    </div>
+
+                    <!-- Status Pill -->
+                    <div>
+                        {% if booking.status == 'confirmed' %}
+                            <span style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                <span>✅</span> Confirmed & Secured
+                            </span>
+                        {% elif booking.status == 'in_progress' %}
+                            <span class="badge-live-pulse" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 800; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 9999px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                <span class="pulse-dot"></span> In-Transit / Active Trip
+                            </span>
+                        {% elif booking.status == 'completed' %}
+                            <span style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 9999px;">
+                                🏁 Completed Expedition
+                            </span>
+                        {% else %}
+                            <span style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 9999px;">
+                                ⏳ {{ booking.get_status_display }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background: #f8fafc; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #f1f5f9;">
+                    <div>
+                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Departure Date</div>
+                        <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">
+                            📅 {{ booking.pickup_date|date:"D, d M Y" }}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b;">Pickup: {{ booking.pickup_time|default:"06:00 AM" }}</div>
+                    </div>
+
+                    <div>
+                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Return / Drop</div>
+                        <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">
+                            🏁 {{ booking.drop_date|default:booking.pickup_date|date:"D, d M Y" }}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b;">{{ booking.pax_count|default:1 }} Passenger(s)</div>
+                    </div>
+
+                    <!-- Fleet Allocation -->
+                    <div>
+                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Dedicated Vehicle</div>
+                        {% if booking.assigned_trip and booking.assigned_trip.vehicle %}
+                            <div style="font-weight: 700; color: #0284c7; font-size: 0.95rem;">
+                                🚐 {{ booking.assigned_trip.vehicle.registration_number }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #64748b;">{{ booking.assigned_trip.vehicle.make_model|default:"Comfort Fleet" }}</div>
+                        {% else %}
+                            <div style="font-weight: 600; color: #64748b; font-size: 0.9rem;">
+                                ⚡ Assigned 4h prior
+                            </div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Fleet Dispatch Ready</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Driver / Captain Allocation -->
+                    <div>
+                        <div style="font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">Fleet Captain</div>
+                        {% if booking.assigned_trip and booking.assigned_trip.primary_driver %}
+                            <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">
+                                👨‍✈️ {{ booking.assigned_trip.primary_driver.name }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #10b981; font-weight: 600;">
+                                📞 +91 {{ booking.assigned_trip.primary_driver.phone|default:"Available on Radar" }}
+                            </div>
+                        {% else %}
+                            <div style="font-weight: 600; color: #64748b; font-size: 0.9rem;">
+                                🎖️ Top Rated Pilot
+                            </div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;">Commercial Badge Verified</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Financial Statement Strip -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #e2e8f0; padding-top: 1.25rem; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                        <div>
+                            <span style="font-size: 0.8rem; color: #64748b;">Total Package Price:</span>
+                            <span style="font-weight: 700; color: #0f172a; font-size: 1rem; margin-left: 0.35rem;">₹{{ booking.quoted_price|floatformat:2 }}</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.8rem; color: #64748b;">Amount Paid:</span>
+                            <span style="font-weight: 700; color: #047857; font-size: 1rem; margin-left: 0.35rem;">₹{{ booking.total_paid|floatformat:2 }}</span>
+                        </div>
+                        <div>
+                            <span style="font-size: 0.8rem; color: #64748b;">Balance Due:</span>
+                            <span style="font-weight: 800; color: {% if booking.balance_due > 0 %}#dc2626{% else %}#10b981{% endif %}; font-size: 1.05rem; margin-left: 0.35rem;">
+                                ₹{{ booking.balance_due|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Toolbar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                        <!-- Live Journey Radar Button -->
+                        <a href="{% url 'customer_portal:booking_live' booking.id %}" 
+                            class="btn-primary" 
+                            style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: white; padding: 0.6rem 1.15rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);">
+                            <span>🛰️ Live Journey Radar</span>
+                        </a>
+
+                        <!-- GST Tax Invoice Button -->
+                        <a href="{% url 'customer_portal:booking_invoice' booking.id %}" target="_blank"
+                            style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; padding: 0.6rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.4rem; transition: background 0.15s;"
+                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'">
+                            <span>📄 GST Tax Invoice</span>
+                        </a>
+
+                        <!-- Detailed Itinerary Button -->
+                        <a href="{% url 'customer_portal:booking_detail' booking.id %}"
+                            style="background: #ffffff; color: #475569; border: 1px solid #cbd5e1; padding: 0.6rem 0.9rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.35rem;"
+                            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#ffffff'">
+                            <span>🗺️ Itinerary Details</span>
+                        </a>
+                    </div>
+
+                    <div style="display: flex; gap: 0.6rem; align-items: center;">
+                        <!-- Balance Pay Button if Pending -->
+                        {% if booking.balance_due > 0 and booking.status != 'cancelled' %}
+                            <a href="{% url 'customer_portal:booking_confirmed' booking.id %}"
+                                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.6rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);">
+                                <span>💳 Pay Balance (₹{{ booking.balance_due|floatformat:0 }})</span>
+                            </a>
+                        {% endif %}
+
+                        <!-- WhatsApp Concierge Link -->
+                        <a href="https://wa.me/919842533777?text=Hello%20Sivagayathiri%20Travels,%20I%20have%20an%20inquiry%20regarding%20booking%20{{ booking.booking_number }}" 
+                            target="_blank"
+                            style="background: #25D366; color: white; padding: 0.6rem 0.9rem; border-radius: 0.5rem; text-decoration: none; font-weight: 700; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <span>💬 Concierge</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            {% empty %}
+            <!-- Empty State -->
+            <div class="glass-card" style="background: #ffffff; border-radius: 1.25rem; border: 1px dashed #cbd5e1; text-align: center; padding: 4.5rem 2rem;">
+                <div style="font-size: 3.5rem; margin-bottom: 1rem;">🏖️</div>
+                <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">No Bookings Found Under Your Profile</h3>
+                <p style="color: #64748b; max-width: 500px; margin: 0 auto 2rem; font-size: 0.95rem;">
+                    You don't have any active expeditions yet. Browse our curated hill station holidays, temple circuits, or luxury tempo traveller fleet!
+                </p>
+                <div style="display: flex; justify-content: center; gap: 1rem;">
+                    <a href="{% url 'customer_portal:package_list' %}" class="btn-primary" style="padding: 0.75rem 1.5rem; font-weight: 700; text-decoration: none; border-radius: 0.5rem; background: #0284c7; color: white;">
+                        Browse Tour Packages
+                    </a>
+                    <a href="{% url 'customer_portal:home' %}#fare-estimator" style="padding: 0.75rem 1.5rem; font-weight: 700; text-decoration: none; border-radius: 0.5rem; background: #f1f5f9; color: #0f172a;">
+                        Outstation Cab Estimator
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
     </div>
-    {% empty %}
-    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
-        <p style="color: var(--text-muted); margin-bottom: 2rem;">{% trans "You don't have any bookings yet." %}</p>
-        <a href="{% url 'customer_portal:package_list' %}" class="btn-primary">{% trans "Browse Packages" %}</a>
-    </div>
-    {% endfor %}
 </div>
 {% endblock %}

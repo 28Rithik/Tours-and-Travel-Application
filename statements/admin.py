@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 from .models import GeneratedStatement
@@ -14,7 +15,7 @@ def download_pdf_action(modeladmin, request, queryset):
 	return None
 
 @admin.register(GeneratedStatement)
-class GeneratedStatementAdmin(admin.ModelAdmin):
+class GeneratedStatementAdmin(ModelAdmin):
 	list_display = ('generated_at', 'party', 'transport_contract', 'from_date', 'to_date', 'file_format', 'closing_balance', 'display_amount_due', 'status', 'download_link')
 	list_filter = ('file_format', 'status', 'generated_at')
 	search_fields = ('party__name', 'transport_contract__name')

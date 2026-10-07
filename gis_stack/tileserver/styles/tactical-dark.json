@@ -1,0 +1,126 @@
+{
+  "version": 8,
+  "name": "Tactical Dark Radar",
+  "metadata": {
+    "maputnik:license": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "maputnik:renderer": "mbgljs"
+  },
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "mbtiles://india-osm.mbtiles",
+      "maxzoom": 20
+    }
+  },
+  "sprite": "https://demotiles.maplibre.org/styles/osm-bright-gl-style/sprite",
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#070b14"
+      }
+    },
+    {
+      "id": "water",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "water",
+      "paint": {
+        "fill-color": "#0c182e",
+        "fill-opacity": 0.95
+      }
+    },
+    {
+      "id": "landuse_park",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "landuse",
+      "filter": ["==", "class", "park"],
+      "paint": {
+        "fill-color": "#0b1c18",
+        "fill-opacity": 0.4
+      }
+    },
+    {
+      "id": "road_minor",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "minor", "service", "track"],
+      "paint": {
+        "line-color": "#1e293b",
+        "line-width": 1.0,
+        "line-opacity": 0.6
+      }
+    },
+    {
+      "id": "road_secondary_tertiary",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "secondary", "tertiary"],
+      "paint": {
+        "line-color": "#334155",
+        "line-width": 1.5,
+        "line-opacity": 0.8
+      }
+    },
+    {
+      "id": "road_primary",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["==", "class", "primary"],
+      "paint": {
+        "line-color": "#0284c7",
+        "line-width": 2.2,
+        "line-opacity": 0.85
+      }
+    },
+    {
+      "id": "road_motorway_trunk",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "transportation",
+      "filter": ["in", "class", "motorway", "trunk"],
+      "paint": {
+        "line-color": "#06b6d4",
+        "line-width": 3.0,
+        "line-opacity": 0.95
+      }
+    },
+    {
+      "id": "building_3d",
+      "type": "fill-extrusion",
+      "source": "openmaptiles",
+      "source-layer": "building",
+      "paint": {
+        "fill-extrusion-color": "#0f172a",
+        "fill-extrusion-height": ["coalesce", ["get", "render_height"], 12],
+        "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
+        "fill-extrusion-opacity": 0.65
+      }
+    },
+    {
+      "id": "place_label_city",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "place",
+      "filter": ["in", "class", "city", "town"],
+      "layout": {
+        "text-field": "{name:latin}",
+        "text-size": 13,
+        "text-font": ["Metropolis Regular"],
+        "text-transform": "uppercase",
+        "text-letter-spacing": 0.1
+      },
+      "paint": {
+        "text-color": "#94a3b8",
+        "text-halo-color": "#030712",
+        "text-halo-width": 1.5
+      }
+    }
+  ]
+}

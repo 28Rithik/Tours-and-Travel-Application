@@ -1,8 +1,13 @@
 import os
-import django
+import sys
+from pathlib import Path
 from datetime import date, time, timedelta
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'travelerp.settings')
+import django
 django.setup()
 
 from django.test import Client
@@ -24,14 +29,14 @@ def run_end_to_end_verification():
     # 1. Navigation Menu Ordering Verification
     # -------------------------------------------------------------
     print("\n[STEP 1/6] Verifying Admin Sidebar Menu Order...")
-    order = settings.JAZZMIN_SETTINGS.get("order_with_respect_to", [])
-    pkg_index = order.index("packages") if "packages" in order else -1
-    iv_index = order.index("package_tours") if "package_tours" in order else -1
-
-    assert pkg_index != -1, "[FAIL] 'packages' not found in JAZZMIN order_with_respect_to!"
-    assert iv_index != -1, "[FAIL] 'package_tours' not found in JAZZMIN order_with_respect_to!"
-    assert pkg_index < iv_index, f"[FAIL] 'packages' (index {pkg_index}) must be positioned BEFORE 'package_tours' (index {iv_index})!"
-    print(f"   [PASS] Tour Packages & Itinerary Catalog (Index {pkg_index}) is correctly placed ABOVE College IV & Group Tour Departures (Index {iv_index}).")
+    nav = settings.UNFOLD.get("SIDEBAR", {}).get("navigation", [])
+    nav_titles = [item.get("title", "") for item in nav]
+    pkg_index = next((idx for idx, t in enumerate(nav_titles) if "Tour Packages" in t), -1)
+    iv_index = next((idx for idx, t in enumerate(nav_titles) if "College IV" in t), -1)
+    assert pkg_index != -1, f"[FAIL] 'Tour Packages' not found in nav: {nav_titles}"
+    assert iv_index != -1, f"[FAIL] 'College IV & Group Tours' not found in nav: {nav_titles}"
+    assert pkg_index < iv_index, f"[FAIL] 'Tour Packages' (index {pkg_index}) must be positioned BEFORE 'College IV & Group Tours' (index {iv_index})!"
+    print(f"   [PASS] Tour Packages (Index {pkg_index}) is correctly placed ABOVE College IV & Group Tours (Index {iv_index}) in Unfold.")
 
     # -------------------------------------------------------------
     # 2. REST & JSON AJAX APIs Verification
@@ -110,7 +115,7 @@ def run_end_to_end_verification():
         status='confirmed'
     )
     inv.refresh_from_db()
-    assert inv.booked_seats == initial_booked + 1, f"[FAIL] Seat count mismatch: expected {initial_booked + 1}, got {inv.booked_seats}"
+    assert inv.booked_seats == initial_booked + (booking.pax_count or 1), f"[FAIL] Seat count mismatch: expected {initial_booked + (booking.pax_count or 1)}, got {inv.booked_seats}"
     assert inv.available_seats == max(0, inv.total_seats - inv.booked_seats)
     print(f"   [PASS] Booking #{booking.booking_number} saved. Batch seats auto-synced to: {inv.booked_seats} booked / {inv.available_seats} available.")
 

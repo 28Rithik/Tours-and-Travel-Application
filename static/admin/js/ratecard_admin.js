@@ -18,4 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     handleVehicleChange();
     vehicleSelect.addEventListener('change', handleVehicleChange);
+    vehicleSelect.addEventListener('input', handleVehicleChange);
+
+    var lastVeh = vehicleSelect.value;
+    setInterval(function() {
+        if (vehicleSelect.value !== lastVeh) {
+            lastVeh = vehicleSelect.value;
+            handleVehicleChange();
+        }
+    }, 200);
 });
+

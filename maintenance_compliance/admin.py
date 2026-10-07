@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.utils.html import format_html, mark_safe
 from django.utils import timezone
 import datetime
@@ -38,7 +39,7 @@ class ExpiryStatusFilter(admin.SimpleListFilter):
 # ==========================================================================
 
 @admin.register(ComplianceDocument)
-class ComplianceDocumentAdmin(admin.ModelAdmin):
+class ComplianceDocumentAdmin(ModelAdmin):
     list_display = (
         'vehicle_link', 'document_type_badge', 'document_number',
         'issue_date', 'expiry_date', 'days_remaining_display',
@@ -146,7 +147,7 @@ class ComplianceDocumentAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(InsuranceClaim)
-class InsuranceClaimAdmin(admin.ModelAdmin):
+class InsuranceClaimAdmin(ModelAdmin):
     list_display = (
         'claim_id_display', 'vehicle_link', 'date_of_accident', 'fir_display',
         'amounts_display', 'out_of_pocket_display', 'status_badge', 'surveyor_display',

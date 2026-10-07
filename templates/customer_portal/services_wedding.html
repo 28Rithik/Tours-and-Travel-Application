@@ -1,0 +1,333 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Wedding & Event Transit Convoys | Muhurtham & Shaadi Logistics | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+.service-hero {
+    background: linear-gradient(135deg, #180d16 0%, #2e102f 50%, #0f172a 100%);
+    color: white;
+    padding: 4.5rem 1.5rem 5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.service-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
+    opacity: 0.2;
+    filter: brightness(0.7) contrast(1.1);
+    pointer-events: none;
+}
+.service-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(244, 63, 94, 0.2);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    color: #fecdd3;
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 span {
+    background: linear-gradient(120deg, #f43f5e, #fb7185, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.service-hero p {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    line-height: 1.65;
+    max-width: 780px;
+    margin: 0 auto 2.5rem;
+}
+.stats-strip {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.stat-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    min-width: 130px;
+}
+.stat-pill-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #f43f5e;
+    line-height: 1;
+}
+.stat-pill-lbl {
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+}
+
+/* Feature Grid */
+.features-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+.feature-box-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+    transition: all 0.3s ease;
+}
+.feature-box-card:hover {
+    transform: translateY(-4px);
+    border-color: #f43f5e;
+    box-shadow: 0 15px 35px -8px rgba(244, 63, 94, 0.15);
+}
+.feature-box-icon {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+.feature-box-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.5rem;
+}
+.feature-box-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Wedding Fleet Tiers */
+.fleet-tier-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.fleet-tier-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s;
+}
+.fleet-tier-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+.fleet-tier-img {
+    height: 160px;
+    overflow: hidden;
+}
+.fleet-tier-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.fleet-tier-body {
+    padding: 1.25rem;
+}
+.fleet-tier-role {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #e11d48;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+.fleet-tier-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin-bottom: 0.4rem;
+}
+.fleet-tier-desc {
+    font-size: 0.82rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+/* Call to Action Banner */
+.cta-banner {
+    background: linear-gradient(135deg, #2e102f 0%, #0f172a 100%);
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2.5rem;
+    color: white;
+    text-align: center;
+    margin: 4rem auto 1rem;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Section -->
+<section class="service-hero">
+    <div class="service-hero-bg"></div>
+    <div class="service-hero-content">
+        <div class="service-badge">
+            <span>💍</span> MUHURTHAM & SHAADI LOGISTICS COMMAND
+        </div>
+        <h1>
+            Wedding & Event <span>Transit Convoys</span>
+        </h1>
+        <p>
+            Complete end-to-end guest logistics for grand South Indian weddings and destination celebrations in Ooty, Kodaikanal, Coorg, and Mahabalipuram. Coordinated convoys of 10 to 40 luxury vehicles with an on-site transport marshal.
+        </p>
+
+        <div class="stats-strip">
+            <div class="stat-pill">
+                <div class="stat-pill-num">10-40+</div>
+                <div class="stat-pill-lbl">Vehicle Convoys</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">1 Dedicated</div>
+                <div class="stat-pill-lbl">On-Site Manager</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">24/7</div>
+                <div class="stat-pill-lbl">Standby Buffers</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">500+</div>
+                <div class="stat-pill-lbl">Weddings Handled</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Main Content & Value Pillars -->
+<main class="section-wrapper">
+    <nav style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;" aria-label="Breadcrumbs">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <a href="{% url 'customer_portal:services_overview' %}" style="color: var(--text-secondary); text-decoration: none;">Services</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <strong style="color: var(--brand-navy);">Wedding & Event Logistics</strong>
+    </nav>
+
+    <div style="text-align: center; max-width: 760px; margin: 0 auto;">
+        <span class="section-subtitle-tag">SEAMLESS GUEST HOSPITALITY</span>
+        <h2 class="section-title">Zero Stress for the Host Family</h2>
+        <p class="section-desc">
+            We handle railway arrivals, airport sweeps, hotel-to-mandapam shuttles, and late-night departure convoys so your family can focus entirely on celebrating.
+        </p>
+    </div>
+
+    <div class="features-grid-3">
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🚐</div>
+            <h3>Coordinated 10 to 40 Vehicle Convoys</h3>
+            <p>From 53-seater AC coaches for large guest parties to 10-seater VIP Force Urbanias and decorated bridal cars, synchronized flawlessly by radio and telematics.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">👨‍💼</div>
+            <h3>Dedicated On-Site Transport Manager</h3>
+            <p>A professional transport coordinator stays physically stationed at your wedding hall / resort to oversee driver reporting, guest luggage handling, and schedule adherence.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">⏱️</div>
+            <h3>24/7 On-Call Buffer Standby Vehicles</h3>
+            <p>We keep dedicated spare vehicles on standby throughout the wedding days to immediately handle unplanned guest shopping runs, temple visits, or late arrivals.</p>
+        </div>
+    </div>
+
+    <!-- 3. Wedding Fleet Hierarchy -->
+    <div style="margin: 4rem 0;">
+        <div style="text-align: center; max-width: 680px; margin: 0 auto 1.5rem;">
+            <span class="section-subtitle-tag">FLEET ROLES</span>
+            <h2 class="section-title">The Complete Wedding Fleet Architecture</h2>
+        </div>
+
+        <div class="fleet-tier-grid">
+            <div class="fleet-tier-card">
+                <div class="fleet-tier-img">
+                    <img src="/static/images/fleet/innova_crysta.jpg" alt="Bridal & VIP Cars">
+                </div>
+                <div class="fleet-tier-body">
+                    <div class="fleet-tier-role">Bridal & VIP Family</div>
+                    <div class="fleet-tier-title">Innova Crysta & Luxury Sedans</div>
+                    <div class="fleet-tier-desc">Spotless, air-conditioned executive cars dedicated to the bride, groom, and immediate close family members.</div>
+                </div>
+            </div>
+
+            <div class="fleet-tier-card">
+                <div class="fleet-tier-img">
+                    <img src="/static/images/fleet/force_urbania.jpg" alt="Force Urbania Luxury Vans">
+                </div>
+                <div class="fleet-tier-body">
+                    <div class="fleet-tier-role">Close Relatives & Convoys</div>
+                    <div class="fleet-tier-title">Force Urbania 10S & 17S</div>
+                    <div class="fleet-tier-desc">Plush recliners with walk-through ceiling height, perfect for samandhi groups and airport family pickups.</div>
+                </div>
+            </div>
+
+            <div class="fleet-tier-card">
+                <div class="fleet-tier-img">
+                    <img src="/static/images/fleet/volvo_coach.jpg" alt="Large Guest Luxury Coaches">
+                </div>
+                <div class="fleet-tier-body">
+                    <div class="fleet-tier-role">Wedding Guests & Shuttles</div>
+                    <div class="fleet-tier-title">36 to 53 Seater AC Coaches</div>
+                    <div class="fleet-tier-desc">High-capacity air-suspension coaches running scheduled shuttles between hotels and the marriage hall.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. CTA & Direct Quote -->
+    <div class="cta-banner">
+        <span style="font-size: 0.8rem; font-weight: 800; color: #fb7185; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
+            PLANNING A WEDDING OR CELEBRATION?
+        </span>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0 0 1rem;">
+            Get a Customized Wedding Fleet Proposal
+        </h2>
+        <p style="color: #cbd5e1; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
+            Speak directly with our Chief Wedding Transit Planner for a transparent bundled package including drivers, fuel, tolls, and on-site coordinators.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="https://wa.me/919842533777?text=Hi%20Sivagayathiri%20Travels,%20I%20would%20like%20to%20discuss%20Wedding%20Transit%20Logistics" class="btn btn-primary" style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem;">
+                💬 WhatsApp Wedding Desk
+            </a>
+            <button type="button" onclick="openCustomTripModal('wedding_logistics')" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem;">
+                📄 Request Wedding Proposal
+            </button>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,316 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Industrial Township & Factory 3-Shift Transit | Plant Workforce Mobility | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+.service-hero {
+    background: linear-gradient(135deg, #090d16 0%, #1e293b 50%, #0f172a 100%);
+    color: white;
+    padding: 4.5rem 1.5rem 5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.service-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/corporate_employee_transport.jpg') center/cover no-repeat;
+    opacity: 0.18;
+    filter: brightness(0.65) contrast(1.15);
+    pointer-events: none;
+}
+.service-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fde68a;
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 span {
+    background: linear-gradient(120deg, #f59e0b, #fbbf24, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.service-hero p {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    line-height: 1.65;
+    max-width: 780px;
+    margin: 0 auto 2.5rem;
+}
+.stats-strip {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.stat-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    min-width: 130px;
+}
+.stat-pill-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fbbf24;
+    line-height: 1;
+}
+.stat-pill-lbl {
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+}
+
+/* Feature Grid */
+.features-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+.feature-box-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+    transition: all 0.3s ease;
+}
+.feature-box-card:hover {
+    transform: translateY(-4px);
+    border-color: #f59e0b;
+    box-shadow: 0 15px 35px -8px rgba(245, 158, 11, 0.15);
+}
+.feature-box-icon {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+.feature-box-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.5rem;
+}
+.feature-box-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Shift Schedule Banner */
+.shift-schedule-box {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: var(--shadow-sm);
+    margin: 3.5rem 0;
+}
+.shifts-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+.shift-card {
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    border-top: 4px solid #f59e0b;
+}
+.shift-time {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--brand-navy);
+    margin-bottom: 0.3rem;
+}
+.shift-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #b45309;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+.shift-desc {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+/* Call to Action Banner */
+.cta-banner {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2.5rem;
+    color: white;
+    text-align: center;
+    margin: 4rem auto 1rem;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Section -->
+<section class="service-hero">
+    <div class="service-hero-bg"></div>
+    <div class="service-hero-content">
+        <div class="service-badge">
+            <span>🏭</span> HEAVY-DUTY INDUSTRIAL CORRIDOR LOGISTICS
+        </div>
+        <h1>
+            Industrial Township & <span>Factory 3-Shift</span> Transit
+        </h1>
+        <p>
+            Zero-downtime manufacturing workforce mobility for foundries, textile mills, auto ancillaries, and industrial townships across Coimbatore, Tiruppur, Hosur, and Sriperumbudur.
+        </p>
+
+        <div class="stats-strip">
+            <div class="stat-pill">
+                <div class="stat-pill-num">24×7</div>
+                <div class="stat-pill-lbl">3-Shift Operations</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">99.8%</div>
+                <div class="stat-pill-lbl">On-Time SLA</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">30 mins</div>
+                <div class="stat-pill-lbl">Breakdown Buffer</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">100%</div>
+                <div class="stat-pill-lbl">Statutory RTO Fit</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Main Content & Value Pillars -->
+<main class="section-wrapper">
+    <nav style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;" aria-label="Breadcrumbs">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <a href="{% url 'customer_portal:services_overview' %}" style="color: var(--text-secondary); text-decoration: none;">Services</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <strong style="color: var(--brand-navy);">Industrial Factory Transit</strong>
+    </nav>
+
+    <div style="text-align: center; max-width: 760px; margin: 0 auto;">
+        <span class="section-subtitle-tag">PLANT CONTINUITY</span>
+        <h2 class="section-title">Built for Production Line Precision</h2>
+        <p class="section-desc">
+            A single delayed bus can halt an entire automotive assembly line or textile spinning cycle. We guarantee 99.8% on-time shift arrivals with dedicated replacement buffers.
+        </p>
+    </div>
+
+    <div class="features-grid-3">
+        <div class="feature-box-card">
+            <div class="feature-box-icon">⏰</div>
+            <h3>24×7 Three-Shift Rotation Commute</h3>
+            <p>Reliable synchronized transportation covering morning (06:00), general (09:00), evening (14:00), and graveyard night (22:00) shift changeovers 365 days a year.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🚌</div>
+            <h3>High-Capacity Heavy-Duty Buses</h3>
+            <p>Sturdy, high-durability 36 to 54-seater buses engineered to handle rural worker pickups and rough industrial approach roads with full leaf-spring reliability.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🛡️</div>
+            <h3>99.8% On-Time SLA & Hot Standbys</h3>
+            <p>We maintain standby relief buses positioned inside industrial parks. In the rare event of a tire puncture or mechanical glitch, a replacement bus reaches within 30 minutes.</p>
+        </div>
+    </div>
+
+    <!-- 3. Shift Schedule Framework -->
+    <div class="shift-schedule-box">
+        <div style="text-align: center; max-width: 600px; margin: 0 auto;">
+            <span class="section-subtitle-tag">SYNCHRONIZED DEPARTURES</span>
+            <h2 class="section-title">Seamless Factory Shift Rotations</h2>
+        </div>
+
+        <div class="shifts-row">
+            <div class="shift-card">
+                <div class="shift-time">06:00 AM</div>
+                <div class="shift-name">Shift A (Morning)</div>
+                <div class="shift-desc">Early morning rural and suburban pickups to start primary machinery by 06:00 sharp.</div>
+            </div>
+
+            <div class="shift-card">
+                <div class="shift-time">02:00 PM</div>
+                <div class="shift-name">Shift B (Afternoon)</div>
+                <div class="shift-desc">Simultaneous drop for morning shift workers and intake for afternoon manufacturing teams.</div>
+            </div>
+
+            <div class="shift-card">
+                <div class="shift-time">10:00 PM</div>
+                <div class="shift-name">Shift C (Night)</div>
+                <div class="shift-desc">Secure night transport with enhanced security, geo-fenced drops, and panic telematics.</div>
+            </div>
+
+            <div class="shift-card">
+                <div class="shift-time">General</div>
+                <div class="shift-name">Staff & Admin</div>
+                <div class="shift-desc">08:30 AM to 05:30 PM corporate executive routes for supervisors, plant engineers, and office staff.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. CTA & Direct Quote -->
+    <div class="cta-banner">
+        <span style="font-size: 0.8rem; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
+            LOOKING TO STREAMLINE YOUR PLANT COMMUTE?
+        </span>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0 0 1rem;">
+            Request an Industrial Transit Route Audit
+        </h2>
+        <p style="color: #cbd5e1; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
+            Our route engineers will analyze your worker pin codes and design optimized, low-cost cluster routes with monthly per-bus contracting.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="https://wa.me/919842533777?text=Hi%20Sivagayathiri%20Travels,%20I%20need%20an%20Industrial%20Factory%20Transit%20proposal" class="btn btn-primary" style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem;">
+                💬 WhatsApp Industrial Desk
+            </a>
+            <button type="button" onclick="openCustomTripModal('factory_contract')" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem;">
+                📄 Request Factory Proposal
+            </button>
+        </div>
+    </div>
+</main>
+{% endblock %}

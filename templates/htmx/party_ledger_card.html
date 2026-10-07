@@ -1,0 +1,34 @@
+<div id="party-ledger-htmx-container" style="margin: 12px 0 16px; padding: 14px 18px; border-radius: 8px; background: #1e293b; color: #f8fafc; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 8px; background: {% if is_due %}rgba(239,68,68,0.2){% elif is_credit %}rgba(74,222,128,0.2){% else %}rgba(56,189,248,0.2){% endif %}; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 22px; color: {% if is_due %}#f87171{% elif is_credit %}#4ade80{% else %}#38bdf8{% endif %};">account_balance_wallet</span>
+        </div>
+        <div>
+            <div style="font-weight: 700; font-size: 14px; color: #f8fafc;">
+                {{ party.name }} <span style="font-size: 11px; color: #94a3b8; font-weight: 500;">({{ party.get_party_type_display }})</span>
+            </div>
+            <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">
+                Billing: <strong>{{ party.get_billing_cycle_display }}</strong> ({{ party.credit_period_days }} days credit)
+                &bull; Active Trips: <strong>{{ active_trips }}</strong> &bull; Open Bookings: <strong>{{ active_bookings }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="text-align: right;">
+            <div style="font-size: 10px; text-transform: uppercase; color: #94a3b8; font-weight: 700; letter-spacing: 0.5px;">Closing Ledger Balance</div>
+            <div style="font-size: 16px; font-weight: 800; color: {% if is_due %}#f87171{% elif is_credit %}#4ade80{% else %}#4ade80{% endif %};">
+                {% if is_due %}
+                    ₹{{ closing_balance|floatformat:2 }} Due
+                {% elif is_credit %}
+                    ₹{{ closing_balance|floatformat:2 }} Cr
+                {% else %}
+                    ₹0.00 Settled
+                {% endif %}
+            </div>
+        </div>
+        <a href="/parties/{{ party.id }}/ledger/" target="_blank" style="padding: 6px 12px; border-radius: 6px; background: rgba(56,189,248,0.15); border: 1px solid #0284c7; color: #38bdf8; font-size: 11px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            <span class="material-symbols-outlined" style="font-size: 14px;">visibility</span> Statement
+        </a>
+    </div>
+</div>

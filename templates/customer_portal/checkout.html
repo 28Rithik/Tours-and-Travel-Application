@@ -1,55 +1,585 @@
 {% extends "customer_portal/base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Checkout" %} | Customer Portal{% endblock %}
+{% block title %}Checkout | {{ package.name }} | Sivagayathiri Travels{% endblock %}
 
 {% block content %}
-<div style="max-width: 600px; margin: 2rem auto;">
-    <div class="glass-card">
-        <h2 style="margin-bottom: 1.5rem;">{% trans "Checkout" %}</h2>
-        <div style="background: var(--bg-color); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
-            <h3>{{ package.name }}</h3>
-            <p style="margin: 0; color: var(--text-muted);">{% trans "Departure" %}: {{ inventory.departure_date }}</p>
-        </div>
-
-        <form method="POST" action="{% url 'customer_portal:checkout' inventory.id %}">
-            {% csrf_token %}
-            
-            <div style="margin-bottom: 20px;">
-                <label for="pax" style="display: block; font-weight: bold; margin-bottom: 5px;">{% trans "Number of Travelers" %}</label>
-                <input type="number" id="pax" name="pax" value="1" min="1" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <label for="coupon" style="display: block; font-weight: bold; margin-bottom: 5px;">{% trans "Coupon Code (Optional)" %}</label>
-                <input type="text" id="coupon" name="coupon" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-
-            <div style="margin-bottom: 20px;">
-                <label for="payment_plan" style="display: block; font-weight: bold; margin-bottom: 5px;">{% trans "Payment Plan" %}</label>
-                <select id="payment_plan" name="payment_plan" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-                    <option value="full">{% trans "Pay Full Amount" %}</option>
-                    <option value="advance">{% trans "Pay 50% Advance Now" %}</option>
-                </select>
-            </div>
-
-            {% if upsells %}
-            <div style="margin-bottom: 20px; background: #eef2f5; padding: 15px; border-radius: 5px;">
-                <h3 style="margin-top: 0;">{% trans "Recommended Add-ons" %}</h3>
-                {% for upsell in upsells %}
-                    <div style="margin-bottom: 10px;">
-                        <strong>{{ upsell.title }}</strong> - ₹{{ upsell.price }}
-                        <p style="margin: 5px 0; font-size: 0.9em; color: #555;">{{ upsell.description }}</p>
-                    </div>
-                {% endfor %}
-                <p style="font-size: 0.85em; color: #777; margin-bottom: 0;"><em>{% trans "Please request these add-ons from your travel agent after booking." %}</em></p>
-            </div>
-            {% endif %}
-            
-            <button type="submit" style="background-color: #4CAF50; color: white; border: none; padding: 15px 32px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%;">
-                {% trans "Proceed to Payment" %}
-            </button>
-        </form>
+<section class="checkout-container" x-data="checkoutApp()">
+    <div style="margin-bottom: 2rem;">
+        <span class="section-subtitle-tag">INSTANT RESERVATION</span>
+        <h1 class="section-title">Complete Your Tour Booking</h1>
+        <p class="section-desc">Zero convenience fees. Instant booking confirmation via SMS, WhatsApp & Email.</p>
     </div>
-</div>
+
+    <form method="POST" action="{% url 'customer_portal:checkout' inventory.id %}" id="checkout-form" @submit="handleSubmit">
+        {% csrf_token %}
+        <div class="checkout-layout">
+            <!-- Left Column: Traveler Details & Payment Selection -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <!-- 1. Lead Traveler Details Card -->
+                <div class="checkout-card">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>👤</span> Lead Traveler Contact Details
+                    </h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Full Name *</label>
+                            <input type="text" name="guest_name" class="form-control" placeholder="e.g. Ramesh Kumar" value="{{ initial_guest_name }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mobile Number (WhatsApp) *</label>
+                            <input type="tel" name="guest_phone" class="form-control" placeholder="e.g. 9842511223" x-model="guestPhone" @blur="checkLoyaltyPoints" @input="onPhoneInput" value="{{ initial_guest_phone }}" required pattern="[0-9]{10,12}">
+                            <small style="color: var(--text-muted); font-size: 0.72rem;">Enter phone to check Sivagayathiri Loyalty Points</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address *</label>
+                            <input type="email" name="guest_email" class="form-control" placeholder="e.g. ramesh@gmail.com" value="{{ initial_guest_email }}" required>
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Designated Boarding Stop / Landmark</label>
+                            <input type="text" name="pickup_location" class="form-control" placeholder="e.g. Gandhipuram SETC Bus Stand / Hope College">
+                        </div>
+                    </div>
+
+                    <!-- Intercity Loyalty Points Banner -->
+                    <div x-show="loyaltyPoints > 0" x-transition style="margin-top: 1rem; border: 1px solid #38bdf8; background: #f0f9ff; padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-size: 1.25rem;">💎</span>
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 700; color: #0369a1;">
+                                        Sivagayathiri Intercity Loyalty Card (<span x-text="loyaltyTier"></span> Tier)
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #0c4a6e;">
+                                        You have <strong x-text="loyaltyPoints"></strong> Sivagayathiri Loyalty Points (Save <strong x-text="'₹' + loyaltyDiscount.toFixed(2)"></strong>).
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" @click="toggleLoyaltyPoints" class="btn btn-sm" :class="loyaltyApplied ? 'btn-outline' : 'btn-emerald'" style="font-size: 0.78rem; padding: 0.4rem 0.85rem;">
+                                <span x-show="!loyaltyApplied">Apply Points</span>
+                                <span x-show="loyaltyApplied">Remove Points</span>
+                            </button>
+                        </div>
+                        <div x-show="loyaltyApplied" style="font-size: 0.75rem; color: #059669; font-weight: 600; margin-top: 0.35rem;">
+                            ✓ ₹<span x-text="loyaltyDiscount.toFixed(2)"></span> instant discount applied to your checkout total!
+                        </div>
+                    </div>
+                    <div x-show="checkingLoyalty" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                        Checking loyalty points balance...
+                    </div>
+                    <input type="hidden" name="loyalty_points" :value="loyaltyApplied ? loyaltyPoints : 0">
+                </div>
+
+                <!-- 2. Travel Preferences & Headcount Card -->
+                <div class="checkout-card">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>👥</span> Travel Group Size & Meal Plan
+                    </h3>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center;">
+                        <div class="form-group">
+                            <label class="form-label">Number of Travelers (Pax)</label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <button type="button" @click="decrementPax" class="btn btn-outline" style="padding: 0.65rem 1rem; font-weight: 800;">-</button>
+                                <input type="number" name="pax" x-model.number="pax" min="1" max="{{ inventory.available_seats|default:52 }}" class="form-control" style="text-align: center; font-weight: 700; font-size: 1.1rem;" @change="recalculate">
+                                <button type="button" @click="incrementPax" class="btn btn-outline" style="padding: 0.65rem 1rem; font-weight: 800;">+</button>
+                            </div>
+                            <small style="color: var(--accent-emerald); font-weight: 600; margin-top: 0.25rem;">
+                                {{ inventory.available_seats }} seats available in this departure
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Meal Plan Selection</label>
+                            <select name="meal_plan" class="form-control" x-model="mealPlan" @change="recalculate">
+                                <option value="AP">AP Plan (With Food: Breakfast, Lunch, Dinner)</option>
+                                {% if package.price_without_food %}
+                                <option value="EP">EP Plan (Room Only / Without Food)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Payment Plan Selector -->
+                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--border-light); padding-top: 1.25rem;">
+                        <label class="form-label">Payment Schedule</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                            <label class="payment-option-card" :class="{ 'selected': paymentPlan === 'advance' }">
+                                <input type="radio" name="payment_plan" value="advance" x-model="paymentPlan" style="display: none;" @change="recalculate">
+                                <div class="payment-option-title">
+                                    <span>💳</span> 50% Advance Now
+                                </div>
+                                <small style="color: var(--text-secondary);">Pay remaining 50% on departure day</small>
+                            </label>
+
+                            <label class="payment-option-card" :class="{ 'selected': paymentPlan === 'full' }">
+                                <input type="radio" name="payment_plan" value="full" x-model="paymentPlan" style="display: none;" @change="recalculate">
+                                <div class="payment-option-title">
+                                    <span>⚡</span> 100% Full Payment
+                                </div>
+                                <small style="color: var(--text-secondary);">One-click full booking settlement</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2b. Connecting Night Bus Transit Card (Intercity CRS Port 8005) -->
+                <div class="checkout-card" style="border: 1px solid #c7d2fe; background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div>
+                            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--brand-navy); margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <span>🚌</span> Connecting Night Bus Transit (Optional)
+                            </h3>
+                            <small style="color: var(--text-secondary); font-size: 0.8rem;">
+                                Connect your holiday tour with an overnight sleeper bus from Chennai or Bangalore
+                            </small>
+                        </div>
+                        <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--primary); background: #eef2ff; padding: 0.35rem 0.75rem; border-radius: 9999px; border: 1px solid #c7d2fe;">
+                            <input type="checkbox" x-model="needTransit" @change="onToggleTransit" style="cursor: pointer;">
+                            <span>Add Connecting Bus</span>
+                        </label>
+                    </div>
+
+                    <div x-show="needTransit" x-transition style="margin-top: 1rem; border-top: 1px dashed #cbd5e1; padding-top: 1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end; margin-bottom: 1rem;">
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-size: 0.75rem;">Origin City</label>
+                                <input type="text" x-model="transitOrigin" class="form-control" style="font-size: 0.85rem; padding: 0.45rem;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-size: 0.75rem;">Destination</label>
+                                <input type="text" x-model="transitDestination" class="form-control" style="font-size: 0.85rem; padding: 0.45rem;">
+                            </div>
+                            <div class="form-group" style="margin: 0;">
+                                <label class="form-label" style="font-size: 0.75rem;">Travel Date</label>
+                                <input type="date" x-model="transitDate" class="form-control" style="font-size: 0.85rem; padding: 0.45rem;">
+                            </div>
+                            <button type="button" @click="fetchTransitTrips" class="btn btn-outline" style="padding: 0.45rem 0.85rem; font-size: 0.82rem; height: 38px;">
+                                Search Bus
+                            </button>
+                        </div>
+
+                        <!-- Transit Trips List -->
+                        <div x-show="loadingTransit" style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem;">
+                            Searching Intercity Bus CRS schedules...
+                        </div>
+
+                        <div x-show="!loadingTransit && transitTrips.length > 0">
+                            <label class="form-label" style="font-size: 0.8rem; margin-bottom: 0.5rem;">Select Scheduled Intercity Bus:</label>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <template x-for="t in transitTrips" :key="t.trip_id">
+                                    <div class="payment-option-card" :class="{ 'selected': selectedTransitTripId == t.trip_id }" @click="selectTransitTrip(t)" style="cursor: pointer; padding: 0.85rem;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <div>
+                                                <div style="font-weight: 700; color: var(--brand-navy); font-size: 0.9rem;" x-text="t.route_name"></div>
+                                                <div style="font-size: 0.78rem; color: var(--text-secondary);" x-text="t.bus_type + ' • Departs: ' + t.departure_time + ' • Arrives: ' + t.arrival_time"></div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div style="font-weight: 800; color: #059669; font-size: 0.95rem;" x-text="'₹' + t.base_fare"></div>
+                                                <small style="color: #64748b; font-size: 0.72rem;" x-text="t.available_seats_count + ' seats available'"></small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Seat Picker for Selected Trip -->
+                                        <div x-show="selectedTransitTripId == t.trip_id" style="margin-top: 0.75rem; border-top: 1px dashed #cbd5e1; padding-top: 0.75rem;" @click.stop>
+                                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 0.35rem;">
+                                                Choose Sleeper / Seater Berth:
+                                            </label>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                                <template x-for="seat in t.available_seats" :key="seat">
+                                                    <button type="button" class="btn btn-sm" :class="selectedTransitSeat == seat ? 'btn-primary' : 'btn-outline'" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; min-width: 38px;" @click="selectedTransitSeat = seat" x-text="seat"></button>
+                                                </template>
+                                            </div>
+                                            <div x-show="selectedTransitSeat" style="margin-top: 0.4rem; font-size: 0.78rem; color: #059669; font-weight: 600;">
+                                                Selected Berth: <strong x-text="selectedTransitSeat"></strong> (Included in booking ledger)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div x-show="!loadingTransit && transitSearched && transitTrips.length === 0" style="color: #dc2626; font-size: 0.8rem; padding: 0.5rem 0;">
+                            No scheduled buses found for this origin/destination on the selected date.
+                        </div>
+
+                        <input type="hidden" name="transit_trip_id" :value="needTransit && selectedTransitTripId ? selectedTransitTripId : ''">
+                        <input type="hidden" name="transit_seats" :value="needTransit && selectedTransitSeat ? selectedTransitSeat : ''">
+                    </div>
+                </div>
+
+                <!-- 3. Payment Method & Dynamic UPI QR -->
+                <div class="checkout-card">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🔒</span> Select Payment Method
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                        Pay directly with zero transaction charges via NPCI Dynamic UPI QR or Razorpay Payment Gateway.
+                    </p>
+
+                    <!-- Payment Mode Tabs -->
+                    <div class="payment-method-selector">
+                        <div class="payment-option-card" :class="{ 'selected': paymentMethod === 'upi' }" @click="paymentMethod = 'upi'">
+                            <div class="payment-option-title">
+                                <span>📱</span> Dynamic Instant UPI QR
+                            </div>
+                            <small style="color: #059669; font-weight: 600;">GPay, PhonePe, Paytm (Zero Fee)</small>
+                        </div>
+
+                        <div class="payment-option-card" :class="{ 'selected': paymentMethod === 'razorpay' }" @click="paymentMethod = 'razorpay'">
+                            <div class="payment-option-title">
+                                <span>💳</span> Razorpay Cards / Netbanking
+                            </div>
+                            <small style="color: var(--text-secondary);">Visa, Mastercard, Net Banking</small>
+                        </div>
+                    </div>
+                    <input type="hidden" name="payment_method" :value="paymentMethod">
+
+                    <!-- Dynamic UPI QR Scanner Box (Shown when UPI selected) -->
+                    <div x-show="paymentMethod === 'upi'" class="upi-qr-box" x-transition>
+                        <div style="font-size: 0.82rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em;">
+                            SCAN & PAY VIA ANY UPI APP
+                        </div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #34d399; margin: 0.25rem 0;">
+                            Payable Amount: <span x-text="'₹' + amountToPay.toLocaleString('en-IN')">₹{{ initial_total }}</span>
+                        </div>
+
+                        <div class="upi-qr-image-wrapper">
+                            <img src="{{ upi_package.qr_base64 }}" alt="UPI QR Code" id="live-upi-qr">
+                        </div>
+
+                        <div>
+                            <div class="vpa-copy-pill" @click="copyVpa('{{ upi_package.vpa }}')">
+                                <span>UPI ID: <strong>{{ upi_package.vpa }}</strong></span>
+                                <span>📋</span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile UPI Deep Links -->
+                        <div class="app-deep-links-row">
+                            <a href="{{ upi_package.deep_links.gpay }}" class="app-link-btn" target="_blank">Google Pay</a>
+                            <a href="{{ upi_package.deep_links.phonepe }}" class="app-link-btn" target="_blank">PhonePe</a>
+                            <a href="{{ upi_package.deep_links.paytm }}" class="app-link-btn" target="_blank">Paytm</a>
+                        </div>
+
+                        <!-- 12-digit UTR Submission -->
+                        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.25rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem;">
+                                Once paid, enter your 12-digit UPI Transaction / UTR Ref Number:
+                            </label>
+                            <input type="text" name="utr_number" x-model="utrNumber" placeholder="e.g. 426891234567" class="form-control" style="max-width: 320px; margin: 0 auto; text-align: center; font-family: monospace; font-size: 1rem; font-weight: 700; letter-spacing: 0.08em;" maxlength="20">
+                            <small style="display: block; color: #94a3b8; font-size: 0.75rem; margin-top: 0.4rem;">
+                                Found in your GPay/PhonePe payment receipt as "UPI Ref ID" or "UTR".
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Final Action Button -->
+                <div>
+                    <button type="submit" class="btn btn-emerald btn-lg" style="width: 100%; padding: 1rem;" id="btn-confirm-checkout">
+                        <span x-show="paymentMethod === 'upi'">Confirm Booking & Verify Payment →</span>
+                        <span x-show="paymentMethod === 'razorpay'">Proceed to Razorpay Secure Payment →</span>
+                    </button>
+                    <div style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.75rem;">
+                        🔒 256-Bit SSL Encrypted • ISO 9001:2015 Safety Certified • Instant Refund Policy
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Booking Summary & Sticky Cost Breakdown -->
+            <div style="position: sticky; top: 90px;">
+                <div class="checkout-card" style="border: 1px solid #bfdbfe; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                        Tour Summary
+                    </h3>
+
+                    <div style="margin-bottom: 1.25rem;">
+                        <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 0.35rem;">
+                            {{ package.name }}
+                        </h4>
+                        <div style="font-size: 0.82rem; color: var(--text-secondary);">
+                            📍 {{ package.destination }} • ⏱️ {{ package.duration_nights }}N/{{ package.duration_days }}D
+                        </div>
+                        <div style="font-size: 0.82rem; color: var(--primary); font-weight: 600; margin-top: 0.35rem;">
+                            📅 Departure: {{ inventory.departure_date|date:"D, d M Y" }}
+                        </div>
+                    </div>
+
+                    <!-- Pricing Breakdown -->
+                    <div style="border-top: 1px dashed var(--border-medium); padding-top: 1rem; margin-bottom: 1rem;">
+                        <div class="result-row">
+                            <span>Per Person Rate:</span>
+                            <strong x-text="'₹' + unitPrice.toLocaleString('en-IN')">₹{{ unit_price }}</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>Travelers (Pax):</span>
+                            <strong x-text="pax + ' Pax'">1 Pax</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>Base Subtotal:</span>
+                            <strong x-text="'₹' + subtotal.toLocaleString('en-IN')">₹{{ unit_price }}</strong>
+                        </div>
+
+                        <!-- Coupon Input Box -->
+                        <div style="margin: 1rem 0; border: 1px dashed var(--border-medium); padding: 0.75rem; border-radius: var(--radius-md); background: white;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Have a Coupon?</label>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.35rem;">
+                                <input type="text" x-model="couponCode" placeholder="COUPON CODE" class="form-control" style="text-transform: uppercase; font-size: 0.8rem; padding: 0.4rem 0.6rem;">
+                                <button type="button" @click="applyCoupon" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Apply</button>
+                            </div>
+                            <div x-show="couponMessage" x-text="couponMessage" style="font-size: 0.75rem; margin-top: 0.35rem;" :style="{ color: couponDiscount > 0 ? '#059669' : '#dc2626' }"></div>
+                        </div>
+
+                        <div class="result-row" x-show="couponDiscount > 0">
+                            <span style="color: #059669; font-weight: 600;">Coupon Discount:</span>
+                            <strong style="color: #059669;" x-text="'- ₹' + couponDiscount.toLocaleString('en-IN')">- ₹0</strong>
+                        </div>
+
+                        <div class="result-row" x-show="loyaltyApplied && loyaltyDiscount > 0">
+                            <span style="color: #059669; font-weight: 600;">💎 Intercity Loyalty Points:</span>
+                            <strong style="color: #059669;" x-text="'- ₹' + loyaltyDiscount.toLocaleString('en-IN')">- ₹0</strong>
+                        </div>
+
+                        <div class="result-row">
+                            <span>GST (5%):</span>
+                            <strong x-text="'₹' + gstAmount.toLocaleString('en-IN')">₹0</strong>
+                        </div>
+
+                        <div class="result-total-row">
+                            <div class="result-total-label">Total Tour Fare</div>
+                            <div class="result-total-amount" x-text="'₹' + totalPrice.toLocaleString('en-IN')">
+                                ₹{{ initial_total }}
+                            </div>
+                        </div>
+
+                        <div class="result-row" style="margin-top: 0.75rem; background: #eef2ff; padding: 0.65rem 0.85rem; border-radius: var(--radius-md); border: 1px solid #c7d2fe;">
+                            <span style="font-weight: 700; color: var(--primary);">Payable Now:</span>
+                            <strong style="font-size: 1.15rem; color: var(--primary);" x-text="'₹' + amountToPay.toLocaleString('en-IN')">₹{{ initial_total }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Recommended Add-ons -->
+                    {% if upsells %}
+                    <div style="border-top: 1px solid var(--border-light); padding-top: 1rem;">
+                        <h5 style="font-size: 0.85rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 0.5rem;">Recommended Add-Ons</h5>
+                        {% for up in upsells %}
+                        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
+                            • <strong>{{ up.title }}</strong> (+₹{{ up.price }})
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function checkoutApp() {
+    const defaultUnitPrice = {{ unit_price|default:3500 }};
+    const priceWithFood = {{ package.price_with_food|default:unit_price|default:3500 }};
+    const priceWithoutFood = {{ package.price_without_food|default:0 }};
+    
+    return {
+        pax: {{ initial_pax|default:1 }},
+        mealPlan: 'AP',
+        paymentPlan: 'advance',
+        paymentMethod: 'upi',
+        couponCode: '',
+        couponDiscount: 0,
+        couponMessage: '',
+        utrNumber: '',
+        unitPrice: defaultUnitPrice,
+        subtotal: defaultUnitPrice * {{ initial_pax|default:1 }},
+        gstAmount: Math.round((defaultUnitPrice * {{ initial_pax|default:1 }}) * 0.05),
+        totalPrice: Math.round((defaultUnitPrice * {{ initial_pax|default:1 }}) * 1.05),
+        amountToPay: Math.round((defaultUnitPrice * {{ initial_pax|default:1 }}) * 1.05 * 0.5),
+
+        // Loyalty Card & Points State
+        guestPhone: '{{ initial_guest_phone|default:"" }}',
+        checkingLoyalty: false,
+        loyaltyPoints: 0,
+        loyaltyDiscount: 0,
+        loyaltyTier: '',
+        loyaltyApplied: false,
+
+        // Intercity Transit Bus State
+        needTransit: false,
+        transitOrigin: 'Chennai',
+        transitDestination: 'Coimbatore',
+        transitDate: '{{ inventory.departure_date|date:"Y-m-d" }}',
+        transitTrips: [],
+        loadingTransit: false,
+        transitSearched: false,
+        selectedTransitTripId: '',
+        selectedTransitSeat: '',
+
+        init() {
+            this.recalculate();
+            if (this.guestPhone && this.guestPhone.length >= 10) {
+                this.checkLoyaltyPoints();
+            }
+        },
+
+        onPhoneInput() {
+            const clean = (this.guestPhone || '').replace(/\D/g, '');
+            if (clean.length >= 10) {
+                this.checkLoyaltyPoints();
+            }
+        },
+
+        async checkLoyaltyPoints() {
+            const clean = (this.guestPhone || '').replace(/\D/g, '');
+            if (clean.length < 10) return;
+            this.checkingLoyalty = true;
+            try {
+                const res = await fetch(`/customer-portal/api/intercity/loyalty/?phone=${encodeURIComponent(clean)}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.points_balance > 0) {
+                    this.loyaltyPoints = data.points_balance;
+                    this.loyaltyDiscount = data.cash_equivalent_inr || (data.points_balance * 0.5);
+                    this.loyaltyTier = data.tier || 'Member';
+                } else {
+                    this.loyaltyPoints = 0;
+                    this.loyaltyDiscount = 0;
+                    this.loyaltyApplied = false;
+                }
+            } catch (e) {
+                console.warn('[Loyalty] Lookup error:', e);
+            } finally {
+                this.checkingLoyalty = false;
+                this.recalculate();
+            }
+        },
+
+        toggleLoyaltyPoints() {
+            this.loyaltyApplied = !this.loyaltyApplied;
+            this.recalculate();
+        },
+
+        onToggleTransit() {
+            if (this.needTransit && this.transitTrips.length === 0) {
+                this.fetchTransitTrips();
+            }
+        },
+
+        async fetchTransitTrips() {
+            this.loadingTransit = true;
+            this.transitSearched = true;
+            try {
+                const params = new URLSearchParams({
+                    origin: this.transitOrigin,
+                    destination: this.transitDestination,
+                    date: this.transitDate
+                });
+                const res = await fetch(`/customer-portal/api/intercity/routes/?${params.toString()}`);
+                const data = await res.json();
+                if (data.status === 'success' && data.trips) {
+                    this.transitTrips = data.trips;
+                    if (this.transitTrips.length > 0 && !this.selectedTransitTripId) {
+                        this.selectTransitTrip(this.transitTrips[0]);
+                    }
+                } else {
+                    this.transitTrips = [];
+                }
+            } catch (e) {
+                console.warn('[Transit] Fetch error:', e);
+                this.transitTrips = [];
+            } finally {
+                this.loadingTransit = false;
+            }
+        },
+
+        selectTransitTrip(t) {
+            this.selectedTransitTripId = t.trip_id;
+            if (t.available_seats && t.available_seats.length > 0 && !this.selectedTransitSeat) {
+                this.selectedTransitSeat = t.available_seats[0];
+            }
+        },
+
+        incrementPax() {
+            this.pax++;
+            this.recalculate();
+        },
+
+        decrementPax() {
+            if (this.pax > 1) {
+                this.pax--;
+                this.recalculate();
+            }
+        },
+
+        recalculate() {
+            if (this.mealPlan === 'EP' && priceWithoutFood > 0) {
+                this.unitPrice = priceWithoutFood;
+            } else {
+                this.unitPrice = priceWithFood > 0 ? priceWithFood : defaultUnitPrice;
+            }
+
+            this.subtotal = this.unitPrice * this.pax;
+            let effectiveDiscount = this.couponDiscount;
+            if (this.loyaltyApplied && this.loyaltyDiscount > 0) {
+                effectiveDiscount += this.loyaltyDiscount;
+            }
+            const netAfterDiscount = Math.max(0, this.subtotal - effectiveDiscount);
+            this.gstAmount = Math.round(netAfterDiscount * 0.05);
+            this.totalPrice = netAfterDiscount + this.gstAmount;
+
+            if (this.paymentPlan === 'advance') {
+                this.amountToPay = Math.round(this.totalPrice * 0.5);
+            } else {
+                this.amountToPay = this.totalPrice;
+            }
+        },
+
+        async applyCoupon() {
+            if (!this.couponCode.trim()) return;
+            try {
+                const res = await fetch('/customer-portal/api/validate-coupon/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        code: this.couponCode,
+                        total_amount: this.subtotal
+                    })
+                });
+                const data = await res.json();
+                if (data.valid) {
+                    this.couponDiscount = data.discount_amount;
+                    this.couponMessage = data.message;
+                } else {
+                    this.couponDiscount = 0;
+                    this.couponMessage = data.message;
+                }
+                this.recalculate();
+            } catch (err) {
+                this.couponMessage = "Could not validate coupon.";
+            }
+        },
+
+        copyVpa(vpa) {
+            navigator.clipboard.writeText(vpa);
+            alert("UPI ID " + vpa + " copied to clipboard! Paste in your UPI App.");
+        },
+
+        handleSubmit(e) {
+            if (this.paymentMethod === 'upi' && this.utrNumber.trim().length > 0 && this.utrNumber.trim().length < 6) {
+                alert("Please enter a valid 6+ digit UPI UTR/RRN number.");
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        }
+    }
+}
+</script>
 {% endblock %}

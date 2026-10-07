@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.db import models
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -17,11 +18,14 @@ from statements.models import GeneratedStatement
 from .export_services import (
     calculate_driver_duty_days,
     generate_batch_payroll,
+    generate_gstr1_b2b_csv,
+    generate_itc_reconciliation_csv,
     generate_monthly_driver_payslip,
     generate_tally_expense_xml,
     generate_tally_sales_xml,
     generate_zoho_expense_csv,
     generate_zoho_sales_csv,
+    reconcile_input_tax_credit,
 )
 from .models import (
     DriverAdvance,
@@ -343,3 +347,689 @@ def driver_payslip_detail_view(request, payslip_id):
         'month_name': calendar.month_name[payslip.month],
     }
     return render(request, 'finance/payslip_detail.html', context)
+
+
+# ==============================================================================
+# CORPORATE GST B2B INVOICING & NIC E-WAY BILL STUDIO
+# ==============================================================================
+
+from .models import CorporateGSTInvoice, InvoiceLineItem, EWayBill
+from .gst_engine import (
+    INDIAN_GST_STATES,
+    TRANSPORT_SAC_CODES,
+    calculate_invoice_taxes,
+    validate_gstin,
+    generate_b2b_qr_code,
+    generate_nic_eway_bill_json,
+    validate_nic_eway_bill_payload,
+    post_invoice_to_general_ledger,
+    get_multistate_gst_audit_summary,
+    get_state_name,
+)
+import json
+
+
+@login_required
+def admin_gst_studio_view(request):
+    """
+    Enterprise Django Unfold Corporate GST B2B Invoicing & E-Way Bill Generation Studio.
+    Provides multi-state tax breakdown, NIC schema validator, live invoice generator, and audit desk.
+    """
+    summary = get_multistate_gst_audit_summary()
+    recent_invoices = CorporateGSTInvoice.objects.select_related('party', 'trip', 'eway_bill').order_by('-id')[:30]
+    active_eway_bills = EWayBill.objects.select_related('invoice').order_by('-id')[:30]
+    available_trips = Trip.objects.select_related('party', 'vehicle', 'driver').order_by('-id')[:40]
+    corporate_parties = Party.objects.filter(party_type__in=['corporate', 'travel_agency', 'hotel']).order_by('name')
+
+    selected_inv_id = request.GET.get('inv')
+    selected_invoice = None
+    if selected_inv_id and selected_inv_id.isdigit():
+        selected_invoice = CorporateGSTInvoice.objects.filter(pk=int(selected_inv_id)).first()
+
+    context = {
+        'title': 'Corporate GST B2B Invoicing & NIC E-Way Bill Studio',
+        'summary': summary,
+        'recent_invoices': recent_invoices,
+        'active_eway_bills': active_eway_bills,
+        'available_trips': available_trips,
+        'corporate_parties': corporate_parties,
+        'sac_codes': TRANSPORT_SAC_CODES,
+        'states': INDIAN_GST_STATES,
+        'selected_invoice': selected_invoice,
+        'current_tab': request.GET.get('tab', 'overview'),
+    }
+    return render(request, 'admin/finance/gst_studio.html', context)
+
+
+@login_required
+def api_generate_corporate_invoice_eway(request):
+    """
+    API endpoint: 1-Click Generation of Corporate GST B2B Invoice, NIC E-Way Bill, QR Stamping,
+    and automatic balanced Double-Entry posting to General Ledger.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed. Use POST.'}, status=405)
+
+    try:
+        if request.content_type == 'application/json':
+            payload = json.loads(request.body.decode('utf-8'))
+        else:
+            payload = request.POST.dict()
+
+        trip_id = payload.get('trip_id')
+        party_id = payload.get('party_id')
+        taxable_value = Decimal(str(payload.get('taxable_value') or '0.00'))
+        gst_rate = Decimal(str(payload.get('gst_rate_percent') or '5.00'))
+        sac_code = str(payload.get('sac_code') or '996601').strip()
+        is_rcm = str(payload.get('is_reverse_charge', '')).lower() in ['true', '1', 'on', 'yes']
+        recip_state = str(payload.get('recipient_state_code') or '').strip().zfill(2)
+        vehicle_no = str(payload.get('vehicle_number') or '').strip().replace(" ", "").upper()
+        distance_km = int(payload.get('trans_distance_km') or 50)
+        auto_eway = str(payload.get('auto_generate_eway', 'true')).lower() in ['true', '1', 'on', 'yes']
+
+        trip = None
+        if trip_id and str(trip_id).isdigit():
+            trip = Trip.objects.filter(pk=int(trip_id)).select_related('party', 'vehicle', 'driver').first()
+
+        party = None
+        if party_id and str(party_id).isdigit():
+            party = Party.objects.filter(pk=int(party_id)).first()
+        elif trip and trip.party:
+            party = trip.party
+
+        if not party:
+            return JsonResponse({'success': False, 'error': 'Please select a valid Corporate Client / Party.'}, status=400)
+
+        # Fallback values from trip or defaults
+        if taxable_value <= 0:
+            if trip:
+                taxable_value = trip.fixed_amount if trip.billing_model == 'fixed' and trip.fixed_amount > 0 else (trip.total_amount or Decimal('5000.00'))
+            else:
+                taxable_value = Decimal('5000.00')
+
+        if not vehicle_no and trip and trip.vehicle:
+            vehicle_no = trip.vehicle.registration_number.replace(" ", "").upper()
+        if not vehicle_no:
+            vehicle_no = "TN01BV9999"
+
+        if not recip_state:
+            recip_state = (party.state_code or "33").strip().zfill(2)
+
+        # 1. Create CorporateGSTInvoice
+        invoice = CorporateGSTInvoice(
+            party=party,
+            trip=trip,
+            invoice_type='regular_b2b',
+            supplier_legal_name="Siva Gayathiri Tours & Travels",
+            supplier_trade_name="Sivagayathiri Travels",
+            supplier_gstin="33AAAAA0000A1Z5",
+            supplier_state_code="33",
+            supplier_address="12/4, Gandhi Road, Chennai, Tamil Nadu - 600001",
+            supplier_pincode="600001",
+            recipient_legal_name=party.name,
+            recipient_trade_name=party.name,
+            recipient_gstin=party.gstin or "",
+            recipient_state_code=recip_state,
+            recipient_address=party.address or f"Corporate Office, {get_state_name(recip_state)}",
+            recipient_pincode="600001",
+            place_of_supply=f"{recip_state}-{get_state_name(recip_state)}",
+            is_reverse_charge=is_rcm,
+            sac_code=sac_code,
+            taxable_value=taxable_value,
+            gst_rate_percent=gst_rate,
+        )
+        invoice.save()
+
+        # 2. Create Line Item
+        item_desc = f"Chauffeur-Driven Passenger Transport ({sac_code})"
+        if trip:
+            item_desc = f"Trip #{trip.trip_id}: {trip.pickup_location} ➔ {trip.destination} ({vehicle_no})"
+
+        InvoiceLineItem.objects.create(
+            invoice=invoice,
+            item_description=item_desc,
+            sac_code=sac_code,
+            vehicle=trip.vehicle if trip else None,
+            trip=trip,
+            quantity=Decimal('1.00'),
+            unit="TRIP",
+            rate=taxable_value,
+            taxable_amount=taxable_value,
+            cgst_amount=invoice.cgst_amount,
+            sgst_amount=invoice.sgst_amount,
+            igst_amount=invoice.igst_amount,
+            total_amount=invoice.total_invoice_value,
+        )
+
+        # 3. Generate B2B Verification QR Code
+        qr_payload, svg_str, png_uri = generate_b2b_qr_code(invoice)
+        invoice.qr_code_data = qr_payload
+        invoice.qr_code_svg = svg_str
+        invoice.save(update_fields=['qr_code_data', 'qr_code_svg'])
+
+        # 4. Generate Official NIC E-Way Bill if requested
+        eway_bill = None
+        nic_json = {}
+        if auto_eway:
+            nic_json = generate_nic_eway_bill_json(
+                invoice_obj=invoice,
+                trip_obj=trip,
+                trans_distance_km=distance_km
+            )
+            is_valid, validation_errors = validate_nic_eway_bill_payload(nic_json)
+
+            eway_bill = EWayBill.objects.create(
+                invoice=invoice,
+                supply_type="O",
+                sub_supply_type="1",
+                doc_type="INV",
+                transporter_id=invoice.supplier_gstin,
+                transporter_name=invoice.supplier_legal_name,
+                trans_distance_km=distance_km,
+                trans_mode="1",
+                vehicle_number=vehicle_no,
+                vehicle_type="R",
+                nic_payload_json=nic_json,
+                status='active',
+                qr_code_svg=svg_str
+            )
+
+        # 5. Post to General Ledger
+        gl_entry = post_invoice_to_general_ledger(invoice)
+
+        return JsonResponse({
+            'success': True,
+            'invoice_id': invoice.pk,
+            'invoice_number': invoice.invoice_number,
+            'invoice_date': invoice.invoice_date.strftime('%d-%m-%Y'),
+            'total_invoice_value': float(invoice.total_invoice_value),
+            'taxable_value': float(invoice.taxable_value),
+            'total_tax': float(invoice.total_tax),
+            'cgst_amount': float(invoice.cgst_amount),
+            'sgst_amount': float(invoice.sgst_amount),
+            'igst_amount': float(invoice.igst_amount),
+            'supply_type': invoice.get_supply_type_display(),
+            'eway_bill_id': eway_bill.pk if eway_bill else None,
+            'eway_bill_number': eway_bill.eway_bill_number if eway_bill else None,
+            'gl_journal_entry': gl_entry.entry_number if gl_entry else None,
+            'nic_json': nic_json,
+            'qr_code_svg': svg_str,
+        })
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+def api_export_nic_eway_json(request, invoice_id):
+    """
+    Returns official downloadable NIC E-Way Bill JSON file conforming to Schema v1.04.
+    """
+    invoice = get_object_or_404(CorporateGSTInvoice, pk=invoice_id)
+    if hasattr(invoice, 'eway_bill') and invoice.eway_bill.nic_payload_json:
+        payload = invoice.eway_bill.nic_payload_json
+    else:
+        payload = generate_nic_eway_bill_json(invoice)
+
+    filename = f"NIC_EWB_{invoice.invoice_number.replace('/', '_')}.json"
+    response = HttpResponse(
+        json.dumps(payload, indent=2),
+        content_type='application/json'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def corporate_invoice_print_view(request, invoice_id):
+    """
+    Rule 46 CGST Compliant Tax Invoice & Duty Slip with Digital QR Stamping.
+    """
+    invoice = get_object_or_404(
+        CorporateGSTInvoice.objects.select_related('party', 'trip', 'gl_journal_entry'),
+        pk=invoice_id
+    )
+    if not invoice.qr_code_svg:
+        _, svg_str, _ = generate_b2b_qr_code(invoice)
+        invoice.qr_code_svg = svg_str
+        invoice.save(update_fields=['qr_code_svg'])
+
+    line_items = invoice.line_items.select_related('vehicle').all()
+
+    # Convert total amount to words helper
+    def amount_to_words(amt):
+        try:
+            from num2words import num2words
+            return num2words(int(amt), lang='en_IN').title() + " Rupees Only"
+        except Exception:
+            return f"Rupees {int(amt):,} Only"
+
+    context = {
+        'invoice': invoice,
+        'line_items': line_items,
+        'eway_bill': getattr(invoice, 'eway_bill', None),
+        'amount_words': amount_to_words(invoice.total_invoice_value),
+        'company_bank': {
+            'bank_name': 'ICICI Bank Ltd',
+            'branch': 'T. Nagar Branch, Chennai',
+            'account_name': 'Siva Gayathiri Tours & Travels',
+            'account_number': '000905029988',
+            'ifsc_code': 'ICIC0000009',
+            'upi_id': 'sivagayathiritravels@icici',
+        }
+    }
+    return render(request, 'finance/corporate_tax_invoice.html', context)
+
+
+@login_required
+def export_gstr1_b2b_view(request):
+    """
+    GSTR-1 B2B e-Invoice CSV download.
+    Generates ClearTax/Zoho/Tally-compatible GSTR-1 Table 4A CSV.
+    """
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    csv_content = generate_gstr1_b2b_csv(from_date=from_date, to_date=to_date)
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="GSTR1_B2B_{timezone.now().strftime("%Y%m%d")}.csv"'
+    return response
+
+
+@login_required
+def export_itc_reconciliation_view(request):
+    """
+    ITC Reconciliation CSV download.
+    Cross-references purchase-side input tax credits for GSTR-3B filing.
+    """
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    csv_content = generate_itc_reconciliation_csv(from_date=from_date, to_date=to_date)
+    response = HttpResponse(csv_content, content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="ITC_Reconciliation_{timezone.now().strftime("%Y%m%d")}.csv"'
+    return response
+
+
+@csrf_exempt
+@login_required
+def api_dispatch_corporate_invoice_whatsapp(request, invoice_id):
+    """
+    1-Click WhatsApp Delivery of Corporate GST Tax Invoice & E-Way Bill.
+    Constructs luxury tax invoice summary, stamps live PDF print link,
+    and dispatches via WhatsApp Business Engine to the recipient party.
+    """
+    invoice = get_object_or_404(
+        CorporateGSTInvoice.objects.select_related('party', 'trip', 'eway_bill'),
+        pk=invoice_id
+    )
+
+    custom_phone = None
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            custom_phone = data.get('phone')
+        except Exception:
+            custom_phone = request.POST.get('phone')
+    else:
+        custom_phone = request.GET.get('phone')
+
+    from operations.whatsapp_bot import dispatch_corporate_invoice_whatsapp
+
+    # Build clean base URL
+    base_url = request.build_absolute_uri('/')[:-1]
+    result = dispatch_corporate_invoice_whatsapp(invoice, recipient_phone=custom_phone, base_url=base_url)
+
+    is_success = result.get('status') == 'success'
+    target_phone = result.get('phone', custom_phone or getattr(invoice.party, 'phone', ''))
+
+    return JsonResponse({
+        'success': is_success,
+        'status': result.get('status'),
+        'invoice_id': invoice.id,
+        'invoice_number': invoice.invoice_number,
+        'recipient_phone': target_phone,
+        'message': f"Invoice {invoice.invoice_number} successfully dispatched to {target_phone} via WhatsApp!" if is_success else result.get('reason', 'Failed to dispatch WhatsApp invoice.'),
+        'result': result
+    })
+
+
+# ==============================================================================
+# Phase 5: Petty Cash Float Register & Driver/Tour Manager Cash Wallet Studio
+# ==============================================================================
+
+@login_required
+def admin_petty_cash_studio_view(request):
+    """
+    Cashier & Dispatcher Control Studio for user-level petty cash float registers,
+    cash disbursement vouchers, receipts audit, and running balances.
+    """
+    from .models import PettyCashAccount, PettyCashTransaction
+    from core.models import Driver
+
+    # Ensure default accounts exist
+    if not PettyCashAccount.objects.exists():
+        PettyCashAccount.objects.create(
+            account_name="Coimbatore Main Depot Float",
+            account_type="branch",
+            allocated_limit=Decimal('50000.00'),
+            current_balance=Decimal('25000.00'),
+            warning_threshold=Decimal('5000.00'),
+            notes="Central garage petty cash box for spot purchases and toll reloads"
+        )
+        first_driver = Driver.objects.filter(status='active').first()
+        if first_driver:
+            PettyCashAccount.objects.create(
+                account_name=f"Driver Float - {first_driver.name}",
+                account_type="driver",
+                holder_driver=first_driver,
+                allocated_limit=Decimal('15000.00'),
+                current_balance=Decimal('8500.00'),
+                warning_threshold=Decimal('2000.00'),
+                notes=f"Active travel float issued to {first_driver.name}"
+            )
+        PettyCashAccount.objects.create(
+            account_name="Emergency Breakdown & Spot Repair Float",
+            account_type="dispatcher",
+            allocated_limit=Decimal('20000.00'),
+            current_balance=Decimal('12000.00'),
+            warning_threshold=Decimal('3000.00'),
+            notes="Dispatcher standby fund for highway towing and spot tyre replacement"
+        )
+
+    accounts = PettyCashAccount.objects.filter(is_active=True).select_related('holder_user', 'holder_driver')
+    
+    # Recalculate balances to ensure accuracy
+    for acc in accounts:
+        if acc.transactions.exists():
+            acc.recalculate_balance()
+
+    total_circulation = sum((acc.current_balance for acc in accounts), Decimal('0.00'))
+    
+    today = timezone.localtime().date()
+    today_txns = PettyCashTransaction.objects.filter(date=today, status__in=['approved', 'submitted'])
+    today_disbursed = sum((t.amount for t in today_txns if t.transaction_type in ['expense', 'trip_advance']), Decimal('0.00'))
+    today_topups = sum((t.amount for t in today_txns if t.transaction_type in ['top_up', 'settlement_refund']), Decimal('0.00'))
+    
+    pending_audits = PettyCashTransaction.objects.filter(status='submitted').count()
+    low_balance_accounts = [acc for acc in accounts if acc.is_low_balance]
+
+    # Filtered transactions
+    txns = PettyCashTransaction.objects.select_related('account', 'trip', 'authorized_by').order_by('-date', '-created_at')
+    
+    acc_filter = request.GET.get('account_id')
+    cat_filter = request.GET.get('category')
+    status_filter = request.GET.get('status')
+    
+    if acc_filter:
+        txns = txns.filter(account_id=acc_filter)
+    if cat_filter:
+        txns = txns.filter(category=cat_filter)
+    if status_filter:
+        txns = txns.filter(status=status_filter)
+
+    txns = txns[:100]
+
+    trips = Trip.objects.filter(status__in=['booked', 'assigned', 'started']).order_by('-id')[:50]
+    drivers = Driver.objects.filter(status='active').order_by('name')
+
+    return render(request, 'finance/petty_cash_studio.html', {
+        'accounts': accounts,
+        'transactions': txns,
+        'total_circulation': total_circulation,
+        'today_disbursed': today_disbursed,
+        'today_topups': today_topups,
+        'pending_audits': pending_audits,
+        'low_balance_count': len(low_balance_accounts),
+        'low_balance_accounts': low_balance_accounts,
+        'selected_account_id': acc_filter,
+        'selected_category': cat_filter,
+        'selected_status': status_filter,
+        'categories': PettyCashTransaction.EXPENSE_CATEGORIES,
+        'trips': trips,
+        'drivers': drivers,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_petty_cash_topup(request):
+    """
+    POST endpoint to top-up / replenish an active petty cash float.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    import json
+    from .models import PettyCashAccount, PettyCashTransaction
+
+    try:
+        acc_id = None
+        amount = Decimal('0.00')
+        notes = ""
+        ref_no = ""
+
+        if request.content_type == 'application/json' and request.body:
+            data = json.loads(request.body.decode('utf-8'))
+            acc_id = data.get('account_id')
+            amount = Decimal(str(data.get('amount', '0.00')))
+            notes = data.get('notes', '').strip()
+            ref_no = data.get('reference_number', '').strip()
+        else:
+            acc_id = request.POST.get('account_id')
+            amount = Decimal(str(request.POST.get('amount', '0.00')))
+            notes = request.POST.get('notes', '').strip()
+            ref_no = request.POST.get('reference_number', '').strip()
+
+        if not acc_id:
+            return JsonResponse({'status': 'error', 'message': 'Account ID required.'}, status=400)
+        if amount <= 0:
+            return JsonResponse({'status': 'error', 'message': 'Top-up amount must be positive.'}, status=400)
+
+        account = get_object_or_404(PettyCashAccount, pk=acc_id)
+
+        txn = PettyCashTransaction.objects.create(
+            account=account,
+            transaction_type='top_up',
+            category='top_up_receipt',
+            amount=amount,
+            notes=notes or f"Float replenishment authorized by {request.user.username}",
+            status='approved',
+            authorized_by=request.user,
+            recipient_or_vendor=ref_no or "Central Cashier"
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'₹{amount:,.2f} added to {account.account_name}.',
+            'voucher_number': txn.voucher_number,
+            'new_balance': float(account.current_balance),
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+def api_petty_cash_disburse(request):
+    """
+    POST endpoint to log an out-of-pocket cash expense voucher with receipt upload.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    import json
+    from .models import PettyCashAccount, PettyCashTransaction
+
+    try:
+        acc_id = request.POST.get('account_id')
+        amount_raw = request.POST.get('amount', '0.00')
+        category = request.POST.get('category', 'toll_parking')
+        vendor = request.POST.get('recipient_or_vendor', '').strip()
+        notes = request.POST.get('notes', '').strip()
+        trip_id = request.POST.get('trip_id')
+        receipt_file = request.FILES.get('receipt_photo')
+
+        if not acc_id and request.content_type == 'application/json' and request.body:
+            data = json.loads(request.body.decode('utf-8'))
+            acc_id = data.get('account_id')
+            amount_raw = data.get('amount', '0.00')
+            category = data.get('category', 'toll_parking')
+            vendor = data.get('recipient_or_vendor', '').strip()
+            notes = data.get('notes', '').strip()
+            trip_id = data.get('trip_id')
+
+        amount = Decimal(str(amount_raw or '0.00'))
+
+        if not acc_id:
+            return JsonResponse({'status': 'error', 'message': 'Account ID required.'}, status=400)
+        if amount <= 0:
+            return JsonResponse({'status': 'error', 'message': 'Expense amount must be positive.'}, status=400)
+
+        account = get_object_or_404(PettyCashAccount, pk=acc_id)
+
+        # Allow submission even if low, but flag if insufficient
+        trip = Trip.objects.filter(pk=trip_id).first() if trip_id else None
+
+        txn = PettyCashTransaction.objects.create(
+            account=account,
+            transaction_type='expense',
+            category=category,
+            amount=amount,
+            recipient_or_vendor=vendor,
+            notes=notes,
+            trip=trip,
+            receipt_photo=receipt_file,
+            status='approved',
+            authorized_by=request.user
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Expense voucher {txn.voucher_number} of ₹{amount:,.2f} recorded.',
+            'voucher_number': txn.voucher_number,
+            'new_balance': float(account.current_balance),
+            'category_display': txn.get_category_display(),
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+def api_petty_cash_audit_action(request, txn_id):
+    """
+    1-Click Audit Approval or Rejection of Petty Cash Vouchers.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    import json
+    from .models import PettyCashTransaction
+
+    txn = get_object_or_404(PettyCashTransaction, pk=txn_id)
+
+    try:
+        action = 'approve'
+        audit_notes = ''
+        if request.body:
+            try:
+                data = json.loads(request.body.decode('utf-8'))
+                action = data.get('action', 'approve')
+                audit_notes = data.get('audit_notes', '')
+            except Exception:
+                pass
+        if not audit_notes:
+            action = request.POST.get('action', action)
+            audit_notes = request.POST.get('audit_notes', audit_notes)
+
+        if action == 'approve':
+            txn.status = 'approved'
+            txn.authorized_by = request.user
+            txn.audit_notes = audit_notes or f"Approved by {request.user.username}"
+        elif action == 'reject':
+            txn.status = 'rejected'
+            txn.authorized_by = request.user
+            txn.audit_notes = audit_notes or f"Rejected by {request.user.username}"
+        else:
+            return JsonResponse({'status': 'error', 'message': f'Unknown action: {action}'}, status=400)
+
+        txn.save(update_fields=['status', 'authorized_by', 'audit_notes', 'updated_at'])
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Voucher {txn.voucher_number} marked as {txn.get_status_display()}.',
+            'new_status': txn.status,
+            'account_balance': float(txn.account.current_balance),
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+def api_petty_cash_stats(request):
+    """
+    GET endpoint returning summary statistics across all floats.
+    """
+    from .models import PettyCashAccount, PettyCashTransaction
+    
+    accounts = PettyCashAccount.objects.filter(is_active=True)
+    total_circ = sum((a.current_balance for a in accounts), Decimal('0.00'))
+    
+    today = timezone.localtime().date()
+    today_disbursed = PettyCashTransaction.objects.filter(
+        date=today,
+        transaction_type__in=['expense', 'trip_advance'],
+        status__in=['approved', 'submitted']
+    ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+
+    pending_audits = PettyCashTransaction.objects.filter(status='submitted').count()
+    low_balance_count = sum(1 for a in accounts if a.is_low_balance)
+
+    return JsonResponse({
+        'status': 'success',
+        'total_circulation': float(total_circ),
+        'today_disbursed': float(today_disbursed),
+        'pending_audits': pending_audits,
+        'low_balance_floats': low_balance_count,
+        'active_accounts_count': accounts.count(),
+    })
+
+
+def driver_mobile_wallet_view(request, trip_id=None):
+    """
+    Driver & Tour Escort Mobile Cash Wallet.
+    Displays running cash balance, fast spot expense logging, receipt snaps,
+    and approved transaction logs directly on mobile devices.
+    """
+    from .models import PettyCashAccount, PettyCashTransaction
+    from core.models import Driver
+
+    trip = None
+    if trip_id:
+        trip = get_object_or_404(Trip.objects.select_related('driver', 'vehicle'), pk=trip_id)
+
+    # Resolve driver account
+    account = None
+    if trip and trip.driver:
+        account = PettyCashAccount.objects.filter(holder_driver=trip.driver, is_active=True).first()
+    
+    if not account:
+        # Fallback to driver account linked to logged in user or first driver account
+        account = PettyCashAccount.objects.filter(account_type='driver', is_active=True).first()
+        if not account:
+            account = PettyCashAccount.objects.filter(is_active=True).first()
+
+    recent_txns = []
+    if account:
+        recent_txns = account.transactions.all().order_by('-date', '-created_at')[:20]
+
+    return render(request, 'finance/driver_mobile_wallet.html', {
+        'trip': trip,
+        'account': account,
+        'transactions': recent_txns,
+        'categories': PettyCashTransaction.EXPENSE_CATEGORIES,
+    })
+

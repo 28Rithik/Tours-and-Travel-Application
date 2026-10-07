@@ -354,7 +354,17 @@ class SystemE2EVerifier:
             start_date__lte=test_end,
             end_date__gte=test_start
         ).values_list('vehicle_id', flat=True)
-        veh = Vehicle.objects.filter(status='active').exclude(id__in=busy_vehicles).first() or Vehicle.objects.first()
+        compliant_vehs = Vehicle.objects.filter(status__in=['available', 'active']).exclude(id__in=busy_vehicles)
+        compliant_vehs = compliant_vehs.exclude(
+            fc_expiry__lt=test_end
+        ).exclude(
+            insurance_expiry__lt=test_end
+        ).exclude(
+            permit_expiry__lt=test_end
+        ).exclude(
+            pollution_expiry__lt=test_end
+        )
+        veh = compliant_vehs.first() or Vehicle.objects.filter(status='available').first()
 
         trip_data = {
             'vehicle': veh.id if veh else '',
@@ -938,7 +948,7 @@ class SystemE2EVerifier:
         resp = self.client.get('/admin/')
         self.assert_check(resp.status_code == 200, phase, "GET /admin/ admin portal index returns 200")
         content = resp.content.decode('utf-8', errors='ignore')
-        self.assert_check("Enterprise Operations Directory" in content or "TravelERP" in content, phase, "Enterprise Operations Directory navigator card present")
+        self.assert_check("Travel ERP" in content or "TravelERP" in content or "Mission Control" in content, phase, "Enterprise Operations / Mission Control dashboard present")
 
         # 8.3 Razorpay Payment Gateway Webhook Receiver
         webhook_payload = {

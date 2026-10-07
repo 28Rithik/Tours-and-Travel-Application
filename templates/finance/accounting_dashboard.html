@@ -126,8 +126,12 @@
     transition: opacity 0.2s;
   }
   .btn-export:hover { opacity: 0.9; }
+  .icon-gst-b2b { background: #e0f2fe; color: #0284c7; }
+  .icon-gst-itc { background: #fdf4ff; color: #a21caf; }
   .btn-tally { background: #0f5b35; color: white; }
   .btn-zoho { background: #1967d2; color: white; }
+  .btn-gst { background: #0284c7; color: white; }
+  .btn-itc { background: #9333ea; color: white; }
   .btn-payroll { background: #7b1fa2; color: white; }
 
   /* Tabs */
@@ -354,6 +358,48 @@
     <div>
       <a href="{% url 'export-zoho-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho">
         📊 Download Zoho Expenses CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- 5. GSTN Portal GSTR-1 B2B CSV -->
+  <div class="export-card">
+    <div>
+      <div class="export-card-header">
+        <div class="export-card-icon icon-gst-b2b">🏛️</div>
+        <div>
+          <div class="export-card-title">GST Portal: GSTR-1 B2B CSV</div>
+          <div class="export-card-sub">Govt GSTN Return Schema</div>
+        </div>
+      </div>
+      <div class="export-card-desc">
+        Standard GSTR-1 Section 4B CSV format ready for direct upload to GSTN portal, ClearTax, or Tally GST with IRN/EWB numbers.
+      </div>
+    </div>
+    <div>
+      <a href="{% url 'export-gstr1-b2b' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-gst">
+        🏛️ Download GSTR-1 B2B CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- 6. Input Tax Credit (ITC) Reconciliation CSV -->
+  <div class="export-card">
+    <div>
+      <div class="export-card-header">
+        <div class="export-card-icon icon-gst-itc">⚖️</div>
+        <div>
+          <div class="export-card-title">GST Portal: ITC Reconciliation</div>
+          <div class="export-card-sub">GSTR-2B vs 3B Comparison</div>
+        </div>
+      </div>
+      <div class="export-card-desc">
+        Comprehensive tax liability vs credit audit: compares sales tax collected against fuel & maintenance ITC claims for net GST payable.
+      </div>
+    </div>
+    <div>
+      <a href="{% url 'export-itc-reconciliation' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-itc">
+        ⚖️ Download ITC Audit CSV
       </a>
     </div>
   </div>

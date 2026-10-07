@@ -1,41 +1,248 @@
 {% extends "customer_portal/base.html" %}
 {% load i18n %}
 
-{% block title %}{{ package.name }} | Customer Portal{% endblock %}
+{% block title %}{{ package.name }} | Sivagayathiri Travels{% endblock %}
 
 {% block content %}
-<div class="glass-card" style="margin-bottom: 2rem;">
-    <h1>{{ package.name }}</h1>
-    <p style="color: var(--text-muted);">{{ package.destination }} • {{ package.duration_days }} {% trans "Days" %}</p>
-    <div style="margin-top: 1rem;">
-        <p>{{ package.description }}</p>
+<section class="section-wrapper" style="padding-top: 2rem;">
+    <!-- Breadcrumbs -->
+    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;" class="no-print">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a> /
+        <a href="{% url 'customer_portal:package_list' %}" style="color: var(--text-secondary); text-decoration: none;">Packages</a> /
+        <span style="color: var(--brand-navy); font-weight: 600;">{{ package.name }}</span>
     </div>
-</div>
 
-<h2>{% trans "Available Departures" %}</h2>
-<div class="grid">
-    {% for inv in inventories %}
-    <div class="glass-card">
-        <h3>{{ inv.departure_date|date:"M d, Y" }}</h3>
-        <p>{% trans "Available Seats" %}: {{ inv.available_seats }}</p>
-        <p style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">
-            ₹{% if inv.price_override %}{{ inv.price_override }}{% else %}{{ package.base_price }}{% endif %}
-        </p>
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 1rem 0;">
-        {% if user.is_authenticated %}
-            <a href="{% url 'customer_portal:checkout' inv.id %}" class="btn-primary" style="width: 100%; text-align: center; display: block; box-sizing: border-box;">
-                {% trans "Book Now" %}
-            </a>
+    <!-- Package Detail Hero Card -->
+    <div style="background: white; border-radius: var(--radius-xl); border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-md); margin-bottom: 3rem;">
+        <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 0;">
+            <div style="height: 380px; position: relative;">
+                <img src="/static/images/hero_tour_bus.jpg" alt="{{ package.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                <span class="media-badge-tag" style="top: 1.5rem; left: 1.5rem; font-size: 0.85rem;">
+                    📍 {{ package.destination }}
+                </span>
+            </div>
+
+            <div style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, #ffffff, #f8fafc);">
+                <span class="section-subtitle-tag">{{ package.get_category_display }}</span>
+                <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 1rem; line-height: 1.25;">
+                    {{ package.name }}
+                </h1>
+                
+                <div style="display: flex; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">
+                    <span>⏱️ <strong>{{ package.duration_nights }} Nights / {{ package.duration_days }} Days</strong></span>
+                    <span>🚌 <strong>{{ package.vehicle_seating_desc|default:'Luxury Bus' }}</strong></span>
+                </div>
+
+                <div style="background: #f1f5f9; padding: 1.25rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; border: 1px solid var(--border-light);">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">TOUR COST PER PERSON (WITH FOOD)</div>
+                            <div style="font-size: 1.85rem; font-weight: 800; color: var(--brand-navy);">
+                                ₹{{ package.price_with_food|default:package.base_price|floatformat:0 }}
+                                <small style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">/ pax</small>
+                            </div>
+                        </div>
+                        {% if package.price_without_food %}
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">WITHOUT FOOD (EP PLAN)</div>
+                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-secondary);">
+                                ₹{{ package.price_without_food|floatformat:0 }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <a href="#available-batches" class="btn btn-primary btn-lg" style="width: 100%;">
+                    View Upcoming Departure Batches & Book 👇
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Departure Batches Section -->
+    <div id="available-batches" style="margin-bottom: 3.5rem;">
+        <div style="margin-bottom: 1.5rem;">
+            <span class="section-subtitle-tag">FIXED DEPARTURE SCHEDULE</span>
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; color: var(--brand-navy);">
+                Open Tour Bus Batches
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                Select your preferred travel date. All departures guarantee sanitized pushback AC coaches and verified tour managers.
+            </p>
+        </div>
+
+        {% if inventories %}
+        <div style="background: white; border: 1px solid var(--border-light); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-sm);">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead style="background: #f8fafc; border-bottom: 1px solid var(--border-light); font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
+                    <tr>
+                        <th style="padding: 1rem 1.5rem;">Departure Date</th>
+                        <th style="padding: 1rem 1.5rem;">Assigned Coach</th>
+                        <th style="padding: 1rem 1.5rem;">Seats Available</th>
+                        <th style="padding: 1rem 1.5rem;">Batch Status</th>
+                        <th style="padding: 1rem 1.5rem; text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 0.92rem;">
+                    {% for inv in inventories %}
+                    <tr style="border-bottom: 1px solid var(--border-light);">
+                        <td style="padding: 1.25rem 1.5rem; font-weight: 700; color: var(--brand-navy);">
+                            📅 {{ inv.departure_date|date:"d M Y (D)" }}
+                            {% if inv.return_date %}
+                            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: normal;">Return: {{ inv.return_date|date:"d M Y" }}</div>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem; color: var(--text-secondary);">
+                            {{ inv.assigned_vehicle.registration_number|default:'54-Seater Luxury AC Coach' }}
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <span style="font-weight: 700; color: var(--accent-emerald);">
+                                {{ inv.available_seats }} / {{ inv.total_seats }} Seats Left
+                            </span>
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            {% if inv.status == 'open' %}
+                            <span style="background: #d1fae5; color: #065f46; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full);">
+                                🟢 Booking Open
+                            </span>
+                            {% elif inv.status == 'fast_filling' %}
+                            <span style="background: #fef3c7; color: #92400e; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full);">
+                                🟡 Fast Filling
+                            </span>
+                            {% else %}
+                            <span style="background: #fee2e2; color: #991b1b; font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: var(--radius-full);">
+                                🔴 Sold Out
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 1.25rem 1.5rem; text-align: right;">
+                            <a href="{% url 'customer_portal:checkout' inv.id %}" class="btn btn-emerald" style="padding: 0.55rem 1.25rem;">
+                                Instant Book Now →
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
-            <a href="{% url 'customer_portal:login' %}?next={% url 'customer_portal:checkout' inv.id %}" class="btn-primary" style="background: white; color: var(--primary); border: 1px solid var(--primary); width: 100%; text-align: center; display: block; box-sizing: border-box;">
-                {% trans "Login to Book" %}
+        <div style="background: white; border: 1px solid var(--border-light); border-radius: var(--radius-xl); padding: 2.5rem; text-align: center;">
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">No fixed batches scheduled for this circuit right now.</p>
+            <a href="https://wa.me/919842533777?text=Hi%2C%20I%20want%20to%20request%20a%20custom%20departure%20for%20{{ package.name|urlencode }}" class="btn btn-primary" target="_blank">
+                Request Custom Group Departure via WhatsApp 💬
             </a>
+        </div>
         {% endif %}
     </div>
-    {% empty %}
-    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 2rem;">
-        <p style="color: var(--text-muted);">{% trans "No open departures for this package." %}</p>
+
+    <!-- Day-by-Day Itinerary Timeline -->
+    <div style="margin-bottom: 3.5rem;">
+        <div style="margin-bottom: 1.5rem;">
+            <span class="section-subtitle-tag">DAY-BY-DAY JOURNEY PLAN</span>
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; color: var(--brand-navy);">
+                Tour Itinerary Details
+            </h2>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for day in itinerary_days %}
+            <div style="background: white; border: 1px solid var(--border-light); border-radius: var(--radius-xl); padding: 1.75rem 2rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="background: var(--brand-navy); color: white; font-weight: 800; font-size: 0.85rem; padding: 0.35rem 0.85rem; border-radius: var(--radius-full);">
+                            DAY 0{{ day.day_number }}
+                        </span>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--brand-navy); margin: 0;">
+                            {{ day.title }}
+                        </h3>
+                    </div>
+                    {% if day.meals_included %}
+                    <span style="font-size: 0.8rem; background: #eef2ff; color: var(--primary); font-weight: 600; padding: 0.25rem 0.75rem; border-radius: var(--radius-full);">
+                        🍽️ {{ day.meals_included }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if day.route_segment %}
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                    🚗 <strong>Route:</strong> {{ day.route_segment }}
+                </div>
+                {% endif %}
+
+                <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+                    {{ day.activities }}
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; background: #f8fafc; padding: 1rem; border-radius: var(--radius-lg); font-size: 0.85rem;">
+                    {% if day.morning_activity %}
+                    <div>
+                        <strong style="color: var(--brand-navy); display: block;">🌅 Morning:</strong>
+                        <span style="color: var(--text-secondary);">{{ day.morning_activity }}</span>
+                    </div>
+                    {% endif %}
+                    {% if day.sightseeing_spots %}
+                    <div>
+                        <strong style="color: var(--brand-navy); display: block;">📸 Sightseeing:</strong>
+                        <span style="color: var(--text-secondary);">{{ day.sightseeing_spots }}</span>
+                    </div>
+                    {% endif %}
+                    {% if day.evening_night_activity %}
+                    <div>
+                        <strong style="color: var(--brand-navy); display: block;">🌙 Evening / Night:</strong>
+                        <span style="color: var(--text-secondary);">{{ day.evening_night_activity }}</span>
+                    </div>
+                    {% endif %}
+                    {% if day.night_stay_location %}
+                    <div>
+                        <strong style="color: var(--brand-navy); display: block;">🏨 Night Stay:</strong>
+                        <span style="color: var(--text-secondary);">{{ day.night_stay_location }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div style="background: white; padding: 2rem; border-radius: var(--radius-xl); text-align: center; border: 1px solid var(--border-light);">
+                <p style="color: var(--text-secondary);">Itinerary details are being refreshed. Please contact customer desk for the PDF itinerary.</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
-    {% endfor %}
-</div>
+
+    <!-- Inclusions & Exclusions Side-by-Side -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 3.5rem;">
+        <!-- Inclusions -->
+        <div style="background: white; border: 1px solid #a7f3d0; border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-sm);">
+            <h3 style="color: #065f46; font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>✅</span> Package Inclusions
+            </h3>
+            <ul style="list-style: none; font-size: 0.9rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.65rem;">
+                {{ package.inclusions|linebreaksbr }}
+            </ul>
+        </div>
+
+        <!-- Exclusions -->
+        <div style="background: white; border: 1px solid #fecdd3; border-radius: var(--radius-xl); padding: 2rem; box-shadow: var(--shadow-sm);">
+            <h3 style="color: #9f1239; font-size: 1.25rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span>❌</span> Package Exclusions
+            </h3>
+            <ul style="list-style: none; font-size: 0.9rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 0.65rem;">
+                {{ package.exclusions|linebreaksbr }}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Terms & Sign-off -->
+    <div style="background: var(--bg-surface-alt); border-radius: var(--radius-xl); padding: 2rem; border: 1px solid var(--border-light); margin-bottom: 2rem;">
+        <h4 style="font-size: 1rem; font-weight: 700; color: var(--brand-navy); margin-bottom: 0.75rem;">
+            Terms & Conditions
+        </h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem;">
+            {{ package.terms_and_conditions|linebreaksbr }}
+        </p>
+        <div style="font-size: 0.82rem; color: var(--text-muted); border-top: 1px dashed var(--border-medium); padding-top: 0.75rem;">
+            Contact Desk: {{ package.contact_persons_footer }}
+        </div>
+    </div>
+</section>
 {% endblock %}

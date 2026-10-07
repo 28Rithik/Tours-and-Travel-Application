@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 import dj_database_url
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,9 +31,17 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
+    "host.docker.internal",
     "testserver",
     ".trycloudflare.com",
-    "http://127.0.0.1:8000"
+    "192.168.1.10",
+    "localhost",
+    "127.0.0.1",
+    "10.20.27.83",
+    "host.docker.internal",
+    "testserver",
+    ".trycloudflare.com",
+    "*"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -42,13 +51,16 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
+    'unfold',
+    'unfold.contrib.filters',
+    'unfold.contrib.forms',
     'travelerp.apps.TravelERPAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_htmx',
     'core',
     'core_partners',
     'core_crew',
@@ -88,6 +100,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 ]
 
 ROOT_URLCONF = 'travelerp.urls'
@@ -102,6 +115,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'travelerp.context_processors.rbac_context',
             ],
         },
     },
@@ -113,13 +127,28 @@ WSGI_APPLICATION = 'travelerp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+USE_POSTGRES = os.environ.get('USE_POSTGRES', '').lower() in ['1', 'true', 'yes']
+POSTGRES_DEFAULT_URL = os.environ.get(
+    'DATABASE_URL',
+    'postgres://travel_gis_user:travel_gis_pass@127.0.0.1:5434/travel_erp_gis'
+)
+
+if USE_POSTGRES:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            POSTGRES_DEFAULT_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
 
 # Password validation
@@ -179,270 +208,403 @@ COMPANY_LOCATION = 'Coimbatore, Tamil Nadu'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Jazzmin Settings
-JAZZMIN_SETTINGS = {
-    "site_title": "Travel ERP",
-    "site_header": "Travel ERP Admin",
-    "site_brand": "Mission Control",
-    "welcome_sign": "Welcome to the Fleet Manager",
-    "show_ui_builder": False,
-    "changeform_format": "horizontal_tabs",
-    "custom_css": "admin/css/custom_admin.css",
-    "custom_js": None,
-    "topmenu_links": [
-        {"name": "Home",  "url": "admin:index"},
-        {"name": "Mission Control Dashboard", "url": "/"},
+# Enterprise Password Security Policy
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# ── Django Unfold Admin Settings ────────────────────────────────────────────────
+UNFOLD = {
+    "SITE_TITLE": "Travel ERP",
+    "SITE_HEADER": "Travel ERP",
+    "SITE_SUBHEADER": "Mission Control · Sivagayathiri Tours",
+    "SITE_URL": "/",
+    "SITE_SYMBOL": "travel_explore",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "STYLES": [
+        lambda request: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
+        lambda request: "/static/admin/css/custom_admin.css",
     ],
-    "hide_models": [
-        "packages.packagetemplate",
-        "packages.packagevehicletariff",
-        "packages.templedarshanslot",
-        "packages.itineraryday",
-        "packages.internationaldocumentchecklist",
-        "package_tours.boardingpointproxy",
+    "SCRIPTS": [
+        lambda request: "https://unpkg.com/htmx.org@1.9.10",
+        lambda request: "/static/admin/js/htmx_resilience.js",
     ],
-    "order_with_respect_to": [
-        # 1. Sales Pipeline, CRM & Marketing (Lead Inquiries)
-        "crm",
-        "crm.Inquiry",
-        "crm.CustomerPreference",
-        "crm.CommunicationLog",
-        "crm.CouponProxy",
-        "crm.EmailCampaignProxy",
-        "crm.UpsellRecommendationProxy",
-
-        # 2. Daily Bookings & Trip Operations
-        "operations",
-        "operations.Booking",
-        "operations.Trip",
-        "operations.BulkContract",
-        "operations.BulkContractDay",
-        "operations.TrafficFine",
-
-        # 3. Tour Packages & Itinerary Catalog
-        "packages",
-        "packages.Package",
-
-        # 4. College IV & Group Tour Departures
-        "package_tours",
-        "package_tours.CollegeIVProxy",
-        "package_tours.TourDepartureBatchProxy",
-        "package_tours.PassengerManifestProxy",
-
-        # 5. Institutional Contracts & SLA Governance
-        "fleet_contracts",
-        "fleet_contracts.TransportContract",
-        "fleet_contracts.ContractFleetRoster",
-        "fleet_contracts.ContractSLAPenalty",
-        "fleet_contracts.ContractMonthlyInvoice",
-
-        # 6. Commute Routes, Roster & Execution
-        "fleet_commute",
-        "fleet_commute.CommuteRoute",
-        "fleet_commute.RouteStop",
-        "fleet_commute.CommuteShift",
-        "fleet_commute.CommuterManifestProxy",
-        "fleet_commute.DailyTripLog",
-        "fleet_commute.NightSafetyEscort",
-
-        # 7. Digital Collections & Guest Portal
-        "digital_services",
-        "digital_services.InstallmentPlanProxy",
-        "digital_services.PaymentLinkProxy",
-        "digital_services.PaymentWebhookEventProxy",
-        "digital_services.CustomerAccountProxy",
-        "digital_services.CustomerDocumentProxy",
-
-        # 8. Trip Cash Desk & Advances
-        "finance",
-        "finance.TripExpense",
-        "finance.DriverAdvance",
-        "finance.DriverSettlement",
-        "finance.SupplierTripCost",
-
-        # 9. Fleet Fuel & FASTag Operations
-        "finance_fleet",
-        "finance_fleet.FuelRecord",
-        "finance_fleet.CorporatePetroAccount",
-        "finance_fleet.CorporateFastagAccount",
-        "finance_fleet.FastagTollDeduction",
-
-        # 10. Corporate Accounts & Treasury
-        "finance_treasury",
-        "finance_treasury.Payment",
-        "finance_treasury.VehicleLoan",
-        "finance_treasury.LedgerAdjustment",
-        "finance_treasury.TripProfitReport",
-
-        # 11. Crew Payroll & Staff Accounts
-        "finance_payroll",
-        "finance_payroll.DriverSalaryProfile",
-        "finance_payroll.DriverPayslip",
-        "finance_payroll.EmployeePayment",
-
-        # 12. Fleet Workshop & Technical Assets
-        "maintenance",
-        "maintenance.DefectTicket",
-        "maintenance.ServiceReminder",
-        "maintenance.ServiceRecord",
-        "maintenance.PartInventory",
-        "maintenance.VehicleAsset",
-
-        # 13. Fleet Compliance & Legal
-        "maintenance_compliance",
-        "maintenance_compliance.ComplianceDocument",
-        "maintenance_compliance.InsuranceClaim",
-
-        # 14. Business Partners & Tariffs
-        "core_partners",
-        "core_partners.Client",
-        "core_partners.Supplier",
-        "core_partners.RateCard",
-
-        # 15. Fleet Assets & Specifications
-        "core",
-        "core.Vehicle",
-        "core.VehicleType",
-
-        # 16. Crew & Driver Management
-        "core_crew",
-        "core_crew.Driver",
-        "core_crew.Cleaner",
-        "core_crew.LicenseClass",
-
-        # 17. Partner Governance & Audit Logs
-        "enterprise_governance",
-        "enterprise_governance.SupplierContractProxy",
-        "enterprise_governance.CommissionRuleProxy",
-        "enterprise_governance.AuditLogEntryProxy",
-
-        # 18. Statements & Reports
-        "statements",
-
-        # 19. Analytics
-        "analytics",
-
-        # 20. Auth
-        "auth",
-        "auth.User",
-        "auth.Group",
-    ],
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.Group": "fas fa-users",
-        "core_partners.Client": "fas fa-building",
-        "core_partners.Supplier": "fas fa-truck-loading",
-        "core_partners.RateCard": "fas fa-tags",
-        "core.Vehicle": "fas fa-bus",
-        "core.VehicleType": "fas fa-car-side",
-        "core_crew.Driver": "fas fa-user-tie",
-        "core_crew.Cleaner": "fas fa-broom",
-        "core_crew.LicenseClass": "fas fa-id-card",
-        "core.Client": "fas fa-building",
-        "core.Supplier": "fas fa-truck-loading",
-        "core.Vehicle": "fas fa-bus",
-        "core.VehicleType": "fas fa-car-side",
-        "core.Driver": "fas fa-user-tie",
-        "core.Cleaner": "fas fa-broom",
-        "core.RateCard": "fas fa-tags",
-        "core.LicenseClass": "fas fa-id-card",
-        "core.Party": "fas fa-handshake",
-        "core.Place": "fas fa-map-marker-alt",
-        "core.Route": "fas fa-route",
-        "operations.Booking": "fas fa-calendar-check",
-        "operations.Trip": "fas fa-road",
-        "operations.TrafficFine": "fas fa-ticket-alt",
-        # Finance Segment 1: Cash Desk
-        "finance.TripExpense": "fas fa-receipt",
-        "finance.DriverAdvance": "fas fa-hand-holding-usd",
-        "finance.DriverSettlement": "fas fa-file-invoice-dollar",
-        "finance.SupplierTripCost": "fas fa-truck-loading",
-
-        # Finance Segment 2: Fleet Fuel & FASTag
-        "finance_fleet.FuelRecord": "fas fa-gas-pump",
-        "finance_fleet.CorporatePetroAccount": "fas fa-credit-card",
-        "finance_fleet.CorporateFastagAccount": "fas fa-id-card-alt",
-        "finance_fleet.FastagTollDeduction": "fas fa-road",
-
-        # Finance Segment 3: Payroll & HR
-        "finance_payroll.DriverSalaryProfile": "fas fa-user-cog",
-        "finance_payroll.DriverPayslip": "fas fa-file-invoice",
-        "finance_payroll.EmployeePayment": "fas fa-money-check-alt",
-
-        # Finance Segment 4: Treasury & Accounts
-        "finance_treasury.Payment": "fas fa-money-bill-wave",
-        "finance_treasury.VehicleLoan": "fas fa-university",
-        "finance_treasury.LedgerAdjustment": "fas fa-balance-scale",
-        "finance_treasury.TripProfitReport": "fas fa-chart-line",
-        "maintenance.DefectTicket": "fas fa-exclamation-triangle",
-        "maintenance.VehicleAsset": "fas fa-cogs",
-        "maintenance.AssetRotationLog": "fas fa-sync",
-        "maintenance.ServiceRecord": "fas fa-tools",
-        "maintenance.ServiceReminder": "fas fa-bell",
-        "maintenance.PartInventory": "fas fa-boxes",
-        # Fleet Compliance & Legal
-        "maintenance_compliance.ComplianceDocument": "fas fa-file-contract",
-        "maintenance_compliance.InsuranceClaim": "fas fa-shield-alt",
-
-        # Institutional Contracts & SLA Governance
-        "fleet_contracts.TransportContract": "fas fa-file-contract",
-        "fleet_contracts.ContractFleetRoster": "fas fa-clipboard-check",
-        "fleet_contracts.ContractSLAPenalty": "fas fa-exclamation-triangle",
-        "fleet_contracts.ContractMonthlyInvoice": "fas fa-file-invoice-dollar",
-
-        # Commute Routes, Roster & Execution
-        "fleet_commute.CommuteRoute": "fas fa-route",
-        "fleet_commute.RouteStop": "fas fa-map-marker-alt",
-        "fleet_commute.CommuteShift": "fas fa-clock",
-        "fleet_commute.CommuterManifestProxy": "fas fa-user-friends",
-        "fleet_commute.DailyTripLog": "fas fa-bus",
-        "fleet_commute.NightSafetyEscort": "fas fa-user-shield",
-
-        # CRM & Marketing
-        "crm.Inquiry": "fas fa-funnel-dollar",
-        "crm.CustomerPreference": "fas fa-sliders-h",
-        "crm.CommunicationLog": "fas fa-comments",
-        "crm.CouponProxy": "fas fa-ticket-alt",
-        "crm.EmailCampaignProxy": "fas fa-paper-plane",
-        "crm.UpsellRecommendationProxy": "fas fa-gem",
-
-        # Digital Services
-        "digital_services.InstallmentPlanProxy": "fas fa-calendar-alt",
-        "digital_services.PaymentLinkProxy": "fas fa-link",
-        "digital_services.PaymentWebhookEventProxy": "fas fa-satellite-dish",
-        "digital_services.CustomerAccountProxy": "fas fa-user-circle",
-        "digital_services.CustomerDocumentProxy": "fas fa-file-alt",
-
-        # Enterprise Governance
-        "enterprise_governance.SupplierContractProxy": "fas fa-file-contract",
-        "enterprise_governance.CommissionRuleProxy": "fas fa-percent",
-        "enterprise_governance.AuditLogEntryProxy": "fas fa-history",
-
-        # Tour Packages & Itinerary Catalog
-        "packages.Package": "fas fa-umbrella-beach",
-        "packages.PackageTemplate": "fas fa-layer-group",
-        "packages.PackageVehicleTariff": "fas fa-money-check-alt",
-        "packages.TempleDarshanSlot": "fas fa-om",
-        "packages.ItineraryDay": "fas fa-calendar-day",
-        "packages.InternationalDocumentChecklist": "fas fa-passport",
-
-        # College IV & Group Tour Departures
-        "package_tours.CollegeIVProxy": "fas fa-graduation-cap",
-        "package_tours.TourDepartureBatchProxy": "fas fa-bus-alt",
-        "package_tours.PassengerManifestProxy": "fas fa-user-check",
-        "package_tours.BoardingPointProxy": "fas fa-map-marked-alt",
+    "COLORS": {
+        "primary": {
+            "50": "240 249 255",
+            "100": "224 242 254",
+            "200": "186 230 253",
+            "300": "125 211 252",
+            "400": "56 189 248",
+            "500": "14 165 233",
+            "600": "2 132 199",
+            "700": "3 105 161",
+            "800": "7 89 133",
+            "900": "12 74 110",
+            "950": "8 47 73",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Dashboard",
+                "items": [
+                    {
+                        "title": "Mission Control",
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": "CRM & Quotations",
+                "icon": "handshake",
+                "collapsible": True,
+                "items": [
+                    {"title": "⚡ Agent Sales Cockpit", "icon": "dashboard_customize", "link": "/admin/integrations/agent-dashboard/"},
+                    {"title": "🛡️ Manager Approvals", "icon": "verified_user", "link": "/admin/integrations/approvals/"},
+                    {"title": "Inquiries", "icon": "campaign", "link": reverse_lazy("admin:crm_inquiry_changelist")},
+                    {"title": "Quotations", "icon": "request_quote", "link": reverse_lazy("admin:crm_quotation_changelist")},
+                    {"title": "DMC Invoices", "icon": "receipt_long", "link": reverse_lazy("admin:crm_dmcinvoice_changelist")},
+                    {"title": "DMC Tasks", "icon": "task_alt", "link": reverse_lazy("admin:crm_dmctask_changelist")},
+                    {"title": "Partners", "icon": "diversity_3", "link": reverse_lazy("admin:crm_partnerprofile_changelist")},
+                    {"title": "B2C Customers", "icon": "person", "link": reverse_lazy("admin:crm_b2ccustomerprofile_changelist")},
+                    {"title": "Suppliers", "icon": "local_shipping", "link": reverse_lazy("admin:crm_supplierprofile_changelist")},
+                    {"title": "Supplier Rates", "icon": "price_change", "link": reverse_lazy("admin:crm_suppliercontractedrate_changelist")},
+                    {"title": "Service Vouchers", "icon": "confirmation_number", "link": reverse_lazy("admin:crm_supplierservicevoucher_changelist")},
+                    {"title": "Payment Requisitions", "icon": "payments", "link": reverse_lazy("admin:crm_supplierpaymentrequisition_changelist")},
+                    {"title": "Hotels", "icon": "hotel", "link": reverse_lazy("admin:crm_hotelmaster_changelist")},
+                    {"title": "Monuments", "icon": "museum", "link": reverse_lazy("admin:crm_monumententrancemaster_changelist")},
+                    {"title": "Activities", "icon": "surfing", "link": reverse_lazy("admin:crm_activitymaster_changelist")},
+                    {"title": "Guide Charges", "icon": "tour", "link": reverse_lazy("admin:crm_guidechargemaster_changelist")},
+                    {"title": "Flights", "icon": "flight", "link": reverse_lazy("admin:crm_flightmaster_changelist")},
+                    {"title": "DMC Documents", "icon": "description", "link": reverse_lazy("admin:crm_dmcdocument_changelist")},
+                    {"title": "Complaints", "icon": "report_problem", "link": reverse_lazy("admin:crm_travelcomplaint_changelist")},
+                    {"title": "Preferences", "icon": "tune", "link": reverse_lazy("admin:crm_customerpreference_changelist")},
+                    {"title": "Communication Logs", "icon": "chat", "link": reverse_lazy("admin:crm_communicationlog_changelist")},
+                    {"title": "Coupons", "icon": "local_offer", "link": reverse_lazy("admin:crm_couponproxy_changelist")},
+                    {"title": "Email Campaigns", "icon": "email", "link": reverse_lazy("admin:crm_emailcampaignproxy_changelist")},
+                    {"title": "Upsell Recommendations", "icon": "trending_up", "link": reverse_lazy("admin:crm_upsellrecommendationproxy_changelist")},
+                ],
+            },
+            {
+                "title": "Fleet Dispatch",
+                "icon": "directions_car",
+                "collapsible": True,
+                "items": [
+                    {"title": "🧠 TARA AI Copilot", "icon": "psychology", "link": "/admin/operations/tara-ai/"},
+                    {"title": "Bookings", "icon": "event", "link": reverse_lazy("admin:operations_booking_changelist")},
+                    {"title": "Trips", "icon": "route", "link": reverse_lazy("admin:operations_trip_changelist")},
+                    {"title": "Live Fleet Radar Map", "icon": "satellite_alt", "link": "/admin/operations/fleet-radar/"},
+                    {"title": "GIS Mission Control", "icon": "hub", "link": "/gis/control-center/"},
+                    {"title": "Bulk Contracts", "icon": "content_copy", "link": reverse_lazy("admin:operations_bulkcontract_changelist")},
+                    {"title": "Bulk Contract Days", "icon": "calendar_view_day", "link": reverse_lazy("admin:operations_bulkcontractday_changelist")},
+                    {"title": "Telematics", "icon": "gps_fixed", "link": reverse_lazy("admin:operations_vehicletelematicsping_changelist")},
+                    {"title": "Emergency Alerts", "icon": "warning", "link": reverse_lazy("admin:operations_emergencyincidentalert_changelist")},
+                    {"title": "Driver Behavior", "icon": "speed", "link": reverse_lazy("admin:operations_driverbehaviorlog_changelist")},
+                    {"title": "Geofence Zones", "icon": "fence", "link": reverse_lazy("admin:operations_geofencezone_changelist")},
+                    {"title": "WhatsApp Bot & Handover", "icon": "chat", "link": "/admin/operations/whatsapp-bot/"},
+                    {"title": "WhatsApp Messages", "icon": "forum", "link": reverse_lazy("admin:operations_whatsappbotmessage_changelist")},
+                    {"title": "Handover Sessions", "icon": "fact_check", "link": reverse_lazy("admin:operations_driverhandoversession_changelist")},
+                    {"title": "Traffic Fines", "icon": "gavel", "link": reverse_lazy("admin:operations_trafficfine_changelist")},
+                ],
+            },
+            {
+                "title": "Tour Packages",
+                "icon": "luggage",
+                "collapsible": True,
+                "items": [
+                    {"title": "Packages", "icon": "beach_access", "link": reverse_lazy("admin:packages_package_changelist")},
+                    {"title": "Seasonal Rates", "icon": "calendar_month", "link": reverse_lazy("admin:packages_packageseasonalrate_changelist")},
+                    {"title": "Hotel Allotments", "icon": "hotel", "link": reverse_lazy("admin:packages_packagehotelallotment_changelist")},
+                    {"title": "Vehicle Tariffs", "icon": "price_change", "link": reverse_lazy("admin:packages_packagevehicletariff_changelist")},
+                    {"title": "Templates", "icon": "description", "link": reverse_lazy("admin:packages_packagetemplate_changelist")},
+                    {"title": "Itinerary Days", "icon": "today", "link": reverse_lazy("admin:packages_itineraryday_changelist")},
+                    {"title": "Temple Slots", "icon": "temple_hindu", "link": reverse_lazy("admin:packages_templedarshanslot_changelist")},
+                    {"title": "Doc Checklists", "icon": "checklist", "link": reverse_lazy("admin:packages_internationaldocumentchecklist_changelist")},
+                    {"title": "Addons", "icon": "add_box", "link": reverse_lazy("admin:packages_packageaddon_changelist")},
+                    {"title": "B2B Margins", "icon": "percent", "link": reverse_lazy("admin:packages_packageb2bmargin_changelist")},
+                    {"title": "Tour Feedback", "icon": "rate_review", "link": reverse_lazy("admin:packages_tourfeedbacklog_changelist")},
+                ],
+            },
+            {
+                "title": "College IV & Group Tours",
+                "icon": "school",
+                "collapsible": True,
+                "items": [
+                    {"title": "College IV Expeditions", "icon": "hiking", "link": reverse_lazy("admin:package_tours_collegeivproxy_changelist")},
+                    {"title": "Tour Departures", "icon": "departure_board", "link": reverse_lazy("admin:package_tours_tourdeparturebatchproxy_changelist")},
+                    {"title": "Boarding Points", "icon": "place", "link": reverse_lazy("admin:package_tours_boardingpointproxy_changelist")},
+                    {"title": "Passenger Manifests", "icon": "groups", "link": reverse_lazy("admin:package_tours_passengermanifestproxy_changelist")},
+                    {"title": "Seasonal Rates", "icon": "calendar_month", "link": reverse_lazy("admin:package_tours_seasonalrateproxy_changelist")},
+                    {"title": "Hotel Allotments", "icon": "hotel", "link": reverse_lazy("admin:package_tours_hotelallotmentproxy_changelist")},
+                    {"title": "Addons", "icon": "add_box", "link": reverse_lazy("admin:package_tours_packageaddonproxy_changelist")},
+                    {"title": "B2B Margins", "icon": "percent", "link": reverse_lazy("admin:package_tours_b2bmarginproxy_changelist")},
+                    {"title": "Tour Feedback", "icon": "rate_review", "link": reverse_lazy("admin:package_tours_tourfeedbackproxy_changelist")},
+                ],
+            },
+            {
+                "title": "Contracts & Shuttles",
+                "icon": "description",
+                "collapsible": True,
+                "items": [
+                    {"title": "Transport Contracts", "icon": "handyman", "link": reverse_lazy("admin:fleet_contracts_transportcontract_changelist")},
+                    {"title": "Fleet Rosters", "icon": "groups", "link": reverse_lazy("admin:fleet_contracts_contractfleetroster_changelist")},
+                    {"title": "Commuter Manifest", "icon": "transfer_within_a_station", "link": reverse_lazy("admin:fleet_contracts_commutermanifest_changelist")},
+                    {"title": "Contract Trip Log", "icon": "receipt", "link": reverse_lazy("admin:fleet_contracts_contracttriplog_changelist")},
+                    {"title": "Night Safety Escort", "icon": "shield", "link": reverse_lazy("admin:fleet_contracts_nightsafetyescortlog_changelist")},
+                    {"title": "SLA Penalties", "icon": "warning", "link": reverse_lazy("admin:fleet_contracts_contractslapenalty_changelist")},
+                    {"title": "Monthly Invoices", "icon": "receipt_long", "link": reverse_lazy("admin:fleet_contracts_contractmonthlyinvoice_changelist")},
+                ],
+            },
+            {
+                "title": "Commute Routes",
+                "icon": "directions_bus",
+                "collapsible": True,
+                "items": [
+                    {"title": "Commute Routes", "icon": "alt_route", "link": reverse_lazy("admin:fleet_commute_commuteroute_changelist")},
+                    {"title": "Route Stops", "icon": "pin_drop", "link": reverse_lazy("admin:fleet_commute_routestop_changelist")},
+                    {"title": "Commute Shifts", "icon": "schedule", "link": reverse_lazy("admin:fleet_commute_commuteshift_changelist")},
+                    {"title": "Commuter Manifest", "icon": "groups", "link": reverse_lazy("admin:fleet_commute_commutermanifestproxy_changelist")},
+                    {"title": "Daily Trip Log", "icon": "today", "link": reverse_lazy("admin:fleet_commute_dailytriplog_changelist")},
+                    {"title": "Night Safety", "icon": "shield_moon", "link": reverse_lazy("admin:fleet_commute_nightsafetyescort_changelist")},
+                    {"title": "⚡ Batch Roster Dispatcher", "icon": "bolt", "link": "/commute/roster-dispatcher/"},
+                    {"title": "⏱️ SLA Penalties Studio", "icon": "timer", "link": "/commute/sla-penalties/"},
+                    {"title": "Women Safety IVR Studio", "icon": "phone_in_talk", "link": reverse_lazy("fleet_commute:women_safety_studio")},
+                    {"title": "ESG & Driver Scorecard", "icon": "eco", "link": reverse_lazy("fleet_commute:esg_scorecard")},
+                    {"title": "Bulk CSV Roster Importer", "icon": "file_upload", "link": reverse_lazy("fleet_commute:bulk_roster_import")},
+                ],
+            },
+            {
+                "title": "Digital Services",
+                "icon": "cloud",
+                "collapsible": True,
+                "items": [
+                    {"title": "UPI & Payment Studio", "icon": "qr_code_2", "link": "/admin/payments/studio/"},
+                    {"title": "Customer Accounts", "icon": "account_circle", "link": reverse_lazy("admin:digital_services_customeraccountproxy_changelist")},
+                    {"title": "Payment Links", "icon": "link", "link": reverse_lazy("admin:digital_services_paymentlinkproxy_changelist")},
+                    {"title": "Installment Plans", "icon": "credit_score", "link": reverse_lazy("admin:digital_services_installmentplanproxy_changelist")},
+                    {"title": "Webhook Events", "icon": "webhook", "link": reverse_lazy("admin:digital_services_paymentwebhookeventproxy_changelist")},
+                    {"title": "Customer Documents", "icon": "folder_open", "link": reverse_lazy("admin:digital_services_customerdocumentproxy_changelist")},
+                ],
+            },
+            {
+                "title": "Partners & Tariffs",
+                "icon": "business",
+                "collapsible": True,
+                "items": [
+                    {"title": "Clients", "icon": "apartment", "link": reverse_lazy("admin:core_partners_client_changelist")},
+                    {"title": "Suppliers", "icon": "local_shipping", "link": reverse_lazy("admin:core_partners_supplier_changelist")},
+                    {"title": "Rate Cards", "icon": "sell", "link": reverse_lazy("admin:core_partners_ratecard_changelist")},
+                ],
+            },
+            {
+                "title": "Fleet Assets",
+                "icon": "directions_bus",
+                "collapsible": True,
+                "items": [
+                    {"title": "Vehicles", "icon": "directions_car", "link": reverse_lazy("admin:core_vehicle_changelist")},
+                    {"title": "Vehicle Types", "icon": "category", "link": reverse_lazy("admin:core_vehicletype_changelist")},
+                    {"title": "Live Fleet Radar Map", "icon": "satellite_alt", "link": "/admin/operations/fleet-radar/"},
+                ],
+            },
+            {
+                "title": "Workshop & Maintenance",
+                "icon": "build",
+                "collapsible": True,
+                "items": [
+                    {"title": "🎨 2D Damage Marker Studio", "icon": "brush", "link": "/maintenance/damage-marker/"},
+                    {"title": "Damage Inspections", "icon": "car_crash", "link": reverse_lazy("admin:maintenance_vehicledamageinspection_changelist")},
+                    {"title": "Pre-Trip Inspections", "icon": "fact_check", "link": reverse_lazy("admin:maintenance_pretripinspectionchecklist_changelist")},
+                    {"title": "Defect Tickets", "icon": "bug_report", "link": reverse_lazy("admin:maintenance_defectticket_changelist")},
+                    {"title": "Service Reminders", "icon": "notifications", "link": reverse_lazy("admin:maintenance_servicereminder_changelist")},
+                    {"title": "Service Records", "icon": "build_circle", "link": reverse_lazy("admin:maintenance_servicerecord_changelist")},
+                    {"title": "Vehicle Assets", "icon": "inventory", "link": reverse_lazy("admin:maintenance_vehicleasset_changelist")},
+                    {"title": "Part Inventory", "icon": "settings", "link": reverse_lazy("admin:maintenance_partinventory_changelist")},
+                ],
+            },
+            {
+                "title": "Compliance & Legal",
+                "icon": "verified",
+                "collapsible": True,
+                "items": [
+                    {"title": "Compliance Dashboard", "icon": "shield", "link": "/maintenance/compliance/"},
+                    {"title": "Compliance Docs", "icon": "verified_user", "link": reverse_lazy("admin:maintenance_compliance_compliancedocument_changelist")},
+                    {"title": "Insurance Claims", "icon": "health_and_safety", "link": reverse_lazy("admin:maintenance_compliance_insuranceclaim_changelist")},
+                ],
+            },
+            {
+                "title": "Crew & Drivers",
+                "icon": "badge",
+                "collapsible": True,
+                "items": [
+                    {"title": "Drivers", "icon": "person", "link": reverse_lazy("admin:core_crew_driver_changelist")},
+                    {"title": "Cleaners", "icon": "cleaning_services", "link": reverse_lazy("admin:core_crew_cleaner_changelist")},
+                    {"title": "License Classes", "icon": "badge", "link": reverse_lazy("admin:core_crew_licenseclass_changelist")},
+                    {"title": "Driver Portal", "icon": "phone_android", "link": reverse_lazy("admin:driver_portal_driverportalaccount_changelist")},
+                ],
+            },
+            {
+                "title": "Finance — Cash Desk",
+                "icon": "account_balance",
+                "collapsible": True,
+                "items": [
+                    {"title": "Driver Advances", "icon": "money", "link": reverse_lazy("admin:finance_driveradvance_changelist")},
+                    {"title": "Driver Settlements", "icon": "receipt", "link": reverse_lazy("admin:finance_driversettlement_changelist")},
+                    {"title": "Trip Expenses", "icon": "receipt_long", "link": reverse_lazy("admin:finance_tripexpense_changelist")},
+                    {"title": "Supplier Trip Costs", "icon": "local_shipping", "link": reverse_lazy("admin:finance_suppliertripcost_changelist")},
+                ],
+            },
+            {
+                "title": "Finance — Fuel & FASTag",
+                "icon": "local_gas_station",
+                "collapsible": True,
+                "items": [
+                    {"title": "CPK & Profit Radar", "icon": "monitoring", "link": "/admin/finance/cpk-radar/"},
+                    {"title": "Fuel Records", "icon": "oil_barrel", "link": reverse_lazy("admin:finance_fleet_fuelrecord_changelist")},
+                    {"title": "Petro Accounts", "icon": "credit_card", "link": reverse_lazy("admin:finance_fleet_corporatepetroaccount_changelist")},
+                    {"title": "FASTag Accounts", "icon": "nfc", "link": reverse_lazy("admin:finance_fleet_corporatefastagaccount_changelist")},
+                    {"title": "Toll Deductions", "icon": "toll", "link": reverse_lazy("admin:finance_fleet_fastagtolldeduction_changelist")},
+                ],
+            },
+            {
+                "title": "Finance — Payroll",
+                "icon": "payments",
+                "collapsible": True,
+                "items": [
+                    {"title": "Salary Profiles", "icon": "person", "link": reverse_lazy("admin:finance_payroll_driversalaryprofile_changelist")},
+                    {"title": "Payslips", "icon": "receipt", "link": reverse_lazy("admin:finance_payroll_driverpayslip_changelist")},
+                    {"title": "Employee Payments", "icon": "payments", "link": reverse_lazy("admin:finance_payroll_employeepayment_changelist")},
+                ],
+            },
+            {
+                "title": "Finance — Treasury",
+                "icon": "account_balance_wallet",
+                "collapsible": True,
+                "items": [
+                    {"title": "CPK & Profit Radar", "icon": "monitoring", "link": "/admin/finance/cpk-radar/"},
+                    {"title": "Corporate GST Studio", "icon": "receipt_long", "link": "/admin/finance/gst-studio/"},
+                    {"title": "UPI & Payment Studio", "icon": "qr_code_2", "link": "/admin/finance/payment-studio/"},
+                    {"title": "General Ledger Journals", "icon": "menu_book", "link": reverse_lazy("admin:finance_journalentry_changelist")},
+                    {"title": "Chart of Accounts", "icon": "account_tree", "link": reverse_lazy("admin:finance_account_changelist")},
+                    {"title": "Gateway Transactions", "icon": "point_of_sale", "link": reverse_lazy("admin:payments_gateway_gatewaytransaction_changelist")},
+                    {"title": "Gateway Configs", "icon": "tune", "link": reverse_lazy("admin:payments_gateway_paymentgatewayconfig_changelist")},
+                    {"title": "Payments", "icon": "payments", "link": reverse_lazy("admin:finance_treasury_payment_changelist")},
+                    {"title": "Ledger Adjustments", "icon": "balance", "link": reverse_lazy("admin:finance_treasury_ledgeradjustment_changelist")},
+                    {"title": "Vehicle Loans", "icon": "request_quote", "link": reverse_lazy("admin:finance_treasury_vehicleloan_changelist")},
+                    {"title": "Profit Reports", "icon": "analytics", "link": reverse_lazy("admin:finance_treasury_tripprofitreport_changelist")},
+                ],
+            },
+            {
+                "title": "Statements & Reports",
+                "icon": "summarize",
+                "collapsible": True,
+                "items": [
+                    {"title": "Generated Statements", "icon": "description", "link": reverse_lazy("admin:statements_generatedstatement_changelist")},
+                ],
+            },
+            {
+                "title": "Partner Fleet & Hotel Hub",
+                "icon": "handshake",
+                "collapsible": True,
+                "items": [
+                    {"title": "Partner Settlements Studio", "icon": "receipt_long", "link": "/suppliers/settlement-hub/"},
+                    {"title": "Hotel Vouchers & Manifests", "icon": "hotel", "link": "/suppliers/hotel-vouchers/"},
+                    {"title": "Outsourced Settlements", "icon": "calculate", "link": reverse_lazy("admin:suppliers_outsourcedtripsettlement_changelist")},
+                    {"title": "Hotel Vouchers Registry", "icon": "description", "link": reverse_lazy("admin:suppliers_hotelconfirmationvoucher_changelist")},
+                ],
+            },
+            {
+                "title": "Marketing & Campaigns",
+                "icon": "campaign",
+                "collapsible": True,
+                "items": [
+                    {"title": "Campaign Broadcast Studio", "icon": "send", "link": "/marketing/campaign-studio/"},
+                    {"title": "Coupons", "icon": "local_offer", "link": reverse_lazy("admin:marketing_coupon_changelist")},
+                    {"title": "Email Campaigns", "icon": "email", "link": reverse_lazy("admin:marketing_emailcampaign_changelist")},
+                    {"title": "Upsell Recommendations", "icon": "trending_up", "link": reverse_lazy("admin:marketing_upsellrecommendation_changelist")},
+                ],
+            },
+            {
+                "title": "Integrations & Automation",
+                "icon": "hub",
+                "collapsible": True,
+                "items": [
+                    {"title": "🔌 Integrations Hub", "icon": "extension", "link": "/admin/integrations/"},
+                    {"title": "✉️ Email (SES/SMTP) Studio", "icon": "mail", "link": "/admin/integrations/email/"},
+                    {"title": "⚡ Agent Sales Cockpit", "icon": "dashboard_customize", "link": "/admin/integrations/agent-dashboard/"},
+                    {"title": "🛡️ Manager Approvals", "icon": "verified_user", "link": "/admin/integrations/approvals/"},
+                    {"title": "Lead Ingestion Logs", "icon": "sync_alt", "link": reverse_lazy("admin:integrations_leadingestionlog_changelist")},
+                    {"title": "Approval Requests", "icon": "rule", "link": reverse_lazy("admin:integrations_approvalrequest_changelist")},
+                    {"title": "Integration Settings", "icon": "settings_input_composite", "link": reverse_lazy("admin:integrations_integrationsettings_changelist")},
+                ],
+            },
+            {
+                "title": "Governance & Audit",
+                "icon": "admin_panel_settings",
+                "collapsible": True,
+                "items": [
+                    {"title": "Supplier Contracts", "icon": "description", "link": reverse_lazy("admin:enterprise_governance_suppliercontractproxy_changelist")},
+                    {"title": "Commission Rules", "icon": "percent", "link": reverse_lazy("admin:enterprise_governance_commissionruleproxy_changelist")},
+                    {"title": "Audit Logs", "icon": "history", "link": reverse_lazy("admin:enterprise_governance_auditlogentryproxy_changelist")},
+                    {"title": "Audit Trail", "icon": "shield", "link": reverse_lazy("admin:audit_auditlogentry_changelist")},
+                ],
+            },
+            {
+                "title": "Analytics",
+                "icon": "insights",
+                "collapsible": True,
+                "items": [
+                    {"title": "Driver Scorecards", "icon": "score", "link": reverse_lazy("admin:analytics_driverscorecard_changelist")},
+                    {"title": "Report Logs", "icon": "article", "link": reverse_lazy("admin:analytics_reportlog_changelist")},
+                ],
+            },
+            {
+                "title": "System Admin",
+                "icon": "settings",
+                "collapsible": True,
+                "items": [
+                    {"title": "Users", "icon": "person", "link": reverse_lazy("admin:auth_user_changelist")},
+                    {"title": "Groups", "icon": "group", "link": reverse_lazy("admin:auth_group_changelist")},
+                    {"title": "Customer Portal", "icon": "web", "link": reverse_lazy("admin:customer_portal_customeraccount_changelist")},
+                    {"title": "Documents", "icon": "folder", "link": reverse_lazy("admin:documents_customerdocument_changelist")},
+                    {"title": "Payments Gateway", "icon": "credit_card", "link": reverse_lazy("admin:payments_gateway_installmentplan_changelist")},
+                    {"title": "Supplier Contracts", "icon": "handshake", "link": reverse_lazy("admin:suppliers_suppliercontract_changelist")},
+                    {"title": "Commission Rules", "icon": "percent", "link": reverse_lazy("admin:suppliers_commissionrule_changelist")},
+                ],
+            },
+        ],
     },
 }
 
-JAZZMIN_UI_TWEAKS = {
-    "theme": "slate",
-    "theme_color": "default",
-    "navbar": "navbar-dark",
-    "no_navbar_border": False,
-    "sidebar": "sidebar-dark-primary",
-    "sidebar_nav_child_indent": True,
-    "sidebar_fixed": True,
-    "brand_colour": "navbar-dark",
-    "accent": "accent-primary",
-}
+# ==============================================================================
+# WHATSAPP BUSINESS API & DRIVER HANDOVER BOT CONFIGURATION
+# ==============================================================================
+WHATSAPP_API_TOKEN = os.getenv('WHATSAPP_API_TOKEN', 'test_token')
+WHATSAPP_PHONE_NUMBER_ID = os.getenv('WHATSAPP_PHONE_NUMBER_ID', '109876543210987')
+WHATSAPP_WEBHOOK_VERIFY_TOKEN = os.getenv('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 'sivagayathiri_travelerp_wa_verify_2026')
+WHATSAPP_BUSINESS_PHONE = os.getenv('WHATSAPP_BUSINESS_PHONE', '+91 94431 23456')
+FLEET_CONTROL_ROOM_PHONE = os.getenv('FLEET_CONTROL_ROOM_PHONE', '919876543210')
+
+# ==============================================================================
+# TARA AI BUSINESS COPILOT (POWERED BY GROQ / LLM)
+# ==============================================================================
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')

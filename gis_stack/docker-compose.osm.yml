@@ -1,0 +1,148 @@
+services:
+  # ============================================================================
+  # 1. PostgreSQL 15 + PostGIS 3.4 Spatial Database (Tuned & Partitioned)
+  # ============================================================================
+  postgis:
+    image: postgis/postgis:15-3.4-alpine
+    container_name: travelerp_postgis
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: travel_erp_gis
+      POSTGRES_USER: travel_gis_user
+      POSTGRES_PASSWORD: travel_gis_pass
+    volumes:
+      - ./postgis/init_postgis.sql:/docker-entrypoint-initdb.d/init_postgis.sql:ro
+      - postgis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travel_gis_user -d travel_erp_gis"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # 2. TileServer GL — Self-Hosted Vector/Raster Map Tile Engine (MaxZoom 20)
+  # ============================================================================
+  tileserver:
+    image: maptiler/tileserver-gl:latest
+    container_name: travelerp_tileserver
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./tileserver:/data
+    command: ["-c", "/data/config.json", "-p", "8080"]
+
+  # ============================================================================
+  # 3. OSRM Multi-Instance Routing Cluster (Node 1)
+  # ============================================================================
+  osrm_1:
+    image: osrm/osrm-backend:latest
+    container_name: travelerp_osrm_1
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./osrm/data:/data
+    command:
+      - sh
+      - -c
+      - |
+        if [ -f /data/india.osrm ]; then
+          echo "[*] Node 1 launching OSRM on /data/india.osrm..."
+          osrm-routed --algorithm mld /data/india.osrm
+        else
+          echo "[!] Node 1: No /data/india.osrm found. Place pre-processed .osrm file in ./osrm/data."
+          tail -f /dev/null
+        fi
+
+  # ============================================================================
+  # 4. OSRM Multi-Instance Routing Cluster (Node 2)
+  # ============================================================================
+  osrm_2:
+    image: osrm/osrm-backend:latest
+    container_name: travelerp_osrm_2
+    restart: unless-stopped
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./osrm/data:/data
+    command:
+      - sh
+      - -c
+      - |
+        if [ -f /data/india.osrm ]; then
+          echo "[*] Node 2 launching OSRM on /data/india.osrm..."
+          osrm-routed --algorithm mld /data/india.osrm
+        else
+          echo "[!] Node 2: No /data/india.osrm found. Standby mode."
+          tail -f /dev/null
+        fi
+
+  # ============================================================================
+  # 5. Nginx GIS Gateway & High-Speed Tile Caching Reverse Proxy
+  # ============================================================================
+  gis_gateway:
+    image: nginx:alpine
+    container_name: travelerp_gis_gateway
+    restart: unless-stopped
+    ports:
+      - "8089:80"
+      - "5000:5000"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_cache:/var/cache/nginx/tiles
+    depends_on:
+      - tileserver
+      - osrm_1
+      - osrm_2
+
+  # ============================================================================
+  # 6. Prometheus GIS Latency & Health Observability
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: travelerp_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ============================================================================
+  # 7. Grafana Enterprise GIS Mission Control Dashboards
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: travelerp_grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=travelerp
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+  # ============================================================================
+  # 8. RabbitMQ Decoupled Telemetry Streaming Message Broker
+  # ============================================================================
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: travelerp_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=travelerp
+      - RABBITMQ_DEFAULT_PASS=travelerp
+
+volumes:
+  postgis_data:
+    driver: local
+  nginx_cache:
+    driver: local

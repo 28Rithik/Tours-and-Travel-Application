@@ -1,0 +1,581 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🛡️ Manager Approvals Queue | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/integrations/approvalrequest/" class="hover:text-primary-600 dark:hover:text-primary-400">Governance & Audit</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🛡️ Manager Approvals</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --app-dark-bg: #090e17;
+    --app-panel-bg: rgba(17, 24, 39, 0.9);
+    --app-panel-border: rgba(51, 65, 85, 0.45);
+    --app-amber: #f59e0b;
+    --app-green: #10b981;
+    --app-cyan: #38bdf8;
+    --app-red: #ef4444;
+}
+
+.approvals-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f1f5f9;
+    background: radial-gradient(circle at 10% 10%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 45%),
+                var(--app-dark-bg);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Header */
+.approvals-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.approvals-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #f59e0b;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+.approvals-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+.approvals-desc {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.btn-action-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.6rem 1.15rem;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    transition: all 0.15s;
+}
+.btn-action-primary:hover {
+    background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+    box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+.btn-action-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.15s;
+}
+.btn-action-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* KPI Cards */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.kpi-card {
+    background: var(--app-panel-bg);
+    border: 1px solid var(--app-panel-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    transition: transform 0.15s, border-color 0.15s;
+}
+.kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--kpi-glow, #f59e0b), transparent);
+}
+.kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+}
+.kpi-subtext {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 0.4rem;
+}
+
+/* Pending Approval Action Cards */
+.approval-action-card {
+    background: var(--app-panel-bg);
+    border: 1px solid var(--app-panel-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.approval-action-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: #f59e0b;
+}
+.approval-action-card:hover {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.15);
+}
+.card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.card-ref-cyan {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: -0.01em;
+}
+.type-badge-amber {
+    display: inline-block;
+    font-size: 0.74rem;
+    font-weight: 750;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+}
+.amount-pill-highlight {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 0.35rem 0.85rem;
+    border-radius: 8px;
+}
+.card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0.35rem 0 0.5rem 0;
+}
+.card-desc {
+    color: #cbd5e1;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+.card-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(51, 65, 85, 0.35);
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+}
+.inq-link-cyan {
+    color: #38bdf8;
+    font-weight: 700;
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+}
+.inq-link-cyan:hover {
+    text-decoration: underline;
+}
+
+.action-row-dark {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(51, 65, 85, 0.4);
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+.notes-input-dark {
+    flex: 1;
+    min-width: 250px;
+    padding: 0.65rem 0.95rem;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #ffffff;
+    outline: none;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+.notes-input-dark:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+.btn-approve-glowing {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    font-weight: 750;
+    font-size: 0.86rem;
+    padding: 0.65rem 1.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: all 0.15s;
+}
+.btn-approve-glowing:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+    transform: translateY(-1px);
+}
+.btn-reject-glowing {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    font-weight: 750;
+    font-size: 0.86rem;
+    padding: 0.65rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    transition: all 0.15s;
+}
+.btn-reject-glowing:hover {
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.5);
+    transform: translateY(-1px);
+}
+
+/* History Desk Table */
+.desk-card {
+    background: var(--app-panel-bg);
+    border: 1px solid var(--app-panel-border);
+    border-radius: 18px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    margin-top: 2.5rem;
+    backdrop-filter: blur(12px);
+}
+.desk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.35);
+}
+.desk-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.desk-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.desk-table th {
+    background: rgba(30, 41, 59, 0.7);
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--app-panel-border);
+}
+.desk-table th:first-child { border-top-left-radius: 8px; }
+.desk-table th:last-child { border-top-right-radius: 8px; }
+.desk-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.25);
+    color: #cbd5e1;
+    vertical-align: middle;
+}
+.desk-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.status-approved {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+}
+.status-rejected {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+}
+.status-pending {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24;
+}
+</style>
+
+<div class="approvals-wrapper">
+    <!-- Header -->
+    <div class="approvals-header">
+        <div class="header-left">
+            <div class="approvals-icon-badge">🛡️</div>
+            <div>
+                <h1 class="approvals-title">Manager Approvals Inbox</h1>
+                <div class="approvals-desc">
+                    Enterprise governance queue for Quotation discounts (>15%), corporate credit limits, and driver emergency advances.
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="/admin/integrations/approvalrequest/add/" class="btn-action-primary">
+                ➕ New Approval Request
+            </a>
+            <a href="/admin/integrations/agent-dashboard/" class="btn-action-secondary">
+                ⚡ Agent Dashboard
+            </a>
+            <a href="/admin/integrations/" class="btn-action-secondary">
+                🔌 Integrations Hub
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-glow: #f59e0b;">
+            <div class="kpi-label">Pending Your Action</div>
+            <div class="kpi-value">{{ pending_approvals|length }}</div>
+            <div class="kpi-subtext">Requests awaiting management sign-off</div>
+        </div>
+        <div class="kpi-card" style="--kpi-glow: #10b981;">
+            <div class="kpi-label">Resolved / Actioned</div>
+            <div class="kpi-value">{{ actioned_approvals|length }}</div>
+            <div class="kpi-subtext">Approved or rejected in current cycle</div>
+        </div>
+        <div class="kpi-card" style="--kpi-glow: #38bdf8;">
+            <div class="kpi-label">Margin Governance</div>
+            <div class="kpi-value" style="font-size: 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif;">Active</div>
+            <div class="kpi-subtext">Auto-triggers on >15% margin override</div>
+        </div>
+    </div>
+
+    <!-- Pending Queue -->
+    <h2 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+        <span>⚡</span> Urgent Action Items Requiring Sign-Off
+    </h2>
+
+    {% for app in pending_approvals %}
+    <div class="approval-action-card">
+        <div class="card-top">
+            <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span class="card-ref-cyan">{{ app.approval_number }}</span>
+                <span class="type-badge-amber">{{ app.get_approval_type_display }}</span>
+            </div>
+            <div class="amount-pill-highlight">
+                {{ app.requested_amount_or_pct }}
+            </div>
+        </div>
+
+        <h3 class="card-title">{{ app.title }}</h3>
+        <p class="card-desc">{{ app.description }}</p>
+
+        <div class="card-meta-row">
+            <span>👤 <strong>Requested by:</strong> {{ app.requested_by.get_full_name|default:app.requested_by.username }}</span>
+            <span>📅 <strong>Submitted:</strong> {{ app.created_at|date:"d-M-Y H:i" }}</span>
+            {% if app.related_quotation %}
+            <span>💼 <strong>Quotation:</strong> <a href="/admin/crm/quotation/{{ app.related_quotation.id }}/change/" class="inq-link-cyan">#{{ app.related_quotation.quotation_number }}</a></span>
+            {% endif %}
+            {% if app.related_trip %}
+            <span>🚌 <strong>Trip:</strong> <a href="/admin/operations/trip/{{ app.related_trip.id }}/change/" class="inq-link-cyan">#{{ app.related_trip.trip_code }}</a></span>
+            {% endif %}
+        </div>
+
+        <!-- 1-Click Action Form -->
+        <form method="POST" action="{% url 'integrations:api_action_approval' app.id %}">
+            {% csrf_token %}
+            <div class="action-row-dark">
+                <input type="text" name="manager_notes" class="notes-input-dark" placeholder="Optional approval conditions (e.g. Valid only for 50% advance wire)...">
+                <button type="submit" name="action" value="approve" class="btn-approve-glowing">
+                    ✅ Approve Request
+                </button>
+                <button type="submit" name="action" value="reject" class="btn-reject-glowing" onclick="return confirm('Are you sure you want to reject this request?');">
+                    ❌ Reject
+                </button>
+            </div>
+        </form>
+    </div>
+    {% empty %}
+    <div style="background: var(--app-panel-bg); border: 1px dashed rgba(51, 65, 85, 0.5); border-radius: 16px; padding: 3rem; text-align: center; color: #94a3b8; backdrop-filter: blur(12px);">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🎉</div>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem;">No Pending Approval Requests</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin: 0;">All quotation discount overrides, driver advances, and credit approvals have been reviewed.</p>
+    </div>
+    {% endfor %}
+
+    <!-- Actioned History Desk Table -->
+    <div class="desk-card">
+        <div class="desk-header">
+            <h2 class="desk-title">
+                <span>📋</span> Actioned Approvals Audit History
+            </h2>
+            <a href="/admin/integrations/approvalrequest/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+                Open Registry in Admin →
+            </a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="desk-table">
+                <thead>
+                    <tr>
+                        <th>Approval #</th>
+                        <th>Type & Title</th>
+                        <th>Requested Value</th>
+                        <th>Requester</th>
+                        <th>Status</th>
+                        <th>Manager Notes</th>
+                        <th>Actioned By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in actioned_approvals %}
+                    <tr>
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #38bdf8;">
+                            {{ item.approval_number }}
+                        </td>
+                        <td>
+                            <strong style="color: #ffffff;">{{ item.title }}</strong><br>
+                            <small style="color: #94a3b8;">{{ item.get_approval_type_display }}</small>
+                        </td>
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #ffffff;">
+                            {{ item.requested_amount_or_pct }}
+                        </td>
+                        <td style="color: #cbd5e1;">{{ item.requested_by.username }}</td>
+                        <td>
+                            <span class="status-pill status-{{ item.status }}">
+                                {{ item.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="color: #94a3b8; max-width: 250px;">
+                            {{ item.manager_notes|default:"-" }}
+                        </td>
+                        <td style="color: #cbd5e1;">{{ item.approved_by.username|default:"System" }}</td>
+                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                            {{ item.actioned_at|date:"d-M H:i"|default:"-" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="padding: 2.5rem; text-align: center; color: #64748b;">
+                            No actioned history yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

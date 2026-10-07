@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import AuditLogEntry
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -7,7 +8,7 @@ from .models import AuditLogEntry
 # ──────────────────────────────────────────────────────────────────────────
 
 @admin.register(AuditLogEntry)
-class AuditLogEntryAdmin(admin.ModelAdmin):
+class AuditLogEntryAdmin(ModelAdmin):
     list_display = ('action', 'content_type', 'object_id', 'user', 'timestamp')
     list_filter = ('action', 'content_type', 'timestamp')
     search_fields = ('action', 'user__username')

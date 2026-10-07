@@ -1,15 +1,1006 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard | TravelERP{% endblock %}
-{% block header_title %}Control room{% endblock %}
+{% load static %}
+
+{% block title %}Operations Control Room | Sivagayathiri Travels{% endblock %}
+{% block header_title %}Mission Control Room{% endblock %}
+
 {% block content %}
-<div class="page-intro"><div><p class="eyebrow">Tuesday, {% now "d M Y" %}</p><h1>Good morning, {{ user.get_username }}.</h1><p>Keep the fleet, trips, and money moving in one place.</p></div><a class="button button-primary" href="{% url 'generate-statement' %}">Generate statement</a></div>
-<section class="kpi-grid">
-  <div class="kpi"><span class="kpi-label">Active trips</span><strong class="kpi-value">{{ active_trips }}</strong></div>
-  <div class="kpi"><span class="kpi-label">Completed trips</span><strong class="kpi-value">{{ completed_trips }}</strong></div>
-  <div class="kpi"><span class="kpi-label">Monthly revenue</span><strong class="kpi-value">{{ monthly_revenue|floatformat:2 }}</strong></div>
-  <div class="kpi"><span class="kpi-label">Monthly profit</span><strong class="kpi-value">{{ monthly_profit|floatformat:2 }}</strong></div>
-  <div class="kpi"><span class="kpi-label">Receivables</span><strong class="kpi-value">{{ receivables|floatformat:2 }}</strong></div>
-  <div class="kpi"><span class="kpi-label">Payables</span><strong class="kpi-value">{{ payables|floatformat:2 }}</strong></div>
-</section>
-<section class="panel"><div class="panel-heading"><h2>Monthly pulse</h2><span class="muted">Current month</span></div><ul class="stat-list"><li><span>Expenses recorded</span><strong>{{ monthly_expenses|floatformat:2 }}</strong></li><li><span>Revenue after expenses</span><strong>{{ monthly_profit|floatformat:2 }}</strong></li></ul></section>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ----------------- Modern Operations Control Room Styles ----------------- */
+.cr-wrapper {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
+}
+
+/* Page Intro & Quick Actions Header */
+.cr-header-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.cr-station-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.cr-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.cr-greeting-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.85rem, 3vw, 2.35rem);
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.cr-greeting-subtitle {
+  color: #64748b;
+  font-size: 0.94rem;
+  margin: 0;
+}
+
+/* Launchpad Quick Action Buttons */
+.cr-launchpad {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cr-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.cr-btn-primary {
+  background: #0284c7;
+  color: white;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+}
+.cr-btn-primary:hover {
+  background: #0369a1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+  color: white;
+}
+
+.cr-btn-radar {
+  background: #0f172a;
+  color: #38bdf8;
+  border-color: #334155;
+}
+.cr-btn-radar:hover {
+  background: #1e293b;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.cr-btn-outline {
+  background: white;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.cr-btn-outline:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  color: #0f172a;
+}
+
+/* Operational Alerts Banner */
+.cr-alert-strip {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cr-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  color: #92400e;
+}
+
+.cr-alert-pill {
+  background: #f59e0b;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* KPI 6-Grid Matrix */
+.cr-kpi-matrix {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.15rem;
+  margin-bottom: 2.25rem;
+}
+
+.cr-kpi-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.15rem 0.95rem;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.cr-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--kpi-accent, #0284c7);
+  opacity: 0.85;
+}
+
+.cr-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px -5px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+
+.cr-kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.cr-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.cr-kpi-icon {
+  font-size: 1.2rem;
+  opacity: 0.85;
+}
+
+.cr-kpi-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.12rem, 1.32vw, 1.48rem);
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+
+.cr-kpi-sub {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+/* Two-Column Core Operational Deck */
+.cr-deck-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.05fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+/* Section Panels */
+.cr-panel {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+.cr-panel-head {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+}
+
+.cr-panel-head h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cr-panel-head a {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0284c7;
+  text-decoration: none;
+}
+.cr-panel-head a:hover {
+  text-decoration: underline;
+}
+
+/* Table Design */
+.cr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.cr-table th {
+  background: #ffffff;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 0.95rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cr-table td {
+  padding: 0.85rem 0.95rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.cr-table tr:hover td {
+  background: #f8fafc;
+}
+
+.cr-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Status Badges */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  text-transform: capitalize;
+}
+
+.status-started {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-assigned {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.status-booked {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-completed {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Action Buttons inside Table */
+.tbl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s;
+}
+
+.tbl-btn:hover {
+  background: #0284c7;
+  color: white;
+  border-color: #0284c7;
+}
+
+/* Financial Progress Bar */
+.cr-finance-pulse {
+  padding: 1.5rem;
+}
+
+.cr-progress-wrap {
+  margin: 1rem 0 1.5rem;
+}
+
+.cr-progress-bar {
+  height: 10px;
+  background: #f1f5f9;
+  border-radius: 9999px;
+  overflow: hidden;
+  display: flex;
+}
+
+.cr-prog-profit {
+  background: #10b981;
+}
+
+.cr-prog-expense {
+  background: #f43f5e;
+}
+
+.cr-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 0;
+  border-bottom: 1px dashed #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.cr-stat-item:last-child {
+  border-bottom: none;
+}
+
+.cr-stat-item span {
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cr-stat-item strong {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+/* Operational Shortcuts Grid */
+.cr-shortcuts-list {
+  padding: 1.25rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.cr-shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+  transition: all 0.2s;
+}
+
+.cr-shortcut-row:hover {
+  border-color: #0284c7;
+  color: #0284c7;
+  transform: translateX(3px);
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .cr-kpi-matrix {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .cr-deck-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cr-kpi-matrix {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cr-header-strip {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cr-launchpad {
+    width: 100%;
+  }
+}
+</style>
+
+<div class="cr-wrapper">
+  <!-- 1. Page Header & Quick Launchpad Bar -->
+  <div class="cr-header-strip">
+    <div>
+      <div class="cr-station-badge">
+        <span class="cr-pulse-dot"></span>
+        <span>Gandhipuram HQ • Live Dispatch Console</span>
+      </div>
+      <h1 class="cr-greeting-title">Good morning, {{ user.get_username|capfirst }}.</h1>
+      <p class="cr-greeting-subtitle">Unified Operations Mission Control for fleet movement, telemetry radar, and financial settlements.</p>
+    </div>
+
+    <!-- Quick Action Launchpad -->
+    <!-- Quick Action Launchpad -->
+    <div class="cr-launchpad">
+      {% if is_booking_manager or is_superuser %}
+      <a class="cr-action-btn cr-btn-primary" href="{% url 'booking-create' %}">
+        <span>+ New Booking</span>
+      </a>
+      {% endif %}
+      {% if is_fleet_manager or is_superuser %}
+      <a class="cr-action-btn cr-btn-radar" href="{% url 'fleet-live' %}">
+        <span>🛰️ Live Fleet Radar</span>
+      </a>
+      {% endif %}
+      {% if is_finance_user or is_superuser %}
+      <a class="cr-action-btn cr-btn-outline" href="{% url 'crm:invoice_console' %}">
+        <span>🧾 Tax Invoices</span>
+      </a>
+      <a class="cr-action-btn cr-btn-outline" href="{% url 'generate-statement' %}">
+        <span>📑 Statement</span>
+      </a>
+      {% endif %}
+      <a class="cr-action-btn cr-btn-outline" href="{% url 'admin-tara-copilot-studio' %}" style="color: #6366f1; border-color: rgba(99, 102, 241, 0.3);">
+        <span>🧠 TARA AI</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 2. Operational Attention Alert Banner (if pending items) -->
+  {% if unassigned_trips_count > 0 or pending_bookings_count > 0 %}
+  <div class="cr-alert-strip">
+    <div class="cr-alert-content">
+      <span class="cr-alert-pill">⚡ Action Required</span>
+      <span>
+        <strong>Operations Queue:</strong> 
+        {% if unassigned_trips_count > 0 %}
+          {{ unassigned_trips_count }} trip{{ unassigned_trips_count|pluralize }} pending vehicle/chauffeur allocation. 
+        {% endif %}
+        {% if pending_bookings_count > 0 %}
+          {{ pending_bookings_count }} online booking inquiries awaiting confirmation.
+        {% endif %}
+      </span>
+    </div>
+    <a href="{% url 'booking-list' %}" style="font-size: 0.82rem; font-weight: 700; color: #b45309; text-decoration: none;">
+      Review Dispatch Queue →
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- 3. Role-Adapted 6-KPI Matrix -->
+  <section class="cr-kpi-matrix">
+    {% if is_finance_user or is_superuser %}
+      <!-- Financial Leadership & Treasury Metrics -->
+      <div class="cr-kpi-card" style="--kpi-accent: #0284c7;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Active Trips</span>
+          <span class="cr-kpi-icon">🚗</span>
+        </div>
+        <div class="cr-kpi-val">{{ active_trips }}</div>
+        <div class="cr-kpi-sub">
+          <span style="color: #10b981;">●</span> {{ started_trips }} in-transit right now
+        </div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #10b981;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Completed Trips</span>
+          <span class="cr-kpi-icon">🏁</span>
+        </div>
+        <div class="cr-kpi-val">{{ completed_trips }}</div>
+        <div class="cr-kpi-sub">Total delivered journeys</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #f59e0b;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Monthly Revenue</span>
+          <span class="cr-kpi-icon">💰</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #b45309;">{{ revenue_inr }}</div>
+        <div class="cr-kpi-sub">{{ revenue_compact }} billed this month</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #059669;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Net Profit</span>
+          <span class="cr-kpi-icon">📈</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #059669;">{{ profit_inr }}</div>
+        <div class="cr-kpi-sub">Net Margin ~{{ profit_pct }}%</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #6366f1;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Receivables</span>
+          <span class="cr-kpi-icon">⏳</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #4f46e5;">{{ receivables_inr }}</div>
+        <div class="cr-kpi-sub">{{ receivables_compact }} B2B Client Ledger</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #f43f5e;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Vendor Payables</span>
+          <span class="cr-kpi-icon">💸</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #e11d48;">{{ payables_inr }}</div>
+        <div class="cr-kpi-sub">Fuel, Tolls &amp; Vendor Due</div>
+      </div>
+
+    {% elif is_fleet_manager %}
+      <!-- Fleet Operations Specific Metrics (No Confidential Financials) -->
+      <div class="cr-kpi-card" style="--kpi-accent: #0284c7;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Active Deployments</span>
+          <span class="cr-kpi-icon">🚗</span>
+        </div>
+        <div class="cr-kpi-val">{{ active_trips }}</div>
+        <div class="cr-kpi-sub">
+          <span style="color: #10b981;">●</span> {{ started_trips }} on road right now
+        </div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #10b981;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Fleet Available</span>
+          <span class="cr-kpi-icon">🅿️</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #059669;">{{ available_vehicles_count }}</div>
+        <div class="cr-kpi-sub">Ready at Gandhipuram HQ</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #6366f1;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Registered Fleet</span>
+          <span class="cr-kpi-icon">🛰️</span>
+        </div>
+        <div class="cr-kpi-val">{{ total_fleet_count }}</div>
+        <div class="cr-kpi-sub">Active fleet assets</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #0ea5e9;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Chauffeur Corps</span>
+          <span class="cr-kpi-icon">👨‍✈️</span>
+        </div>
+        <div class="cr-kpi-val">{{ total_drivers_count }}</div>
+        <div class="cr-kpi-sub">Verified commercial drivers</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #f59e0b;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Pending Allocation</span>
+          <span class="cr-kpi-icon">⚠️</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #b45309;">{{ unassigned_trips_count }}</div>
+        <div class="cr-kpi-sub">Need vehicle or driver</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #8b5cf6;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Completed Trips</span>
+          <span class="cr-kpi-icon">🏁</span>
+        </div>
+        <div class="cr-kpi-val">{{ completed_trips }}</div>
+        <div class="cr-kpi-sub">Delivered journeys</div>
+      </div>
+
+    {% else %}
+      <!-- Booking & Dispatch Specific Metrics -->
+      <div class="cr-kpi-card" style="--kpi-accent: #0284c7;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Active Bookings</span>
+          <span class="cr-kpi-icon">🚗</span>
+        </div>
+        <div class="cr-kpi-val">{{ active_trips }}</div>
+        <div class="cr-kpi-sub">{{ started_trips }} in transit</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #f59e0b;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Online Inquiries</span>
+          <span class="cr-kpi-icon">📩</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #b45309;">{{ pending_bookings_count }}</div>
+        <div class="cr-kpi-sub">Pending confirmation</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #ef4444;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Needs Chauffeur</span>
+          <span class="cr-kpi-icon">⚠️</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #dc2626;">{{ unassigned_trips_count }}</div>
+        <div class="cr-kpi-sub">Trips pending allocation</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #10b981;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Ready Vehicles</span>
+          <span class="cr-kpi-icon">✅</span>
+        </div>
+        <div class="cr-kpi-val" style="color: #059669;">{{ available_vehicles_count }}</div>
+        <div class="cr-kpi-sub">Available for dispatch</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #6366f1;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Total Fleet</span>
+          <span class="cr-kpi-icon">🚘</span>
+        </div>
+        <div class="cr-kpi-val">{{ total_fleet_count }}</div>
+        <div class="cr-kpi-sub">Cars, vans &amp; buses</div>
+      </div>
+
+      <div class="cr-kpi-card" style="--kpi-accent: #8b5cf6;">
+        <div class="cr-kpi-top">
+          <span class="cr-kpi-label">Completed Trips</span>
+          <span class="cr-kpi-icon">🏁</span>
+        </div>
+        <div class="cr-kpi-val">{{ completed_trips }}</div>
+        <div class="cr-kpi-sub">Successfully fulfilled</div>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- 4. Two-Column Core Operational Deck (Eliminating Whitespace) -->
+  <div class="cr-deck-grid">
+    <!-- Left Column: Active Trips & Dispatch Console -->
+    <div class="cr-panel">
+      <div class="cr-panel-head">
+        <h2>
+          <span>🛰️</span>
+          <span>Live Operations Dispatch Deck</span>
+        </h2>
+        <a href="{% url 'booking-list' %}">View All 181 Active Trips →</a>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="cr-table">
+          <thead>
+            <tr>
+              <th>Trip ID</th>
+              <th>Route Corridor</th>
+              <th>Vehicle Assigned</th>
+              <th>Chauffeur</th>
+              <th>Status</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trip in recent_active_trips %}
+            <tr>
+              <td>
+                <a href="{% url 'trip-detail' trip.id %}" style="font-weight: 800; color: #0284c7; text-decoration: none;">
+                  {{ trip.trip_id|default:trip.id }}
+                </a>
+              </td>
+              <td>
+                <div style="font-weight: 700; color: #0f172a;">
+                  {{ trip.booking.destination|default:trip.guest_name|default:"Outstation Route" }}
+                </div>
+                <div style="font-size: 0.72rem; color: #64748b;">
+                  {{ trip.booking.pickup_location|default:"Coimbatore Gandhipuram" }}
+                </div>
+              </td>
+              <td>
+                {% if trip.vehicle %}
+                  <span style="font-weight: 700; font-family: monospace; font-size: 0.86rem; color: #0f172a;">
+                    {{ trip.vehicle.registration_number }}
+                  </span>
+                  <div style="font-size: 0.72rem; color: #64748b;">{{ trip.vehicle.vehicle_type.name|default:"Commercial" }}</div>
+                {% else %}
+                  <span style="color: #f59e0b; font-weight: 700; font-size: 0.78rem;">⚠️ Vehicle Needed</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if trip.driver %}
+                  <span style="font-weight: 600;">{{ trip.driver.name }}</span>
+                  <div style="font-size: 0.72rem; color: #64748b;">{{ trip.driver.phone }}</div>
+                {% else %}
+                  <span style="color: #f59e0b; font-weight: 700; font-size: 0.78rem;">⚠️ Driver Needed</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if trip.status == 'started' %}
+                  <span class="status-pill status-started">● Started</span>
+                {% elif trip.status == 'assigned' %}
+                  <span class="status-pill status-assigned">● Assigned</span>
+                {% elif trip.status == 'booked' %}
+                  <span class="status-pill status-booked">● Booked</span>
+                {% else %}
+                  <span class="status-pill status-completed">{{ trip.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right; white-space: nowrap;">
+                <a class="tbl-btn" href="{% url 'trip-sheet' trip.id %}" title="Generate RTO Trip Sheet">
+                  📋 Sheet
+                </a>
+                <a class="tbl-btn" href="{% url 'trip-detail' trip.id %}">
+                  Details →
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2.5rem; color: #94a3b8;">
+                No active trips currently in transit. Use "+ New Booking" to dispatch vehicles.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: Operations Pulse Deck -->
+    <div>
+      <div class="cr-panel" style="margin-bottom: 1.5rem;">
+        {% if is_finance_user or is_superuser %}
+          <div class="cr-panel-head">
+            <h2>
+              <span>📊</span>
+              <span>Monthly Financial Pulse</span>
+            </h2>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">
+              {% now "M Y" %}
+            </span>
+          </div>
+
+          <div class="cr-finance-pulse">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
+              <span style="color: #059669;">Net Retained ({{ profit_pct }}%)</span>
+              <span style="color: #e11d48;">Expenses ({{ expense_pct }}%)</span>
+            </div>
+
+            <!-- Dual Color Progress Bar -->
+            <div class="cr-progress-wrap">
+              <div class="cr-progress-bar">
+                <div class="cr-prog-profit" style="width: {{ profit_pct }}%;"></div>
+                <div class="cr-prog-expense" style="width: {{ expense_pct }}%;"></div>
+              </div>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>💰</span> Billed Revenue</span>
+              <strong style="color: #0f172a;">{{ revenue_inr }}</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>⛽</span> Direct Trip Expenses</span>
+              <strong style="color: #e11d48;">{{ expenses_inr }}</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>📈</span> Operating Profit</span>
+              <strong style="color: #059669;">{{ profit_inr }}</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>🛰️</span> Fleet Deployment Rate</span>
+              <strong style="color: #0284c7;">{{ active_trips }} / {{ total_fleet_count }} units</strong>
+            </div>
+          </div>
+
+          <!-- Financial Shortcuts -->
+          <div class="cr-shortcuts-list">
+            <a class="cr-shortcut-row" href="{% url 'crm:invoice_console' %}">
+              <span>🧾 Tax Invoices &amp; GST Invoicing</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'generate-statement' %}">
+              <span>📑 Client Statements &amp; Ledger</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'accounting-export' %}">
+              <span>💰 Export to Tally &amp; Zoho Books</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'vehicle-profitability' %}">
+              <span>📊 Vehicle Profitability Reports</span>
+              <span>→</span>
+            </a>
+          </div>
+
+        {% elif is_fleet_manager %}
+          <!-- Fleet Operations Pulse -->
+          <div class="cr-panel-head">
+            <h2>
+              <span>🚛</span>
+              <span>Fleet Readiness Pulse</span>
+            </h2>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">
+              Live Radar
+            </span>
+          </div>
+
+          <div class="cr-finance-pulse">
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
+              <span style="color: #0284c7;">Active on Road</span>
+              <span style="color: #10b981;">Ready in Yard</span>
+            </div>
+
+            <div class="cr-progress-wrap">
+              <div class="cr-progress-bar">
+                <div class="cr-prog-profit" style="width: 58%; background: #0284c7;"></div>
+                <div class="cr-prog-expense" style="width: 42%; background: #10b981;"></div>
+              </div>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>🚗</span> Total Fleet Assets</span>
+              <strong style="color: #0f172a;">{{ total_fleet_count }} registered</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>⚡</span> In-Transit Now</span>
+              <strong style="color: #0284c7;">{{ started_trips }} units</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>🅿️</span> Ready at Gandhipuram</span>
+              <strong style="color: #059669;">{{ available_vehicles_count }} units</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>👨‍✈️</span> Commercial Chauffeurs</span>
+              <strong style="color: #6366f1;">{{ total_drivers_count }} active</strong>
+            </div>
+          </div>
+
+          <!-- Fleet Shortcuts -->
+          <div class="cr-shortcuts-list">
+            <a class="cr-shortcut-row" href="{% url 'fleet-live' %}">
+              <span>🛰️ Open Fullscreen GPS Radar Map</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'maintenance:compliance_dashboard' %}">
+              <span>🛡️ RTO Fitness &amp; Insurance Radar</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'analytics:fleet_analytics' %}">
+              <span>📊 Fleet Analytics &amp; CPK Radar</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'admin:core_vehicle_changelist' %}">
+              <span>🚗 Manage Vehicle Assets</span>
+              <span>→</span>
+            </a>
+          </div>
+
+        {% else %}
+          <!-- Booking & Dispatch Pulse -->
+          <div class="cr-panel-head">
+            <h2>
+              <span>📋</span>
+              <span>Dispatch Queue Pulse</span>
+            </h2>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase;">
+              Active Desk
+            </span>
+          </div>
+
+          <div class="cr-finance-pulse">
+            <div class="cr-stat-item">
+              <span><span>🚗</span> Active Dispatched</span>
+              <strong style="color: #0284c7;">{{ active_trips }} trips</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>📩</span> Inquiries to Confirm</span>
+              <strong style="color: #f59e0b;">{{ pending_bookings_count }} pending</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>⚠️</span> Vehicle Allocation Queue</span>
+              <strong style="color: #ef4444;">{{ unassigned_trips_count }} unassigned</strong>
+            </div>
+
+            <div class="cr-stat-item">
+              <span><span>🏁</span> Delivered Journeys</span>
+              <strong style="color: #059669;">{{ completed_trips }} completed</strong>
+            </div>
+          </div>
+
+          <!-- Dispatch Shortcuts -->
+          <div class="cr-shortcuts-list">
+            <a class="cr-shortcut-row" href="{% url 'booking-list' %}">
+              <span>📋 View All Dispatch Bookings</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'crm:inquiry_pipeline' %}">
+              <span>🔎 Open Query Tracker 2.0</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'crm:quotation_create' %}">
+              <span>📑 Create Customer Quotation</span>
+              <span>→</span>
+            </a>
+            <a class="cr-shortcut-row" href="{% url 'crm:dashboard' %}">
+              <span>📊 Open DMC Executive Board</span>
+              <span>→</span>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

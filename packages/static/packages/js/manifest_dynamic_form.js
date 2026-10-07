@@ -26,10 +26,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var visaInput         = $('#id_visa_number');
     var phoneInput        = $('#id_phone');
 
-    var passportRow  = passportInput.closest('.form-row, .field-passport_number, .grp-row');
-    var expiryRow    = passportExpiryInput.closest('.form-row, .field-passport_expiry_date, .grp-row');
-    var visaRow      = visaInput.closest('.form-row, .field-visa_number, .grp-row');
-    var intlFieldset = $('.grp-international-specs');
+    var passportRow  = passportInput.closest('.form-row, .field-passport_number, [class*="field-passport_number"], .grp-row');
+    var expiryRow    = passportExpiryInput.closest('.form-row, .field-passport_expiry_date, [class*="field-passport_expiry_date"], .grp-row');
+    var visaRow      = visaInput.closest('.form-row, .field-visa_number, [class*="field-visa_number"], .grp-row');
+    var intlFieldset = $('.grp-international-specs, fieldset:has(#id_passport_number)');
 
     // =========================================================================
     // 1. Passport & Visa visibility (International tours only)

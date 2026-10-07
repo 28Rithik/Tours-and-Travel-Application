@@ -1,0 +1,82 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+<!-- HTMX Dynamic Reactive Engine for Trip Form -->
+<div id="trip-htmx-deck" style="margin-bottom: 20px;">
+    <!-- Vehicle Compliance Gate Container -->
+    <div id="vehicle-compliance-htmx-container"
+         hx-get="{% url 'htmx_operations:trip-vehicle-gate' %}"
+         hx-trigger="change from:#id_vehicle, change from:#id_start_date, vehicle-updated from:body"
+         hx-include="#id_vehicle, #id_start_date, #id_end_date">
+    </div>
+
+    <!-- Driver Status & Conflict Container -->
+    <div id="driver-status-htmx-container"
+         hx-get="{% url 'htmx_operations:trip-driver-status' %}"
+         hx-trigger="change from:#id_driver, change from:#id_start_date, driver-updated from:body"
+         hx-include="#id_driver, #id_start_date">
+    </div>
+
+    <!-- Party Ledger Container -->
+    <div id="party-ledger-htmx-container"
+         hx-get="{% url 'htmx_operations:party-ledger-summary' %}"
+         hx-trigger="change from:#id_party, party-updated from:body"
+         hx-include="#id_party">
+    </div>
+
+    <!-- Live Trip Billing & Pricing Summary Container -->
+    <div id="trip-pricing-htmx-container"
+         hx-get="{% url 'htmx_operations:trip-calculate-totals' %}"
+         hx-trigger="input from:#id_opening_km delay:150ms, input from:#id_closing_km delay:150ms, input from:#id_km_rate delay:150ms, input from:#id_day_rate delay:150ms, input from:#id_fixed_amount delay:150ms, input from:#id_driver_bata delay:150ms, change from:#id_billing_model, trip-pricing-updated from:body"
+         hx-include="#id_billing_model, #id_day_rate, #id_km_rate, #id_fixed_amount, #id_days_count, #id_driver_bata, #id_opening_km, #id_closing_km">
+    </div>
+</div>
+
+{{ block.super }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function watchField(id, eventName) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var lastVal = el.value;
+        setInterval(function() {
+            var curVal = el.value;
+            if (curVal !== lastVal) {
+                lastVal = curVal;
+                document.body.dispatchEvent(new CustomEvent(eventName));
+            }
+        }, 200);
+    }
+
+    watchField('id_vehicle', 'vehicle-updated');
+    watchField('id_driver', 'driver-updated');
+    watchField('id_party', 'party-updated');
+    watchField('id_start_date', 'vehicle-updated');
+    watchField('id_start_date', 'driver-updated');
+    watchField('id_billing_model', 'trip-pricing-updated');
+    watchField('id_opening_km', 'trip-pricing-updated');
+    watchField('id_closing_km', 'trip-pricing-updated');
+    watchField('id_fixed_amount', 'trip-pricing-updated');
+    watchField('id_km_rate', 'trip-pricing-updated');
+    watchField('id_day_rate', 'trip-pricing-updated');
+    watchField('id_driver_bata', 'trip-pricing-updated');
+
+    // Trigger initial load if fields have values
+    setTimeout(function() {
+        if (document.getElementById('id_vehicle') && document.getElementById('id_vehicle').value) {
+            document.body.dispatchEvent(new CustomEvent('vehicle-updated'));
+        }
+        if (document.getElementById('id_driver') && document.getElementById('id_driver').value) {
+            document.body.dispatchEvent(new CustomEvent('driver-updated'));
+        }
+        if (document.getElementById('id_party') && document.getElementById('id_party').value) {
+            document.body.dispatchEvent(new CustomEvent('party-updated'));
+        }
+        if (document.getElementById('id_billing_model')) {
+            document.body.dispatchEvent(new CustomEvent('trip-pricing-updated'));
+        }
+    }, 150);
+});
+</script>
+{% endblock %}

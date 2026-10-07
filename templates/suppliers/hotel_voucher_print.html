@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hotel Confirmation Voucher {{ voucher.voucher_number }}</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+      margin: 0;
+      padding: 20px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .voucher-card {
+      border: 2px solid #047857;
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      background: #064e3b;
+      color: #fff;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-logo {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header-tagline {
+      font-size: 12px;
+      color: #a7f3d0;
+    }
+    .voucher-badge {
+      background: #10b981;
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .section-title {
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-top: 1px solid #d1fae5;
+      border-bottom: 1px solid #d1fae5;
+      letter-spacing: 0.5px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 16px;
+      gap: 16px;
+    }
+    .info-label {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .meal-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 11px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      text-align: left;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+    .footer-note {
+      padding: 16px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      padding: 24px 20px 16px 20px;
+    }
+    .sig-box {
+      border-top: 1px dashed #94a3b8;
+      width: 200px;
+      text-align: center;
+      padding-top: 6px;
+      font-size: 11px;
+      color: #475569;
+    }
+    .print-bar {
+      max-width: 800px;
+      margin: 0 auto 16px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    @media print {
+      .print-bar { display: none !important; }
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="print-bar">
+    <a href="{% url 'suppliers:hotel-vouchers-hub' %}" style="color: #065f46; text-decoration: none; font-weight: 600;">← Back to Vouchers</a>
+    <button onclick="window.print()" style="background: #065f46; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+      🖨️ Print Hotel Voucher
+    </button>
+  </div>
+
+  <div class="voucher-card">
+    <div class="header">
+      <div>
+        <div class="header-logo">Sivagayathiri Tours and Travels</div>
+        <div class="header-tagline">Coimbatore, Tamil Nadu • 24x7 Desk: +91 98422 12345 • ops@sivagayathiri.in</div>
+      </div>
+      <div>
+        <div class="voucher-badge">CONFIRMATION VOUCHER</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="background: #f0fdf4; border-bottom: 1px solid #bbf7d0;">
+      <div>
+        <div class="info-label">Voucher Reference</div>
+        <div class="info-value" style="font-family: monospace; font-size: 16px; color: #065f46;">{{ voucher.voucher_number }}</div>
+        <div style="font-size: 11px; color: #059669;">Generated on {{ voucher.created_at|date:"d M Y, H:i" }}</div>
+      </div>
+      <div style="text-align: right;">
+        <div class="info-label">Trip Reference</div>
+        <div class="info-value">Trip #{{ voucher.trip.id }}</div>
+        {% if voucher.hotel_confirmation_code %}
+        <div style="font-size: 12px; font-weight: 700; color: #065f46;">Hotel CRS Ref: {{ voucher.hotel_confirmation_code }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="section-title">Hotel / Resort Information</div>
+    <div class="grid-2">
+      <div>
+        <div class="info-label">Hotel Name</div>
+        <div class="info-value" style="font-size: 16px;">{{ voucher.hotel_name }}</div>
+        <div style="color: #475569; font-size: 12px; margin-top: 2px;">{{ voucher.hotel_address|default:voucher.hotel_city }}</div>
+      </div>
+      <div>
+        <div class="info-label">Hotel Contact / Phone</div>
+        <div class="info-value">{{ voucher.hotel_phone|default:"+91 Contact Front Desk" }}</div>
+        <div style="color: #475569; font-size: 12px; margin-top: 2px;">{{ voucher.hotel_email|default:"" }}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Stay &amp; Accommodation Details</div>
+    <div class="grid-2">
+      <div>
+        <div class="info-label">Check-In Date &amp; Time</div>
+        <div class="info-value" style="color: #065f46;">
+          {{ voucher.check_in_date|date:"l, d F Y" }} ({{ voucher.check_in_time|time:"h:i A" }})
+        </div>
+      </div>
+      <div>
+        <div class="info-label">Check-Out Date &amp; Time</div>
+        <div class="info-value" style="color: #065f46;">
+          {{ voucher.check_out_date|date:"l, d F Y" }} ({{ voucher.check_out_time|time:"h:i A" }})
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="background: #fafaf9; border-top: 1px solid #f5f5f4;">
+      <div>
+        <div class="info-label">Duration of Stay</div>
+        <div class="info-value">{{ voucher.total_nights }} Night(s)</div>
+      </div>
+      <div>
+        <div class="info-label">Rooms Booked</div>
+        <div class="info-value">{{ voucher.total_rooms }} x {{ voucher.get_room_category_display }}</div>
+      </div>
+    </div>
+
+    <div class="section-title">Meal Plan &amp; Inclusions</div>
+    <div class="grid-2">
+      <div>
+        <div class="info-label">Contracted Meal Plan</div>
+        <div style="margin-top: 4px;">
+          <span class="meal-badge">
+            🍽️ {{ voucher.get_meal_plan_display }}
+          </span>
+        </div>
+      </div>
+      <div>
+        <div class="info-label">Inclusions</div>
+        <div style="font-size: 12px; color: #334155; margin-top: 4px;">
+          {{ voucher.inclusions_notes }}
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Lead Guest &amp; Group Manifest</div>
+    <div class="grid-2">
+      <div>
+        <div class="info-label">Lead Guest Name</div>
+        <div class="info-value">{{ voucher.lead_guest_name }}</div>
+      </div>
+      <div>
+        <div class="info-label">Guest Contact Phone</div>
+        <div class="info-value">{{ voucher.lead_guest_phone }}</div>
+      </div>
+    </div>
+
+    <div style="padding: 0 16px 16px 16px;">
+      <table style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+        <thead>
+          <tr>
+            <th>Room #</th>
+            <th>Guest Name</th>
+            <th>Age / Gender</th>
+            <th>ID Proof Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for g in guests %}
+          <tr>
+            <td style="font-weight: 600;">{{ g.room_label }}</td>
+            <td style="font-weight: 600; color: #0f172a;">{{ g.guest_name }}</td>
+            <td>{{ g.age|default:"--" }} Yrs / {{ g.gender|default:"--" }}</td>
+            <td>{{ g.get_id_proof_type_display }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td style="font-weight: 600;">Room 101</td>
+            <td style="font-weight: 600; color: #0f172a;">{{ voucher.lead_guest_name }} &amp; Family</td>
+            <td>Group Booking</td>
+            <td>Aadhaar Verified</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Billing &amp; Special Instructions</div>
+    <div style="padding: 16px;">
+      <div style="margin-bottom: 8px;">
+        <span class="info-label">Billing Instructions:</span>
+        <strong style="color: #065f46; font-size: 13px;">{{ voucher.get_billing_instruction_display }}</strong>
+      </div>
+      {% if voucher.special_requests %}
+      <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 10px 14px; border-radius: 6px; font-size: 12px; color: #92400e;">
+        <strong>Special Instructions:</strong> {{ voucher.special_requests }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="footer-note">
+      <strong>Hotel Check-In Policies:</strong> Valid Government photo ID (Aadhaar/Passport/DL) mandatory for all adult guests. Standard check-in at 12:00 PM and check-out at 11:00 AM unless early check-in explicitly approved. For billing disputes or emergency coordination, contact Sivagayathiri Operations at +91 98422 12345.
+    </div>
+
+    <div class="signatures">
+      <div class="sig-box">
+        Hotel Reception Sign &amp; Stamp
+      </div>
+      <div class="sig-box">
+        Authorized Signatory<br>
+        <strong>Sivagayathiri Tours &amp; Travels</strong>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

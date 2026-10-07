@@ -1,0 +1,902 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}2D Vehicle Damage Marker & Inspection Studio | TravelERP{% endblock %}
+{% block header_title %}2D Vehicle Damage Marker Studio{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  .damage-studio-wrapper {
+    display: grid;
+    grid-template-columns: 320px 1fr 340px;
+    gap: 20px;
+    height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  @media (max-width: 1300px) {
+    .damage-studio-wrapper {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
+
+  .dmg-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dmg-card-header {
+    padding: 14px 18px;
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dmg-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dmg-card-body {
+    padding: 16px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* Form Elements */
+  .dmg-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .dmg-select, .dmg-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 12px;
+  }
+  .dmg-select:focus, .dmg-input:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25);
+  }
+
+  /* Interactive Blueprint Canvas Canvas Area */
+  .blueprint-canvas-container {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    user-select: none;
+  }
+  #vehicleSchematicSvg {
+    width: 90%;
+    height: 90%;
+    cursor: crosshair;
+  }
+
+  /* Pinpoint Marker Element */
+  .damage-pin {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s;
+    z-index: 5;
+  }
+  .damage-pin:hover {
+    transform: translate(-50%, -50%) scale(1.25);
+    z-index: 10;
+  }
+  .damage-pin.is-pre-existing {
+    background: #0284c7;
+    border: 2px solid #38bdf8;
+  }
+  .damage-pin.is-new {
+    background: #dc2626;
+    border: 2px solid #f87171;
+    animation: newPinPulse 1.5s infinite;
+  }
+  @keyframes newPinPulse {
+    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  }
+
+  /* Pin Modal Form Overlay */
+  #pinModal {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 20;
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  /* Markers Table */
+  .markers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .markers-table th {
+    text-align: left;
+    color: #94a3b8;
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .markers-table td {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #cbd5e1;
+  }
+
+  /* Financial Summary Box */
+  .finance-box {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .finance-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+  .finance-row.total {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 8px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  /* Canvas Signature Pad */
+  .sig-pad {
+    width: 100%;
+    height: 100px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    cursor: crosshair;
+  }
+</style>
+
+<div class="damage-studio-wrapper">
+  <!-- LEFT COLUMN: Handover Meta & Vehicle Selection -->
+  <aside class="dmg-card">
+    <div class="dmg-card-header">
+      <div class="dmg-card-title">
+        <span>🚗 Handover Setup</span>
+      </div>
+      <span style="font-size: 11px; background: #6366f1; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 700;">STEP 1</span>
+    </div>
+    <div class="dmg-card-body">
+      <!-- Select Vehicle -->
+      <label class="dmg-label">Vehicle Registration</label>
+      <select id="selVehicle" class="dmg-select" onchange="onVehicleChange(this.value)">
+        <option value="">-- Choose Fleet Vehicle --</option>
+        {% for v in vehicles %}
+        <option value="{{ v.pk }}" data-reg="{{ v.registration_number }}" data-km="{{ v.current_km|default:0 }}" {% if selected_vehicle and selected_vehicle.pk == v.pk %}selected{% endif %}>
+          {{ v.registration_number }} ({{ v.brand }} {{ v.model }})
+        </option>
+        {% endfor %}
+      </select>
+
+      <!-- Inspection Handover Type -->
+      <label class="dmg-label">Handover Type</label>
+      <select id="selInspectionType" class="dmg-select" onchange="onInspectionTypeChange(this.value)">
+        <option value="checkout" {% if not baseline_inspection %}selected{% endif %}>🛫 Departure / Check-out Handover</option>
+        <option value="checkin" {% if baseline_inspection %}selected{% endif %}>🛬 Return / Check-in Handover (Diff Mode)</option>
+        <option value="routine">🔍 Routine Yard / Depot Audit</option>
+      </select>
+
+      <!-- Baseline Checkout (for Check-in Diff) -->
+      <div id="baselineWrap" style="display: {% if baseline_inspection %}block{% else %}none{% endif %};">
+        <label class="dmg-label" style="color: #38bdf8;">Linked Departure Baseline</label>
+        <select id="selBaseline" class="dmg-select" onchange="loadBaselineInspection(this.value)">
+          <option value="">-- Select Departure Inspection --</option>
+          {% for r in recent_inspections %}
+          <option value="{{ r.pk }}" {% if baseline_inspection and baseline_inspection.pk == r.pk %}selected{% endif %}>
+            {{ r.inspection_number }} ({{ r.vehicle.registration_number }} - {{ r.created_at|date:"d M H:i" }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Vehicle Body Style Silhouette -->
+      <label class="dmg-label">Body Style Blueprint</label>
+      <select id="selBodyStyle" class="dmg-select" onchange="onBodyStyleChange(this.value)">
+        <option value="suv" selected>SUV / MUV (Innova Crysta / Ertiga)</option>
+        <option value="sedan">Sedan (Swift Dzire / Etios / Camry)</option>
+        <option value="tempo">Tempo Traveller (12/17/26 Seater)</option>
+        <option value="bus">Coach Bus / Volvo Multi-Axle</option>
+      </select>
+
+      <!-- Customer / Renter Details -->
+      <label class="dmg-label">Guest / Renter Name</label>
+      <input type="text" id="inpCustomerName" class="dmg-input" placeholder="e.g. Anand Kumar / Corporate Guest" value="{{ inspection.customer_name|default:'' }}" />
+
+      <label class="dmg-label">Customer Mobile</label>
+      <input type="text" id="inpCustomerPhone" class="dmg-input" placeholder="e.g. +91 98411 23456" value="{{ inspection.customer_phone|default:'' }}" />
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label class="dmg-label">Odometer (KM)</label>
+          <input type="number" id="inpOdometer" class="dmg-input" placeholder="0" value="{{ selected_vehicle.current_km|default:0 }}" />
+        </div>
+        <div>
+          <label class="dmg-label">Fuel Level (%)</label>
+          <input type="number" id="inpFuel" class="dmg-input" min="0" max="100" value="100" />
+        </div>
+      </div>
+
+      <label class="dmg-label">Inspector / Dispatcher</label>
+      <input type="text" id="inpInspector" class="dmg-input" value="{{ request.user.get_full_name|default:request.user.username }}" />
+    </div>
+  </aside>
+
+  <!-- CENTER COLUMN: Interactive 2D Blueprint Schematic & Pin Canvas -->
+  <main class="dmg-card">
+    <div class="dmg-card-header">
+      <div class="dmg-card-title">
+        <span>🎨 Click Car Schematic to Pin Damage</span>
+        <span id="canvasModeBadge" style="font-size: 11px; background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.4); padding: 2px 8px; border-radius: 6px;">
+          PRE-EXISTING MODE
+        </span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="clearAllPins()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; font-size: 11px; padding: 4px 10px; border-radius: 6px; cursor: pointer;">
+          Reset Pins
+        </button>
+      </div>
+    </div>
+
+    <div class="dmg-card-body" style="display: flex; flex-direction: column;">
+      <!-- Instruction Strip -->
+      <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span>💡 <em>Click anywhere on the vehicle body to pinpoint a dent, scratch, or crack.</em></span>
+        <div style="display: flex; gap: 12px; font-size: 11px;">
+          <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #0284c7; border-radius: 50%; display: inline-block;"></span> Pre-Existing</span>
+          <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #dc2626; border-radius: 50%; display: inline-block;"></span> New Damage (Diff)</span>
+        </div>
+      </div>
+
+      <!-- Blueprint Interactive Canvas Wrapper -->
+      <div class="blueprint-canvas-container" id="blueprintContainer" onclick="handleCanvasClick(event)">
+        <!-- SVG Vector Vehicle Schematic (Multi-Body Top View Blueprint) -->
+        <svg id="vehicleSchematicSvg" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#334155" />
+              <stop offset="100%" stop-color="#1e293b" />
+            </linearGradient>
+            <linearGradient id="glassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#0284c7" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#0369a1" stop-opacity="0.2" />
+            </linearGradient>
+          </defs>
+
+          <!-- Vehicle Shadow -->
+          <ellipse cx="400" cy="225" rx="340" ry="140" fill="rgba(0,0,0,0.5)" filter="blur(8px)" />
+
+          <!-- Main Vehicle Body Silhouette (Top View) -->
+          <g id="schematicBodyGroup">
+            <!-- Outer Chassis -->
+            <path id="svgChassis" d="M 160 140 C 130 140, 100 170, 90 225 C 100 280, 130 310, 160 310 L 640 310 C 670 310, 700 280, 710 225 C 700 170, 670 140, 640 140 Z" fill="url(#bodyGrad)" stroke="#64748b" stroke-width="3" />
+
+            <!-- Front Bumper Zone -->
+            <path d="M 90 225 C 95 180, 120 150, 150 142 L 150 308 C 120 300, 95 270, 90 225 Z" fill="rgba(255,255,255,0.03)" stroke="#475569" stroke-width="1.5" />
+            <text x="110" y="228" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">FRONT</text>
+
+            <!-- Hood / Bonnet -->
+            <rect x="150" y="142" width="130" height="166" fill="rgba(255,255,255,0.02)" stroke="#475569" stroke-width="1.5" />
+            <text x="215" y="228" fill="#64748b" font-size="11" font-weight="700" text-anchor="middle">ENGINE HOOD</text>
+
+            <!-- Front Windshield -->
+            <path d="M 280 150 L 330 165 L 330 285 L 280 300 Z" fill="url(#glassGrad)" stroke="#38bdf8" stroke-width="1.5" />
+            <text x="305" y="228" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="middle">WINDSHIELD</text>
+
+            <!-- Roof & Sunroof -->
+            <rect x="330" y="165" width="180" height="120" fill="rgba(255,255,255,0.01)" stroke="#475569" stroke-width="1.5" />
+            <rect x="370" y="185" width="100" height="80" rx="6" fill="rgba(2,132,199,0.15)" stroke="#0284c7" stroke-width="1" stroke-dasharray="3,3" />
+            <text x="420" y="228" fill="#64748b" font-size="11" font-weight="700" text-anchor="middle">ROOF PANEL</text>
+
+            <!-- Rear Windshield -->
+            <path d="M 510 165 L 550 155 L 550 295 L 510 285 Z" fill="url(#glassGrad)" stroke="#38bdf8" stroke-width="1.5" />
+
+            <!-- Trunk / Boot Lid -->
+            <rect x="550" y="150" width="110" height="150" fill="rgba(255,255,255,0.02)" stroke="#475569" stroke-width="1.5" />
+            <text x="605" y="228" fill="#64748b" font-size="11" font-weight="700" text-anchor="middle">BOOT LID</text>
+
+            <!-- Rear Bumper Zone -->
+            <path d="M 660 148 C 685 160, 705 190, 710 225 C 705 260, 685 290, 660 302 Z" fill="rgba(255,255,255,0.03)" stroke="#475569" stroke-width="1.5" />
+            <text x="685" y="228" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">REAR</text>
+
+            <!-- Side Doors Labels (Top: Left Doors, Bottom: Right Doors) -->
+            <!-- Front Left Door -->
+            <rect x="280" y="130" width="110" height="20" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1" />
+            <text x="335" y="144" fill="#94a3b8" font-size="9" text-anchor="middle">FL DOOR</text>
+
+            <!-- Rear Left Door -->
+            <rect x="395" y="130" width="110" height="20" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1" />
+            <text x="450" y="144" fill="#94a3b8" font-size="9" text-anchor="middle">RL DOOR</text>
+
+            <!-- Front Right Door -->
+            <rect x="280" y="300" width="110" height="20" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1" />
+            <text x="335" y="314" fill="#94a3b8" font-size="9" text-anchor="middle">FR DOOR</text>
+
+            <!-- Rear Right Door -->
+            <rect x="395" y="300" width="110" height="20" rx="3" fill="#1e293b" stroke="#64748b" stroke-width="1" />
+            <text x="450" y="314" fill="#94a3b8" font-size="9" text-anchor="middle">RR DOOR</text>
+
+            <!-- Wing Mirrors -->
+            <ellipse cx="270" cy="115" rx="14" ry="8" fill="#334155" stroke="#64748b" stroke-width="1" />
+            <ellipse cx="270" cy="335" rx="14" ry="8" fill="#334155" stroke="#64748b" stroke-width="1" />
+
+            <!-- Wheels -->
+            <rect x="170" y="115" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+            <rect x="170" y="317" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+            <rect x="540" y="115" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+            <rect x="540" y="317" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+          </g>
+        </svg>
+
+        <!-- Dynamic Pinpoint Marker Layer (Appended via JS) -->
+        <div id="pinsLayer"></div>
+
+        <!-- Pin Modal Dialog -->
+        <div id="pinModal">
+          <div style="font-size: 15px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; display: flex; justify-content: space-between;">
+            <span>📍 Record Damage Marker <span id="lblMarkerNo">#1</span></span>
+            <button onclick="closePinModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer;">✕</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label class="dmg-label">Damage Type</label>
+              <select id="pinDamageType" class="dmg-select">
+                <option value="scratch">Scratch / Paint Scrape</option>
+                <option value="dent">Dent / Body Impression</option>
+                <option value="crack">Crack / Glass / Plastic Fracture</option>
+                <option value="paint_chip">Paint Chip / Peeling</option>
+                <option value="broken_glass">Broken Light / Mirror Glass</option>
+                <option value="missing_accessory">Missing Accessory / Tool</option>
+                <option value="interior_tear">Interior Tear / Stain</option>
+                <option value="other">Other Blemish</option>
+              </select>
+            </div>
+            <div>
+              <label class="dmg-label">Severity Level</label>
+              <select id="pinSeverity" class="dmg-select">
+                <option value="minor">Minor (Surface / &lt; 2 in)</option>
+                <option value="moderate">Moderate (Noticeable / Panel Dent)</option>
+                <option value="severe">Severe (Deep / Replacement Needed)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label class="dmg-label">Vehicle Panel Zone</label>
+              <select id="pinPanelZone" class="dmg-select">
+                <option value="front_bumper">Front Bumper</option>
+                <option value="rear_bumper">Rear Bumper</option>
+                <option value="hood">Engine Hood / Bonnet</option>
+                <option value="roof">Roof Panel</option>
+                <option value="windshield">Front Windshield</option>
+                <option value="rear_windshield">Rear Windshield</option>
+                <option value="door_fl">Front Left Door</option>
+                <option value="door_fr">Front Right Door</option>
+                <option value="door_rl">Rear Left Door</option>
+                <option value="door_rr">Rear Right Door</option>
+                <option value="mirror_l">Left Mirror</option>
+                <option value="mirror_r">Right Mirror</option>
+                <option value="trunk">Trunk / Boot Lid</option>
+                <option value="wheel_rim">Wheel Rim / Tyre</option>
+                <option value="interior">Interior Cabin</option>
+              </select>
+            </div>
+            <div>
+              <label class="dmg-label">Estimated Repair (₹)</label>
+              <input type="number" id="pinRepairCost" class="dmg-input" value="1200" step="100" />
+            </div>
+          </div>
+
+          <label class="dmg-label">Photo Proof (Camera / File)</label>
+          <input type="file" id="pinPhotoInput" accept="image/*" class="dmg-input" onchange="previewPinPhoto(event)" style="padding: 5px;" />
+          <div id="pinPhotoPreview" style="display: none; margin-bottom: 10px;">
+            <img id="pinPhotoImg" src="" style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #475569;" />
+          </div>
+
+          <label class="dmg-label">Damage Notes</label>
+          <input type="text" id="pinNotes" class="dmg-input" placeholder="e.g. Scrape on lower bumper lip" />
+
+          <div style="display: flex; gap: 10px; margin-top: 6px;">
+            <button onclick="confirmPin()" style="flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer;">
+              ✓ Pin Damage Spot
+            </button>
+            <button onclick="closePinModal()" style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px 16px; font-weight: 600; cursor: pointer;">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Markers Summary Table -->
+      <div style="margin-top: 14px; flex: 1; overflow-y: auto;">
+        <div style="font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 8px;">
+          📋 Recorded Damage Markers (<span id="markerCountBadge">0</span>)
+        </div>
+        <table class="markers-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Type</th>
+              <th>Severity</th>
+              <th>Panel</th>
+              <th>Status</th>
+              <th>Est. Cost</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="markersTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">
+                No damage markers pinned yet. Click on the car schematic above.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- RIGHT COLUMN: Deposit Ledger & Digital Sign-off -->
+  <aside class="dmg-card">
+    <div class="dmg-card-header">
+      <div class="dmg-card-title">
+        <span>💰 Deposit &amp; Sign-off</span>
+      </div>
+      <span style="font-size: 11px; background: #10b981; color: white; padding: 2px 8px; border-radius: 6px; font-weight: 700;">STEP 2</span>
+    </div>
+    <div class="dmg-card-body">
+      <!-- Security Deposit Input -->
+      <label class="dmg-label">Security Deposit Held (₹)</label>
+      <input type="number" id="inpSecurityDeposit" class="dmg-input" value="10000" step="500" oninput="recomputeLedger()" />
+
+      <!-- Financial Reconciliation Box -->
+      <div class="finance-box">
+        <div class="finance-row">
+          <span>Deposit Collected:</span>
+          <strong id="lblDepositHeld">₹10,000.00</strong>
+        </div>
+        <div class="finance-row">
+          <span>Pre-Existing Damages:</span>
+          <span id="lblPreExistingCount" style="color: #38bdf8;">0 spots</span>
+        </div>
+        <div class="finance-row">
+          <span>New Damages Incurred:</span>
+          <strong id="lblNewDamageDeduction" style="color: #f87171;">- ₹0.00</strong>
+        </div>
+        <div class="finance-row total">
+          <span style="color: #34d399;">Net Customer Refund:</span>
+          <strong id="lblNetRefund" style="color: #34d399; font-size: 16px;">₹10,000.00</strong>
+        </div>
+      </div>
+
+      <!-- Customer Signature Pad -->
+      <label class="dmg-label">Customer Digital Signature</label>
+      <canvas id="custSigCanvas" class="sig-pad"></canvas>
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+        <button onclick="clearSig('custSigCanvas')" style="background: none; border: none; color: #818cf8; font-size: 11px; cursor: pointer;">Clear Signature</button>
+      </div>
+
+      <!-- Inspector Signature Pad -->
+      <label class="dmg-label">Inspector Sign-off</label>
+      <canvas id="inspSigCanvas" class="sig-pad"></canvas>
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 14px;">
+        <button onclick="clearSig('inspSigCanvas')" style="background: none; border: none; color: #818cf8; font-size: 11px; cursor: pointer;">Clear Signature</button>
+      </div>
+
+      <!-- Notes -->
+      <label class="dmg-label">Handover Audit Notes</label>
+      <textarea id="inpNotes" class="dmg-input" rows="2" placeholder="e.g. Tyres in excellent condition, minor scuff on left alloy."></textarea>
+
+      <!-- Save & Submit Action -->
+      <button onclick="saveDamageInspection()" style="width: 100%; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 10px; padding: 14px; font-weight: 800; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); margin-bottom: 8px;">
+        💾 Save Handover Inspection
+      </button>
+
+      <div id="saveFeedback" style="font-size: 12px; text-align: center; min-height: 20px;"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- Interactive Studio Logic -->
+<script>
+  let damageMarkers = [];
+  let pendingCoords = null;
+  let isCheckinDiffMode = false;
+  let currentPhotoDataUrl = '';
+
+  // Initialize Canvas Signatures
+  function initSignaturePads() {
+    ['custSigCanvas', 'inspSigCanvas'].forEach(id => {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+
+      let drawing = false;
+      const getPos = e => {
+        const r = canvas.getBoundingClientRect();
+        return { x: e.clientX - r.left, y: e.clientY - r.top };
+      };
+
+      canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+      canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+      window.addEventListener('mouseup', () => { drawing = false; });
+
+      // Touch support
+      canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e.touches[0]); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+      canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e.touches[0]); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+      canvas.addEventListener('touchend', () => { drawing = false; });
+    });
+  }
+
+  function clearSig(id) {
+    const canvas = document.getElementById(id);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Handle Clicking on Blueprint Canvas to Place Pin
+  function handleCanvasClick(e) {
+    if (e.target.closest('#pinModal') || e.target.closest('.damage-pin')) return;
+
+    const container = document.getElementById('blueprintContainer');
+    const rect = container.getBoundingClientRect();
+    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+    const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+
+    pendingCoords = { x: xPct, y: yPct };
+    currentPhotoDataUrl = '';
+    document.getElementById('pinPhotoInput').value = '';
+    document.getElementById('pinPhotoPreview').style.display = 'none';
+
+    // Auto-detect approximate panel zone based on x & y
+    let detectedZone = 'front_bumper';
+    if (xPct < 22) detectedZone = 'front_bumper';
+    else if (xPct > 78) detectedZone = 'rear_bumper';
+    else if (xPct >= 22 && xPct <= 38) detectedZone = 'hood';
+    else if (xPct > 65 && xPct <= 78) detectedZone = 'trunk';
+    else if (yPct < 35) detectedZone = (xPct < 52) ? 'door_fl' : 'door_rl';
+    else if (yPct > 65) detectedZone = (xPct < 52) ? 'door_fr' : 'door_rr';
+    else detectedZone = 'roof';
+
+    document.getElementById('pinPanelZone').value = detectedZone;
+    document.getElementById('lblMarkerNo').innerText = `#${damageMarkers.length + 1}`;
+    document.getElementById('pinModal').style.display = 'flex';
+  }
+
+  function closePinModal() {
+    document.getElementById('pinModal').style.display = 'none';
+    pendingCoords = null;
+  }
+
+  function previewPinPhoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentPhotoDataUrl = e.target.result;
+      document.getElementById('pinPhotoImg').src = currentPhotoDataUrl;
+      document.getElementById('pinPhotoPreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Confirm and Add Marker
+  function confirmPin() {
+    if (!pendingCoords) return;
+
+    const damageType = document.getElementById('pinDamageType').value;
+    const severity = document.getElementById('pinSeverity').value;
+    const panelZone = document.getElementById('pinPanelZone').value;
+    const repairCost = parseFloat(document.getElementById('pinRepairCost').value) || 0;
+    const notes = document.getElementById('pinNotes').value.trim();
+
+    const isNew = isCheckinDiffMode;
+    const isPre = !isCheckinDiffMode;
+
+    const marker = {
+      marker_number: damageMarkers.length + 1,
+      x_percent: pendingCoords.x,
+      y_percent: pendingCoords.y,
+      damage_type: damageType,
+      severity: severity,
+      panel_zone: panelZone,
+      estimated_repair_cost: repairCost,
+      is_new_damage: isNew,
+      is_pre_existing: isPre,
+      photo_data_url: currentPhotoDataUrl,
+      notes: notes
+    };
+
+    damageMarkers.push(marker);
+    closePinModal();
+    renderPins();
+    recomputeLedger();
+  }
+
+  // Render Pins onto Canvas & Table
+  function renderPins() {
+    const layer = document.getElementById('pinsLayer');
+    layer.innerHTML = '';
+    const tbody = document.getElementById('markersTableBody');
+    tbody.innerHTML = '';
+
+    document.getElementById('markerCountBadge').innerText = damageMarkers.length;
+
+    if (damageMarkers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 20px;">No damage markers pinned yet. Click on the car schematic above.</td></tr>';
+      return;
+    }
+
+    damageMarkers.forEach((m, idx) => {
+      // 1. Blueprint Pin
+      const pin = document.createElement('div');
+      pin.className = `damage-pin ${m.is_new_damage ? 'is-new' : 'is-pre-existing'}`;
+      pin.style.left = `${m.x_percent}%`;
+      pin.style.top = `${m.y_percent}%`;
+      pin.innerText = m.marker_number;
+      pin.title = `#${m.marker_number}: ${m.damage_type} on ${m.panel_zone} (₹${m.estimated_repair_cost})`;
+      pin.onclick = (e) => { e.stopPropagation(); deletePin(idx); };
+      layer.appendChild(pin);
+
+      // 2. Table Row
+      const tr = document.createElement('tr');
+      const badgeClass = m.is_new_damage ? 'color: #f87171; font-weight:700;' : 'color: #38bdf8;';
+      const statusLabel = m.is_new_damage ? '⚠️ NEW DAMAGE' : 'Pre-Existing';
+
+      tr.innerHTML = `
+        <td><strong>#${m.marker_number}</strong></td>
+        <td style="text-transform: capitalize;">${m.damage_type.replace('_', ' ')}</td>
+        <td><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.08);">${m.severity}</span></td>
+        <td><code>${m.panel_zone}</code></td>
+        <td style="${badgeClass}">${statusLabel}</td>
+        <td>₹${m.estimated_repair_cost.toFixed(2)}</td>
+        <td><button onclick="deletePin(${idx})" style="background: none; border: none; color: #f87171; cursor: pointer;">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function deletePin(idx) {
+    damageMarkers.splice(idx, 1);
+    damageMarkers.forEach((m, i) => m.marker_number = i + 1);
+    renderPins();
+    recomputeLedger();
+  }
+
+  function clearAllPins() {
+    if (confirm('Clear all placed damage pins?')) {
+      damageMarkers = [];
+      renderPins();
+      recomputeLedger();
+    }
+  }
+
+  // Recompute Financial Ledger
+  function recomputeLedger() {
+    const deposit = parseFloat(document.getElementById('inpSecurityDeposit').value) || 0;
+    let newDamageTotal = 0;
+    let preExistingCount = 0;
+
+    damageMarkers.forEach(m => {
+      if (m.is_new_damage) {
+        newDamageTotal += m.estimated_repair_cost;
+      } else {
+        preExistingCount++;
+      }
+    });
+
+    const netRefund = Math.max(0, deposit - newDamageTotal);
+
+    document.getElementById('lblDepositHeld').innerText = `₹${deposit.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('lblPreExistingCount').innerText = `${preExistingCount} spots`;
+    document.getElementById('lblNewDamageDeduction').innerText = `- ₹${newDamageTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('lblNetRefund').innerText = `₹${netRefund.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+  }
+
+  // Handover Type Toggle (Check-out vs Check-in Diff)
+  function onInspectionTypeChange(val) {
+    isCheckinDiffMode = (val === 'checkin');
+    document.getElementById('baselineWrap').style.display = isCheckinDiffMode ? 'block' : 'none';
+
+    const modeBadge = document.getElementById('canvasModeBadge');
+    if (isCheckinDiffMode) {
+      modeBadge.innerText = 'DIFF RETURN MODE (RED PINS = NEW DAMAGE)';
+      modeBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+      modeBadge.style.color = '#f87171';
+      modeBadge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+    } else {
+      modeBadge.innerText = 'PRE-EXISTING MODE';
+      modeBadge.style.background = 'rgba(2, 132, 199, 0.2)';
+      modeBadge.style.color = '#38bdf8';
+      modeBadge.style.borderColor = 'rgba(2, 132, 199, 0.4)';
+    }
+  }
+
+  // Load Baseline Inspection for Return Diff
+  async function loadBaselineInspection(id) {
+    if (!id) return;
+    try {
+      const res = await fetch(`/maintenance/api/damage-inspection/${id}/`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        document.getElementById('selVehicle').value = data.vehicle.id;
+        document.getElementById('selBodyStyle').value = data.vehicle.body_style || 'suv';
+        document.getElementById('inpCustomerName').value = data.customer_name || '';
+        document.getElementById('inpCustomerPhone').value = data.customer_phone || '';
+        document.getElementById('inpSecurityDeposit').value = data.security_deposit_held || 10000;
+
+        // Populate pre-existing pins
+        damageMarkers = [];
+        data.markers.forEach(m => {
+          damageMarkers.push({
+            marker_number: m.marker_number,
+            x_percent: m.x_percent,
+            y_percent: m.y_percent,
+            damage_type: m.damage_type,
+            severity: m.severity,
+            panel_zone: m.panel_zone,
+            estimated_repair_cost: m.estimated_repair_cost,
+            is_new_damage: false,
+            is_pre_existing: true,
+            photo_data_url: m.photo_data_url,
+            notes: m.notes
+          });
+        });
+        renderPins();
+        recomputeLedger();
+      }
+    } catch (e) {
+      console.error('Error loading baseline:', e);
+    }
+  }
+
+  // Body Style Switcher Silhouette Shape
+  function onBodyStyleChange(style) {
+    const chassis = document.getElementById('svgChassis');
+    if (style === 'sedan') {
+      chassis.setAttribute('d', 'M 160 150 C 130 150, 100 175, 90 225 C 100 275, 130 300, 160 300 L 640 300 C 670 300, 700 275, 710 225 C 700 175, 670 150, 640 150 Z');
+    } else if (style === 'tempo') {
+      chassis.setAttribute('d', 'M 140 135 C 120 135, 100 160, 95 225 C 100 290, 120 315, 140 315 L 670 315 C 690 315, 710 280, 710 225 C 710 170, 690 135, 670 135 Z');
+    } else if (style === 'bus') {
+      chassis.setAttribute('d', 'M 110 130 C 95 130, 85 160, 85 225 C 85 290, 95 320, 110 320 L 710 320 C 725 320, 735 290, 735 225 C 735 160, 725 130, 710 130 Z');
+    } else {
+      // Default SUV
+      chassis.setAttribute('d', 'M 160 140 C 130 140, 100 170, 90 225 C 100 280, 130 310, 160 310 L 640 310 C 670 310, 700 280, 710 225 C 700 170, 670 140, 640 140 Z');
+    }
+  }
+
+  function onVehicleChange(vId) {
+    const sel = document.getElementById('selVehicle');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset.km) {
+      document.getElementById('inpOdometer').value = opt.dataset.km;
+    }
+  }
+
+  // Save Full Handover Inspection
+  async function saveDamageInspection() {
+    const vehicleId = document.getElementById('selVehicle').value;
+    if (!vehicleId) {
+      alert('Please select a fleet vehicle first.');
+      return;
+    }
+
+    const fb = document.getElementById('saveFeedback');
+    fb.innerHTML = '<span style="color: #818cf8;">Saving inspection and computing damage ledger...</span>';
+
+    const custCanvas = document.getElementById('custSigCanvas');
+    const inspCanvas = document.getElementById('inspSigCanvas');
+
+    const payload = {
+      vehicle_id: vehicleId,
+      inspection_type: document.getElementById('selInspectionType').value,
+      vehicle_body_style: document.getElementById('selBodyStyle').value,
+      customer_name: document.getElementById('inpCustomerName').value,
+      customer_phone: document.getElementById('inpCustomerPhone').value,
+      inspector_name: document.getElementById('inpInspector').value,
+      odometer_reading: parseInt(document.getElementById('inpOdometer').value) || 0,
+      fuel_level_percent: parseInt(document.getElementById('inpFuel').value) || 100,
+      security_deposit_held: parseFloat(document.getElementById('inpSecurityDeposit').value) || 0,
+      baseline_checkout_id: document.getElementById('selBaseline').value || null,
+      customer_signature_data: custCanvas.toDataURL(),
+      inspector_signature_data: inspCanvas.toDataURL(),
+      notes: document.getElementById('inpNotes').value,
+      markers: damageMarkers
+    };
+
+    try {
+      const res = await fetch('/maintenance/api/damage-inspection/save/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        fb.innerHTML = `
+          <div style="color: #34d399; font-weight: 700; margin-top: 6px;">
+            ✓ Handover Saved! (#${data.inspection_number})<br/>
+            <a href="${data.print_url}" target="_blank" style="color: #38bdf8; text-decoration: underline;">🖨️ View &amp; Print Certificate</a>
+          </div>
+        `;
+      } else {
+        fb.innerHTML = `<span style="color: #f87171;">Error: ${data.message}</span>`;
+      }
+    } catch (e) {
+      fb.innerHTML = `<span style="color: #f87171;">Network error saving inspection: ${e.message}</span>`;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initSignaturePads();
+    recomputeLedger();
+  });
+</script>
+{% endblock %}

@@ -1,21 +1,22 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from datetime import date, time, timedelta
-from core.models import Vehicle, Party, Driver, Client, Supplier
+from core.models import Vehicle, Party, Driver, Client, Supplier, VehicleType
 from operations.models import Trip, Booking
 
 class OperationsHardeningTests(TestCase):
     def setUp(self):
+        self.vtype, _ = VehicleType.objects.get_or_create(name='Sedan')
         self.client = Client.objects.create(name='Test Client', phone='123')
         self.supplier = Supplier.objects.create(name='Test Supplier', phone='456')
-        self.owned_vehicle = Vehicle.objects.create(registration_number='TN01-1111', ownership_type='owned', vehicle_type='Sedan')
-        self.supplier_vehicle = Vehicle.objects.create(registration_number='TN02-2222', ownership_type='outsourced', vehicle_type='Sedan', owner_party=self.supplier)
+        self.owned_vehicle = Vehicle.objects.create(registration_number='TN01-1111', ownership_type='owned', vehicle_type=self.vtype)
+        self.supplier_vehicle = Vehicle.objects.create(registration_number='TN02-2222', ownership_type='outsourced', vehicle_type=self.vtype, owner_party=self.supplier)
         self.owned_driver = Driver.objects.create(name='Owned Driver', driver_type='owned', phone='777')
         self.supplier_driver = Driver.objects.create(name='Supplier Driver', driver_type='supplier', phone='888', employer_party=self.supplier)
         
         self.booking = Booking.objects.create(
             party=self.client, pickup_date=date(2025, 1, 1), pickup_time=time(10, 0),
-            pickup_location='A', destination='B', journey_type='local', vehicle_type='Sedan', guest_name='Guest'
+            pickup_location='A', destination='B', journey_type='local', vehicle_type=self.vtype, guest_name='Guest'
         )
 
     def test_missing_closing_km_on_completion(self):

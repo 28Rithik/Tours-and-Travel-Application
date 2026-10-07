@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -34,7 +35,7 @@ class NetPayableFilter(admin.SimpleListFilter):
 # ── Admins ────────────────────────────────────────────────────────────────────
 
 @admin.register(DriverSalaryProfile)
-class DriverSalaryProfileAdmin(admin.ModelAdmin):
+class DriverSalaryProfileAdmin(ModelAdmin):
     list_display = (
         'driver_badge',
         'basic_salary_display',
@@ -94,7 +95,7 @@ class DriverSalaryProfileAdmin(admin.ModelAdmin):
 
 
 @admin.register(DriverPayslip)
-class DriverPayslipAdmin(admin.ModelAdmin):
+class DriverPayslipAdmin(ModelAdmin):
     list_display = (
         'driver_badge',
         'period_display',
@@ -187,7 +188,7 @@ class DriverPayslipAdmin(admin.ModelAdmin):
 
 
 @admin.register(EmployeePayment)
-class EmployeePaymentAdmin(admin.ModelAdmin):
+class EmployeePaymentAdmin(ModelAdmin):
     list_display = (
         'date',
         'recipient_badge',

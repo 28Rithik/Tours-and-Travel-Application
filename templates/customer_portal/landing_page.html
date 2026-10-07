@@ -1,0 +1,1357 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Sivagayathiri Travels | Holiday Packages, College IVs & Outstation Fleet Rentals{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ----------------- Dual-Mode Hero Booking Engine ----------------- */
+.booking-engine-tabs {
+    display: flex;
+    gap: 0.35rem;
+    background: #0f172a;
+    padding: 0.35rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.booking-engine-tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 0.5rem;
+    border-radius: var(--radius-md);
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+.booking-engine-tab:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+.booking-engine-tab.active {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.journey-type-selector {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    background: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: var(--radius-md);
+}
+.journey-type-pill {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.4rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+.journey-type-pill.active {
+    background: white;
+    color: var(--brand-navy);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Quick Packages Tab */
+.package-finder-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.quick-chips-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+.quick-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.quick-chip:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+}
+
+/* Track Trip Tab */
+.track-tab-container {
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-align: left;
+}
+.track-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+/* ----------------- Government & Industry Trust Strip ----------------- */
+.trust-accreditation-strip {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-light);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    position: relative;
+    z-index: 10;
+}
+.trust-strip-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.trust-strip-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex: 1;
+    min-width: 200px;
+}
+.trust-strip-icon {
+    font-size: 1.75rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+.trust-strip-item h4 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    line-height: 1.2;
+    margin-bottom: 0.15rem;
+}
+.trust-strip-item p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.trust-strip-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border-light);
+}
+
+/* ----------------- Institutional Marquee Section ----------------- */
+.institutional-clients-section {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border-light);
+    overflow: hidden;
+}
+.marquee-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 0.75rem 0 1.25rem;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+.marquee-track {
+    display: flex;
+    gap: 1.25rem;
+    width: max-content;
+    animation: marqueeScroll 36s linear infinite;
+}
+.marquee-track:hover {
+    animation-play-state: paused;
+}
+@keyframes marqueeScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.client-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-full);
+    padding: 0.5rem 1.15rem;
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+.client-pill:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+.client-pill strong {
+    font-size: 0.85rem;
+    color: var(--brand-navy);
+}
+.client-pill small {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+}
+
+/* ----------------- Popular Intercity Routes Grid ----------------- */
+.routes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+.route-card {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.route-card:hover {
+    transform: translateY(-4px);
+    border-color: #cbd5e1;
+    box-shadow: var(--shadow-lg);
+}
+.route-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+.route-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #0369a1;
+    background: #e0f2fe;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+}
+.route-duration-chip {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-surface-alt);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+}
+.route-endpoints {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 0;
+    border-top: 1px dashed var(--border-light);
+    border-bottom: 1px dashed var(--border-light);
+}
+.route-point {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+.route-point:last-child {
+    align-items: flex-end;
+}
+.route-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-bottom: 0.25rem;
+}
+.route-dot.start {
+    background: #059669;
+    box-shadow: 0 0 6px rgba(5, 150, 105, 0.4);
+}
+.route-dot.end {
+    background: #e11d48;
+    box-shadow: 0 0 6px rgba(225, 29, 72, 0.4);
+}
+.route-city {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+}
+.route-line-connector {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    margin: 0 0.85rem;
+}
+.route-line-connector::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #059669, #0284c7, #e11d48);
+    opacity: 0.4;
+}
+.route-distance-pill {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 0.15rem 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+.route-meta-info {
+    margin-bottom: 1.25rem;
+    font-size: 0.82rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.route-meta-row {
+    display: flex;
+    justify-content: space-between;
+}
+.route-meta-row .meta-label {
+    color: var(--text-muted);
+}
+.route-meta-row .meta-value {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.route-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-light);
+    padding-top: 1rem;
+    margin-top: auto;
+}
+.route-price-amount {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--accent-emerald);
+    line-height: 1;
+}
+
+/* Fleet Card Real Photo Styles */
+.fleet-card-media {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    height: 175px;
+    margin-bottom: 1rem;
+    background: #0f172a;
+}
+.fleet-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.fleet-card:hover .fleet-card-media img {
+    transform: scale(1.05);
+}
+.fleet-media-badge {
+    position: absolute;
+    top: 0.65rem;
+    left: 0.65rem;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(6px);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (max-width: 1024px) {
+    .routes-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .trust-strip-divider {
+        display: none;
+    }
+}
+@media (max-width: 768px) {
+    .routes-grid {
+        grid-template-columns: 1fr;
+    }
+    .trust-strip-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .booking-engine-tab {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.35rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ==============================================================================
+     1. HERO BANNER WITH INTERACTIVE DUAL-MODE BOOKING ENGINE
+     ============================================================================== -->
+<section class="hero-wrapper">
+    <div class="hero-bg-overlay"></div>
+    <div class="hero-grid">
+        <!-- Left Hero Content -->
+        <div>
+            <div class="hero-badge-pill">
+                <span>✨</span> SOUTH INDIA'S TRUSTED FLEET & HOLIDAYS
+            </div>
+            <h1 class="hero-headline">
+                Experience South India's Most Scenic Circuits With <span class="gradient-text">Complete Comfort.</span>
+            </h1>
+            <p class="hero-subtitle">
+                Premium fixed-departure holiday packages, college industrial visits (IV), devotional temple yatras, and luxury outstation fleet rentals with 100% verified drivers and live satellite GPS tracking.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="#featured-packages" class="btn btn-emerald btn-lg" id="btn-hero-explore">
+                    Explore Packages 🎒
+                </a>
+                <a href="#fare-estimator" class="btn btn-outline btn-lg" style="color: white; border-color: rgba(255,255,255,0.35);">
+                    Outstation Fare Estimator 🚗
+                </a>
+            </div>
+
+            <!-- Hero Stats Row -->
+            <div class="hero-stats-row">
+                <div class="hero-stat-item">
+                    <h4>320+</h4>
+                    <p>Active Vehicles</p>
+                </div>
+                <div class="hero-stat-item">
+                    <h4>50,000+</h4>
+                    <p>Happy Travelers</p>
+                </div>
+                <div class="hero-stat-item">
+                    <h4>99.8%</h4>
+                    <p>On-Time SLA</p>
+                </div>
+                <div class="hero-stat-item">
+                    <h4>15+</h4>
+                    <p>Years Excellence</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Interactive Dual-Mode Booking Suite (Rentals, Tour Packages, Live Radar) -->
+        <div id="fare-estimator" class="estimator-card" x-data="fareEstimator()">
+            <!-- Tab Switcher -->
+            <div class="booking-engine-tabs" role="tablist">
+                <button type="button" class="booking-engine-tab" :class="{ 'active': activeTab === 'rental' }" @click="activeTab = 'rental'" role="tab" id="tab-btn-rental">
+                    🚗 Outstation Rentals
+                </button>
+                <button type="button" class="booking-engine-tab" :class="{ 'active': activeTab === 'packages' }" @click="activeTab = 'packages'" role="tab" id="tab-btn-packages">
+                    🎒 Tour Packages
+                </button>
+                <button type="button" class="booking-engine-tab" :class="{ 'active': activeTab === 'track' }" @click="activeTab = 'track'" role="tab" id="tab-btn-track">
+                    🛰️ Track Trip
+                </button>
+            </div>
+
+            <!-- TAB 1: OUTSTATION & LOCAL RENTAL FARE ESTIMATOR -->
+            <div x-show="activeTab === 'rental'" x-transition>
+                <div class="estimator-header">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">INSTANT OUTSTATION FARE CALCULATOR</span>
+                    <h3>Rent Cabs, Tempo Traveller & Bus</h3>
+                    <p>Transparent per-KM rates. Zero hidden markups. Professional chauffeurs.</p>
+                </div>
+
+                <!-- Journey Type Quick Pills -->
+                <div class="journey-type-selector">
+                    <button type="button" class="journey-type-pill" :class="{ 'active': journey_type === 'outstation_round' }" @click="journey_type = 'outstation_round'; calculateFare()">
+                        🔄 Round Trip
+                    </button>
+                    <button type="button" class="journey-type-pill" :class="{ 'active': journey_type === 'outstation_oneway' }" @click="journey_type = 'outstation_oneway'; calculateFare()">
+                        ➡️ One-Way Drop
+                    </button>
+                    <button type="button" class="journey-type-pill" :class="{ 'active': journey_type === 'local_8hr' }" @click="journey_type = 'local_8hr'; calculateFare()">
+                        ⏱️ Local (8H/80K)
+                    </button>
+                </div>
+
+                <form method="POST" action="{% url 'customer_portal:rental_checkout' %}" id="rental-estimator-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="journey_type" :value="journey_type">
+
+                    <div class="estimator-form-grid">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Vehicle Category</label>
+                            <select class="form-control" name="vehicle_tier" x-model="tier" @change="calculateFare" id="estimator-vehicle-tier">
+                                <option value="sedan">Compact Sedan (Swift Dzire / Etios) - 4 Seats</option>
+                                <option value="crysta">Toyota Innova Crysta Luxury MPV - 7 Seats</option>
+                                <option value="tt">Force Urbania / Tempo Traveller - 17 Seats</option>
+                                <option value="mini_bus">Deluxe Mini Bus - 36 Seats</option>
+                                <option value="luxury_coach">54-Seater Luxury Pushback AC Coach</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Pickup City</label>
+                            <input type="text" class="form-control" name="pickup_city" x-model="pickup_city" placeholder="e.g. Coimbatore" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Destination</label>
+                            <input type="text" class="form-control" name="destination" x-model="destination" placeholder="e.g. Ooty / Munnar" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Number of Days</label>
+                            <input type="number" class="form-control" name="days" x-model="days" min="1" max="30" @input="calculateFare">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Estimated Kilometers</label>
+                            <input type="number" class="form-control" name="estimated_km" x-model="estimated_km" min="50" step="10" @input="calculateFare">
+                        </div>
+
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label class="form-label">Pickup Date</label>
+                            <input type="date" class="form-control" name="pickup_date" x-model="pickup_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Your Name</label>
+                            <input type="text" class="form-control" name="guest_name" x-model="guest_name" placeholder="Lead Traveler Name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mobile Number</label>
+                            <input type="tel" class="form-control" name="guest_phone" x-model="guest_phone" placeholder="10-Digit Mobile" pattern="[0-9]{10}" required>
+                        </div>
+                    </div>
+
+                    <!-- Calculated Output Card -->
+                    <div class="estimator-result-box">
+                        <div class="result-row">
+                            <span>Billable Kilometers:</span>
+                            <strong x-text="billable_km + ' KMs'">300 KMs</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>Driver Bata Allowance:</span>
+                            <strong x-text="'₹' + driver_bata.toLocaleString('en-IN')">₹500</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>GST (5% Passenger Transport):</span>
+                            <strong x-text="'₹' + gst_amount.toLocaleString('en-IN')">₹310</strong>
+                        </div>
+                        <div class="result-total-row">
+                            <div>
+                                <div class="result-total-label">Estimated Total Fare</div>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">*Tolls & parking as per actual fastag receipts</small>
+                            </div>
+                            <div class="result-total-amount" x-text="'₹' + total_fare.toLocaleString('en-IN')">
+                                ₹6,510
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.85rem;" id="btn-book-rental">
+                        Book This Vehicle (Pay 50% Advance) →
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 2: TOUR PACKAGES QUICK-FINDER -->
+            <div x-show="activeTab === 'packages'" x-transition style="display: none;">
+                <div class="estimator-header">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">PACKAGE SEARCH ENGINE</span>
+                    <h3>Find Your Next Holiday</h3>
+                    <p>Over 6,250 curated South India itineraries with stays, transport & meals.</p>
+                </div>
+
+                <form method="GET" action="{% url 'customer_portal:package_list' %}" class="package-finder-container">
+                    <div class="form-group">
+                        <label class="form-label">Search Destination or Circuit</label>
+                        <input type="text" name="q" class="form-control" placeholder="e.g. Ooty, Munnar, Coorg, Rameshwaram..." style="padding: 0.75rem 1rem;">
+                    </div>
+
+                    <div class="estimator-form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Package Category</label>
+                            <select name="category" class="form-control">
+                                <option value="">All Categories</option>
+                                <option value="hill_station">⛰️ Hill Stations</option>
+                                <option value="devotional">🕉️ Devotional Yatras</option>
+                                <option value="college_iv">🎓 College IVs</option>
+                                <option value="holiday">🏖️ Leisure Holidays</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Sort By</label>
+                            <select name="sort" class="form-control">
+                                <option value="popular">Most Popular</option>
+                                <option value="price_low">Price: Low to High</option>
+                                <option value="price_high">Price: High to Low</option>
+                                <option value="duration">Trip Duration</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.35rem;">TRENDING CIRCUITS</span>
+                        <div class="quick-chips-row">
+                            <a href="{% url 'customer_portal:package_list' %}?q=Ooty" class="quick-chip">⛰️ Ooty & Coonoor</a>
+                            <a href="{% url 'customer_portal:package_list' %}?category=college_iv" class="quick-chip">🎓 Kerala College IV</a>
+                            <a href="{% url 'customer_portal:package_list' %}?category=devotional" class="quick-chip">🕉️ Rameshwaram</a>
+                            <a href="{% url 'customer_portal:package_list' %}?q=Munnar" class="quick-chip">🍃 Munnar Tea Hills</a>
+                            <a href="{% url 'customer_portal:package_list' %}?category=holiday" class="quick-chip">🏖️ Goa & Beaches</a>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-emerald" style="width: 100%; margin-top: 0.5rem; padding: 0.85rem; font-size: 0.95rem;">
+                        Search 6,250+ Tour Packages 🎒 →
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 3: LIVE SATELLITE TRIP & PNR RADAR -->
+            <div x-show="activeTab === 'track'" x-transition style="display: none;">
+                <div class="estimator-header">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">LIVE SATELLITE RADAR</span>
+                    <h3>Track Trip & Digital Pass</h3>
+                    <p>Instant telematics, driver verification & digital boarding passes.</p>
+                </div>
+
+                <form method="GET" action="{% url 'customer_portal:track_booking' %}" class="track-tab-container">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="form-label">Booking Reference or Mobile Number</label>
+                        <input type="text" name="q" class="form-control" placeholder="e.g. BK-2509-1234 or 9842512345" style="padding: 0.75rem 1rem;" required>
+                    </div>
+
+                    <ul class="track-feature-list">
+                        <li><span style="color: #10b981;">✓</span> Real-time AIS-140 GPS location & speed tracker</li>
+                        <li><span style="color: #10b981;">✓</span> Chauffeur name, contact & vehicle verification</li>
+                        <li><span style="color: #10b981;">✓</span> Instant digital PDF travel voucher & boarding pass</li>
+                    </ul>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem;">
+                        Locate Trip on Satellite Radar 🛰️ →
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     2. GOVERNMENT & INDUSTRY TRUST ACCREDITATION STRIP (Like Reference 2)
+     ============================================================================== -->
+<section class="trust-accreditation-strip" aria-label="Official accreditations and safety certifications">
+    <div class="trust-strip-inner">
+        <div class="trust-strip-item">
+            <div class="trust-strip-icon">🏛️</div>
+            <div>
+                <h4>Ministry of Tourism</h4>
+                <p>Recognized Tourist Transport Operator</p>
+            </div>
+        </div>
+        <div class="trust-strip-divider"></div>
+        <div class="trust-strip-item">
+            <div class="trust-strip-icon">🛡️</div>
+            <div>
+                <h4>AIS-140 Certified GPS</h4>
+                <p>100% Speed Governors & SOS Telematics</p>
+            </div>
+        </div>
+        <div class="trust-strip-divider"></div>
+        <div class="trust-strip-item">
+            <div class="trust-strip-icon">⭐</div>
+            <div>
+                <h4>4.9 / 5.0 Star Rating</h4>
+                <p>3,200+ Verified Traveler Reviews</p>
+            </div>
+        </div>
+        <div class="trust-strip-divider"></div>
+        <div class="trust-strip-item">
+            <div class="trust-strip-icon">🧾</div>
+            <div>
+                <h4>100% Transparent Billing</h4>
+                <p>Zero Hidden Fees & Fastag Receipts</p>
+            </div>
+        </div>
+        <div class="trust-strip-divider"></div>
+        <div class="trust-strip-item">
+            <div class="trust-strip-icon">🧳</div>
+            <div>
+                <h4>All-India Tourist Permit</h4>
+                <p>Seamless TN • KL • KA Interstate Passage</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     3. INSTITUTIONAL & CORPORATE COMMUTE PARTNERS MARQUEE (Like Reference 2)
+     ============================================================================== -->
+<section class="institutional-clients-section" aria-label="Trusted educational and corporate partners">
+    <div class="section-wrapper" style="padding-top: 3rem; padding-bottom: 2.5rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <span class="section-subtitle-tag" style="letter-spacing: 0.1em;">TRUSTED INSTITUTIONAL LOGISTICS</span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.65rem; color: var(--brand-navy); margin-top: 0.25rem;">
+                Chosen by 100+ Leading Colleges, IT Corridors & Enterprises
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.92rem; max-width: 680px; margin: 0.4rem auto 0;">
+                Official transit partner for College Industrial Visits (IVs), corporate tech park shuttles, and inter-state educational conventions.
+            </p>
+        </div>
+
+        <!-- Marquee Track with seamless infinite loop -->
+        <div class="marquee-container">
+            <div class="marquee-track">
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>PSG Tech</strong> <small>Coimbatore</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>TCS</strong> <small>Tata Consultancy</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>CIT Coimbatore</strong> <small>Govt-Aided Autonomous</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Cognizant</strong> <small>IT Corridors</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>Kumaraguru (KCT)</strong> <small>Expeditions</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Larsen & Toubro</strong> <small>L&T Heavy Civil</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>Amrita University</strong> <small>Campuses</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Ashok Leyland</strong> <small>Factory Shuttles</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>GCT Coimbatore</strong> <small>Govt Eng College</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>TVS Motor Co.</strong> <small>Industrial Fleet</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Rane Group</strong> <small>Corporate Logistics</small></div>
+                <!-- Duplicate for seamless looping -->
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>PSG Tech</strong> <small>Coimbatore</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>TCS</strong> <small>Tata Consultancy</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>CIT Coimbatore</strong> <small>Govt-Aided Autonomous</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Cognizant</strong> <small>IT Corridors</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>Kumaraguru (KCT)</strong> <small>Expeditions</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Larsen & Toubro</strong> <small>L&T Heavy Civil</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>Amrita University</strong> <small>Campuses</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Ashok Leyland</strong> <small>Factory Shuttles</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🎓</span> <strong>GCT Coimbatore</strong> <small>Govt Eng College</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>TVS Motor Co.</strong> <small>Industrial Fleet</small></div>
+                <div class="client-pill"><span style="font-size: 1.15rem;">🏢</span> <strong>Rane Group</strong> <small>Corporate Logistics</small></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     4. POPULAR INTERCITY CORRIDORS & FARE MATRIX (Like Reference 1)
+     ============================================================================== -->
+<section class="section-wrapper" id="popular-routes-section" style="padding-top: 3.5rem; padding-bottom: 2rem;">
+    <div class="section-header">
+        <span class="section-subtitle-tag">POPULAR INTERCITY CORRIDORS</span>
+        <h2 class="section-title">Popular Outstation Routes & Fixed Fare Estimates</h2>
+        <p class="section-desc">
+            Direct outstation cab, Urbania, and tourist coach rentals connecting South India's busiest cities and scenic hill retreats. Click any route to pre-load instant booking.
+        </p>
+    </div>
+
+    <div class="routes-grid">
+        {% for route in popular_routes %}
+        <div class="route-card">
+            <div class="route-card-top">
+                <span class="route-badge">{{ route.icon }} {{ route.badge }}</span>
+                <span class="route-duration-chip">⏱️ {{ route.duration_text }}</span>
+            </div>
+
+            <div class="route-endpoints">
+                <div class="route-point">
+                    <span class="route-dot start"></span>
+                    <strong class="route-city">{{ route.pickup }}</strong>
+                </div>
+                <div class="route-line-connector">
+                    <span class="route-distance-pill">{{ route.distance_km }} KM</span>
+                </div>
+                <div class="route-point">
+                    <span class="route-dot end"></span>
+                    <strong class="route-city">{{ route.destination }}</strong>
+                </div>
+            </div>
+
+            <div class="route-meta-info">
+                <div class="route-meta-row">
+                    <span class="meta-label">Route Terrain:</span>
+                    <span class="meta-value">{{ route.terrain }}</span>
+                </div>
+                <div class="route-meta-row">
+                    <span class="meta-label">Recommended Fleet:</span>
+                    <span class="meta-value" style="color: var(--primary); font-weight: 600;">{{ route.recommended_fleet }}</span>
+                </div>
+            </div>
+
+            <div class="route-card-footer">
+                <div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block;">Starting From</span>
+                    <div class="route-price-amount">
+                        ₹{{ route.starting_fare|floatformat:0 }}
+                        <small style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">*est</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" style="padding: 0.5rem 1.15rem; font-size: 0.85rem;"
+                    onclick="selectRoute('{{ route.pickup }}', '{{ route.destination }}', {{ route.distance_km }}, 2, '{{ route.tier }}')">
+                    Book Route 🚗
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     5. FEATURED HOLIDAY PACKAGES & CIRCUITS
+     ============================================================================== -->
+<section class="section-wrapper" id="featured-packages" x-data="{ currentCategory: 'all' }">
+    <div class="section-header">
+        <span class="section-subtitle-tag">CURATED EXPEDITIONS</span>
+        <h2 class="section-title">South India's Most Loved Tour Circuits</h2>
+        <p class="section-desc">
+            All-inclusive holiday packages with luxury AC coach transit, 3-star resort stays, campfire with DJ, guided sightseeing, and pure authentic meals.
+        </p>
+    </div>
+
+    <!-- Category Filter Pills -->
+    <div class="filter-pills-row">
+        <button class="filter-pill" :class="{ 'active': currentCategory === 'all' }" @click="currentCategory = 'all'">
+            🌟 All Packages
+        </button>
+        <button class="filter-pill" :class="{ 'active': currentCategory === 'hill_station' }" @click="currentCategory = 'hill_station'">
+            ⛰️ Hill Stations (Ooty, Coorg, Munnar)
+        </button>
+        <button class="filter-pill" :class="{ 'active': currentCategory === 'devotional' }" @click="currentCategory = 'devotional'">
+            🕉️ Devotional & Temple Circuits
+        </button>
+        <button class="filter-pill" :class="{ 'active': currentCategory === 'college_iv' }" @click="currentCategory = 'college_iv'">
+            🎓 College Industrial Visits (IV)
+        </button>
+        <button class="filter-pill" :class="{ 'active': currentCategory === 'holiday' }" @click="currentCategory = 'holiday'">
+            🏖️ Leisure & Beach Holidays
+        </button>
+    </div>
+
+    <!-- Package Cards Grid -->
+    <div class="package-cards-grid">
+        {% for pkg in all_packages %}
+        <div class="package-card" x-show="currentCategory === 'all' || currentCategory === '{{ pkg.category }}' || (currentCategory === 'holiday' && ('{{ pkg.category }}' === 'holiday' || '{{ pkg.category }}' === 'family_vacation'))" x-transition>
+            <div class="package-card-media">
+                <img src="/static/images/hero_tour_bus.jpg" alt="{{ pkg.name }}" loading="lazy">
+                <span class="media-badge-tag">
+                    {% if pkg.category == 'hill_station' %}⛰️ Hill Station{% elif pkg.category == 'devotional' %}🕉️ Devotional{% elif pkg.category == 'college_iv' %}🎓 College IV{% else %}🏖️ Holiday{% endif %}
+                </span>
+                <span class="media-duration-tag">
+                    {{ pkg.duration_nights }}N / {{ pkg.duration_days }}D
+                </span>
+            </div>
+
+            <div class="package-card-body">
+                <div class="package-destination">
+                    <span>📍</span> {{ pkg.destination }}
+                </div>
+                <h3 class="package-title">{{ pkg.name }}</h3>
+
+                <ul class="package-inclusions-list">
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>{{ pkg.vehicle_seating_desc|default:'Luxury Coach Transit' }}</span>
+                    </li>
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>{{ pkg.hotel_star_category|default:'Star Category Resort' }}</span>
+                    </li>
+                    {% if pkg.has_campfire_dj %}
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>DJ with Campfire Experience</span>
+                    </li>
+                    {% endif %}
+                    {% if pkg.has_jeep_safari %}
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>4x4 Off-Road Jeep Safari</span>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <div class="package-card-footer">
+                    <div class="package-price-box">
+                        <div class="price-label">Starting From</div>
+                        <div class="price-value">
+                            ₹{{ pkg.price_with_food|default:pkg.base_price|floatformat:0 }}
+                            <small style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">/ person</small>
+                        </div>
+                    </div>
+                    <a href="{% url 'customer_portal:package_detail' pkg.id %}" class="btn btn-primary" style="padding: 0.55rem 1rem;">
+                        View Itinerary & Book →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: span 3; text-align: center; padding: 3rem; background: white; border-radius: var(--radius-xl);">
+            <h3>No packages currently active.</h3>
+            <p>Please check back shortly or explore our outstation fleet rental services.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 2.5rem;">
+        <a href="{% url 'customer_portal:package_list' %}" class="btn btn-outline btn-lg">
+            View All {{ total_packages_count|default:'6,200+' }} Tour Packages Catalog →
+        </a>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     Option C: BESPOKE TOUR DESIGNER & COLLEGE IV SPECIALIST SHOWCASE
+     ============================================================================== -->
+<section class="section-wrapper" style="margin-bottom: 4rem;">
+    <div style="background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%); border-radius: var(--radius-xl); padding: 3.5rem 2.5rem; color: white; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45); border: 1px solid rgba(255, 255, 255, 0.1);">
+        <!-- Ambient Background Glows -->
+        <div style="position: absolute; top: -80px; right: -80px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(99, 102, 241, 0) 70%); pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -80px; left: -80px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%); pointer-events: none;"></div>
+
+        <div style="position: relative; z-index: 2;">
+            <!-- Header -->
+            <div style="text-align: center; max-width: 780px; margin: 0 auto 3rem;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(165, 180, 252, 0.35); color: #c7d2fe; padding: 0.35rem 0.95rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem;">
+                    <span>✨ BESPOKE TOUR DESIGNER & INSTANT QUOTE</span>
+                </div>
+                <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 800; color: white; line-height: 1.25; margin-bottom: 1rem;">
+                    Planning a College IV, Corporate Offsite, or Custom Family Tour?
+                </h2>
+                <p style="color: #cbd5e1; font-size: 1.02rem; line-height: 1.65; max-width: 660px; margin: 0 auto;">
+                    Don't settle for fixed dates. Customize your route, stay tier, DJ party setup, and Volvo coach fleet in 60 seconds with instant WhatsApp quote generation.
+                </p>
+            </div>
+
+            <!-- 3 Category Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                <!-- Card 1: College IV -->
+                <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; backdrop-filter: blur(10px);">
+                    <div>
+                        <div style="width: 52px; height: 52px; background: rgba(99, 102, 241, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 1.25rem;">
+                            🎓
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.5rem; font-family: 'Space Grotesk', sans-serif;">
+                            College Industrial Visits (IV)
+                        </h3>
+                        <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6; margin-bottom: 1.25rem;">
+                            Kerala (Munnar-Kochi-Wonderla), Bangalore tech parks, & Goa circuits. Includes factory permits, 3★ hotel stays, buffet food & campfire DJ.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem;">
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">45-500 Students</span>
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">Volvo / Mini Bus</span>
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">HOD Approval Doc</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openCustomTripModal('college_iv')" class="btn" style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white; width: 100%; justify-content: center; padding: 0.75rem 1rem; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);">
+                        Plan College IV (Instant Quote) →
+                    </button>
+                </div>
+
+                <!-- Card 2: Corporate Offsite -->
+                <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; backdrop-filter: blur(10px);">
+                    <div>
+                        <div style="width: 52px; height: 52px; background: rgba(14, 165, 233, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 1.25rem;">
+                            🏢
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.5rem; font-family: 'Space Grotesk', sans-serif;">
+                            Corporate Offsites & MICE
+                        </h3>
+                        <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6; margin-bottom: 1.25rem;">
+                            Chikmagalur coffee estate resorts, Ooty tea valley conferences, and team bonding retreats. Complete with GST invoicing and airport shuttles.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem;">
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">Force Urbania / TT</span>
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">GST Input Credit</span>
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">PA Mic & Wi-Fi</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openCustomTripModal('corporate')" class="btn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; width: 100%; justify-content: center; padding: 0.75rem 1rem; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+                        Plan Corporate Offsite →
+                    </button>
+                </div>
+
+                <!-- Card 3: Family & Pilgrimage -->
+                <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; backdrop-filter: blur(10px);">
+                    <div>
+                        <div style="width: 52px; height: 52px; background: rgba(16, 185, 129, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 1.25rem;">
+                            👨‍👩‍👧
+                        </div>
+                        <h3 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.5rem; font-family: 'Space Grotesk', sans-serif;">
+                            Custom Family & Pilgrimage
+                        </h3>
+                        <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.6; margin-bottom: 1.25rem;">
+                            Private chauffeur-driven Innova Crysta, child & senior-friendly hill station pacing, flexible temple darshan schedules, and hand-picked resorts.
+                        </p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem;">
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">Innova Crysta (7S)</span>
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">Doorstep Pickup</span>
+                            <span style="font-size: 0.72rem; background: rgba(255,255,255,0.08); padding: 0.2rem 0.55rem; border-radius: 6px; color: #cbd5e1;">Flexible Stops</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openCustomTripModal('family')" class="btn" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; width: 100%; justify-content: center; padding: 0.75rem 1rem; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);">
+                        Design Family Vacation →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Trust Bar at bottom of card -->
+            <div style="background: rgba(0, 0, 0, 0.35); border-radius: 12px; padding: 1rem 1.5rem; display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 1rem; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.85rem; color: #cbd5e1;">
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #10b981; font-weight: 800;">✓</span> ⚡ 60-Second Lead Response
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #10b981; font-weight: 800;">✓</span> 📄 Day-Wise WhatsApp PDF Itinerary
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #10b981; font-weight: 800;">✓</span> 🏷️ Direct Operator Rates (Zero Agent Markup)
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem;">
+                    <span style="color: #10b981; font-weight: 800;">✓</span> 🛡️ AIS-140 Live GPS Telematics
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     6. FLEET SHOWCASE & VEHICLE SPECIFICATIONS (With Real Fleet Photos)
+     ============================================================================== -->
+<section class="section-wrapper" id="fleet-showcase" style="background: var(--bg-surface-alt); border-radius: var(--radius-xl); margin-bottom: 4rem;">
+    <div class="section-header">
+        <span class="section-subtitle-tag">COMMERCIAL TRANSPORT MATRIX</span>
+        <h2 class="section-title">The Sivagayathiri Fleet</h2>
+        <p class="section-desc">
+            From executive 7-seater MPVs to high-capacity 54-seater multi-axle air-suspension coaches. Every vehicle is speed-governor fitted, sanitized, and GPS-monitored.
+        </p>
+    </div>
+
+    <div class="fleet-cards-grid">
+        <!-- Fleet Item 1: Sedan -->
+        <div class="fleet-card">
+            <div class="fleet-card-media">
+                <img src="/static/images/fleet/swift_dzire.jpg" alt="Swift Dzire / Toyota Etios Sedan" loading="lazy">
+                <span class="fleet-media-badge">🚗 4+1 Seats</span>
+            </div>
+            <h3 class="fleet-name">Swift Dzire / Etios</h3>
+            <span class="fleet-capacity-badge">4 Passengers • 2 Large Suitcases</span>
+            <ul class="fleet-specs-list">
+                <li>✓ Powerful Dual Air-Conditioning</li>
+                <li>✓ Reclining Plush Velvet Seats</li>
+                <li>✓ USB Fast Charging Ports</li>
+                <li>✓ Professional Uniformed Chauffeur</li>
+            </ul>
+            <div class="fleet-rate-box">
+                <div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">OUTSTATION RATE</span>
+                    <span class="fleet-rate-price">₹13 / KM</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                    <a href="{% url 'customer_portal:fleet' %}#tier-sedan" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem;">Specs →</a>
+                    <button type="button" onclick="selectFleetTier('sedan')" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; cursor: pointer;">Estimate 🚗</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Item 2: Crysta -->
+        <div class="fleet-card" style="border: 2px solid var(--primary-light);">
+            <div class="fleet-card-media">
+                <img src="/static/images/fleet/innova_crysta.jpg" alt="Toyota Innova Crysta Luxury MPV" loading="lazy">
+                <span class="fleet-media-badge" style="background: rgba(67, 56, 202, 0.9);">⭐ 7 Seats MPV</span>
+            </div>
+            <h3 class="fleet-name">Toyota Innova Crysta</h3>
+            <span class="fleet-capacity-badge" style="background: #e0e7ff; color: var(--primary);">7 Passengers • 4 Large Bags</span>
+            <ul class="fleet-specs-list">
+                <li>✓ Captain Recliner Seats (Middle Row)</li>
+                <li>✓ Dual Zone Automatic Climate Control</li>
+                <li>✓ Superior Hill-Climb Power & Suspension</li>
+                <li>✓ Bluetooth Surround Sound System</li>
+            </ul>
+            <div class="fleet-rate-box">
+                <div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">OUTSTATION RATE</span>
+                    <span class="fleet-rate-price">₹19 / KM</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                    <a href="{% url 'customer_portal:fleet' %}#tier-crysta" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem;">Specs →</a>
+                    <button type="button" onclick="selectFleetTier('crysta')" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; cursor: pointer;">Estimate ⭐</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Item 3: Force Urbania / TT -->
+        <div class="fleet-card">
+            <div class="fleet-card-media">
+                <img src="/static/images/fleet/force_urbania.jpg" alt="Force Urbania Luxury Van" loading="lazy">
+                <span class="fleet-media-badge">🚐 12 - 17 Seats</span>
+            </div>
+            <h3 class="fleet-name">Force Urbania / TT</h3>
+            <span class="fleet-capacity-badge">12 - 17 Passengers • Overhead Luggage</span>
+            <ul class="fleet-specs-list">
+                <li>✓ Executive Individual Pushback Seats</li>
+                <li>✓ High Roof with Walk-Through Aisle</li>
+                <li>✓ Individual AC Vents & Reading Lights</li>
+                <li>✓ 32-inch LED Screen & Mic for Tours</li>
+            </ul>
+            <div class="fleet-rate-box">
+                <div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">OUTSTATION RATE</span>
+                    <span class="fleet-rate-price">₹26 / KM</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                    <a href="{% url 'customer_portal:fleet' %}#tier-tt" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem;">Specs →</a>
+                    <button type="button" onclick="selectFleetTier('tt')" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; cursor: pointer;">Estimate 🚐</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fleet Item 4: Luxury Coach -->
+        <div class="fleet-card">
+            <div class="fleet-card-media">
+                <img src="/static/images/fleet/volvo_coach.jpg" alt="Volvo Multi-Axle Luxury Bus Coach" loading="lazy">
+                <span class="fleet-media-badge">🚌 50 - 54 Seats</span>
+            </div>
+            <h3 class="fleet-name">Volvo 9600 Multi-Axle Coach</h3>
+            <span class="fleet-capacity-badge">50 - 54 Passengers • Huge Underbelly Boot</span>
+            <ul class="fleet-specs-list">
+                <li>✓ Full Air Suspension (Zero Jerk Gliding)</li>
+                <li>✓ Laser Lights & JBL DJ Sound System</li>
+                <li>✓ Certified Emergency First Aid & Fire Safety</li>
+                <li>✓ AIS-140 Govt Approved GPS Telematics</li>
+            </ul>
+            <div class="fleet-rate-box">
+                <div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; font-weight: 700; text-transform: uppercase;">OUTSTATION RATE</span>
+                    <span class="fleet-rate-price">₹48 / KM</span>
+                </div>
+                <div style="display: flex; gap: 0.4rem;">
+                    <a href="{% url 'customer_portal:fleet' %}#tier-luxury_coach" class="btn btn-outline" style="padding: 0.4rem 0.65rem; font-size: 0.78rem;">Specs →</a>
+                    <button type="button" onclick="selectFleetTier('luxury_coach')" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.78rem; cursor: pointer;">Estimate 🚌</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Link to dedicated fleet page -->
+    <div style="text-align: center; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-medium);">
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Need full seating diagrams, engine specs, and side-by-side tariff comparisons for college IVs or corporate transport?
+        </p>
+        <a href="{% url 'customer_portal:fleet' %}" class="btn btn-primary btn-lg" style="box-shadow: var(--shadow-lg);">
+            Explore Complete 320+ Commercial Fleet Catalog & Specifications →
+        </a>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     4. INSTANT BOOKING TRACKER & BOARDING PASS FINDER
+     ============================================================================== -->
+<section class="section-wrapper" id="track-booking-section" style="max-width: 860px; margin: 0 auto 4rem;">
+    <div style="background: linear-gradient(135deg, #090d16, #1e1b4b); color: white; border-radius: var(--radius-xl); padding: 3rem 2.5rem; text-align: center; box-shadow: var(--shadow-xl);">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+            LIVE SATELLITE RADAR
+        </span>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin-bottom: 0.75rem;">
+            Track Your Trip & Digital Boarding Pass
+        </h2>
+        <p style="color: #cbd5e1; font-size: 0.95rem; max-width: 580px; margin: 0 auto 1.75rem;">
+            Enter your booking reference number (e.g. <code>BK-2509-1234</code>) or registered 10-digit mobile number to view live travel vouchers and driver telematics.
+        </p>
+
+        <form action="{% url 'customer_portal:track_booking' %}" method="GET" style="display: flex; gap: 0.75rem; max-width: 540px; margin: 0 auto;">
+            <input type="text" name="q" placeholder="Enter Booking Ref or Mobile Number..." class="form-control" style="flex: 1; padding: 0.85rem 1.25rem; font-size: 0.95rem;" required>
+            <button type="submit" class="btn btn-emerald" style="padding: 0.85rem 1.5rem; white-space: nowrap;">
+                Find Trip 🔍
+            </button>
+        </form>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     5. VERIFIED CLIENT TESTIMONIALS & TRUST
+     ============================================================================== -->
+<section class="section-wrapper" style="padding-top: 1rem;">
+    <div class="section-header">
+        <span class="section-subtitle-tag">VERIFIED REVIEWS</span>
+        <h2 class="section-title">Why Groups & Families Choose Us</h2>
+    </div>
+
+    <div class="fleet-cards-grid">
+        <div class="fleet-card">
+            <div style="color: #f59e0b; margin-bottom: 0.5rem;">⭐⭐⭐⭐⭐</div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem; font-style: italic;">
+                "Our college IV to Kochi and Vagamon with 52 students in Sivagayathiri's luxury coach was immaculate! The DJ system, campfire arrangement, and zero breakdown made it a grand success."
+            </p>
+            <div style="font-weight: 700; color: var(--brand-navy); font-size: 0.85rem;">Dr. S. Karthikeyan</div>
+            <small style="color: var(--text-muted);">Mechanical Dept HOD, PSG Tech, Coimbatore</small>
+        </div>
+
+        <div class="fleet-card">
+            <div style="color: #f59e0b; margin-bottom: 0.5rem;">⭐⭐⭐⭐⭐</div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem; font-style: italic;">
+                "Booked the Innova Crysta for our 3-day family trip to Ooty. Driver Anand was punctual, courteous, and drove with extreme care through the 36 hairpin bends. Outstanding service!"
+            </p>
+            <div style="font-weight: 700; color: var(--brand-navy); font-size: 0.85rem;">Praveen & Family</div>
+            <small style="color: var(--text-muted);">Bangalore (Family Holiday)</small>
+        </div>
+
+        <div class="fleet-card">
+            <div style="color: #f59e0b; margin-bottom: 0.5rem;">⭐⭐⭐⭐⭐</div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem; font-style: italic;">
+                "We arranged 8 buses for our corporate team building at Coorg. Transparent billing, live GPS tracking for our HR control room, and perfect timing. Sivagayathiri is our go-to partner."
+            </p>
+            <div style="font-weight: 700; color: var(--brand-navy); font-size: 0.85rem;">Meera Ramanathan</div>
+            <small style="color: var(--text-muted);">Senior HR Manager, IT Corridors, Chennai</small>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function fareEstimator() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    return {
+        activeTab: 'rental', // 'rental', 'packages', 'track'
+        tier: 'crysta',
+        journey_type: 'outstation_round',
+        pickup_city: 'Coimbatore',
+        destination: 'Ooty',
+        days: 2,
+        estimated_km: 300,
+        pickup_date: tomorrowStr,
+        guest_name: '{{ user.get_full_name|default:user.username|default:"" }}',
+        guest_phone: '{{ user.customer_profile.client_record.phone|default:"" }}',
+        billable_km: 600,
+        driver_bata: 1000,
+        gst_amount: 620,
+        total_fare: 13020,
+        advance_payable: 6510,
+        
+        init() {
+            this.calculateFare();
+        },
+        
+        async calculateFare() {
+            try {
+                const response = await fetch('/customer-portal/api/fare-estimator/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        vehicle_tier: this.tier,
+                        journey_type: this.journey_type,
+                        pickup_city: this.pickup_city,
+                        destination: this.destination,
+                        days: this.days,
+                        estimated_km: this.estimated_km
+                    })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    this.billable_km = data.billable_km;
+                    this.driver_bata = data.driver_bata_total;
+                    this.gst_amount = data.gst_amount;
+                    this.total_fare = data.total_estimate;
+                    this.advance_payable = data.advance_payable;
+                }
+            } catch (err) {
+                console.error("Fare estimator error:", err);
+            }
+        }
+    }
+}
+
+// Global fleet tier selection with auto-scroll
+window.selectFleetTier = function(tierName) {
+    const card = document.getElementById('fare-estimator');
+    if (card) {
+        if (window.Alpine && Alpine.$data) {
+            const data = Alpine.$data(card);
+            if (data) {
+                data.activeTab = 'rental';
+                data.tier = tierName;
+                data.calculateFare();
+            }
+        } else {
+            const selectEl = document.getElementById('estimator-vehicle-tier');
+            if (selectEl) {
+                selectEl.value = tierName;
+                selectEl.dispatchEvent(new Event('change'));
+            }
+        }
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
+
+// Global route selection with auto-scroll and instant fare estimate
+window.selectRoute = function(pickup, dest, km, days, tier) {
+    const card = document.getElementById('fare-estimator');
+    if (card) {
+        if (window.Alpine && Alpine.$data) {
+            const data = Alpine.$data(card);
+            if (data) {
+                data.activeTab = 'rental';
+                data.pickup_city = pickup;
+                data.destination = dest;
+                data.estimated_km = km;
+                data.days = days || 2;
+                if (tier) data.tier = tier;
+                data.calculateFare();
+            }
+        }
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
+</script>
+{% endblock %}

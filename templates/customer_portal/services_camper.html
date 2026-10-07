@@ -1,0 +1,310 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Luxury Camper Van & Caravan Tourism | Experiential Glamping | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+.service-hero {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #311042 100%);
+    color: white;
+    padding: 4.5rem 1.5rem 5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.service-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/fleet/camper_caravan.jpg') center/cover no-repeat;
+    opacity: 0.28;
+    filter: brightness(0.7) contrast(1.1);
+    pointer-events: none;
+}
+.service-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #e9d5ff;
+    padding: 0.35rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+}
+.service-hero h1 span {
+    background: linear-gradient(120deg, #c084fc, #e879f9, #f43f5e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.service-hero p {
+    color: #cbd5e1;
+    font-size: 1.1rem;
+    line-height: 1.65;
+    max-width: 780px;
+    margin: 0 auto 2.5rem;
+}
+.stats-strip {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.stat-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    min-width: 130px;
+}
+.stat-pill-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #c084fc;
+    line-height: 1;
+}
+.stat-pill-lbl {
+    font-size: 0.72rem;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.25rem;
+}
+
+/* Feature Grid */
+.features-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+}
+.feature-box-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06);
+    transition: all 0.3s ease;
+}
+.feature-box-card:hover {
+    transform: translateY(-4px);
+    border-color: #a855f7;
+    box-shadow: 0 15px 35px -8px rgba(168, 85, 247, 0.15);
+}
+.feature-box-icon {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+.feature-box-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.5rem;
+}
+.feature-box-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Camper Van Amenities & Destinations Grid */
+.camper-amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-top: 2rem;
+}
+.camper-amenity-card {
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s;
+}
+.camper-amenity-card:hover {
+    background: white;
+    border-color: #a855f7;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+.camper-amenity-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+.camper-amenity-card h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.25rem;
+}
+.camper-amenity-card p {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Call to Action Banner */
+.cta-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2.5rem;
+    color: white;
+    text-align: center;
+    margin: 4rem auto 1rem;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.4);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Section -->
+<section class="service-hero">
+    <div class="service-hero-bg"></div>
+    <div class="service-hero-content">
+        <div class="service-badge">
+            <span>🚐</span> EXPERIENTIAL CARAVAN & GLAMPING EXPEDITIONS
+        </div>
+        <h1>
+            Luxury Camper Van & <span>Caravan Tourism</span>
+        </h1>
+        <p>
+            Experience South India's pristine misty hills like never before. Sleep under starry skies in Valparai, Meghamalai, Kodaikanal, and Vagamon inside fully equipped luxury mobile suites with kitchenettes and sleeping berths.
+        </p>
+
+        <div class="stats-strip">
+            <div class="stat-pill">
+                <div class="stat-pill-num">Queen Bed</div>
+                <div class="stat-pill-lbl">Sofa-cum-Bed</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">Kitchenette</div>
+                <div class="stat-pill-lbl">Mini Cooking Bay</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">Awnings</div>
+                <div class="stat-pill-lbl">Outdoor Camping</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-pill-num">Off-Grid</div>
+                <div class="stat-pill-lbl">Dual Battery & Solar</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Main Content & Value Pillars -->
+<main class="section-wrapper">
+    <nav style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;" aria-label="Breadcrumbs">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <a href="{% url 'customer_portal:services_overview' %}" style="color: var(--text-secondary); text-decoration: none;">Services</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <strong style="color: var(--brand-navy);">Luxury Camper & Caravan</strong>
+    </nav>
+
+    <div style="text-align: center; max-width: 760px; margin: 0 auto;">
+        <span class="section-subtitle-tag">FREEDOM ON WHEELS</span>
+        <h2 class="section-title">A 5-Star Hotel That Travels With You</h2>
+        <p class="section-desc">
+            No hotel check-in restrictions, no rigid itineraries. Wake up to private sunrise views over Nilgiri tea estates and misty Western Ghats lakes.
+        </p>
+    </div>
+
+    <div class="features-grid-3">
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🛋️</div>
+            <h3>Convertible Sofa-cum-Queen Bed</h3>
+            <p>Plush memory foam seating converts seamlessly into a spacious sleeping lounge accommodating 2 adults + 2 kids in complete air-conditioned comfort.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">🍳</div>
+            <h3>Onboard Kitchenette & Chiller</h3>
+            <p>Equipped with an induction stove, electric kettle, coffee press, and a 40-liter deep refrigerator to store fresh milk, fruits, and drinks on long forest circuits.</p>
+        </div>
+
+        <div class="feature-box-card">
+            <div class="feature-box-icon">⛺</div>
+            <h3>Outdoor Camping Awning & Camp Chairs</h3>
+            <p>Roll out the 3-meter retractable side awning, set up folding camp chairs, and light up the portable barbecue under the stars with complete off-grid solar power.</p>
+        </div>
+    </div>
+
+    <!-- 3. Top Camper Destinations -->
+    <div style="margin: 4rem 0;">
+        <div style="text-align: center; max-width: 680px; margin: 0 auto 1.5rem;">
+            <span class="section-subtitle-tag">SCENIC CARAVAN SITES</span>
+            <h2 class="section-title">Curated Camping Destinations</h2>
+        </div>
+
+        <div class="camper-amenities-grid">
+            <div class="camper-amenity-card">
+                <div class="camper-amenity-icon">🌲</div>
+                <h4>Valparai & Sholayar</h4>
+                <p>Private tea estate camping among lion-tailed macaques and cloud-kissed peaks.</p>
+            </div>
+
+            <div class="camper-amenity-card">
+                <div class="camper-amenity-icon">⛰️</div>
+                <h4>Meghamalai (Highwavys)</h4>
+                <p>Hidden misty cardamom hills with zero tourist crowd and dramatic valley viewpoints.</p>
+            </div>
+
+            <div class="camper-amenity-card">
+                <div class="camper-amenity-icon">🍃</div>
+                <h4>Vagamon & Idukki</h4>
+                <p>Rolling pine forests, green meadows, and misty campfire spots across Kerala.</p>
+            </div>
+
+            <div class="camper-amenity-card">
+                <div class="camper-amenity-icon">🏞️</div>
+                <h4>Kodaikanal Countryside</h4>
+                <p>Poombarai & Mannavanur lake campouts with organic farm views and stargazing.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. CTA & Direct Quote -->
+    <div class="cta-banner">
+        <span style="font-size: 0.8rem; font-weight: 800; color: #e9d5ff; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
+            READY FOR AN UNFORGETTABLE ROAD EXPEDITION?
+        </span>
+        <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0 0 1rem;">
+            Reserve Your Luxury Camper Van
+        </h2>
+        <p style="color: #cbd5e1; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
+            Includes verified chauffeur-pilot, camping site permissions, fuel, and optional private cook assistance on demand.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="https://wa.me/919842533777?text=Hi%20Sivagayathiri%20Travels,%20I%20would%20like%20to%20rent%20the%20Luxury%20Camper%20Van" class="btn btn-primary" style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem;">
+                💬 WhatsApp Caravan Desk
+            </a>
+            <button type="button" onclick="openCustomTripModal('camper_van')" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem;">
+                📄 Request Caravan Tariff
+            </button>
+        </div>
+    </div>
+</main>
+{% endblock %}

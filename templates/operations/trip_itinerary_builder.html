@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tour Itinerary Builder Studio | Trip #{{ trip.trip_id }} | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 28, 45, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --accent: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background glows */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { top: -100px; left: -100px; width: 450px; height: 450px; background: rgba(99, 102, 241, 0.15); }
+    .glow-2 { bottom: -100px; right: -100px; width: 500px; height: 500px; background: rgba(16, 185, 129, 0.1); }
+
+    /* Top Sticky Navigation Bar */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .trip-badge-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .trip-id-tag {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.05));
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #818cf8;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Trip Summary Bar Card */
+    .trip-meta-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      backdrop-filter: blur(12px);
+    }
+
+    .meta-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .meta-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Template Importer Panel */
+    .importer-panel {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .importer-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .importer-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+    .package-select {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      min-width: 320px;
+      outline: none;
+    }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .day-count-badge {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #38bdf8;
+    }
+
+    /* Day Card Container */
+    .days-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .day-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      backdrop-filter: blur(12px);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .day-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    .day-card.active-today {
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.2);
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .day-pill-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .day-pill {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      letter-spacing: 0.04em;
+    }
+    .day-date-input {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+    }
+
+    .day-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+    .icon-btn-danger:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); border-color: var(--danger); }
+
+    /* Form Fields Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-input, .form-textarea, .form-select {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--primary);
+    }
+    .form-textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    /* Sightseeing Spot Tags Chip Bar */
+    .spots-preview-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .spot-chip {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #a5b4fc;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Hotel & Meals Sub-Box */
+    .sub-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .today-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      user-select: none;
+    }
+    .today-toggle-wrap input {
+      accent-color: var(--accent);
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Notification Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    #toast.success { border-color: var(--accent); color: #34d399; }
+    #toast.error { border-color: var(--danger); color: #f87171; }
+
+    /* Empty state */
+    .empty-state {
+      background: var(--card-bg);
+      border: 2px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .empty-icon {
+      font-size: 48px;
+      color: rgba(99, 102, 241, 0.4);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Top Sticky Bar -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <a href="{% url 'admin:operations_trip_change' trip.pk %}" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i> Trip Admin
+      </a>
+      <div class="trip-badge-title">
+        <span>Itinerary Studio</span>
+        <span class="trip-id-tag">#{{ trip.trip_id }}</span>
+      </div>
+    </div>
+
+    <div class="action-group">
+      <button type="button" class="btn btn-outline" id="btnAddDay">
+        <i class="fa-solid fa-plus"></i> Add Day
+      </button>
+      <a href="{{ guest_url }}" target="_blank" class="btn btn-outline">
+        <i class="fa-solid fa-mobile-screen-button"></i> Live Guest View
+      </a>
+      <button type="button" class="btn btn-primary" id="btnSaveItinerary">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Save Itinerary (Ctrl+S)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body Content -->
+  <main class="main-container">
+    
+    <!-- Trip Metadata Bar -->
+    <div class="trip-meta-card">
+      <div class="meta-stat">
+        <span class="meta-label">Guest / Client</span>
+        <span class="meta-value"><i class="fa-solid fa-user-tie" style="color: #818cf8;"></i> {{ trip.guest_name|default:trip.party.name }}</span>
+      </div>
+      <div class="meta-stat">
+        <span class="meta-label">Travel Dates</span>
+        <span class="meta-value"><i class="fa-solid fa-calendar-days" style="color: #38bdf8;"></i> {{ trip.start_date|default:"TBD" }} to {{ trip.end_date|default:"TBD" }}</span>
+      </div>
+      <div class="meta-stat">
+        <span class="meta-label">Assigned Vehicle</span>
+        <span class="meta-value"><i class="fa-solid fa-bus" style="color: #34d399;"></i> {{ trip.vehicle.registration_number|default:"Not Assigned" }}</span>
+      </div>
+      <div class="meta-stat">
+        <span class="meta-label">Assigned Pilot</span>
+        <span class="meta-value"><i class="fa-solid fa-id-card" style="color: #f59e0b;"></i> {{ trip.driver.name|default:"Not Assigned" }}</span>
+      </div>
+      <div class="meta-stat">
+        <span class="meta-label">Tour Package</span>
+        <span class="meta-value"><i class="fa-solid fa-suitcase-rolling" style="color: #c084fc;"></i> {{ trip.package.name|default:"Custom Outstation Trip"|truncatechars:35 }}</span>
+      </div>
+    </div>
+
+    <!-- 1-Click Import from Master Package Circuit -->
+    <div class="importer-panel">
+      <div class="importer-left">
+        <div class="importer-icon">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </div>
+        <div>
+          <div style="font-weight: 800; font-size: 14px;">1-Click Template Auto-Fill</div>
+          <div style="font-size: 12px; color: var(--text-muted);">Clone day-by-day sightseeing and hotels directly from pre-built tour packages</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <select class="package-select" id="selectPackageTemplate">
+          {% if trip.package %}
+            <option value="{{ trip.package.id }}" selected>⭐ Current: {{ trip.package.name }} ({{ trip.package.duration_days }}D)</option>
+          {% else %}
+            <option value="">-- Choose Package Template --</option>
+          {% endif %}
+          {% for pkg in packages %}
+            {% if pkg.id != trip.package_id %}
+              <option value="{{ pkg.id }}">{{ pkg.name }} ({{ pkg.destination }} - {{ pkg.duration_days }}D)</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <button type="button" class="btn btn-outline" id="btnImportPackage" style="border-color: #6366f1; color: #a5b4fc;">
+          <i class="fa-solid fa-download"></i> Apply Template
+        </button>
+      </div>
+    </div>
+
+    <!-- Section Title & Day List -->
+    <div class="section-header">
+      <div class="section-title">
+        <i class="fa-solid fa-route" style="color: #6366f1;"></i>
+        <span>Day-by-Day Sightseeing & Route Stops</span>
+        <span class="day-count-badge" id="dayCountBadge">{{ days.count }} Days</span>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted);">
+        <i class="fa-solid fa-keyboard"></i> Hotkey: Press <kbd style="background:#1e293b; padding:2px 6px; border-radius:4px;">Ctrl+S</kbd> to save anytime
+      </div>
+    </div>
+
+    <div class="days-deck" id="daysDeck">
+      {% for day in days %}
+      <div class="day-card {% if day.is_active_today %}active-today{% endif %}" data-day-index="{{ forloop.counter }}">
+        <div class="day-header">
+          <div class="day-pill-wrap">
+            <span class="day-pill">Day <span class="day-num-display">{{ day.day_number|stringformat:"02d" }}</span></span>
+            <input type="date" class="day-date-input" value="{{ day.date|date:'Y-m-d'|default:'' }}">
+            <label class="today-toggle-wrap">
+              <input type="checkbox" class="is-active-today-chk" {% if day.is_active_today %}checked{% endif %}>
+              <span>Today's Active Day</span>
+            </label>
+          </div>
+          <div class="day-actions">
+            <button type="button" class="icon-btn btn-move-up" title="Move Up"><i class="fa-solid fa-chevron-up"></i></button>
+            <button type="button" class="icon-btn btn-move-down" title="Move Down"><i class="fa-solid fa-chevron-down"></i></button>
+            <button type="button" class="icon-btn icon-btn-danger btn-delete-day" title="Delete Day"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-heading" style="color: #818cf8;"></i> Day Headline / Title</label>
+            <input type="text" class="form-input day-title-input" value="{{ day.title }}" placeholder="e.g. Arriving Mysore - KRS Dam - Proceed Coorg">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-signs-post" style="color: #38bdf8;"></i> Route Transit Segment</label>
+            <input type="text" class="form-input day-route-input" value="{{ day.route_segment }}" placeholder="e.g. Bangalore to Mysore by luxury coach">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-sun" style="color: #f59e0b;"></i> Morning Activity & Breakfast</label>
+            <textarea class="form-textarea day-morning-input" placeholder="e.g. Check in to hotel, refreshment, south Indian buffet breakfast">{{ day.morning_plan }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-camera-retro" style="color: #ec4899;"></i> Sightseeing Spots (Comma separated)</label>
+            <textarea class="form-textarea day-spots-input" placeholder="e.g. Mysore Palace, Chamundi Hills, Brindavan Gardens, KRS Dam">{{ day.sightseeing_spots }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-moon" style="color: #a855f7;"></i> Evening / Night Highlights</label>
+            <textarea class="form-textarea day-evening-input" placeholder="e.g. Proceed to Coorg resort, dinner, campfire with DJ music">{{ day.evening_plan }}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-location-dot" style="color: #10b981;"></i> Overnight Stay City / Area</label>
+            <input type="text" class="form-input day-night-stay-input" value="{{ day.night_stay_location }}" placeholder="e.g. Coorg (Madikeri)">
+          </div>
+        </div>
+
+        <!-- Hotel & Accommodation Sub-Card -->
+        <div class="sub-box">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-hotel" style="color: #38bdf8;"></i> Hotel / Resort Name</label>
+            <input type="text" class="form-input day-hotel-name-input" value="{{ day.hotel_name }}" placeholder="e.g. Coorg Cliffs Resort">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-ticket" style="color: #10b981;"></i> Booking Status</label>
+            <select class="form-select day-hotel-status-select">
+              <option value="pending" {% if day.hotel_booking_status == 'pending' %}selected{% endif %}>⏳ Pending Confirmation</option>
+              <option value="confirmed" {% if day.hotel_booking_status == 'confirmed' %}selected{% endif %}>✅ Confirmed Voucher</option>
+              <option value="checked_in" {% if day.hotel_booking_status == 'checked_in' %}selected{% endif %}>🏨 Checked In</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-receipt" style="color: #fbbf24;"></i> Voucher / Booking Ref</label>
+            <input type="text" class="form-input day-voucher-input" value="{{ day.hotel_voucher_number }}" placeholder="e.g. VCH-CRG-9982">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-utensils" style="color: #f87171;"></i> Meals Included</label>
+            <input type="text" class="form-input day-meals-input" value="{{ day.meals_included }}" placeholder="e.g. Breakfast, Lunch, Dinner">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-van-shuttle" style="color: #a78bfa;"></i> Transport Mode</label>
+            <input type="text" class="form-input day-transport-input" value="{{ day.transport_mode }}" placeholder="e.g. 54-Seater AC Luxury Coach / Jeep Safari">
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-state" id="emptyStateNotice">
+        <div class="empty-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+        <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 8px;">No Itinerary Days Added Yet</h3>
+        <p style="color: var(--text-muted); font-size: 13px; max-width: 450px; margin: 0 auto 20px;">
+          Build customized day-by-day tour itineraries for your guest or 1-click apply a pre-designed tour package template.
+        </p>
+        <button type="button" class="btn btn-primary" id="btnEmptyAdd">
+          <i class="fa-solid fa-plus"></i> Add Day 01 Now
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
+
+  <div id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMessage">Itinerary saved successfully.</span>
+  </div>
+
+  <script>
+    const tripId = {{ trip.pk }};
+    const startDateStr = "{{ trip.start_date|date:'Y-m-d'|default:'' }}";
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMessage');
+      toast.className = type;
+      toastMsg.innerText = message;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    function renumberDays() {
+      const cards = document.querySelectorAll('.day-card');
+      const badge = document.getElementById('dayCountBadge');
+      if (badge) badge.innerText = `${cards.length} Days`;
+
+      const empty = document.getElementById('emptyStateNotice');
+      if (empty) {
+        empty.style.display = cards.length === 0 ? 'block' : 'none';
+      }
+
+      cards.forEach((card, index) => {
+        const dayNum = index + 1;
+        card.setAttribute('data-day-index', dayNum);
+        const display = card.querySelector('.day-num-display');
+        if (display) {
+          display.innerText = String(dayNum).padStart(2, '0');
+        }
+
+        // If date is empty and start date exists, calculate date
+        const dateInput = card.querySelector('.day-date-input');
+        if (dateInput && !dateInput.value && startDateStr) {
+          try {
+            const d = new Date(startDateStr);
+            d.setDate(d.getDate() + index);
+            dateInput.value = d.toISOString().split('T')[0];
+          } catch(e) {}
+        }
+      });
+    }
+
+    function createDayCard(dayData = {}) {
+      const deck = document.getElementById('daysDeck');
+      const count = deck.querySelectorAll('.day-card').length + 1;
+
+      let dateVal = dayData.date || '';
+      if (!dateVal && startDateStr) {
+        try {
+          const d = new Date(startDateStr);
+          d.setDate(d.getDate() + (count - 1));
+          dateVal = d.toISOString().split('T')[0];
+        } catch(e) {}
+      }
+
+      const card = document.createElement('div');
+      card.className = `day-card ${dayData.is_active_today ? 'active-today' : ''}`;
+      card.setAttribute('data-day-index', count);
+
+      card.innerHTML = `
+        <div class="day-header">
+          <div class="day-pill-wrap">
+            <span class="day-pill">Day <span class="day-num-display">${String(count).padStart(2, '0')}</span></span>
+            <input type="date" class="day-date-input" value="${dateVal}">
+            <label class="today-toggle-wrap">
+              <input type="checkbox" class="is-active-today-chk" ${dayData.is_active_today ? 'checked' : ''}>
+              <span>Today's Active Day</span>
+            </label>
+          </div>
+          <div class="day-actions">
+            <button type="button" class="icon-btn btn-move-up" title="Move Up"><i class="fa-solid fa-chevron-up"></i></button>
+            <button type="button" class="icon-btn btn-move-down" title="Move Down"><i class="fa-solid fa-chevron-down"></i></button>
+            <button type="button" class="icon-btn icon-btn-danger btn-delete-day" title="Delete Day"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-heading" style="color: #818cf8;"></i> Day Headline / Title</label>
+            <input type="text" class="form-input day-title-input" value="${dayData.title || ''}" placeholder="e.g. Arriving Mysore - KRS Dam - Proceed Coorg">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-signs-post" style="color: #38bdf8;"></i> Route Transit Segment</label>
+            <input type="text" class="form-input day-route-input" value="${dayData.route_segment || ''}" placeholder="e.g. Bangalore to Mysore by luxury coach">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-sun" style="color: #f59e0b;"></i> Morning Activity & Breakfast</label>
+            <textarea class="form-textarea day-morning-input" placeholder="e.g. Check in to hotel, refreshment, south Indian buffet breakfast">${dayData.morning_plan || ''}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-camera-retro" style="color: #ec4899;"></i> Sightseeing Spots (Comma separated)</label>
+            <textarea class="form-textarea day-spots-input" placeholder="e.g. Mysore Palace, Chamundi Hills, Brindavan Gardens, KRS Dam">${dayData.sightseeing_spots || ''}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-moon" style="color: #a855f7;"></i> Evening / Night Highlights</label>
+            <textarea class="form-textarea day-evening-input" placeholder="e.g. Proceed to Coorg resort, dinner, campfire with DJ music">${dayData.evening_plan || ''}</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-location-dot" style="color: #10b981;"></i> Overnight Stay City / Area</label>
+            <input type="text" class="form-input day-night-stay-input" value="${dayData.night_stay_location || ''}" placeholder="e.g. Coorg (Madikeri)">
+          </div>
+        </div>
+
+        <div class="sub-box">
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-hotel" style="color: #38bdf8;"></i> Hotel / Resort Name</label>
+            <input type="text" class="form-input day-hotel-name-input" value="${dayData.hotel_name || ''}" placeholder="e.g. Coorg Cliffs Resort">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-ticket" style="color: #10b981;"></i> Booking Status</label>
+            <select class="form-select day-hotel-status-select">
+              <option value="pending" ${dayData.hotel_booking_status === 'pending' ? 'selected' : ''}>⏳ Pending Confirmation</option>
+              <option value="confirmed" ${dayData.hotel_booking_status === 'confirmed' ? 'selected' : ''}>✅ Confirmed Voucher</option>
+              <option value="checked_in" ${dayData.hotel_booking_status === 'checked_in' ? 'selected' : ''}>🏨 Checked In</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-receipt" style="color: #fbbf24;"></i> Voucher / Booking Ref</label>
+            <input type="text" class="form-input day-voucher-input" value="${dayData.hotel_voucher_number || ''}" placeholder="e.g. VCH-CRG-9982">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-utensils" style="color: #f87171;"></i> Meals Included</label>
+            <input type="text" class="form-input day-meals-input" value="${dayData.meals_included || 'Breakfast, Lunch, Dinner'}" placeholder="e.g. Breakfast, Lunch, Dinner">
+          </div>
+          <div class="form-group">
+            <label class="form-label"><i class="fa-solid fa-van-shuttle" style="color: #a78bfa;"></i> Transport Mode</label>
+            <input type="text" class="form-input day-transport-input" value="${dayData.transport_mode || ''}" placeholder="e.g. 54-Seater AC Luxury Coach / Jeep Safari">
+          </div>
+        </div>
+      `;
+
+      deck.appendChild(card);
+      renumberDays();
+      attachCardListeners(card);
+    }
+
+    function attachCardListeners(card) {
+      const btnUp = card.querySelector('.btn-move-up');
+      const btnDown = card.querySelector('.btn-move-down');
+      const btnDel = card.querySelector('.btn-delete-day');
+      const chkActive = card.querySelector('.is-active-today-chk');
+
+      if (btnUp) {
+        btnUp.onclick = () => {
+          const prev = card.previousElementSibling;
+          if (prev && prev.classList.contains('day-card')) {
+            card.parentNode.insertBefore(card, prev);
+            renumberDays();
+          }
+        };
+      }
+
+      if (btnDown) {
+        btnDown.onclick = () => {
+          const next = card.nextElementSibling;
+          if (next && next.classList.contains('day-card')) {
+            card.parentNode.insertBefore(next, card);
+            renumberDays();
+          }
+        };
+      }
+
+      if (btnDel) {
+        btnDel.onclick = () => {
+          if (confirm('Delete this itinerary day?')) {
+            card.remove();
+            renumberDays();
+          }
+        };
+      }
+
+      if (chkActive) {
+        chkActive.onchange = () => {
+          if (chkActive.checked) {
+            document.querySelectorAll('.is-active-today-chk').forEach(c => {
+              if (c !== chkActive) c.checked = false;
+            });
+            document.querySelectorAll('.day-card').forEach(dc => dc.classList.remove('active-today'));
+            card.classList.add('active-today');
+          } else {
+            card.classList.remove('active-today');
+          }
+        };
+      }
+    }
+
+    // Attach listeners to already rendered cards
+    document.querySelectorAll('.day-card').forEach(attachCardListeners);
+
+    // Add Day Buttons
+    document.getElementById('btnAddDay').addEventListener('click', () => createDayCard());
+    const emptyBtn = document.getElementById('btnEmptyAdd');
+    if (emptyBtn) emptyBtn.addEventListener('click', () => createDayCard());
+
+    // Save All Itinerary Changes
+    async function saveItinerary() {
+      const cards = document.querySelectorAll('.day-card');
+      const daysData = [];
+
+      cards.forEach((card, index) => {
+        daysData.push({
+          day_number: index + 1,
+          date: card.querySelector('.day-date-input')?.value || null,
+          title: card.querySelector('.day-title-input')?.value || `Day ${index + 1}`,
+          route_segment: card.querySelector('.day-route-input')?.value || '',
+          morning_plan: card.querySelector('.day-morning-input')?.value || '',
+          sightseeing_spots: card.querySelector('.day-spots-input')?.value || '',
+          evening_plan: card.querySelector('.day-evening-input')?.value || '',
+          night_stay_location: card.querySelector('.day-night-stay-input')?.value || '',
+          hotel_name: card.querySelector('.day-hotel-name-input')?.value || '',
+          hotel_booking_status: card.querySelector('.day-hotel-status-select')?.value || 'pending',
+          hotel_voucher_number: card.querySelector('.day-voucher-input')?.value || '',
+          meals_included: card.querySelector('.day-meals-input')?.value || 'Breakfast, Lunch, Dinner',
+          transport_mode: card.querySelector('.day-transport-input')?.value || '',
+          is_active_today: card.querySelector('.is-active-today-chk')?.checked || false,
+        });
+      });
+
+      if (daysData.length === 0) {
+        showToast('Please add at least one day before saving.', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnSaveItinerary');
+      const origText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/trip/${tripId}/itinerary/save/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ days: daysData })
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          showToast(result.message, 'success');
+        } else {
+          showToast(result.message || 'Error saving itinerary', 'error');
+        }
+      } catch (err) {
+        showToast(err.message || 'Network error', 'error');
+      } finally {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById('btnSaveItinerary').addEventListener('click', saveItinerary);
+
+    // Hotkey Ctrl+S / Cmd+S
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveItinerary();
+      }
+    });
+
+    // 1-Click Import from Package Template
+    document.getElementById('btnImportPackage').addEventListener('click', async () => {
+      const select = document.getElementById('selectPackageTemplate');
+      const pkgId = select.value;
+      if (!pkgId) {
+        showToast('Please select a package template first.', 'error');
+        return;
+      }
+
+      if (!confirm('Importing will replace the current days with the selected package circuit. Continue?')) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/trip/${tripId}/itinerary/import-package/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ package_id: pkgId })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+          // Reload page to reflect fresh imported days
+          setTimeout(() => { window.location.reload(); }, 600);
+        } else {
+          showToast(data.message || 'Failed to import package', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

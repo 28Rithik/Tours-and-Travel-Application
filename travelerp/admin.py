@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.admin.views.autocomplete import AutocompleteJsonView
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from unfold.sites import UnfoldAdminSite
+
 
 
 # ── Party-filtered Autocomplete ────────────────────────────────────────────────
@@ -39,7 +41,7 @@ class PartyFilteredAutocompleteView(AutocompleteJsonView):
         return qs
 
 
-class TravelERPAdminSite(admin.AdminSite):
+class TravelERPAdminSite(UnfoldAdminSite):
     site_header = "TravelERP Administration"
     site_title = "TravelERP Admin Portal"
     index_title = "Welcome to TravelERP Portal"
@@ -295,3 +297,4 @@ class TravelERPAdminSite(admin.AdminSite):
             'unsettled_advances_count': unsettled_count,
         })
         return super().index(request, extra_context=extra_context)
+

@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Driver Handover Portal | Sivagayathiri Travels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 28, 45, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.35);
+      --primary-dark: #059669;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --danger-glow: rgba(239, 68, 68, 0.4);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --input-bg: #111827;
+      --border-color: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #172554 0%, var(--bg) 75%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px 90px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Top Brand Bar */
+    .brand-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+    }
+    .brand-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .sos-mini-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px var(--danger-glow);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Trip Header Card */
+    .trip-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 18px;
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+    .trip-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+    .trip-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .trip-id-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    .badge-status {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .status-started { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .status-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .status-ended { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+    .route-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .route-point {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    .dot-start { width: 10px; height: 10px; border-radius: 50%; background: #10b981; flex-shrink: 0; box-shadow: 0 0 8px #10b981; }
+    .dot-end { width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; box-shadow: 0 0 8px #f59e0b; }
+    .point-text { font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .point-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+
+    .vehicle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .veh-reg { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fbbf24; font-size: 14px; }
+    .veh-model { font-size: 12px; color: var(--text-muted); }
+
+    /* Mode Selector Tabs */
+    .tabs-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(17, 24, 39, 0.9);
+      padding: 4px;
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
+      gap: 4px;
+    }
+    .tab-btn {
+      padding: 12px 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .tab-btn.end-active {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+    }
+
+    /* Form Container */
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-input {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-glow);
+    }
+    .input-km {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #38bdf8;
+    }
+
+    /* Camera Upload Box */
+    .camera-box {
+      border: 2px dashed rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.6);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .camera-box:hover {
+      border-color: #38bdf8;
+      background: rgba(15, 23, 42, 0.85);
+    }
+    .camera-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+    }
+    .camera-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #e2e8f0;
+    }
+    .camera-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .file-hidden {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .photo-preview {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      display: none;
+      margin-top: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* GPS Location pill */
+    .gps-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gps-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .gps-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Mileage Calculator Card */
+    .calc-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .calc-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+    .calc-stat-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 800; color: #34d399; }
+
+    /* Sliders & Ratings */
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .range-input {
+      flex: 1;
+      accent-color: var(--primary);
+    }
+    .range-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fbbf24;
+      width: 44px;
+      text-align: right;
+    }
+
+    /* Primary Action Buttons */
+    .btn-submit {
+      background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+      color: #fff;
+      border: none;
+      padding: 15px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 20px var(--primary-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit-end {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+    }
+
+    /* Modal for SOS */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: none;
+      place-items: center;
+      padding: 16px;
+    }
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid var(--danger);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 40px var(--danger-glow);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Flash Messages */
+    .alert-banner {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .alert-success { background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; }
+    .alert-error { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Brand & SOS Header -->
+    <div class="brand-bar">
+      <div class="brand-info">
+        <div class="brand-icon">🚗</div>
+        <div>
+          <div class="brand-title">Sivagayathiri Travels</div>
+          <div class="brand-sub">Driver Handover Digital Twin</div>
+        </div>
+      </div>
+      <button type="button" class="sos-mini-btn" onclick="openSosModal()">
+        🚨 SOS
+      </button>
+    </div>
+
+    <!-- Django Messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert-banner {% if msg.tags == 'success' %}alert-success{% else %}alert-error{% endif %}">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <!-- Trip Overview Card -->
+    <div class="trip-card">
+      <div class="trip-header-row">
+        <div>
+          <span class="trip-id-tag">#{{ trip.trip_id }}</span>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Guest: <strong style="color: #fff;">{{ trip.guest_name|default:"Valued Guest" }}</strong></div>
+        </div>
+        <div>
+          {% if trip.driver_handover_status == 'started' %}
+            <span class="badge-status status-started">● Trip Active</span>
+          {% elif trip.driver_handover_status == 'ended' %}
+            <span class="badge-status status-ended">✓ Completed</span>
+          {% else %}
+            <span class="badge-status status-pending">⏳ Handover Pending</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="route-grid">
+        <div class="route-point">
+          <div class="dot-start"></div>
+          <div>
+            <div class="point-label">Pickup ({{ trip.start_time|default:"Reporting" }})</div>
+            <div class="point-text">{{ trip.pickup_location|default:"City Center" }}</div>
+          </div>
+        </div>
+        <div class="route-point">
+          <div class="dot-end"></div>
+          <div>
+            <div class="point-label">Destination</div>
+            <div class="point-text">{{ trip.destination|default:"Scheduled Drop" }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vehicle-row">
+        <div>
+          <div class="veh-reg">{{ trip.vehicle.registration_number|default:"TN-XX-XXXX" }}</div>
+          <div class="veh-model">{{ trip.vehicle.brand }} {{ trip.vehicle.model }} ({{ trip.vehicle.vehicle_type.name|default:"Fleet" }})</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Base Odo</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fff;">{{ trip.opening_km|default:trip.vehicle.current_km|default:0 }} KM</div>
+        </div>
+      </div>
+
+      <a href="/trip/{{ trip.pk }}/lifecycle/" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 13px; text-decoration: none; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); margin-top: 10px;">
+        🚀 Open 7-Milestone Tour Lifecycle Cockpit →
+      </a>
+      {% if inspection %}
+      <a href="{% url 'damage_inspection_print' inspection.id %}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 12px; text-decoration: none; margin-top: 8px;">
+        📄 View Official Vehicle Handover Certificate (#{{ inspection.inspection_number }}) →
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PASSENGER OTP BOARDING VERIFICATION GATE (PHASE 2) -->
+    <!-- ========================================== -->
+    <div class="card" style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 13px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+          🎟️ Commuter OTP Boarding Gate
+        </span>
+        <span style="font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Live Gate</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+        Ask boarding passenger for their 4-digit security code before departure:
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="commuterOtpInput" maxlength="6" placeholder="e.g. 4821" 
+               style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; text-align: center; letter-spacing: 4px; padding: 8px;">
+        <button type="button" onclick="verifyCommuterOtp()" 
+                style="background: #0284c7; color: #fff; border: 1px solid #38bdf8; border-radius: 10px; font-weight: 700; padding: 0 16px; font-size: 13px; cursor: pointer;">
+          Verify
+        </button>
+      </div>
+      <div id="otpVerifyFeedback" style="margin-top: 10px; font-size: 12px; display: none;"></div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="tabs-wrapper">
+      <button type="button" id="tabStartBtn" class="tab-btn active" onclick="switchTab('start')">
+        🟢 1. Start Duty
+      </button>
+      <button type="button" id="tabEndBtn" class="tab-btn" onclick="switchTab('end')">
+        🏁 2. End Duty
+      </button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: START DUTY FORM -->
+    <!-- ========================================== -->
+    <form id="startDutyForm" method="POST" enctype="multipart/form-data" action="{% url 'driver-handover-view' trip.id %}" class="form-card">
+      {% csrf_token %}
+      <input type="hidden" name="session_type" value="start">
+      <input type="hidden" id="startLat" name="gps_latitude" value="">
+      <input type="hidden" id="startLng" name="gps_longitude" value="">
+
+      <div class="form-group">
+        <label class="form-label">
+          <span>Start Odometer Reading (KM) *</span>
+          <span style="color: #38bdf8;">Current Dashboard</span>
+        </label>
+        <input type="number" name="odometer_reading" class="form-input input-km" required
+               value="{{ trip.opening_km|default:trip.vehicle.current_km|default:'' }}"
+               placeholder="e.g. 54320" min="0">
+      </div>
+
+      <!-- Camera Upload Box -->
+      <div class="form-group">
+        <label class="form-label">📸 Photo of Start Odometer & Dash *</label>
+        <div class="camera-box" onclick="document.getElementById('startOdoPhoto').click()">
+          <input type="file" id="startOdoPhoto" name="odometer_photo" class="file-hidden" accept="image/*" capture="environment" onchange="previewImage(this, 'startPreview')" required>
+          <div class="camera-icon">📷</div>
+          <div class="camera-title">Tap to Take Odometer Photo</div>
+          <div class="camera-sub">Use mobile camera to photograph vehicle instrument cluster</div>
+          <img id="startPreview" class="photo-preview" alt="Start Odometer Preview">
+        </div>
+      </div>
+
+      <!-- Live GPS Location -->
+      <div class="form-group">
+        <label class="form-label">📍 Duty Departure Location</label>
+        <div class="gps-row">
+          <button type="button" class="gps-btn" onclick="getLiveGps('start')">
+            <span>📡 Auto-Detect GPS</span>
+          </button>
+          <input type="text" id="startLocName" name="location_name" class="form-input" style="flex: 1;" placeholder="Landmark or depot address" value="{{ trip.pickup_location }}">
+        </div>
+        <div id="startGpsStatus" class="gps-text">Ready to capture live GPS coordinates</div>
+      </div>
+
+      <!-- Fuel Level Slider -->
+      <div class="form-group">
+        <div class="form-label">
+          <span>⛽ Fuel Tank Gauge</span>
+          <span id="startFuelText" class="range-val">100%</span>
+        </div>
+        <div class="range-wrap">
+          <input type="range" name="fuel_level_percent" min="0" max="100" value="100" class="range-input" oninput="document.getElementById('startFuelText').innerText = this.value + '%'">
+        </div>
+      </div>
+
+      <!-- 2D Interactive Vehicle Condition Schematic (Start Duty) -->
+      <div class="dmg-schematic-card" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 12px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+            🚗 2D Vehicle Condition Check (Tap to Pin)
+          </span>
+          <span id="startDmgBadge" style="font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 999px; font-weight: 700;">All Clear</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+          Tap zones on the vehicle silhouette to pinpoint body scratches, dents, or paint chips:
+        </div>
+
+        <!-- Mini Interactive SVG Blueprint -->
+        <div class="mini-blueprint-box" style="position: relative; width: 100%; height: 160px; background: radial-gradient(circle, #1e293b 0%, #0b1120 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+          <svg viewBox="0 0 600 240" style="width: 95%; height: 95%; user-select: none;" id="startCarSvg">
+            <!-- Front Bumper -->
+            <path id="start-zone-front" class="car-zone" d="M 60 70 C 40 100 40 140 60 170 L 95 170 C 85 140 85 100 95 70 Z" fill="#334155" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Front Bumper', this)" />
+            <!-- Hood / Bonnet -->
+            <rect id="start-zone-bonnet" class="car-zone" x="95" y="70" width="100" height="100" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Engine Bonnet', this)" />
+            <!-- Windshield -->
+            <polygon id="start-zone-windshield" class="car-zone" points="195,75 235,85 235,155 195,165" fill="#0369a1" stroke="#38bdf8" stroke-width="2" fill-opacity="0.5" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Windshield', this)" />
+            <!-- Left Doors -->
+            <rect id="start-zone-left-doors" class="car-zone" x="235" y="60" width="150" height="25" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Left Doors', this)" />
+            <!-- Roof -->
+            <rect id="start-zone-roof" class="car-zone" x="235" y="85" width="150" height="70" fill="#0f172a" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Roof Panel', this)" />
+            <!-- Right Doors -->
+            <rect id="start-zone-right-doors" class="car-zone" x="235" y="155" width="150" height="25" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Right Doors', this)" />
+            <!-- Rear Glass -->
+            <polygon id="start-zone-rear-glass" class="car-zone" points="385,85 415,75 415,165 385,155" fill="#0369a1" stroke="#38bdf8" stroke-width="2" fill-opacity="0.5" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Rear Glass', this)" />
+            <!-- Boot / Trunk -->
+            <rect id="start-zone-boot" class="car-zone" x="415" y="70" width="90" height="100" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Boot Lid', this)" />
+            <!-- Rear Bumper -->
+            <path id="start-zone-rear" class="car-zone" d="M 505 70 L 530 80 C 545 105 545 135 530 160 L 505 170 Z" fill="#334155" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('start', 'Rear Bumper', this)" />
+            
+            <!-- Blueprint Text -->
+            <text x="70" y="123" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle" pointer-events="none">FRONT</text>
+            <text x="145" y="123" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle" pointer-events="none">BONNET</text>
+            <text x="310" y="76" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle" pointer-events="none">LEFT DOORS</text>
+            <text x="310" y="123" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle" pointer-events="none">ROOF</text>
+            <text x="310" y="171" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle" pointer-events="none">RIGHT DOORS</text>
+            <text x="460" y="123" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle" pointer-events="none">BOOT</text>
+            <text x="525" y="123" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle" pointer-events="none">REAR</text>
+          </svg>
+        </div>
+
+        <!-- Damage Palette Selector -->
+        <div style="display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; padding-bottom: 2px;">
+          <button type="button" class="dmg-type-pill active" onclick="setDmgType('start', 'scratch', this)" style="background: rgba(245,158,11,0.25); border: 1.5px solid #f59e0b; color: #fbbf24; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🟡 Scratch</button>
+          <button type="button" class="dmg-type-pill" onclick="setDmgType('start', 'dent', this)" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🔴 Dent</button>
+          <button type="button" class="dmg-type-pill" onclick="setDmgType('start', 'chip', this)" style="background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.4); color: #c084fc; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🟣 Chip</button>
+          <button type="button" class="dmg-type-pill" onclick="setDmgType('start', 'clear', this)" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🟢 Clear Zone</button>
+        </div>
+
+        <div id="startDamageTags" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;"></div>
+      </div>
+
+      <!-- Scratch notes -->
+      <div class="form-group">
+        <label class="form-label">Pre-Existing Condition / Inspector Log</label>
+        <textarea id="startScratchNotes" name="scratch_damage_notes" class="form-input" rows="2" placeholder="Mention any scratches, dents, or tyre issues before takeoff..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        <span>🚀 Start Duty & Handover Vehicle</span>
+      </button>
+    </form>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: END DUTY FORM -->
+    <!-- ========================================== -->
+    <form id="endDutyForm" method="POST" enctype="multipart/form-data" action="{% url 'driver-handover-view' trip.id %}" class="form-card" style="display: none;">
+      {% csrf_token %}
+      <input type="hidden" name="session_type" value="end">
+      <input type="hidden" id="endLat" name="gps_latitude" value="">
+      <input type="hidden" id="endLng" name="gps_longitude" value="">
+
+      <!-- Mileage Auto-Calculator Banner -->
+      <div class="calc-card">
+        <div>
+          <div class="calc-stat-label">Opening KM</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: #fff;">
+            <span id="displayOpeningKm">{{ trip.opening_km|default:0 }}</span> KM
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <div class="calc-stat-label">Distance Run</div>
+          <div id="displayRunKm" class="calc-stat-val">0 KM</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">
+          <span>Closing Odometer Reading (KM) *</span>
+          <span style="color: #60a5fa;">Final Arrival KM</span>
+        </label>
+        <input type="number" id="closingKmInput" name="odometer_reading" class="form-input input-km" required
+               value="{{ trip.closing_km|default:'' }}"
+               placeholder="e.g. 54680" min="{{ trip.opening_km|default:0 }}"
+               oninput="calculateMileage()">
+      </div>
+
+      <!-- Camera Upload Box -->
+      <div class="form-group">
+        <label class="form-label">📸 Photo of Final Odometer *</label>
+        <div class="camera-box" onclick="document.getElementById('endOdoPhoto').click()">
+          <input type="file" id="endOdoPhoto" name="odometer_photo" class="file-hidden" accept="image/*" capture="environment" onchange="previewImage(this, 'endPreview')" required>
+          <div class="camera-icon" style="color: #60a5fa; background: rgba(59, 130, 246, 0.15);">📷</div>
+          <div class="camera-title">Tap to Take Closing Odometer Photo</div>
+          <div class="camera-sub">Photograph final meter display for billing audit</div>
+          <img id="endPreview" class="photo-preview" alt="End Odometer Preview">
+        </div>
+      </div>
+
+      <!-- Live GPS Drop Location -->
+      <div class="form-group">
+        <label class="form-label">📍 Duty Completion Location</label>
+        <div class="gps-row">
+          <button type="button" class="gps-btn" style="color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.15);" onclick="getLiveGps('end')">
+            <span>📡 Auto-Detect GPS</span>
+          </button>
+          <input type="text" id="endLocName" name="location_name" class="form-input" style="flex: 1;" placeholder="Final drop destination" value="{{ trip.destination }}">
+        </div>
+        <div id="endGpsStatus" class="gps-text">Ready to capture live GPS coordinates</div>
+      </div>
+
+      <!-- End Duty Fuel Level -->
+      <div class="form-group">
+        <div class="form-label">
+          <span>⛽ Remaining Fuel Level</span>
+          <span id="endFuelText" class="range-val">75%</span>
+        </div>
+        <div class="range-wrap">
+          <input type="range" name="fuel_level_percent" min="0" max="100" value="75" class="range-input" oninput="document.getElementById('endFuelText').innerText = this.value + '%'">
+        </div>
+      </div>
+
+      <!-- 2D Interactive Vehicle Condition Schematic (End Duty) -->
+      <div class="dmg-schematic-card" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; padding: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 12px; font-weight: 800; color: #60a5fa; display: flex; align-items: center; gap: 6px;">
+            🔍 Final Return Inspection Schematic (Tap to Pin)
+          </span>
+          <span id="endDmgBadge" style="font-size: 10px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Zero New Damage</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+          Audit returning vehicle body. Flag any new scratches or damage before depot signoff:
+        </div>
+
+        <!-- Mini Interactive SVG Blueprint (End Duty) -->
+        <div class="mini-blueprint-box" style="position: relative; width: 100%; height: 160px; background: radial-gradient(circle, #1e293b 0%, #0b1120 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(255,255,255,0.06);">
+          <svg viewBox="0 0 600 240" style="width: 95%; height: 95%; user-select: none;" id="endCarSvg">
+            <!-- Front Bumper -->
+            <path id="end-zone-front" class="car-zone" d="M 60 70 C 40 100 40 140 60 170 L 95 170 C 85 140 85 100 95 70 Z" fill="#334155" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Front Bumper', this)" />
+            <!-- Hood / Bonnet -->
+            <rect id="end-zone-bonnet" class="car-zone" x="95" y="70" width="100" height="100" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Engine Bonnet', this)" />
+            <!-- Windshield -->
+            <polygon id="end-zone-windshield" class="car-zone" points="195,75 235,85 235,155 195,165" fill="#0369a1" stroke="#38bdf8" stroke-width="2" fill-opacity="0.5" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Windshield', this)" />
+            <!-- Left Doors -->
+            <rect id="end-zone-left-doors" class="car-zone" x="235" y="60" width="150" height="25" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Left Doors', this)" />
+            <!-- Roof -->
+            <rect id="end-zone-roof" class="car-zone" x="235" y="85" width="150" height="70" fill="#0f172a" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Roof Panel', this)" />
+            <!-- Right Doors -->
+            <rect id="end-zone-right-doors" class="car-zone" x="235" y="155" width="150" height="25" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Right Doors', this)" />
+            <!-- Rear Glass -->
+            <polygon id="end-zone-rear-glass" class="car-zone" points="385,85 415,75 415,165 385,155" fill="#0369a1" stroke="#38bdf8" stroke-width="2" fill-opacity="0.5" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Rear Glass', this)" />
+            <!-- Boot / Trunk -->
+            <rect id="end-zone-boot" class="car-zone" x="415" y="70" width="90" height="100" fill="#1e293b" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Boot Lid', this)" />
+            <!-- Rear Bumper -->
+            <path id="end-zone-rear" class="car-zone" d="M 505 70 L 530 80 C 545 105 545 135 530 160 L 505 170 Z" fill="#334155" stroke="#475569" stroke-width="2" style="cursor: pointer;" onclick="toggleZoneDamage('end', 'Rear Bumper', this)" />
+            
+            <!-- Blueprint Text -->
+            <text x="70" y="123" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle" pointer-events="none">FRONT</text>
+            <text x="145" y="123" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle" pointer-events="none">BONNET</text>
+            <text x="310" y="76" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle" pointer-events="none">LEFT DOORS</text>
+            <text x="310" y="123" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle" pointer-events="none">ROOF</text>
+            <text x="310" y="171" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle" pointer-events="none">RIGHT DOORS</text>
+            <text x="460" y="123" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle" pointer-events="none">BOOT</text>
+            <text x="525" y="123" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle" pointer-events="none">REAR</text>
+          </svg>
+        </div>
+
+        <!-- Damage Palette Selector (End Duty) -->
+        <div style="display: flex; gap: 6px; margin-top: 10px; overflow-x: auto; padding-bottom: 2px;">
+          <button type="button" class="dmg-type-pill active" onclick="setDmgType('end', 'scratch', this)" style="background: rgba(245,158,11,0.25); border: 1.5px solid #f59e0b; color: #fbbf24; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🟡 Scratch</button>
+          <button type="button" class="dmg-type-pill" onclick="setDmgType('end', 'dent', this)" style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4); color: #f87171; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🔴 Dent</button>
+          <button type="button" class="dmg-type-pill" onclick="setDmgType('end', 'chip', this)" style="background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.4); color: #c084fc; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🟣 Chip</button>
+          <button type="button" class="dmg-type-pill" onclick="setDmgType('end', 'clear', this)" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; border-radius: 99px; padding: 3px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">🟢 Clear Zone</button>
+        </div>
+
+        <div id="endDamageTags" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Completion Notes / Tolls / Parking / Damage Log</label>
+        <textarea id="endScratchNotes" name="scratch_damage_notes" class="form-input" rows="2" placeholder="Note down any extra tolls, parking paid, or trip handover feedback..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-submit btn-submit-end">
+        <span>🏁 Complete Trip & Submit Handover</span>
+      </button>
+    </form>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- EMERGENCY SOS MODAL -->
+  <!-- ========================================== -->
+  <div id="sosModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>🚨 EMERGENCY SOS BROADCAST</span>
+      </div>
+      <p style="font-size: 13px; color: #cbd5e1; line-height: 1.5;">
+        This will immediately trigger an urgent alarm on the Central Operations Control Room radar with your live GPS location.
+      </p>
+
+      <form method="POST" action="{% url 'driver-handover-sos' trip.id %}" style="display: flex; flex-direction: column; gap: 12px;">
+        {% csrf_token %}
+        <input type="hidden" id="sosLat" name="latitude" value="">
+        <input type="hidden" id="sosLng" name="longitude" value="">
+
+        <div class="form-group">
+          <label class="form-label">Emergency Type</label>
+          <select name="incident_type" class="form-input">
+            <option value="breakdown">Mechanical Breakdown / Engine Failure</option>
+            <option value="tyre_burst">Tyre Burst / Puncture</option>
+            <option value="accident">Road Accident / Collision</option>
+            <option value="medical">Medical Emergency (Passenger / Crew)</option>
+            <option value="fuel_exhaustion">Fuel Exhaustion / DEF Issue</option>
+            <option value="other">Other Urgent Safety Incident</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Passenger Safety Status</label>
+          <select name="passengers_safety_status" class="form-input">
+            <option value="all_safe">All Passengers Safe & Unharmed</option>
+            <option value="stranded_safe">Safe but Stranded Roadside</option>
+            <option value="minor_injuries">Minor First-Aid Required</option>
+            <option value="hospitalized">Critical / Ambulance Needed</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Emergency Details / Landmark</label>
+          <textarea name="description" class="form-input" rows="2" placeholder="Exact kilometer marker, highway name, or description of help needed..." required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 6px;">
+          <button type="button" class="btn-submit" style="background: #334155; flex: 1;" onclick="closeSosModal()">Cancel</button>
+          <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); flex: 2;">
+            ⚡ SEND SOS NOW
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching logic
+    function switchTab(mode) {
+      const startTab = document.getElementById('tabStartBtn');
+      const endTab = document.getElementById('tabEndBtn');
+      const startForm = document.getElementById('startDutyForm');
+      const endForm = document.getElementById('endDutyForm');
+
+      if (mode === 'start') {
+        startTab.className = 'tab-btn active';
+        endTab.className = 'tab-btn';
+        startForm.style.display = 'flex';
+        endForm.style.display = 'none';
+      } else {
+        startTab.className = 'tab-btn';
+        endTab.className = 'tab-btn end-active';
+        startForm.style.display = 'none';
+        endForm.style.display = 'flex';
+        calculateMileage();
+      }
+    }
+
+    // Auto-select tab based on trip status
+    {% if trip.driver_handover_status == 'started' or trip.status == 'started' %}
+      switchTab('end');
+    {% endif %}
+
+    // Image preview handler
+    function previewImage(input, previewId) {
+      const preview = document.getElementById(previewId);
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // Live Mileage Calculation
+    function calculateMileage() {
+      const openKm = parseFloat(document.getElementById('displayOpeningKm').innerText) || 0;
+      const closingInput = document.getElementById('closingKmInput');
+      const closeKm = parseFloat(closingInput.value) || 0;
+      const display = document.getElementById('displayRunKm');
+
+      if (closeKm >= openKm && openKm > 0) {
+        const diff = closeKm - openKm;
+        display.innerText = diff + ' KM';
+      } else {
+        display.innerText = '0 KM';
+      }
+    }
+
+    // Geolocation capture
+    function getLiveGps(prefix) {
+      const status = document.getElementById(prefix + 'GpsStatus');
+      const latInput = document.getElementById(prefix + 'Lat');
+      const lngInput = document.getElementById(prefix + 'Lng');
+
+      if (!navigator.geolocation) {
+        status.innerText = "Geolocation not supported by browser.";
+        return;
+      }
+
+      status.innerText = "Acquiring satellite lock...";
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          latInput.value = lat;
+          lngInput.value = lng;
+          status.innerText = `GPS Locked: ${lat}, ${lng} (±${Math.round(position.coords.accuracy)}m)`;
+          status.style.color = '#34d399';
+        },
+        (error) => {
+          status.innerText = "GPS error: " + error.message;
+          status.style.color = '#f87171';
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    // SOS Modal
+    function openSosModal() {
+      document.getElementById('sosModal').style.display = 'grid';
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((pos) => {
+          document.getElementById('sosLat').value = pos.coords.latitude.toFixed(6);
+          document.getElementById('sosLng').value = pos.coords.longitude.toFixed(6);
+        });
+      }
+    }
+    function closeSosModal() {
+      document.getElementById('sosModal').style.display = 'none';
+    }
+
+    // Phase 2: Commuter OTP Verification
+    async function verifyCommuterOtp() {
+      const otpInput = document.getElementById('commuterOtpInput');
+      const otp = otpInput.value.trim();
+      const feedback = document.getElementById('otpVerifyFeedback');
+      if (!otp) return;
+      
+      feedback.style.display = 'block';
+      feedback.innerHTML = '<span style="color:#94a3b8;">Verifying passenger OTP...</span>';
+      
+      try {
+        const resp = await fetch('/commute/api/verify-boarding-otp/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `otp=${encodeURIComponent(otp)}`
+        });
+        const data = await resp.json();
+        if (data.status === 'success') {
+          feedback.innerHTML = `<div style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; border-radius: 8px; padding: 10px; color: #34d399;">
+            ✅ <strong>Passenger Boarded:</strong> ${data.commuter_name} (${data.gender})<br/>
+            <span style="font-size: 11px; color: #cbd5e1;">Pickup: ${data.stop_name} &bull; Time: ${data.boarded_at}</span>
+          </div>`;
+          otpInput.value = '';
+        } else if (data.status === 'already_boarded') {
+          feedback.innerHTML = `<div style="background: rgba(245,158,11,0.2); border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; color: #fbbf24;">
+            ⚠️ <strong>Already Boarded:</strong> ${data.commuter_name} at ${data.boarded_at}
+          </div>`;
+        } else {
+          feedback.innerHTML = `<div style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 10px; color: #f87171;">
+            ❌ ${data.message}
+          </div>`;
+        }
+      } catch (err) {
+        feedback.innerHTML = '<span style="color:#ef4444;">Network error communicating with server.</span>';
+      }
+    }
+
+    // Phase 5: 2D Interactive Vehicle Schematic Condition Marker
+    const damageRegistry = {
+      start: {},
+      end: {}
+    };
+    let currentDmgType = {
+      start: 'scratch',
+      end: 'scratch'
+    };
+
+    function setDmgType(scope, type, btn) {
+      currentDmgType[scope] = type;
+      btn.parentElement.querySelectorAll('.dmg-type-pill').forEach(b => {
+        b.style.borderWidth = '1px';
+        b.style.opacity = '0.7';
+      });
+      btn.style.borderWidth = '2px';
+      btn.style.opacity = '1';
+    }
+
+    function toggleZoneDamage(scope, zoneName, el) {
+      const type = currentDmgType[scope];
+      if (type === 'clear') {
+        delete damageRegistry[scope][zoneName];
+        el.setAttribute('fill', el.id.includes('glass') || el.id.includes('windshield') ? '#0369a1' : '#1e293b');
+        el.setAttribute('stroke', '#475569');
+      } else {
+        damageRegistry[scope][zoneName] = type;
+        if (type === 'scratch') {
+          el.setAttribute('fill', '#f59e0b');
+          el.setAttribute('stroke', '#fbbf24');
+        } else if (type === 'dent') {
+          el.setAttribute('fill', '#ef4444');
+          el.setAttribute('stroke', '#f87171');
+        } else if (type === 'chip') {
+          el.setAttribute('fill', '#a855f7');
+          el.setAttribute('stroke', '#c084fc');
+        }
+      }
+      renderDamageSummary(scope);
+    }
+
+    function renderDamageSummary(scope) {
+      const tagsContainer = document.getElementById(scope + 'DamageTags');
+      const badge = document.getElementById(scope + 'DmgBadge');
+      const textarea = document.getElementById(scope + 'ScratchNotes');
+      const items = Object.entries(damageRegistry[scope]);
+      
+      tagsContainer.innerHTML = '';
+      if (items.length === 0) {
+        badge.innerText = scope === 'start' ? 'All Clear' : 'Zero New Damage';
+        badge.style.color = '#34d399';
+        badge.style.background = 'rgba(16,185,129,0.2)';
+        textarea.value = '';
+        return;
+      }
+
+      badge.innerText = `${items.length} Marked Issues`;
+      badge.style.color = '#f59e0b';
+      badge.style.background = 'rgba(245,158,11,0.2)';
+
+      const descriptions = [];
+      items.forEach(([zone, type]) => {
+        const tag = document.createElement('span');
+        tag.style.cssText = 'font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;';
+        if (type === 'scratch') {
+          tag.style.background = 'rgba(245,158,11,0.2)';
+          tag.style.color = '#fbbf24';
+          tag.innerHTML = `🟡 ${zone}: Scratch`;
+        } else if (type === 'dent') {
+          tag.style.background = 'rgba(239,68,68,0.2)';
+          tag.style.color = '#f87171';
+          tag.innerHTML = `🔴 ${zone}: Dent`;
+        } else {
+          tag.style.background = 'rgba(168,85,247,0.2)';
+          tag.style.color = '#c084fc';
+          tag.innerHTML = `🟣 ${zone}: Chip`;
+        }
+        tagsContainer.appendChild(tag);
+        descriptions.push(`${zone} (${type})`);
+      });
+
+      textarea.value = `[2D Vehicle Schematic Check]: ` + descriptions.join(', ');
+    }
+  </script>
+</body>
+</html>

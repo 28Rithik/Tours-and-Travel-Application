@@ -1,0 +1,85 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Confirm Fleet Rental | {{ booking.booking_number }}{% endblock %}
+
+{% block content %}
+<section class="checkout-container" style="max-width: 680px; margin: 3rem auto;">
+    <div class="checkout-card" style="text-align: center;">
+        <span class="section-subtitle-tag">RESERVATION STEP 2</span>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; color: var(--brand-navy); margin-bottom: 0.5rem;">
+            Confirm Vehicle Rental
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Booking Ref: <strong style="color: var(--primary);">{{ booking.booking_number }}</strong>
+        </p>
+
+        <!-- Summary Banner -->
+        <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.25rem; text-align: left; margin-bottom: 1.5rem;">
+            <div class="result-row">
+                <span>Vehicle:</span>
+                <strong>{{ spec.name }}</strong>
+            </div>
+            <div class="result-row">
+                <span>Route:</span>
+                <strong>{{ booking.pickup_location }} → {{ booking.destination }}</strong>
+            </div>
+            <div class="result-row">
+                <span>Duration / Distance:</span>
+                <strong>{{ days }} Days ({{ billable_km }} KMs Billable)</strong>
+            </div>
+            <div class="result-row">
+                <span>Lead Passenger:</span>
+                <strong>{{ booking.guest_name }} ({{ booking.guest_phone }})</strong>
+            </div>
+            <div class="result-total-row">
+                <div class="result-total-label">Payable 50% Booking Advance:</div>
+                <div class="result-total-amount">₹{{ advance_payable|floatformat:0 }}</div>
+            </div>
+        </div>
+
+        <!-- Dynamic UPI QR Scanner Box -->
+        <div class="upi-qr-box">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase;">
+                SCAN TO PAY ADVANCE VIA UPI
+            </div>
+            <div class="upi-qr-image-wrapper">
+                <img src="{{ upi_package.qr_base64 }}" alt="UPI QR">
+            </div>
+
+            <div style="margin-bottom: 0.75rem;">
+                <div class="vpa-copy-pill" onclick="navigator.clipboard.writeText('{{ upi_package.vpa }}'); alert('UPI ID copied!');">
+                    <span>UPI ID: <strong>{{ upi_package.vpa }}</strong> 📋</span>
+                </div>
+            </div>
+
+            <div class="app-deep-links-row">
+                <a href="{{ upi_package.deep_links.gpay }}" class="app-link-btn" target="_blank">Google Pay</a>
+                <a href="{{ upi_package.deep_links.phonepe }}" class="app-link-btn" target="_blank">PhonePe</a>
+                <a href="{{ upi_package.deep_links.paytm }}" class="app-link-btn" target="_blank">Paytm</a>
+            </div>
+
+            <form method="POST" action="{% url 'customer_portal:rental_checkout' %}" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.25rem;">
+                {% csrf_token %}
+                <input type="hidden" name="vehicle_tier" value="{{ spec.tier|default:'crysta' }}">
+                <input type="hidden" name="guest_phone" value="{{ booking.guest_phone }}">
+                <input type="hidden" name="guest_name" value="{{ booking.guest_name }}">
+                <input type="hidden" name="pickup_city" value="{{ booking.pickup_location }}">
+                <input type="hidden" name="destination" value="{{ booking.destination }}">
+                <input type="hidden" name="days" value="{{ days }}">
+                <input type="hidden" name="estimated_km" value="{{ billable_km }}">
+                <input type="hidden" name="payment_method" value="upi">
+
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem;">
+                    Enter 12-Digit UPI Transaction / UTR Ref:
+                </label>
+                <input type="text" name="utr_number" placeholder="e.g. 426891234567" class="form-control" style="max-width: 300px; margin: 0 auto; text-align: center; font-family: monospace; font-size: 1rem; font-weight: 700;" required minlength="6">
+                
+                <button type="submit" class="btn btn-emerald" style="width: 100%; max-width: 300px; margin-top: 1rem; padding: 0.85rem;">
+                    Verify UTR & Confirm Fleet Booking →
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

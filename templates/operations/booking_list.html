@@ -1,89 +1,1463 @@
 {% extends 'base.html' %}
-{% block title %}Bookings | TravelERP{% endblock %}
-{% block header_title %}Trip operations{% endblock %}
+{% load static %}
+
+{% block title %}Real-Time Dispatch Control Center | Sivagayathiri Travels{% endblock %}
+{% block header_title %}Dispatch Mission Control{% endblock %}
+
 {% block content %}
-<div class="page-intro">
-  <div>
-    <p class="eyebrow">Travel workflow</p>
-    <h1>Bookings and trip handover</h1>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ==========================================================================
+   DISPATCH CONTROL CENTER ENTERPRISE STYLES
+   ========================================================================== */
+.dcc-root {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
+
+/* Header Banner */
+.dcc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.dcc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(2, 132, 199, 0.08);
+  color: #0284c7;
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  padding: 0.28rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.45rem;
+}
+
+.dcc-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  animation: dccPulse 2s infinite;
+}
+
+@keyframes dccPulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.dcc-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.75rem, 2.6vw, 2.25rem);
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.025em;
+}
+
+.dcc-subtitle {
+  color: #64748b;
+  font-size: 0.92rem;
+  margin: 0;
+  max-width: 680px;
+}
+
+/* Header Action Buttons */
+.dcc-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dcc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dcc-btn-primary {
+  background: #0284c7;
+  color: white;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+}
+.dcc-btn-primary:hover {
+  background: #0369a1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.38);
+  color: white;
+}
+
+.dcc-btn-dark {
+  background: #0f172a;
+  color: #38bdf8;
+  border-color: #334155;
+}
+.dcc-btn-dark:hover {
+  background: #1e293b;
+  color: #e0f2fe;
+  transform: translateY(-2px);
+}
+
+.dcc-btn-secondary {
+  background: white;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.dcc-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+}
+
+/* KPI Lane Cards Strip */
+.dcc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.dcc-kpi-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.dcc-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.dcc-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #94a3b8;
+}
+
+.dcc-kpi-urgent::before {
+  background: #f59e0b;
+}
+.dcc-kpi-urgent {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+}
+
+.dcc-kpi-transit::before { background: #10b981; }
+.dcc-kpi-assigned::before { background: #3b82f8; }
+.dcc-kpi-completed::before { background: #64748b; }
+.dcc-kpi-inquiries::before { background: #8b5cf6; }
+
+.dcc-kpi-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.dcc-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+.dcc-kpi-icon {
+  font-size: 1.15rem;
+}
+.dcc-kpi-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #0f172a;
+}
+.dcc-kpi-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+/* Control Filter & Status Tabs Strip */
+.dcc-filter-strip {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+}
+
+.dcc-tabs-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.dcc-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  text-decoration: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.dcc-tab:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.dcc-tab.active {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+}
+.dcc-tab.urgent-tab.active {
+  background: #d97706;
+  border-color: #d97706;
+}
+
+.dcc-tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  font-size: 0.7rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  font-weight: 800;
+}
+.dcc-tab:not(.active) .dcc-tab-badge {
+  background: #e2e8f0;
+  color: #334155;
+}
+.dcc-tab:not(.active) .dcc-tab-badge.urgent-badge {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+/* Search and Filters Inline Form */
+.dcc-search-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dcc-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+.dcc-search-input-wrap input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.85rem 0.55rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  background: #f8fafc;
+  color: #0f172a;
+  transition: all 0.15s ease;
+}
+.dcc-search-input-wrap input:focus {
+  outline: none;
+  border-color: #0284c7;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+.dcc-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* Dispatch Board Table Panel */
+.dcc-board-panel {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.dcc-board-header {
+  padding: 1.15rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.dcc-board-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dcc-counter-pill {
+  font-size: 0.75rem;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.dcc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.dcc-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.dcc-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  color: #334155;
+}
+
+.dcc-table tr:hover td {
+  background: #fbfcfe;
+}
+
+.dcc-table tr.highlight-urgent td {
+  background: #fffdf5;
+}
+
+/* Column Specific Styling */
+.dcc-trip-id {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 700;
+  color: #0284c7;
+  font-size: 0.92rem;
+  display: block;
+}
+
+.dcc-route-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dcc-route-track {
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dcc-route-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dcc-guest-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.dcc-guest-name {
+  font-weight: 700;
+  color: #0f172a;
+}
+.dcc-guest-phone {
+  font-size: 0.76rem;
+  color: #0284c7;
+  text-decoration: none;
+}
+.dcc-guest-phone:hover {
+  text-decoration: underline;
+}
+
+/* Allocation Cell */
+.dcc-allocation-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dcc-assigned-plate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.dcc-assigned-driver {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dcc-unallocated-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  padding: 0.28rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  animation: dccPulse 2.5s infinite;
+}
+
+/* Status Badges */
+.dcc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.dcc-badge-booked { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.dcc-badge-assigned { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.dcc-badge-started { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.dcc-badge-completed { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+.dcc-badge-cancelled { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* 1-Click Action Group */
+.dcc-actions-cell {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.dcc-fast-assign-btn {
+  background: #0284c7;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+}
+.dcc-fast-assign-btn:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.dcc-reassign-btn {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dcc-reassign-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* WhatsApp 1-Click Trigger Buttons */
+.dcc-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.7rem;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dcc-wa-driver {
+  background: #25d366;
+  color: #064e3b;
+  border-color: #16a34a;
+}
+.dcc-wa-driver:hover {
+  background: #1eb857;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
+  color: #064e3b;
+}
+
+.dcc-wa-guest {
+  background: #0ea5e9;
+  color: white;
+  border-color: #0284c7;
+}
+.dcc-wa-guest:hover {
+  background: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.35);
+  color: white;
+}
+
+.dcc-wa-disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dcc-icon-btn {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 0.38rem 0.55rem;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.dcc-icon-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+/* Fast Allocation Modal */
+.dcc-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease;
+}
+.dcc-modal-backdrop.open {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dcc-modal {
+  background: white;
+  width: 100%;
+  max-width: 580px;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.dcc-modal-header {
+  padding: 1.25rem 1.5rem;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dcc-modal-header h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dcc-modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.dcc-modal-close:hover {
+  color: white;
+}
+
+.dcc-modal-body {
+  padding: 1.5rem;
+}
+
+.dcc-modal-trip-summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem 1.15rem;
+  margin-bottom: 1.25rem;
+}
+
+.dcc-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 0.3rem;
+}
+.dcc-summary-row:last-child {
+  margin-bottom: 0;
+}
+.dcc-summary-label {
+  color: #64748b;
+  font-weight: 600;
+}
+.dcc-summary-val {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.dcc-form-group {
+  margin-bottom: 1.15rem;
+}
+
+.dcc-form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dcc-select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: white;
+  color: #0f172a;
+  box-sizing: border-box;
+}
+.dcc-select:focus {
+  outline: none;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.dcc-checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+.dcc-checkbox-wrap input {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #16a34a;
+}
+.dcc-checkbox-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #166534;
+}
+
+.dcc-checkbox-guest {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+.dcc-checkbox-guest .dcc-checkbox-text {
+  color: #0369a1;
+}
+
+.dcc-modal-footer {
+  padding: 1.15rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Floating Toast Notification */
+.dcc-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #0f172a;
+  color: white;
+  padding: 0.95rem 1.35rem;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  z-index: 99999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  border-left: 4px solid #10b981;
+}
+.dcc-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+</style>
+
+<div class="dcc-root">
+  <!-- Top Header Strip -->
+  <div class="dcc-header">
+    <div>
+      <div class="dcc-eyebrow">
+        <span class="dcc-pulse-dot"></span>
+        <span>Real-Time Fleet Dispatch • Coimbatore Ops Desk</span>
+      </div>
+      <h1 class="dcc-title">Dispatch Control Center</h1>
+      <p class="dcc-subtitle">
+        Assign vehicles and chauffeurs, fire 1-click WhatsApp duty briefings, and monitor live in-transit convoys across Tamil Nadu &amp; Kerala.
+      </p>
+    </div>
+    <div class="dcc-actions">
+      <a class="dcc-btn dcc-btn-primary" href="{% url 'booking-create' %}">
+        <span>+</span> New Booking
+      </a>
+      <a class="dcc-btn dcc-btn-dark" href="{% url 'fleet-live' %}">
+        <span>🛰️</span> Live Fleet Radar
+      </a>
+      <a class="dcc-btn dcc-btn-secondary" href="{% url 'admin-whatsapp-bot-studio' %}">
+        <span>🤖</span> WhatsApp Bot Studio
+      </a>
+      <button class="dcc-btn dcc-btn-secondary" onclick="window.location.reload();" title="Refresh Live Board">
+        <span>🔄</span> Refresh
+      </button>
+    </div>
   </div>
-  <a class="button button-primary" href="{% url 'booking-create' %}">New booking</a>
+
+  <!-- KPI Lane Metrics Strip -->
+  <div class="dcc-kpi-grid">
+    <a class="dcc-kpi-card {% if unassigned_count > 0 %}dcc-kpi-urgent{% endif %}" href="?tab=unassigned">
+      <div class="dcc-kpi-meta">
+        <span class="dcc-kpi-label">Needs Allocation</span>
+        <span class="dcc-kpi-icon">⚠️</span>
+      </div>
+      <div class="dcc-kpi-value" style="color: {% if unassigned_count > 0 %}#d97706{% else %}#0f172a{% endif %};">
+        {{ unassigned_count }}
+      </div>
+      <div class="dcc-kpi-sub">
+        {% if unassigned_count > 0 %}Action required: assign fleet &amp; driver{% else %}All confirmed trips allocated{% endif %}
+      </div>
+    </a>
+
+    <a class="dcc-kpi-card dcc-kpi-transit" href="?tab=in_transit">
+      <div class="dcc-kpi-meta">
+        <span class="dcc-kpi-label">In-Transit (On Road)</span>
+        <span class="dcc-kpi-icon">🚀</span>
+      </div>
+      <div class="dcc-kpi-value" style="color: #10b981;">
+        {{ in_transit_count }}
+      </div>
+      <div class="dcc-kpi-sub">Active rolling convoys with live GPS</div>
+    </a>
+
+    <a class="dcc-kpi-card dcc-kpi-assigned" href="?tab=assigned">
+      <div class="dcc-kpi-meta">
+        <span class="dcc-kpi-label">Assigned &amp; Ready</span>
+        <span class="dcc-kpi-icon">📌</span>
+      </div>
+      <div class="dcc-kpi-value" style="color: #0284c7;">
+        {{ assigned_count }}
+      </div>
+      <div class="dcc-kpi-sub">Vehicles &amp; captains briefed for departure</div>
+    </a>
+
+    <a class="dcc-kpi-card dcc-kpi-completed" href="?tab=completed">
+      <div class="dcc-kpi-meta">
+        <span class="dcc-kpi-label">Completed Trips</span>
+        <span class="dcc-kpi-icon">✅</span>
+      </div>
+      <div class="dcc-kpi-value" style="color: #64748b;">
+        {{ completed_count }}
+      </div>
+      <div class="dcc-kpi-sub">Concluded &amp; ready for final invoicing</div>
+    </a>
+
+    <a class="dcc-kpi-card dcc-kpi-inquiries" href="?tab=bookings">
+      <div class="dcc-kpi-meta">
+        <span class="dcc-kpi-label">Booking Inquiries</span>
+        <span class="dcc-kpi-icon">📩</span>
+      </div>
+      <div class="dcc-kpi-value" style="color: #8b5cf6;">
+        {{ pending_bookings_count }}
+      </div>
+      <div class="dcc-kpi-sub">{{ bookings|length }} pipeline bookings awaiting confirmation</div>
+    </a>
+  </div>
+
+  <!-- Filter Strip with Tabs and Search Form -->
+  <div class="dcc-filter-strip">
+    <!-- Status Tabs -->
+    <div class="dcc-tabs-bar">
+      <a class="dcc-tab {% if current_tab == 'all' or not current_tab %}active{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>⚡ All Dispatches</span>
+        <span class="dcc-tab-badge">{{ total_active_count }}</span>
+      </a>
+
+      <a class="dcc-tab urgent-tab {% if current_tab == 'unassigned' %}active{% endif %}" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>⚠️ Needs Allocation</span>
+        <span class="dcc-tab-badge urgent-badge">{{ unassigned_count }}</span>
+      </a>
+
+      <a class="dcc-tab {% if current_tab == 'assigned' %}active{% endif %}" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>📌 Assigned &amp; Briefed</span>
+        <span class="dcc-tab-badge">{{ assigned_count }}</span>
+      </a>
+
+      <a class="dcc-tab {% if current_tab == 'in_transit' %}active{% endif %}" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>🚀 In-Transit (On Road)</span>
+        <span class="dcc-tab-badge">{{ in_transit_count }}</span>
+      </a>
+
+      <a class="dcc-tab {% if current_tab == 'completed' %}active{% endif %}" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>✅ Completed</span>
+        <span class="dcc-tab-badge">{{ completed_count }}</span>
+      </a>
+
+      <a class="dcc-tab {% if current_tab == 'bookings' %}active{% endif %}" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>📩 Booking Inquiries</span>
+        <span class="dcc-tab-badge">{{ bookings|length }}</span>
+      </a>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <form class="dcc-search-form" method="get">
+      <input type="hidden" name="tab" value="{{ current_tab|default:'all' }}">
+      <div class="dcc-search-input-wrap">
+        <span class="dcc-search-icon">🔍</span>
+        <input type="text" name="search" value="{{ search_term }}" placeholder="Search by Trip ID, Guest, Phone, Plate, or Destination...">
+      </div>
+
+      <button class="dcc-btn dcc-btn-primary" type="submit" style="padding: 0.55rem 1rem;">
+        Filter
+      </button>
+
+      {% if search_term %}
+      <a class="dcc-btn dcc-btn-secondary" href="?tab={{ current_tab|default:'all' }}" style="padding: 0.55rem 0.85rem;">
+        ✕ Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if current_tab == 'bookings' %}
+  <!-- ======================================================================
+       VIEW: BOOKINGS PIPELINE QUEUE
+       ====================================================================== -->
+  <div class="dcc-board-panel">
+    <div class="dcc-board-header">
+      <h2>
+        <span>📩</span> Booking Inquiries &amp; Customer Requests
+      </h2>
+      <span class="dcc-counter-pill">{{ bookings|length }} Inquiries</span>
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="dcc-table">
+        <thead>
+          <tr>
+            <th>Booking #</th>
+            <th>Guest &amp; Contact</th>
+            <th>Scheduled Route</th>
+            <th>Pickup Date &amp; Time</th>
+            <th>Vehicle Category</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td>
+              <span class="dcc-trip-id">{{ b.booking_number }}</span>
+              <small class="muted">{{ b.created_at|date:"d M Y" }}</small>
+            </td>
+            <td>
+              <div class="dcc-guest-cell">
+                <span class="dcc-guest-name">{{ b.guest_name }}</span>
+                {% if b.guest_phone %}
+                <a class="dcc-guest-phone" href="tel:{{ b.guest_phone }}">📞 {{ b.guest_phone }}</a>
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <div class="dcc-route-cell">
+                <div class="dcc-route-track">
+                  <span>{{ b.pickup_location }}</span>
+                  <span style="color: #94a3b8;">➡️</span>
+                  <span>{{ b.destination }}</span>
+                </div>
+                <div class="dcc-route-sub">
+                  <span>{{ b.get_journey_type_display|default:"Outstation" }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <strong>{{ b.pickup_date|date:"d M Y" }}</strong>
+              <div class="muted" style="font-size: 0.76rem;">{{ b.pickup_time|default:"Reporting Time" }}</div>
+            </td>
+            <td>
+              <span class="dcc-assigned-plate" style="font-family: inherit;">
+                {{ b.vehicle_type.name|default:"Any Fleet Class" }}
+              </span>
+            </td>
+            <td>
+              <span class="dcc-badge dcc-badge-{{ b.status|default:'booked' }}">
+                {{ b.get_status_display|default:b.status }}
+              </span>
+            </td>
+            <td>
+              <div class="dcc-actions-cell">
+                <a class="dcc-btn dcc-btn-primary" href="{% url 'trip-create' b.pk %}" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+                  ⚡ Convert to Trip
+                </a>
+                <a class="dcc-icon-btn" href="{% url 'booking-detail' b.pk %}" title="View Details">
+                  👁️
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem; color: #64748b;">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">📂</div>
+              <strong>No booking inquiries found matching the criteria.</strong>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- ======================================================================
+       VIEW: REAL-TIME TRIPS DISPATCH BOARD
+       ====================================================================== -->
+  <div class="dcc-board-panel">
+    <div class="dcc-board-header">
+      <h2>
+        <span>📋</span> Active Dispatch Grid
+      </h2>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <span class="dcc-counter-pill">{{ trips|length }} Dispatches Shown</span>
+      </div>
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="dcc-table">
+        <thead>
+          <tr>
+            <th>Trip ID &amp; Ref</th>
+            <th>Guest &amp; Contact</th>
+            <th>Itinerary &amp; Timeline</th>
+            <th>Fleet &amp; Chauffeur Allocation</th>
+            <th>Dispatch Status</th>
+            <th style="min-width: 290px;">1-Click Dispatch &amp; Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dispatchTableBody">
+          {% for trip in trips %}
+          <tr id="trip-row-{{ trip.pk }}" class="{% if not trip.vehicle or not trip.driver %}highlight-urgent{% endif %}">
+            <!-- 1. Trip ID & Ref -->
+            <td>
+              <a class="dcc-trip-id" href="{% url 'trip-detail' trip.pk %}">#{{ trip.trip_id|default:trip.id }}</a>
+              <span style="font-size: 0.74rem; color: #64748b; font-weight: 600;">
+                {{ trip.get_billing_model_display|default:"Day/KM" }}
+              </span>
+            </td>
+
+            <!-- 2. Guest & Contact -->
+            <td>
+              <div class="dcc-guest-cell">
+                <span class="dcc-guest-name">{{ trip.guest_name|default:trip.party.name }}</span>
+                {% with phone=trip.booking.guest_phone|default:trip.party.phone %}
+                {% if phone %}
+                <a class="dcc-guest-phone" href="tel:{{ phone }}">📞 {{ phone }}</a>
+                {% else %}
+                <span style="font-size: 0.74rem; color: #94a3b8;">Phone unlisted</span>
+                {% endif %}
+                {% endwith %}
+                {% if trip.party %}
+                <small class="muted" style="font-size: 0.72rem;">{{ trip.party.name }}</small>
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- 3. Itinerary & Timeline -->
+            <td>
+              <div class="dcc-route-cell">
+                <div class="dcc-route-track">
+                  <span>{{ trip.pickup_location|truncatechars:20|default:"Coimbatore Depot" }}</span>
+                  <span style="color: #94a3b8;">➡️</span>
+                  <span>{{ trip.destination|truncatechars:20|default:"En Route" }}</span>
+                </div>
+                <div class="dcc-route-sub">
+                  <span>📅 {{ trip.start_date|date:"d M Y" }}</span>
+                  {% if trip.start_time %}
+                  <span>⏰ {{ trip.start_time }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+
+            <!-- 4. Fleet & Chauffeur Allocation -->
+            <td id="alloc-cell-{{ trip.pk }}">
+              {% if trip.vehicle and trip.driver %}
+              <div class="dcc-allocation-box">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="dcc-assigned-plate">
+                    🚘 {{ trip.vehicle.registration_number }}
+                  </span>
+                  <button class="dcc-reassign-btn" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '{{ trip.driver.pk }}')" title="Swap Vehicle or Driver">
+                    Swap
+                  </button>
+                </div>
+                <div class="dcc-assigned-driver">
+                  <span>🧑‍✈️ <strong>{{ trip.driver.name }}</strong></span>
+                  {% if trip.driver.phone %}
+                  <small class="muted">({{ trip.driver.phone }})</small>
+                  {% endif %}
+                </div>
+              </div>
+              {% elif trip.vehicle and not trip.driver %}
+              <div class="dcc-allocation-box">
+                <span class="dcc-assigned-plate">🚘 {{ trip.vehicle.registration_number }}</span>
+                <button class="dcc-fast-assign-btn" style="background: #f59e0b;" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '')">
+                  ⚡ Assign Driver
+                </button>
+              </div>
+              {% else %}
+              <div class="dcc-allocation-box">
+                <span class="dcc-unallocated-alert">
+                  ⚠️ Unallocated Fleet
+                </span>
+                <button class="dcc-fast-assign-btn" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '', '')">
+                  ⚡ 1-Click Fast Allocate
+                </button>
+              </div>
+              {% endif %}
+            </td>
+
+            <!-- 5. Dispatch Status -->
+            <td>
+              <span id="badge-status-{{ trip.pk }}" class="dcc-badge dcc-badge-{{ trip.status }}">
+                {{ trip.get_status_display|default:trip.status }}
+              </span>
+            </td>
+
+            <!-- 6. 1-Click WhatsApp & Actions -->
+            <td>
+              <div class="dcc-actions-cell">
+                <!-- Driver Duty Briefing WhatsApp Trigger -->
+                {% if trip.driver and trip.driver.phone %}
+                <button type="button" class="dcc-wa-btn dcc-wa-driver" onclick="triggerDriverWhatsApp({{ trip.pk }}, '{{ trip.driver.name|escapejs }}')" title="Dispatch duty assignment & mobile handover link to Captain via WhatsApp">
+                  📲 Brief Captain
+                </button>
+                {% else %}
+                <button type="button" class="dcc-wa-btn dcc-wa-disabled" title="Assign driver with phone number first">
+                  📲 Brief Captain
+                </button>
+                {% endif %}
+
+                <!-- Guest Tracking WhatsApp Trigger -->
+                {% with gphone=trip.booking.guest_phone|default:trip.party.phone %}
+                {% if gphone %}
+                <button type="button" class="dcc-wa-btn dcc-wa-guest" onclick="triggerGuestWhatsApp({{ trip.pk }}, '{{ trip.guest_name|escapejs }}')" title="Dispatch car plate, driver phone & live GPS tracker to Guest via WhatsApp">
+                  📲 Alert Guest
+                </button>
+                {% else %}
+                <button type="button" class="dcc-wa-btn dcc-wa-disabled" title="No guest phone available">
+                  📲 Alert Guest
+                </button>
+                {% endif %}
+                {% endwith %}
+
+                <!-- RTO Trip Sheet -->
+                <a class="dcc-icon-btn" href="{% url 'trip-sheet' trip.pk %}" title="Print / Download RTO Trip Sheet" target="_blank">
+                  📄
+                </a>
+
+                <!-- Passenger Live GPS Tracker -->
+                {% if trip.tracking_token %}
+                <a class="dcc-icon-btn" href="{% url 'passenger-live-tracking' trip.tracking_token %}" title="Open Guest Live GPS Radar" target="_blank">
+                  🛰️
+                </a>
+                {% endif %}
+
+                <!-- Trip Detail -->
+                <a class="dcc-icon-btn" href="{% url 'trip-detail' trip.pk %}" title="Full Trip Detail">
+                  👁️
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 3.5rem; color: #64748b;">
+              <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🚘</div>
+              <strong style="font-size: 1.05rem; color: #1e293b; display: block;">No trips currently match this dispatch filter.</strong>
+              <p style="margin-top: 0.35rem; font-size: 0.85rem;">Check another status tab or clear your search term.</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
-<section class="panel" style="margin-bottom: 24px;">
-  <form method="get" style="display: grid; gap: 12px; grid-template-columns: repeat(5, minmax(150px, 1fr)); align-items: end;">
-    <div>
-      <label for="search">Search</label>
-      <input id="search" type="text" name="search" value="{{ search_term }}" placeholder="Guest or booking">
+<!-- ========================================================================
+     MODAL: FAST QUICK-ALLOCATION CONSOLE
+     ======================================================================== -->
+<div id="quickAssignModal" class="dcc-modal-backdrop">
+  <div class="dcc-modal">
+    <div class="dcc-modal-header">
+      <h3>
+        <span>⚡</span> Fast-Allocation &amp; Dispatch Console
+      </h3>
+      <button class="dcc-modal-close" onclick="closeQuickAssign()">&times;</button>
     </div>
-    <div>
-      <label for="status">Plan status</label>
-      <select id="status" name="status">
-        <option value="">All</option>
-        {% for value,label in booking.itinerary_status_choices %}
-        <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <label for="journey_type">Journey</label>
-      <select id="journey_type" name="journey_type">
-        <option value="">All</option>
-        {% for value,label in booking.JOURNEY_TYPES %}
-        <option value="{{ value }}" {% if value == journey_filter %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <label for="hotel_status">Hotel status</label>
-      <select id="hotel_status" name="hotel_status">
-        <option value="">All</option>
-        {% for value,label in booking.HOTEL_CONFIRMATION_CHOICES %}
-        <option value="{{ value }}" {% if value == hotel_filter %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <button class="button button-primary" type="submit">Apply</button>
-    </div>
-  </form>
-</section>
+    <form id="quickAssignForm" method="post" action="" onsubmit="handleQuickAssignSubmit(event)">
+      {% csrf_token %}
+      <div class="dcc-modal-body">
+        <!-- Trip Summary Context Card -->
+        <div class="dcc-modal-trip-summary">
+          <div class="dcc-summary-row">
+            <span class="dcc-summary-label">Trip Reference:</span>
+            <span id="modalTripRef" class="dcc-summary-val">#TRIP</span>
+          </div>
+          <div class="dcc-summary-row">
+            <span class="dcc-summary-label">Passenger / Guest:</span>
+            <span id="modalGuestName" class="dcc-summary-val">Guest Name</span>
+          </div>
+          <div class="dcc-summary-row">
+            <span class="dcc-summary-label">Route:</span>
+            <span id="modalRoute" class="dcc-summary-val">Coimbatore ➡️ Ooty</span>
+          </div>
+          <div class="dcc-summary-row">
+            <span class="dcc-summary-label">Schedule:</span>
+            <span id="modalSchedule" class="dcc-summary-val">Today @ 08:00 AM</span>
+          </div>
+        </div>
 
-<section class="panel">
-  <div class="panel-heading">
-    <h2>Draft and confirmed bookings</h2>
-    <span class="muted">{{ bookings|length }} records</span>
+        <!-- Vehicle Selection -->
+        <div class="dcc-form-group">
+          <label class="dcc-form-label" for="assignVehicleSelect">Select Fleet Vehicle</label>
+          <select id="assignVehicleSelect" name="vehicle_id" class="dcc-select" required>
+            <option value="">-- Choose Fleet Vehicle --</option>
+            {% for v in available_vehicles %}
+            <option value="{{ v.pk }}">
+              {{ v.registration_number }} • {{ v.brand }} {{ v.model }} ({{ v.vehicle_type.name|default:'Fleet' }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Driver Selection -->
+        <div class="dcc-form-group">
+          <label class="dcc-form-label" for="assignDriverSelect">Select Assigned Chauffeur / Captain</label>
+          <select id="assignDriverSelect" name="driver_id" class="dcc-select" required>
+            <option value="">-- Choose Chauffeur / Captain --</option>
+            {% for d in available_drivers %}
+            <option value="{{ d.pk }}">
+              {{ d.name }} {% if d.phone %}• 📞 {{ d.phone }}{% endif %} {% if d.badge_number %}(Badge: {{ d.badge_number }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- 1-Click WhatsApp Automations -->
+        <label class="dcc-checkbox-wrap">
+          <input type="checkbox" name="send_whatsapp_driver" value="1" checked>
+          <span class="dcc-checkbox-text">
+            📲 Dispatch instant WhatsApp duty assignment &amp; handover link to Captain
+          </span>
+        </label>
+
+        <label class="dcc-checkbox-wrap dcc-checkbox-guest">
+          <input type="checkbox" name="send_whatsapp_passenger" value="1" checked>
+          <span class="dcc-checkbox-text">
+            📲 Dispatch instant WhatsApp vehicle plate &amp; live GPS link to Guest
+          </span>
+        </label>
+      </div>
+
+      <div class="dcc-modal-footer">
+        <button type="button" class="dcc-btn dcc-btn-secondary" onclick="closeQuickAssign()">
+          Cancel
+        </button>
+        <button id="modalSubmitBtn" type="submit" class="dcc-btn dcc-btn-primary">
+          <span>⚡</span> Confirm &amp; Dispatch
+        </button>
+      </div>
+    </form>
   </div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Booking</th>
-        <th>Guest</th>
-        <th>Route</th>
-        <th>Plan</th>
-        <th>Hotel</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for booking in bookings %}
-      <tr>
-        <td>{{ booking.booking_number }}</td>
-        <td>{{ booking.guest_name }}<br><small>{{ booking.guest_phone }}</small></td>
-        <td>{{ booking.pickup_location }} → {{ booking.destination }}</td>
-        <td>{{ booking.get_itinerary_status_display }}</td>
-        <td>{{ booking.get_hotel_confirmation_status_display }}</td>
-        <td>
-          <a href="{% url 'booking-detail' booking.pk %}">View</a>
-          {% if booking.trips.exists %}
-          | <a href="{% url 'trip-detail' booking.trips.first.pk %}">Trip</a>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6" class="empty">No bookings match the current filters.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
+</div>
+
+<!-- Floating Toast Notification -->
+<div id="dccToast" class="dcc-toast">
+  <span id="dccToastIcon" style="font-size: 1.25rem;">✅</span>
+  <span id="dccToastMsg">Notification message</span>
+</div>
+
+<script>
+// ============================================================================
+// DCC JAVASCRIPT DISPATCH ENGINE
+// ============================================================================
+
+let currentActiveTripId = null;
+
+function showToast(message, isError = false) {
+  const toast = document.getElementById('dccToast');
+  const msgEl = document.getElementById('dccToastMsg');
+  const iconEl = document.getElementById('dccToastIcon');
+  if (!toast || !msgEl) return;
+
+  msgEl.textContent = message;
+  iconEl.textContent = isError ? '❌' : '📲';
+  toast.style.borderLeftColor = isError ? '#ef4444' : '#10b981';
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 4500);
+}
+
+function openQuickAssign(tripId, tripRef, guestName, route, schedule, currentVehId, currentDriverId) {
+  currentActiveTripId = tripId;
+  const modal = document.getElementById('quickAssignModal');
+  const form = document.getElementById('quickAssignForm');
+
+  document.getElementById('modalTripRef').textContent = '#' + tripRef;
+  document.getElementById('modalGuestName').textContent = guestName || 'Valued Guest';
+  document.getElementById('modalRoute').textContent = route || 'Direct Route';
+  document.getElementById('modalSchedule').textContent = schedule || 'As Scheduled';
+
+  const vehSelect = document.getElementById('assignVehicleSelect');
+  const driverSelect = document.getElementById('assignDriverSelect');
+
+  if (currentVehId) vehSelect.value = currentVehId;
+  else vehSelect.value = '';
+
+  if (currentDriverId) driverSelect.value = currentDriverId;
+  else driverSelect.value = '';
+
+  form.action = `/trips/${tripId}/quick-assign/`;
+  modal.classList.add('open');
+}
+
+function closeQuickAssign() {
+  const modal = document.getElementById('quickAssignModal');
+  if (modal) modal.classList.remove('open');
+  currentActiveTripId = null;
+}
+
+// Close modal when clicking on backdrop
+document.getElementById('quickAssignModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeQuickAssign();
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeQuickAssign();
+});
+
+// Handle Quick Allocation AJAX Submission
+async function handleQuickAssignSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const submitBtn = document.getElementById('modalSubmitBtn');
+  const originalBtnText = submitBtn.innerHTML;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span>⏳</span> Allocating...';
+
+  const formData = new FormData(form);
+
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.status === 'success') {
+      showToast(data.message || 'Trip allocated & dispatched successfully!');
+      closeQuickAssign();
+      // Reload page to reflect full table & badge states or update dynamically
+      setTimeout(() => {
+        window.location.reload();
+      }, 900);
+    } else {
+      showToast(data.message || 'Error assigning trip', true);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  } catch (err) {
+    console.error('Fast-Allocation Error:', err);
+    // Fallback: regular submit
+    form.submit();
+  }
+}
+
+// 1-Click WhatsApp Trigger to Driver
+async function triggerDriverWhatsApp(tripId, driverName) {
+  showToast(`Dispatching WhatsApp duty briefing to Captain ${driverName}...`);
+  try {
+    const res = await fetch(`/trips/${tripId}/broadcast-driver-whatsapp/`, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      showToast(`✅ WhatsApp Duty Briefing dispatched to Captain ${driverName}!`);
+    } else {
+      showToast(`Notice: ${data.message || 'WhatsApp triggered'}`, false);
+    }
+  } catch (err) {
+    // If regular response or redirect
+    window.location.href = `/trips/${tripId}/broadcast-driver-whatsapp/`;
+  }
+}
+
+// 1-Click WhatsApp Trigger to Passenger
+async function triggerGuestWhatsApp(tripId, guestName) {
+  showToast(`Dispatching WhatsApp confirmation & GPS link to ${guestName}...`);
+  try {
+    const res = await fetch(`/trips/${tripId}/broadcast-whatsapp/`, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      showToast(`✅ Live GPS link & dispatch sheet sent to ${guestName}!`);
+    } else {
+      showToast(`Notice: ${data.message || 'WhatsApp triggered'}`, false);
+    }
+  } catch (err) {
+    window.location.href = `/trips/${tripId}/broadcast-whatsapp/`;
+  }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,683 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Our Services - Corporate Mobility, Campus Fleets & Coach Charters | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Services Overview Hub Styling */
+    .services-hero {
+        background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%);
+        color: white;
+        padding: 4.5rem 1.5rem 5rem;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .services-hero-bg {
+        position: absolute;
+        inset: 0;
+        background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
+        opacity: 0.18;
+        filter: brightness(0.7) contrast(1.1);
+        pointer-events: none;
+    }
+
+    .services-hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .services-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(99, 102, 241, 0.25);
+        border: 1px solid rgba(165, 180, 252, 0.4);
+        color: #e0e7ff;
+        padding: 0.35rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 1.25rem;
+    }
+
+    .services-hero h1 {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+        font-weight: 800;
+        line-height: 1.15;
+        margin-bottom: 1.25rem;
+    }
+
+    .services-hero h1 span {
+        background: linear-gradient(120deg, #f59e0b, #fbbf24);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .services-hero p {
+        color: #cbd5e1;
+        font-size: 1.1rem;
+        line-height: 1.65;
+        max-width: 780px;
+        margin: 0 auto 2.5rem;
+    }
+
+    .services-stats-strip {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .services-stat-item {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+        padding: 0.85rem 1.5rem;
+        min-width: 140px;
+    }
+
+    .services-stat-val {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #38bdf8;
+        line-height: 1;
+        margin-bottom: 0.25rem;
+    }
+
+    .services-stat-lbl {
+        font-size: 0.76rem;
+        color: #cbd5e1;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    /* Service Pillars Grid */
+    .pillars-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+
+    @media (max-width: 860px) {
+        .pillars-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .pillar-card {
+        background: #ffffff;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06);
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+    }
+
+    .pillar-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.14);
+        border-color: #27bdfe;
+    }
+
+    .pillar-media {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+    }
+
+    .pillar-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .pillar-card:hover .pillar-media img {
+        transform: scale(1.06);
+    }
+
+    .pillar-badge-tag {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(6px);
+        color: #f8fafc;
+        padding: 0.3rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .pillar-body {
+        padding: 2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pillar-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--brand-navy);
+        margin: 0 0 0.75rem;
+        line-height: 1.3;
+    }
+
+    .pillar-desc {
+        color: #475569;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        margin: 0 0 1.25rem;
+        flex: 1;
+    }
+
+    .pillar-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 1.75rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.6rem;
+    }
+
+    .pillar-features li {
+        font-size: 0.82rem;
+        color: #334155;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    .pillar-features li span {
+        color: #059669;
+        font-weight: 800;
+    }
+
+    .pillar-action-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    /* 5-Stakeholder Matrix Preview (Image 1 Style) */
+    .matrix-section {
+        background: #f8fafc;
+        border-top: 1px solid var(--border-light);
+        border-bottom: 1px solid var(--border-light);
+        padding: 4.5rem 1.5rem;
+    }
+
+    .matrix-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-top: 2.5rem;
+    }
+
+    .matrix-box {
+        background: white;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 1.75rem 1.5rem;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease;
+    }
+
+    .matrix-box:hover {
+        transform: translateY(-3px);
+        border-color: #38bdf8;
+        box-shadow: var(--shadow-md);
+    }
+
+    .matrix-icon {
+        font-size: 2.2rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .matrix-box h4 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--brand-navy);
+        margin: 0 0 0.5rem;
+    }
+
+    .matrix-box p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin: 0;
+    }
+
+    /* Call to action card */
+    .services-cta-banner {
+        background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+        border-radius: var(--radius-xl);
+        padding: 3.5rem 2.5rem;
+        color: white;
+        text-align: center;
+        margin: 4rem auto 1rem;
+        box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ==============================================================================
+     1. HERO BANNER
+     ============================================================================== -->
+<section class="services-hero">
+    <div class="services-hero-bg"></div>
+    <div class="services-hero-content">
+        <div class="services-badge">
+            <span>🛡️</span> PASSENGER MOBILITY & FLEET LOGISTICS
+        </div>
+        <h1>
+            Comprehensive Transport Solutions for <span>Modern Enterprises</span>
+        </h1>
+        <p>
+            Whether powering daily workforce transit for Fortune 500 tech parks, ensuring child safety on institutional
+            campus runs, or chartering luxury Volvo multi-axle coaches across South India.
+        </p>
+
+        <div class="services-stats-strip">
+            <div class="services-stat-item">
+                <div class="services-stat-val">320+</div>
+                <div class="services-stat-lbl">Active Fleets</div>
+            </div>
+            <div class="services-stat-item">
+                <div class="services-stat-val">100+</div>
+                <div class="services-stat-lbl">Corporate Clients</div>
+            </div>
+            <div class="services-stat-item">
+                <div class="services-stat-val">99.8%</div>
+                <div class="services-stat-lbl">On-Time SLA</div>
+            </div>
+            <div class="services-stat-item">
+                <div class="services-stat-val">24/7</div>
+                <div class="services-stat-lbl">Dispatch Hub</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     2. FOUR CORE SERVICE PILLARS
+     ============================================================================== -->
+<main class="section-wrapper">
+    <nav style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;" aria-label="Breadcrumbs">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <strong style="color: var(--brand-navy);">Our Services</strong>
+    </nav>
+
+    <div style="text-align: center; max-width: 760px; margin: 0 auto;">
+        <span class="section-subtitle-tag">WHAT WE DO</span>
+        <h2 class="section-title">Specialized Transport Capabilities</h2>
+        <p class="section-desc">
+            Engineered with modern AIS-140 telematics, verified chauffeurs, and zero-downtime SLA backings for
+            companies, schools, universities, and travelers.
+        </p>
+    </div>
+
+    <div class="pillars-grid">
+        <!-- Pillar 1: Corporate Employee Transport -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/corporate_employee_transport.jpg"
+                    alt="Corporate Employee Transportation Solutions" loading="lazy">
+                <span class="pillar-badge-tag">🏢 ENTERPRISE MOBILITY</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">Corporate Employee Transportation</h3>
+                <p class="pillar-desc">
+                    Customized daily commuter networks for IT hubs, BPOs, manufacturing units, and corporate offices
+                    across Coimbatore, Bangalore, and Chennai. Automated roster optimization, geo-fenced routes, and
+                    night security protocols.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> Automated Roster Routing</li>
+                    <li><span>✓</span> AIS-140 GPS & Panic SOS</li>
+                    <li><span>✓</span> Female Escort Protocols</li>
+                    <li><span>✓</span> Digital Billing & Compliance</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #0284c7;">5-Stakeholder Matrix
+                        Included</span>
+                    <a href="{% url 'customer_portal:employee_transportation' %}" class="btn btn-primary"
+                        style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 2: School & College Campus Transport -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/school_campus_buses.jpg" alt="School & College Campus Transportation"
+                    loading="lazy">
+                <span class="pillar-badge-tag">🏫 CAMPUS MOBILITY</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">School & College Campus Fleets</h3>
+                <p class="pillar-desc">
+                    Comprehensive student commute networks built to the strictest child-safety standards. Features
+                    yellow RTO-compliant livery, 40 km/h speed governors, trained female caretakers on every route, and
+                    live parent RFID alerts.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> 40 km/h Speed Limiters</li>
+                    <li><span>✓</span> Female Caretaker on Board</li>
+                    <li><span>✓</span> RFID Student Attendance</li>
+                    <li><span>✓</span> Dual Dashcam Surveillance</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #f59e0b;">Child Safety First</span>
+                    <a href="{% url 'customer_portal:institutional_transport' %}" class="btn btn-primary"
+                        style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 3: College Industrial Visits (IV) & Educational Expeditions -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/fleet_lineup.jpg" alt="College Industrial Visits and Student Tours"
+                    loading="lazy">
+                <span class="pillar-badge-tag">🎓 EDUCATIONAL EXPEDITIONS</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">College Industrial Visits (IV) & Tours</h3>
+                <p class="pillar-desc">
+                    Turnkey educational excursions for engineering, arts, and management colleges across Tamil Nadu.
+                    Includes verified factory visits in Bangalore, Mysore, Kochi, premium student hotel stays, campfire
+                    sessions, and DJ-equipped coaches.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> Factory Visit Permissions</li>
+                    <li><span>✓</span> Star Hotel Accommodations</li>
+                    <li><span>✓</span> Full Bus DJ Sound Systems</li>
+                    <li><span>✓</span> Faculty Escort Amenities</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #10b981;">Over 25,000+ Students
+                        Moved</span>
+                    <a href="{% url 'customer_portal:package_list' %}?category=college_iv" class="btn btn-primary"
+                        style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        View IV Packages →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 4: Commercial Fleet & Luxury Coach Rentals -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/fleet/volvo_coach.jpg" alt="Commercial Fleet and Luxury Coach Rentals"
+                    loading="lazy">
+                <span class="pillar-badge-tag">🚐 COACH & FLEET CHARTERS</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">Commercial Fleet & Luxury Coach Charters</h3>
+                <p class="pillar-desc">
+                    South India's most comprehensive rental catalog. From executive 7-seater Innova Crystas and Force
+                    Urbania 10S/17S luxury vans to 53-seater Volvo 9600 multi-axle semi-sleeper coaches. Transparent
+                    per-KM billing with zero hidden charges.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> Volvo 9600 Multi-Axle</li>
+                    <li><span>✓</span> Force Urbania 10S & 17S</li>
+                    <li><span>✓</span> Innova Crysta & Sedans</li>
+                    <li><span>✓</span> Uniformed Chauffeurs</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #6366f1;">3-Column Card Catalog</span>
+                    <a href="{% url 'customer_portal:fleet' %}" class="btn btn-primary"
+                        style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        View All Fleets →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 5: Airport Transfers & Chauffeur Desk -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/fleet/innova_crysta.jpg" alt="Airport Transfers and Flight Synchronized Chauffeur Service" loading="lazy">
+                <span class="pillar-badge-tag">✈️ AVIATION TRANSIT</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">Airport Transfers & Chauffeur Desk</h3>
+                <p class="pillar-desc">
+                    Point-to-point transit for CJB, BLR, COK, TRZ, IXM, and MAA airports. Live flight radar tracking with zero waiting surcharge for flight delays, meet-and-greet placard service, and executive luggage handling.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> 0 Mins Delay Surcharge</li>
+                    <li><span>✓</span> Arrival Hall Meet & Greet</li>
+                    <li><span>✓</span> Innova Crysta & Hybrid</li>
+                    <li><span>✓</span> 24/7 Flight Sync Desk</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #0284c7;">Flight-Radar Synced</span>
+                    <a href="{% url 'customer_portal:airport_transfers' %}" class="btn btn-primary" style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 6: Wedding & Event Transit Convoys -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/fleet_lineup.jpg" alt="Wedding & Event Transit Convoys" loading="lazy">
+                <span class="pillar-badge-tag">💍 MUHURTHAM CONVOYS</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">Wedding & Event Transit Convoys</h3>
+                <p class="pillar-desc">
+                    Complete guest logistics for grand weddings and destination events in Ooty, Kodaikanal, and Coorg. Coordinated fleets of 10 to 40 vehicles, dedicated on-site transit managers, and 24/7 on-call buffer vehicles.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> 10–40 Vehicle Convoys</li>
+                    <li><span>✓</span> On-Site Transport Manager</li>
+                    <li><span>✓</span> Decorated Bridal Cars</li>
+                    <li><span>✓</span> Standby Buffer Vehicles</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #e11d48;">Zero Host Stress</span>
+                    <a href="{% url 'customer_portal:wedding_event_transport' %}" class="btn btn-primary" style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 7: MICE & Corporate Offsite Delegations -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/corporate_employee_transport.jpg" alt="MICE & Corporate Offsite Delegations" loading="lazy">
+                <span class="pillar-badge-tag">🌲 CONFERENCES & RETREATS</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">MICE & Corporate Offsite Delegations</h3>
+                <p class="pillar-desc">
+                    Executive group mobility for corporate summits, leadership conclaves, and annual off-site retreats to Ooty, Wayanad, and Munnar. Multi-coach convoy management, onboard PA systems, and dedicated luggage vans.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> Multi-Coach Convoy Sync</li>
+                    <li><span>✓</span> Onboard PA Wireless Mic</li>
+                    <li><span>✓</span> Dedicated Luggage Vans</li>
+                    <li><span>✓</span> Custom B2B Billing</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #10b981;">Enterprise Ready</span>
+                    <a href="{% url 'customer_portal:mice_corporate_offsites' %}" class="btn btn-primary" style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 8: Industrial Township & Factory 3-Shift Transit -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/school_campus_buses.jpg" alt="Industrial Township & Factory 3-Shift Transit" loading="lazy">
+                <span class="pillar-badge-tag">🏭 PLANT MOBILITY</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">Industrial Factory 3-Shift Transit</h3>
+                <p class="pillar-desc">
+                    Round-the-clock shift mobility for foundries, textile mills, and automotive plants across Coimbatore, Tiruppur, and Hosur. 24/7 3-shift rotation commutes, heavy-duty buses, and 99.8% on-time arrival guarantees.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> 24/7 3-Shift Rotations</li>
+                    <li><span>✓</span> Heavy-Duty Plant Buses</li>
+                    <li><span>✓</span> 30-Min Breakdown Buffer</li>
+                    <li><span>✓</span> Cluster Route Audits</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #f59e0b;">Production Continuity</span>
+                    <a href="{% url 'customer_portal:industrial_factory_transit' %}" class="btn btn-primary" style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- Pillar 9: Luxury Camper Van & Caravan Tourism -->
+        <article class="pillar-card">
+            <div class="pillar-media">
+                <img src="/static/images/fleet/force_urbania.jpg" alt="Luxury Camper Van & Caravan Tourism" loading="lazy">
+                <span class="pillar-badge-tag">🏕️ GLAMPING EXPEDITIONS</span>
+            </div>
+            <div class="pillar-body">
+                <h3 class="pillar-title">Luxury Camper Van & Caravan Tourism</h3>
+                <p class="pillar-desc">
+                    Experiential glamping on wheels across the Western Ghats. Customized Force Urbania and Tempo sleeper campers with sofa-cum-bed, mini cooking kitchenette, deep chillers, and retractable camping awnings.
+                </p>
+                <ul class="pillar-features">
+                    <li><span>✓</span> Convertible Queen Bed</li>
+                    <li><span>✓</span> Mini Kitchenette & Chiller</li>
+                    <li><span>✓</span> Outdoor Camping Awnings</li>
+                    <li><span>✓</span> Valparai & Meghamalai</li>
+                </ul>
+                <div class="pillar-action-row">
+                    <span style="font-size: 0.85rem; font-weight: 700; color: #a855f7;">5-Star Hotel on Wheels</span>
+                    <a href="{% url 'customer_portal:luxury_camper_caravan' %}" class="btn btn-primary" style="padding: 0.55rem 1.15rem; font-size: 0.85rem;">
+                        Explore Solution →
+                    </a>
+                </div>
+            </div>
+        </article>
+    </div>
+</main>
+
+
+<!-- ==============================================================================
+     3. "YOUR NEEDS – OUR SOLUTIONS" MATRIX (Matching Reference Image 1)
+     ============================================================================== -->
+<section class="matrix-section">
+    <div style="max-width: 1280px; margin: 0 auto; padding: 0 1rem;">
+        <div style="text-align: center; max-width: 720px; margin: 0 auto;">
+            <span class="section-subtitle-tag">ENTERPRISE ASSURANCE</span>
+            <h2 class="section-title">Your Needs – Our Solutions</h2>
+            <p class="section-desc">
+                We combine elite fleet services, automated dispatch software, and dedicated ground controllers to serve
+                every key stakeholder.
+            </p>
+        </div>
+
+        <div class="matrix-row">
+            <div class="matrix-box">
+                <div class="matrix-icon">🏢</div>
+                <h4>Company & HR</h4>
+                <p>Zero late log-ins, 99.8% on-time commute SLA, employee safety protocols, and comprehensive business
+                    continuity planning.</p>
+            </div>
+
+            <div class="matrix-box">
+                <div class="matrix-icon">📱</div>
+                <h4>Employees</h4>
+                <p>Live GPS bus tracking, estimated arrival notifications, SOS emergency button, and sanitized pushback
+                    seating with charging ports.</p>
+            </div>
+
+            <div class="matrix-box">
+                <div class="matrix-icon">📊</div>
+                <h4>Finance Desk</h4>
+                <p>Paperless billing, transparent per-KM and monthly contract tariffs, automated trip sheet
+                    verification, and zero fuel surcharge spikes.</p>
+            </div>
+
+            <div class="matrix-box">
+                <div class="matrix-icon">⚙️</div>
+                <h4>Operations</h4>
+                <p>Dedicated on-site route marshals, backup standby vehicles at tech parks, and 24/7 central dispatch
+                    monitoring center.</p>
+            </div>
+
+            <div class="matrix-box">
+                <div class="matrix-icon">📜</div>
+                <h4>Compliance</h4>
+                <p>100% RTO verified commercial permits, comprehensive passenger insurance, police-verified drivers, and
+                    statutory safety certifications.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     4. BOTTOM CONVERSION CTA BANNER
+     ============================================================================== -->
+<div class="section-wrapper" style="padding-top: 1rem;">
+    <div class="services-cta-banner">
+        <span
+            style="font-size: 0.8rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
+            LOOKING FOR A CUSTOM MOBILITY CONTRACT?
+        </span>
+        <h2
+            style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0 0 1rem; line-height: 1.2;">
+            Let’s Build a Seamless Transportation Network for Your Organization
+        </h2>
+        <p style="color: #cbd5e1; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
+            Speak directly with our Chief Fleet Controller for tailored corporate contracts, campus transportation RFPs,
+            or group charter reservations.
+        </p>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="tel:+919842533777" class="btn btn-primary"
+                style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem;">
+                📞 Call Fleet Desk: +91 98425 33777
+            </a>
+            <button type="button" onclick="openCustomTripModal('corporate_rfp')" class="btn btn-outline"
+                style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem;">
+                📄 Request Enterprise RFP / Quotation
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

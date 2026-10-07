@@ -1,0 +1,820 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Our Fleets - Modern, Comfortable & Reliable | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ----------------- Fleet Showcase Specific Styles ----------------- */
+.fleet-hero-banner {
+    background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%);
+    color: white;
+    padding: 3.5rem 1.5rem 4rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.fleet-hero-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
+    opacity: 0.16;
+    filter: brightness(0.8) contrast(1.1);
+    pointer-events: none;
+}
+.fleet-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 880px;
+    margin: 0 auto;
+}
+.fleet-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(99, 102, 241, 0.25);
+    border: 1px solid rgba(165, 180, 252, 0.4);
+    padding: 0.35rem 0.95rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #e0e7ff;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.fleet-hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+.fleet-hero-title span {
+    background: linear-gradient(120deg, #f59e0b, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.fleet-hero-desc {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 720px;
+    margin: 0 auto 2rem;
+}
+
+/* Stats Counter Strip */
+.fleet-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    max-width: 720px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+}
+.fleet-stat-box h4 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    line-height: 1;
+}
+.fleet-stat-box p {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-top: 0.35rem;
+}
+
+/* ----------------- Dual Filter Control Hub ----------------- */
+.fleet-filter-wrapper {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem 1.75rem;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    margin: 2rem 0 3rem;
+}
+.fleet-filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+.fleet-filter-btn {
+    padding: 0.65rem 1.25rem;
+    border-radius: var(--radius-full);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: #f8fafc;
+    border: 1px solid var(--border-medium);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    text-decoration: none;
+}
+.fleet-filter-btn:hover {
+    border-color: #0284c7;
+    color: #0284c7;
+    background: white;
+    transform: translateY(-1px);
+}
+.fleet-filter-btn.active {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+.fleet-filter-badge {
+    background: rgba(0, 0, 0, 0.07);
+    font-size: 0.72rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-weight: 800;
+}
+.fleet-filter-btn.active .fleet-filter-badge {
+    background: rgba(255, 255, 255, 0.28);
+    color: white;
+}
+
+/* Secondary Sub-Filter Row */
+.fleet-subfilter-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--border-light);
+    flex-wrap: wrap;
+}
+.fleet-capacity-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+.capacity-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    margin-right: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.capacity-chip {
+    padding: 0.38rem 0.85rem;
+    border-radius: var(--radius-full);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.capacity-chip:hover {
+    background: #e2e8f0;
+    color: var(--brand-navy);
+}
+.capacity-chip.active {
+    background: var(--brand-navy);
+    color: white;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+
+.fleet-search-box {
+    position: relative;
+    min-width: 240px;
+    flex: 1;
+    max-width: 320px;
+}
+.fleet-search-box input {
+    width: 100%;
+    padding: 0.45rem 1rem 0.45rem 2.2rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-medium);
+    font-size: 0.82rem;
+    background: #ffffff;
+    transition: all 0.2s;
+    outline: none;
+    box-sizing: border-box;
+}
+.fleet-search-box input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+.fleet-search-icon {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+.fleet-empty-state {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    background: white;
+    border-radius: var(--radius-xl);
+    border: 1px dashed var(--border-medium);
+    margin: 2rem 0 3.5rem;
+}
+
+/* ----------------- 3-Column Modern Card Grid (Reference Image 2) ----------------- */
+.fleet-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1.75rem;
+    margin-bottom: 3.5rem;
+}
+
+.fleet-grid-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+
+.fleet-grid-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.16);
+    border-color: #38bdf8;
+}
+
+.fleet-card-media {
+    position: relative;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    background: #f1f5f9;
+}
+
+.fleet-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.fleet-grid-card:hover .fleet-card-media img {
+    transform: scale(1.05);
+}
+
+.fleet-badge-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(6px);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.fleet-capacity-tag {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background: rgba(2, 132, 199, 0.95);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-full);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.fleet-card-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.fleet-card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.35rem;
+    line-height: 1.3;
+}
+
+.fleet-card-tagline {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    margin: 0 0 1rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Specs Bar (Image 2 style) */
+.fleet-specs-pills {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 0.85rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.fleet-amenities-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+}
+
+.amenity-chip-sm {
+    font-size: 0.72rem;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* Tariff & Card Actions Footer */
+.fleet-card-actions {
+    margin-top: auto;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.fleet-price-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.fleet-rate-text {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--accent-emerald);
+    line-height: 1;
+}
+
+.fleet-rate-unit {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 0.2rem;
+}
+
+.fleet-btn-group {
+    display: flex;
+    gap: 0.4rem;
+}
+
+/* ----------------- Comparison Matrix Table ----------------- */
+.comparison-table-wrapper {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    overflow-x: auto;
+    box-shadow: var(--shadow-sm);
+}
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: left;
+}
+.comparison-table th {
+    background: #f8fafc;
+    color: var(--brand-navy);
+    font-weight: 700;
+    padding: 1rem 1.25rem;
+    border-bottom: 2px solid var(--border-medium);
+    white-space: nowrap;
+}
+.comparison-table td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-secondary);
+}
+.comparison-table tr:hover td {
+    background: #f8fafc;
+}
+
+/* Safety SOP Cards Grid */
+.safety-pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+.safety-pillar-card {
+    background: white;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: transform 0.2s ease;
+}
+.safety-pillar-card:hover {
+    transform: translateY(-2px);
+    border-color: #0284c7;
+}
+.safety-pillar-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+.safety-pillar-card h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin-bottom: 0.4rem;
+}
+.safety-pillar-card p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ==============================================================================
+     1. FLEET HERO BANNER
+     ============================================================================== -->
+<section class="fleet-hero-banner">
+    <div class="fleet-hero-bg"></div>
+    <div class="fleet-hero-content">
+        <div class="fleet-hero-badge">
+            <span>🛡️</span> COMMERCIAL FLEET & LUXURY COACH DIRECTORY
+        </div>
+        <h1 class="fleet-hero-title">
+            Modern, Comfortable, and <span>Reliable</span>
+        </h1>
+        <p class="fleet-hero-desc">
+            Explore our state-of-the-art fleet designed to meet every travel requirement. From executive airport transit to 54-seater multi-axle luxury coach expeditions.
+        </p>
+
+        <div class="fleet-stats-strip">
+            <div class="fleet-stat-box">
+                <h4>320+</h4>
+                <p>Commercial Fleet</p>
+            </div>
+            <div class="fleet-stat-box">
+                <h4>100%</h4>
+                <p>AIS-140 GPS Fitted</p>
+            </div>
+            <div class="fleet-stat-box">
+                <h4>15+</h4>
+                <p>Years Legacy</p>
+            </div>
+            <div class="fleet-stat-box">
+                <h4>24/7</h4>
+                <p>Dispatch Support</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ==============================================================================
+     2. CARD GRID FLEET SHOWCASE (Reference Image 2 Style)
+     ============================================================================== -->
+<main class="section-wrapper" x-data="{
+    currentCategory: '{{ selected_category|default:'all' }}',
+    capacityFilter: 'all',
+    searchQuery: '',
+    fleetItems: [
+        {% for v in fleet_catalog %}
+        { id: '{{ v.id }}', category: '{{ v.category }}', seats: {{ v.seating_capacity }}, name: '{{ v.name|escapejs }}', tagline: '{{ v.tagline|escapejs }}' }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    matchVehicle(category, seats, name, tagline) {
+        const matchCat = (this.currentCategory === 'all' || this.currentCategory === category);
+        let matchCap = true;
+        if (this.capacityFilter === '4-7') matchCap = (seats >= 4 && seats <= 7);
+        else if (this.capacityFilter === '10-17') matchCap = (seats >= 10 && seats <= 17);
+        else if (this.capacityFilter === '20-36') matchCap = (seats >= 20 && seats <= 36);
+        else if (this.capacityFilter === '40+') matchCap = (seats >= 40);
+
+        let matchSearch = true;
+        if (this.searchQuery && this.searchQuery.trim() !== '') {
+            const q = this.searchQuery.toLowerCase().trim();
+            matchSearch = name.toLowerCase().includes(q) || tagline.toLowerCase().includes(q);
+        }
+        return matchCat && matchCap && matchSearch;
+    },
+    get matchingCount() {
+        return this.fleetItems.filter(v => this.matchVehicle(v.category, v.seats, v.name, v.tagline)).length;
+    },
+    resetFilters() {
+        this.currentCategory = 'all';
+        this.capacityFilter = 'all';
+        this.searchQuery = '';
+    }
+}">
+    <!-- Breadcrumbs -->
+    <nav style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem;" aria-label="Breadcrumbs">
+        <a href="{% url 'customer_portal:home' %}" style="color: var(--text-secondary); text-decoration: none;">Home</a>
+        <span style="margin: 0 0.4rem;">›</span>
+        <strong style="color: var(--brand-navy);">Commercial Fleets</strong>
+    </nav>
+
+    <div style="text-align: center; max-width: 720px; margin: 0 auto 1.5rem;">
+        <span class="section-subtitle-tag">COMMERCIAL TRANSPORT MATRIX</span>
+        <h2 class="section-title">Explore Our Fleets</h2>
+        <p class="section-desc">
+            Click any vehicle to view full interior photography, RTO safety equipment, 360° specifications, and instant WhatsApp booking.
+        </p>
+    </div>
+
+    <!-- Dual Filter Control Hub -->
+    <div class="fleet-filter-wrapper">
+        <!-- 1. Primary Category Filter Bar -->
+        <div class="fleet-filter-bar">
+            <button class="fleet-filter-btn" :class="{ 'active': currentCategory === 'all' }" @click="currentCategory = 'all'">
+                <span>🌟 All Fleets</span>
+                <span class="fleet-filter-badge">{{ category_counts.all }}</span>
+            </button>
+            <button class="fleet-filter-btn" :class="{ 'active': currentCategory === 'car' }" @click="currentCategory = 'car'">
+                <span>🚗 Cars</span>
+                <span class="fleet-filter-badge">{{ category_counts.car }}</span>
+            </button>
+            <button class="fleet-filter-btn" :class="{ 'active': currentCategory === 'bus' }" @click="currentCategory = 'bus'">
+                <span>🚌 Buses</span>
+                <span class="fleet-filter-badge">{{ category_counts.bus }}</span>
+            </button>
+            <button class="fleet-filter-btn" :class="{ 'active': currentCategory === 'van' }" @click="currentCategory = 'van'">
+                <span>🚐 Vans</span>
+                <span class="fleet-filter-badge">{{ category_counts.van }}</span>
+            </button>
+            <button class="fleet-filter-btn" :class="{ 'active': currentCategory === 'caravan' }" @click="currentCategory = 'caravan'">
+                <span>🏕️ Caravan & Vanity Van</span>
+                <span class="fleet-filter-badge">{{ category_counts.caravan }}</span>
+            </button>
+            <button class="fleet-filter-btn" :class="{ 'active': currentCategory === 'other' }" @click="currentCategory = 'other'">
+                <span>✨ Other</span>
+                <span class="fleet-filter-badge">{{ category_counts.other }}</span>
+            </button>
+        </div>
+
+        <!-- 2. Secondary Sub-Filter Row (Capacity & Live Search) -->
+        <div class="fleet-subfilter-strip">
+            <div class="fleet-capacity-chips">
+                <span class="capacity-label">👥 Seating:</span>
+                <button type="button" class="capacity-chip" :class="{ 'active': capacityFilter === 'all' }" @click="capacityFilter = 'all'">
+                    All Capacities
+                </button>
+                <button type="button" class="capacity-chip" :class="{ 'active': capacityFilter === '4-7' }" @click="capacityFilter = '4-7'">
+                    4–7 Seats
+                </button>
+                <button type="button" class="capacity-chip" :class="{ 'active': capacityFilter === '10-17' }" @click="capacityFilter = '10-17'">
+                    10–17 Seats
+                </button>
+                <button type="button" class="capacity-chip" :class="{ 'active': capacityFilter === '20-36' }" @click="capacityFilter = '20-36'">
+                    20–36 Seats
+                </button>
+                <button type="button" class="capacity-chip" :class="{ 'active': capacityFilter === '40+' }" @click="capacityFilter = '40+'">
+                    40–54+ Seats
+                </button>
+            </div>
+
+            <div class="fleet-search-box">
+                <span class="fleet-search-icon">🔍</span>
+                <input type="text" x-model="searchQuery" placeholder="Search Volvo, Crysta, Bed, AC...">
+            </div>
+        </div>
+
+        <!-- Active Refinement Summary & Reset Button -->
+        <div x-show="currentCategory !== 'all' || capacityFilter !== 'all' || searchQuery !== ''" 
+             style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid #f1f5f9; font-size: 0.82rem; color: var(--text-secondary);"
+             x-transition>
+            <div>
+                <span>Active Filter: </span>
+                <strong style="color: var(--brand-navy);" x-text="currentCategory === 'all' ? 'All Types' : currentCategory.toUpperCase()"></strong>
+                <template x-if="capacityFilter !== 'all'">
+                    <span> • Capacity: <strong style="color: var(--brand-navy);" x-text="capacityFilter + ' seats'"></strong></span>
+                </template>
+                <template x-if="searchQuery">
+                    <span> • Query: &ldquo;<strong style="color: var(--brand-navy);" x-text="searchQuery"></strong>&rdquo;</span>
+                </template>
+            </div>
+            <button type="button" @click="resetFilters()" style="background: none; border: none; color: #ef4444; font-weight: 700; cursor: pointer; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                ✕ Reset All Filters
+            </button>
+        </div>
+    </div>
+
+    <!-- 3-Column Vehicle Card Grid -->
+    <div class="fleet-grid-3">
+        {% for vehicle in fleet_catalog %}
+        <article class="fleet-grid-card" x-show="matchVehicle('{{ vehicle.category }}', {{ vehicle.seating_capacity }}, '{{ vehicle.name|escapejs }}', '{{ vehicle.tagline|escapejs }}')" x-transition>
+            <!-- Media Container -->
+            <div class="fleet-card-media">
+                <img src="{{ vehicle.image }}" alt="{{ vehicle.name }}" loading="lazy">
+                <span class="fleet-badge-badge">{{ vehicle.badge }}</span>
+                <span class="fleet-capacity-tag">👥 {{ vehicle.seating_capacity }} Seats</span>
+            </div>
+
+            <!-- Card Content -->
+            <div class="fleet-card-content">
+                <h3 class="fleet-card-title">{{ vehicle.name }}</h3>
+                <p class="fleet-card-tagline">{{ vehicle.tagline }}</p>
+
+                <!-- Specs Pill Bar (Image 2 Style) -->
+                <div class="fleet-specs-pills">
+                    <span>👥 {{ vehicle.seating_capacity }} Passengers</span>
+                    <span>⚙️ {{ vehicle.transmission|truncatewords:2 }}</span>
+                </div>
+
+                <!-- Amenities Chips -->
+                <div class="fleet-amenities-chips">
+                    {% for amenity in vehicle.amenities|slice:":4" %}
+                    <span class="amenity-chip-sm">✓ {{ amenity }}</span>
+                    {% endfor %}
+                </div>
+
+                <!-- Footer with Rate & Actions -->
+                <div class="fleet-card-actions">
+                    <div class="fleet-price-block">
+                        <span class="fleet-rate-text">₹{{ vehicle.rate_per_km }}</span>
+                        <span class="fleet-rate-unit">per KM • Min {{ vehicle.min_km_day }} KM/day</span>
+                    </div>
+
+                    <div class="fleet-btn-group">
+                        <button type="button" onclick="openCustomTripModal('fleet_rental')" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; font-weight: 700;" title="Instant WhatsApp Quote">
+                            💬 Quote
+                        </button>
+                        <a href="{% url 'customer_portal:vehicle_detail' vehicle.id %}" class="btn btn-primary" style="padding: 0.5rem 0.95rem; font-size: 0.82rem; font-weight: 700;">
+                            View →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State if No Vehicles Match Filters -->
+    <div class="fleet-empty-state" x-show="matchingCount === 0" x-cloak>
+        <div style="font-size: 3rem; margin-bottom: 0.75rem;">🚐🔍</div>
+        <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.35rem; color: var(--brand-navy); margin-bottom: 0.5rem;">
+            No vehicles match this specific combination
+        </h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 520px; margin: 0 auto 1.5rem;">
+            Try clearing the search query or changing the seating capacity filter to view matching fleet options.
+        </p>
+        <button type="button" @click="resetFilters()" class="btn btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.88rem; font-weight: 700;">
+            ↺ Reset All Filters
+        </button>
+    </div>
+
+
+    <!-- ==============================================================================
+         3. "BEGIN YOUR JOURNEY" CTA BANNER (Reference Image 2 Style)
+         ============================================================================== -->
+    <div style="background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%); border-radius: var(--radius-xl); padding: 3rem 2.5rem; color: white; margin: 3rem auto; box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); display: grid; grid-template-columns: 1fr 1.3fr; gap: 2rem; align-items: center;">
+        <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+            <img src="/static/images/fleet/volvo_coach.jpg" alt="Sivagayathiri Travel Experts" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+        </div>
+
+        <div>
+            <span style="font-size: 0.75rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+                GET STARTED NOW
+            </span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem;">
+                Begin Your Journey with <span style="color: #fbbf24;">Trusted Travel Experts</span>
+            </h3>
+            <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                Experience safe, reliable, and comfortable passenger transit designed to meet your exact travel needs. Let us make every journey smooth, punctual, and stress-free.
+            </p>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="button" onclick="openCustomTripModal('fleet_rental')" class="btn" style="background: #f59e0b; color: #090d16; font-weight: 800; padding: 0.75rem 1.4rem; border-radius: 10px; border: none; cursor: pointer;">
+                    ⚡ Instant WhatsApp Quote
+                </button>
+                <a href="{% url 'customer_portal:home' %}#fare-estimator" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.35); font-weight: 600; padding: 0.75rem 1.25rem; border-radius: 10px;">
+                    Fare Calculator 🚗
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==============================================================================
+         4. COMPARATIVE FLEET MATRIX TABLE
+         ============================================================================== -->
+    <div style="margin-top: 4rem;">
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+            <span class="section-subtitle-tag">SIDE-BY-SIDE EVALUATION</span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; color: var(--brand-navy);">
+                Fleet Tariff & Feature Comparison
+            </h3>
+            <p class="section-desc">Transparent comparison to help you choose the right capacity for your budget and group size.</p>
+        </div>
+
+        <div class="comparison-table-wrapper">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Vehicle Class</th>
+                        <th>Seating Capacity</th>
+                        <th>Luggage Space</th>
+                        <th>Outstation Rate</th>
+                        <th>Daily Min KM</th>
+                        <th>Driver Bata</th>
+                        <th>Air Suspension</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in all_fleet %}
+                    <tr x-show="matchVehicle('{{ v.category }}', {{ v.seating_capacity }}, '{{ v.name|escapejs }}', '{{ v.tagline|escapejs }}')">
+                        <td><strong>{{ v.name }}</strong></td>
+                        <td>{{ v.seating_capacity }} Passengers</td>
+                        <td>{{ v.luggage_capacity|truncatewords:4 }}</td>
+                        <td><strong style="color: var(--accent-emerald);">₹{{ v.rate_per_km }} / KM</strong></td>
+                        <td>{{ v.min_km_day }} KM</td>
+                        <td>₹{{ v.driver_bata }} / day</td>
+                        <td>{{ v.suspension|truncatewords:3 }}</td>
+                        <td>
+                            <a href="{% url 'customer_portal:vehicle_detail' v.id %}" style="color: #0284c7; font-weight: 700; text-decoration: none;">
+                                View Specs →
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- ==============================================================================
+         5. SAFETY & CHAUFFEUR STANDARDS (SOP)
+         ============================================================================== -->
+    <div style="margin-top: 3.5rem; margin-bottom: 2rem;">
+        <div class="section-header" style="margin-bottom: 1.5rem;">
+            <span class="section-subtitle-tag">COMMERCIAL SAFETY CODES</span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; color: var(--brand-navy);">
+                The Sivagayathiri Fleet Safety Protocol
+            </h3>
+            <p class="section-desc">Every trip is backed by stringent RTO commercial compliance, satellite telemetry, and certified drivers.</p>
+        </div>
+
+        <div class="safety-pillars-grid">
+            <div class="safety-pillar-card">
+                <div class="safety-pillar-icon">🛡️</div>
+                <h4>AIS-140 GPS & SOS</h4>
+                <p>Live satellite telemetry linked to our Gandhipuram depot control room with physical panic buttons.</p>
+            </div>
+
+            <div class="safety-pillar-card">
+                <div class="safety-pillar-icon">🏔️</div>
+                <h4>Certified Hill Drivers</h4>
+                <p>Every chauffeur has a minimum of 8+ years experience navigating Nilgiris and Western Ghat hairpin bends.</p>
+            </div>
+
+            <div class="safety-pillar-card">
+                <div class="safety-pillar-icon">🧼</div>
+                <h4>28-Point Sanitization</h4>
+                <p>Brakes, tyres, suspension, and AC units pass a rigorous 28-point mechanical inspection before each dispatch.</p>
+            </div>
+
+            <div class="safety-pillar-card">
+                <div class="safety-pillar-icon">🔄</div>
+                <h4>24x7 Replacement SLA</h4>
+                <p>In the rare event of a highway breakdown, a replacement vehicle is dispatched immediately from the nearest depot.</p>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

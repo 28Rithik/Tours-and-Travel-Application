@@ -1,0 +1,34 @@
+{
+  "options": {
+    "paths": {
+      "root": "/data",
+      "styles": "styles",
+      "mbtiles": ""
+    },
+    "domains": [
+      "localhost:8088",
+      "127.0.0.1:8088",
+      "localhost:8000",
+      "127.0.0.1:8000"
+    ],
+    "maxzoom": 20
+  },
+  "styles": {
+    "tactical-dark": {
+      "style": "tactical-dark.json",
+      "serve_rendered": true,
+      "serve_data": true
+    },
+    "voyager-clean": {
+      "style": "voyager-clean.json",
+      "serve_rendered": true,
+      "serve_data": true
+    }
+  },
+  "data": {
+    "v3": {
+      "mbtiles": "india-osm.mbtiles",
+      "maxzoom": 20
+    }
+  }
+}

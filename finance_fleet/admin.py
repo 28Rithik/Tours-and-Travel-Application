@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -55,19 +56,19 @@ class LowBalanceFilter(admin.SimpleListFilter):
 
 # ── Inlines ───────────────────────────────────────────────────────────────────
 
-class PetroRechargeInline(admin.TabularInline):
+class PetroRechargeInline(TabularInline):
     model = PetroRecharge
     extra = 1
     fields = ('date', 'amount', 'reference_number', 'notes')
 
 
-class FastagRechargeInline(admin.TabularInline):
+class FastagRechargeInline(TabularInline):
     model = FastagRecharge
     extra = 1
     fields = ('date', 'amount', 'reference_number', 'notes')
 
 
-class FastagTollDeductionInline(admin.TabularInline):
+class FastagTollDeductionInline(TabularInline):
     model = FastagTollDeduction
     extra = 0
     fields = ('date', 'vehicle', 'trip', 'amount', 'toll_plaza')
@@ -79,7 +80,7 @@ class FastagTollDeductionInline(admin.TabularInline):
 # ── Admins ────────────────────────────────────────────────────────────────────
 
 @admin.register(FuelRecord)
-class FuelRecordAdmin(admin.ModelAdmin):
+class FuelRecordAdmin(ModelAdmin):
     list_display = (
         'date',
         'vehicle_badge',
@@ -189,7 +190,7 @@ class FuelRecordAdmin(admin.ModelAdmin):
 
 
 @admin.register(CorporatePetroAccount)
-class CorporatePetroAccountAdmin(admin.ModelAdmin):
+class CorporatePetroAccountAdmin(ModelAdmin):
     list_display = (
         'account_name',
         'account_number',
@@ -228,7 +229,7 @@ class CorporatePetroAccountAdmin(admin.ModelAdmin):
 
 
 @admin.register(CorporateFastagAccount)
-class CorporateFastagAccountAdmin(admin.ModelAdmin):
+class CorporateFastagAccountAdmin(ModelAdmin):
     list_display = (
         'account_name',
         'account_number',
@@ -267,7 +268,7 @@ class CorporateFastagAccountAdmin(admin.ModelAdmin):
 
 
 @admin.register(FastagTollDeduction)
-class FastagTollDeductionAdmin(admin.ModelAdmin):
+class FastagTollDeductionAdmin(ModelAdmin):
     list_display = (
         'date',
         'vehicle_badge',

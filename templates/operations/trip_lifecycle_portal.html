@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>7-Milestone Tour Lifecycle | {{ trip.trip_id }} | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 28, 45, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.35);
+      --accent: #38bdf8;
+      --purple: #a855f7;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --input-bg: #111827;
+      --border-color: #1e293b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, var(--bg) 75%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px 90px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Top Brand Navigation Bar */
+    .brand-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+    }
+    .brand-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .sos-mini-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Trip Header Card */
+    .trip-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+    .trip-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #38bdf8, #10b981);
+    }
+    .trip-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .trip-id-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      font-size: 15px;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 4px 12px;
+      border-radius: 8px;
+    }
+    .badge-milestone {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .meta-pills {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .meta-pill {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .meta-pill-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .meta-pill-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-top: 2px;
+    }
+
+    /* 7-Milestone Visual Stepper */
+    .stepper-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+    }
+    .stepper-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stepper-progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+    .stepper-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #38bdf8, #10b981);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* Stepper Items Grid (7 Steps) */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      position: relative;
+    }
+    @media (max-width: 600px) {
+      .steps-grid {
+        grid-template-columns: repeat(4, 1fr);
+        row-gap: 12px;
+      }
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6px;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: all 0.2s;
+    }
+    .step-item.active {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+    .step-item.completed {
+      opacity: 0.9;
+    }
+    .step-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(30, 41, 59, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 800;
+      transition: all 0.2s;
+    }
+    .step-item.active .step-circle {
+      border-color: #38bdf8;
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.5);
+    }
+    .step-item.completed .step-circle {
+      border-color: #10b981;
+      background: #059669;
+      color: white;
+    }
+    .step-label {
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-muted);
+    }
+    .step-item.active .step-label {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+    .step-item.completed .step-label {
+      color: #34d399;
+    }
+
+    /* Active Stage Hero Card */
+    .hero-stage-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 20px;
+      padding: 22px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+    .hero-stage-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .hero-stage-desc {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    /* Form Fields */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .form-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-input, .form-select {
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    /* PIN Keypad Box for Milestone 3 */
+    .pin-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .pin-input {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 12px;
+      text-align: center;
+      width: 200px;
+      padding: 10px;
+      background: #0f172a;
+      border: 2px solid #a855f7;
+      border-radius: 12px;
+      color: #f8fafc;
+      outline: none;
+      margin: 10px auto;
+      display: block;
+    }
+    .pin-input:focus {
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+    .pin-hint {
+      font-size: 11px;
+      color: #c084fc;
+      margin-top: 4px;
+    }
+
+    /* Action Buttons */
+    .btn-advance {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px var(--primary-glow);
+      transition: all 0.2s;
+    }
+    .btn-advance:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    /* Expenses Table */
+    .expenses-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    .expenses-table th {
+      color: #94a3b8;
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .expenses-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #cbd5e1;
+    }
+
+    /* Timeline Event Log */
+    .timeline-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(16px);
+    }
+    .timeline-item {
+      display: flex;
+      gap: 14px;
+      position: relative;
+      padding-bottom: 16px;
+    }
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 28px;
+      bottom: 0;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .timeline-item:last-child::before {
+      display: none;
+    }
+    .timeline-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(30, 41, 59, 0.9);
+      border: 2px solid #38bdf8;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      flex-shrink: 0;
+      z-index: 2;
+    }
+    .timeline-content {
+      flex: 1;
+    }
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .timeline-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .timeline-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .timeline-meta {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Brand Bar -->
+    <header class="brand-bar">
+      <div class="brand-info">
+        <div class="brand-icon">🚀</div>
+        <div>
+          <h1 class="brand-title">7-Milestone Tour Lifecycle</h1>
+          <div class="brand-sub">Real-Time Operational Fleet Execution</div>
+        </div>
+      </div>
+      <form action="/trip/{{ trip.pk }}/handover/sos/" method="POST" style="margin: 0;">
+        {% csrf_token %}
+        <input type="hidden" name="incident_type" value="breakdown">
+        <button type="submit" class="sos-mini-btn" onclick="return confirm('Trigger instant Emergency Dispatcher SOS?');">
+          🚨 SOS PANIC
+        </button>
+      </form>
+    </header>
+
+    <!-- Trip Header Card -->
+    <section class="trip-card">
+      <div class="trip-header-row">
+        <div>
+          <span class="trip-id-tag">#{{ trip.trip_id }}</span>
+          <div style="font-size: 16px; font-weight: 800; color: #f8fafc; margin-top: 6px;">
+            {{ trip.guest_name|default:"Corporate Guest" }}
+          </div>
+        </div>
+        <span class="badge-milestone" id="currentMilestoneBadge">
+          Stage {{ trip.milestone_index }}/7: {{ trip.get_current_milestone_display }}
+        </span>
+      </div>
+
+      <div class="meta-pills">
+        <div class="meta-pill">
+          <div class="meta-pill-label">Assigned Vehicle</div>
+          <div class="meta-pill-val" style="color: #fbbf24;">{{ trip.vehicle.registration_number|default:"None" }}</div>
+        </div>
+        <div class="meta-pill">
+          <div class="meta-pill-label">Designated Driver</div>
+          <div class="meta-pill-val">{{ trip.driver.name|default:"None" }}</div>
+        </div>
+        <div class="meta-pill">
+          <div class="meta-pill-label">Route / Destination</div>
+          <div class="meta-pill-val" style="color: #38bdf8;">{{ trip.destination|default:"Local Tour" }}</div>
+        </div>
+        <div class="meta-pill">
+          <div class="meta-pill-label">Odometer Run</div>
+          <div class="meta-pill-val">{{ trip.used_km }} KM</div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap;">
+        <a href="/trip/{{ trip.pk }}/handover/" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; padding: 9px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; text-decoration: none;">
+          📱 Digital Handover Portal →
+        </a>
+        {% if trip.tracking_token %}
+        <a href="/track/{{ trip.tracking_token }}/" target="_blank" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 9px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; text-decoration: none;">
+          🛰️ Live GPS Radar →
+        </a>
+        {% endif %}
+        <a href="/dispatch/" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; padding: 9px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; text-decoration: none;">
+          📋 Dispatch Console
+        </a>
+      </div>
+    </section>
+
+    <!-- 7-Milestone Visual Stepper Header -->
+    <section class="stepper-card">
+      <div class="stepper-title">
+        <span>Tour Lifecycle Progress</span>
+        <span id="lblProgressPct" style="color: #38bdf8; font-weight: 800;">{{ trip.milestone_progress_percent }}% Completed</span>
+      </div>
+
+      <div class="stepper-progress-track">
+        <div class="stepper-progress-fill" id="progressFill" style="width: {{ trip.milestone_progress_percent }}%;"></div>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-item {% if trip.milestone_index == 1 %}active{% elif trip.milestone_index > 1 %}completed{% endif %}" onclick="showStage(1)">
+          <div class="step-circle">{% if trip.milestone_index > 1 %}✓{% else %}1{% endif %}</div>
+          <div class="step-label">Car Pickup</div>
+        </div>
+        <div class="step-item {% if trip.milestone_index == 2 %}active{% elif trip.milestone_index > 2 %}completed{% endif %}" onclick="showStage(2)">
+          <div class="step-circle">{% if trip.milestone_index > 2 %}✓{% else %}2{% endif %}</div>
+          <div class="step-label">Driver Reached</div>
+        </div>
+        <div class="step-item {% if trip.milestone_index == 3 %}active{% elif trip.milestone_index > 3 %}completed{% endif %}" onclick="showStage(3)">
+          <div class="step-circle">{% if trip.milestone_index > 3 %}✓{% else %}3{% endif %}</div>
+          <div class="step-label">Guest PIN</div>
+        </div>
+        <div class="step-item {% if trip.milestone_index == 4 %}active{% elif trip.milestone_index > 4 %}completed{% endif %}" onclick="showStage(4)">
+          <div class="step-circle">{% if trip.milestone_index > 4 %}✓{% else %}4{% endif %}</div>
+          <div class="step-label">On Trip</div>
+        </div>
+        <div class="step-item {% if trip.milestone_index == 5 %}active{% elif trip.milestone_index > 5 %}completed{% endif %}" onclick="showStage(5)">
+          <div class="step-circle">{% if trip.milestone_index > 5 %}✓{% else %}5{% endif %}</div>
+          <div class="step-label">Guest Drop</div>
+        </div>
+        <div class="step-item {% if trip.milestone_index == 6 %}active{% elif trip.milestone_index > 6 %}completed{% endif %}" onclick="showStage(6)">
+          <div class="step-circle">{% if trip.milestone_index > 6 %}✓{% else %}6{% endif %}</div>
+          <div class="step-label">Expenses</div>
+        </div>
+        <div class="step-item {% if trip.milestone_index == 7 %}active{% elif trip.milestone_index >= 7 and trip.status == 'completed' %}completed{% endif %}" onclick="showStage(7)">
+          <div class="step-circle">{% if trip.status == 'completed' %}✓{% else %}7{% endif %}</div>
+          <div class="step-label">Car Drop</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dynamic Hero Action Stage Card (Switches per Active Milestone) -->
+    <main class="hero-stage-card" id="heroStageCard">
+
+      <!-- STAGE 1: CAR PICKUP -->
+      <div id="stageView1" class="stage-pane" style="display: {% if trip.milestone_index == 1 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>🚗 Milestone 1: Car Pickup &amp; Depot Departure</span>
+        </div>
+        <div class="hero-stage-desc">
+          Inspect vehicle, verify fuel level, record opening odometer, and capture dashboard photo before departing depot.
+        </div>
+
+        <form id="formStage1" onsubmit="submitMilestone(event, 'car_pickup')">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label">Opening Odometer (KM)</label>
+              <input type="number" name="odometer_reading" class="form-input" value="{{ trip.opening_km|default:trip.vehicle.current_km|default:0 }}" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fuel Level (%)</label>
+              <input type="number" name="fuel_level_percent" class="form-input" min="0" max="100" value="100" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Odometer Photo (Camera Snap)</label>
+            <input type="file" name="odometer_photo" accept="image/*" class="form-input" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Depot Departure Notes</label>
+            <input type="text" name="notes" class="form-input" placeholder="e.g. Tyres checked, clean cabin, AC functioning" />
+          </div>
+
+          <button type="submit" class="btn-advance">
+            🚀 Confirm Car Pickup &amp; Start Tour
+          </button>
+        </form>
+      </div>
+
+      <!-- STAGE 2: DRIVER REACHED -->
+      <div id="stageView2" class="stage-pane" style="display: {% if trip.milestone_index == 2 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>📍 Milestone 2: Driver Reached Pickup Location</span>
+        </div>
+        <div class="hero-stage-desc">
+          Notify guest and operations dispatcher that you have arrived at the designated pickup spot.
+        </div>
+
+        <form id="formStage2" onsubmit="submitMilestone(event, 'driver_reached')">
+          <div class="form-group">
+            <label class="form-label">Current Pickup Location</label>
+            <input type="text" id="inpReachedLocation" name="location_name" class="form-input" value="{{ trip.pickup_location|default:'Guest Pickup Location' }}" />
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+            <button type="button" class="btn-secondary" onclick="captureGpsCoordinates('stage2')">
+              📍 Auto-Detect Current GPS
+            </button>
+            <span id="gpsStatus_stage2" style="font-size: 11px; color: #94a3b8; align-self: center;"></span>
+          </div>
+          <input type="hidden" id="lat_stage2" name="gps_latitude" />
+          <input type="hidden" id="lng_stage2" name="gps_longitude" />
+
+          <button type="submit" class="btn-advance">
+            ✓ I Have Reached Pickup Location
+          </button>
+        </form>
+      </div>
+
+      <!-- STAGE 3: GUEST PICKUP & SECURITY PIN VERIFICATION -->
+      <div id="stageView3" class="stage-pane" style="display: {% if trip.milestone_index == 3 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>🔢 Milestone 3: Passenger Security PIN Verification</span>
+        </div>
+        <div class="hero-stage-desc">
+          Ask the passenger for their <strong>4-digit security PIN</strong> received on WhatsApp/SMS. Trip cannot start until PIN is verified.
+        </div>
+
+        <div class="pin-box">
+          <div style="font-size: 12px; font-weight: 700; color: #c084fc; text-transform: uppercase;">
+            Enter 4-Digit Passenger PIN
+          </div>
+          <form id="formStage3" onsubmit="submitMilestone(event, 'guest_pickup')">
+            <input type="text" name="passenger_pin" id="inpPassengerPin" class="pin-input" maxlength="4" placeholder="----" autofocus required />
+            <div class="pin-hint">
+              🔒 Verification required to prevent fraudulent pickups.
+              {% if trip.pickup_pin %}
+              <div style="margin-top: 6px; font-family: monospace; color: #94a3b8; font-size: 10px;">
+                (Guest Confirmation PIN: <strong>{{ trip.pickup_pin }}</strong>)
+              </div>
+              {% endif %}
+            </div>
+
+            <div id="pinFeedback" style="min-height: 20px; margin: 10px 0; font-size: 13px; font-weight: 700;"></div>
+
+            <button type="submit" class="btn-advance" style="background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);">
+              🔑 Verify PIN &amp; Board Passenger
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- STAGE 4: ON TRIP -->
+      <div id="stageView4" class="stage-pane" style="display: {% if trip.milestone_index == 4 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>🛣️ Milestone 4: On Trip / En Route to Destination</span>
+        </div>
+        <div class="hero-stage-desc">
+          Passenger safely boarded. Real-time GPS telematics streaming active. Drive safely!
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; font-weight: 700; color: #34d399;">🟢 Active Tour Tracking Live</span>
+            {% if trip.tracking_token %}
+            <a href="/track/{{ trip.tracking_token }}/" target="_blank" class="btn-secondary" style="font-size: 11px; padding: 6px 10px;">
+              🗺️ Open Live Radar
+            </a>
+            {% endif %}
+          </div>
+          <div style="font-size: 12px; color: #94a3b8; margin-top: 6px;">
+            Destination: <strong>{{ trip.destination|default:"Drop Location" }}</strong>
+          </div>
+        </div>
+
+        <form id="formStage4" onsubmit="submitMilestone(event, 'on_trip')">
+          <div class="form-group">
+            <label class="form-label">En-Route Observations / Toll Route</label>
+            <input type="text" name="notes" class="form-input" placeholder="e.g. Taking NH48 Expressway, highway smooth" />
+          </div>
+          <button type="submit" class="btn-advance">
+            🛣️ Update Journey Status &amp; Proceed
+          </button>
+        </form>
+      </div>
+
+      <!-- STAGE 5: GUEST DROP -->
+      <div id="stageView5" class="stage-pane" style="display: {% if trip.milestone_index == 5 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>🏁 Milestone 5: Guest Destination Drop-off</span>
+        </div>
+        <div class="hero-stage-desc">
+          Confirm passenger has reached their hotel or destination safely and all luggage is unloaded.
+        </div>
+
+        <form id="formStage5" onsubmit="submitMilestone(event, 'guest_drop')">
+          <div class="form-group">
+            <label class="form-label">Drop-off Location</label>
+            <input type="text" name="location_name" class="form-input" value="{{ trip.destination|default:'Final Hotel / Drop Point' }}" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Luggage &amp; Belongings Check</label>
+            <input type="text" name="notes" class="form-input" value="All passenger bags unloaded, guest safely checked in." />
+          </div>
+
+          <button type="submit" class="btn-advance" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);">
+            🏁 Confirm Passenger Safely Dropped
+          </button>
+        </form>
+      </div>
+
+      <!-- STAGE 6: EXPENSES & RECEIPT PHOTO -->
+      <div id="stageView6" class="stage-pane" style="display: {% if trip.milestone_index == 6 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>🧾 Milestone 6: Log Trip Expenses &amp; Receipt Photos</span>
+        </div>
+        <div class="hero-stage-desc">
+          Upload photo proof for Diesel/Fuel, Toll/Fastag, Parking, and State Border Taxes incurred during the tour.
+        </div>
+
+        <!-- Add Expense Sub-Form -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 16px; margin-bottom: 16px;">
+          <div style="font-size: 13px; font-weight: 700; color: #f8fafc; margin-bottom: 10px;">
+            + Capture New Receipt / Bill
+          </div>
+          <form id="formQuickExpense" onsubmit="submitQuickExpense(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">Expense Category</label>
+                <select name="expense_type" class="form-select">
+                  <option value="toll">Fastag / Toll Plaza</option>
+                  <option value="fuel">Diesel / Petrol Fuel</option>
+                  <option value="parking">Airport / Hotel Parking</option>
+                  <option value="border_tax">Interstate Permit / Border Tax</option>
+                  <option value="driver_food">Driver Allowance / Food</option>
+                  <option value="other">Miscellaneous</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Amount (₹)</label>
+                <input type="number" name="amount" class="form-input" placeholder="0.00" step="50" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Receipt Photo (Camera / Gallery)</label>
+              <input type="file" name="receipt" accept="image/*" class="form-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Description / Toll Plaza Name</label>
+              <input type="text" name="description" class="form-input" placeholder="e.g. Attibele Toll Plaza slip" />
+            </div>
+
+            <button type="submit" class="btn-secondary" style="width: 100%; justify-content: center; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+              📸 Save Expense &amp; Upload Bill
+            </button>
+          </form>
+          <div id="expenseFeedback" style="font-size: 12px; margin-top: 6px; text-align: center;"></div>
+        </div>
+
+        <!-- Logged Expenses List -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">
+            Logged Receipts (<span id="lblExpenseTotal">Total: ₹{{ total_expenses|floatformat:2 }}</span>)
+          </div>
+          <table class="expenses-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Paid By</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+            <tbody id="expensesTableBody">
+              {% for exp in expenses %}
+              <tr>
+                <td><strong>{{ exp.get_expense_type_display }}</strong></td>
+                <td style="color: #38bdf8; font-family: monospace;">₹{{ exp.amount|floatformat:2 }}</td>
+                <td>{{ exp.paid_by }}</td>
+                <td>
+                  {% if exp.receipt %}
+                  <a href="{{ exp.receipt.url }}" target="_blank" style="color: #34d399;">View Photo</a>
+                  {% else %}
+                  <span style="color: #64748b;">No photo</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr id="noExpensesRow">
+                <td colspan="4" style="text-align: center; color: #64748b; padding: 12px;">No receipts logged yet. Upload bill receipts above.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Advance to Car Drop Button -->
+        <form id="formStage6" onsubmit="submitMilestone(event, 'expenses_photo')">
+          <button type="submit" class="btn-advance">
+            ✓ Expenses Recorded - Proceed to Car Drop
+          </button>
+        </form>
+      </div>
+
+      <!-- STAGE 7: CAR DROP & DEPOT CLOSURE -->
+      <div id="stageView7" class="stage-pane" style="display: {% if trip.milestone_index == 7 %}block{% else %}none{% endif %};">
+        <div class="hero-stage-title">
+          <span>🅿️ Milestone 7: Car Drop &amp; Final Depot Return</span>
+        </div>
+        <div class="hero-stage-desc">
+          Record final closing odometer KM, upload dashboard photo, and close the tour duty.
+        </div>
+
+        <form id="formStage7" onsubmit="submitMilestone(event, 'car_drop')">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label">Closing Odometer (KM)</label>
+              <input type="number" id="inpClosingKm" name="odometer_reading" class="form-input" value="{{ trip.closing_km|default:trip.vehicle.current_km|default:0 }}" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fuel Remaining (%)</label>
+              <input type="number" name="fuel_level_percent" class="form-input" min="0" max="100" value="85" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Closing Odometer Photo</label>
+            <input type="file" name="odometer_photo" accept="image/*" class="form-input" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Vehicle Condition Notes</label>
+            <input type="text" name="notes" class="form-input" placeholder="e.g. Returned to depot, keys handed over, no damage" />
+          </div>
+
+          <button type="submit" class="btn-advance" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);">
+            🅿️ Finalize Depot Return &amp; Complete Tour
+          </button>
+        </form>
+      </div>
+
+      <div id="actionFeedback" style="font-size: 13px; text-align: center; min-height: 24px; margin-top: 12px;"></div>
+    </main>
+
+    <!-- Milestone Audit Timeline Card -->
+    <section class="timeline-card">
+      <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;">
+        📋 Recorded Milestone Audit Trail
+      </div>
+
+      <div id="timelineContainer">
+        {% for ev in milestone_events %}
+        <div class="timeline-item">
+          <div class="timeline-icon">✓</div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div class="timeline-title">Stage {{ ev.milestone_index }}: {{ ev.get_milestone_display }}</div>
+              <div class="timeline-time">{{ ev.timestamp|date:"d M H:i" }}</div>
+            </div>
+            <div class="timeline-meta">
+              {% if ev.odometer_reading %}Odometer: <strong>{{ ev.odometer_reading }} KM</strong> • {% endif %}
+              {% if ev.is_pin_verified %}<span style="color: #10b981; font-weight: 700;">PIN Verified</span> • {% endif %}
+              {{ ev.location_name|default:ev.notes|default:"Logged successfully" }}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div id="emptyTimelineMsg" style="text-align: center; color: #64748b; font-size: 12px; padding: 14px;">
+          No milestones recorded yet. Start with Step 1: Car Pickup above.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const TRIP_ID = {{ trip.pk }};
+    let currentMilestoneIdx = {{ trip.milestone_index }};
+
+    function showStage(stepNo) {
+      document.querySelectorAll('.stage-pane').forEach(el => el.style.display = 'none');
+      const target = document.getElementById(`stageView${stepNo}`);
+      if (target) {
+        target.style.display = 'block';
+      }
+    }
+
+    // Auto-Detect Current GPS Coordinates
+    function captureGpsCoordinates(stageKey) {
+      const statusEl = document.getElementById(`gpsStatus_${stageKey}`);
+      if (!navigator.geolocation) {
+        statusEl.innerText = 'Geolocation not supported by browser.';
+        return;
+      }
+      statusEl.innerText = 'Locating GPS...';
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          document.getElementById(`lat_${stageKey}`).value = pos.coords.latitude.toFixed(6);
+          document.getElementById(`lng_${stageKey}`).value = pos.coords.longitude.toFixed(6);
+          statusEl.innerText = `✓ GPS Locked (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+          statusEl.style.color = '#34d399';
+        },
+        err => {
+          statusEl.innerText = `GPS Error: ${err.message}`;
+          statusEl.style.color = '#f87171';
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+      );
+    }
+
+    // Submit Milestone Advance
+    async function submitMilestone(event, milestoneKey) {
+      event.preventDefault();
+      const fb = document.getElementById('actionFeedback');
+      fb.innerHTML = '<span style="color: #38bdf8;">Recording milestone...</span>';
+
+      const form = event.target;
+      const formData = new FormData(form);
+      formData.append('milestone', milestoneKey);
+
+      try {
+        const res = await fetch(`/api/trip/${TRIP_ID}/milestone/advance/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          fb.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ ${data.message}</span>`;
+          currentMilestoneIdx = data.milestone_index;
+          document.getElementById('lblProgressPct').innerText = `${data.progress_percent}% Completed`;
+          document.getElementById('progressFill').style.width = `${data.progress_percent}%`;
+          document.getElementById('currentMilestoneBadge').innerText = `Stage ${data.milestone_index}/7: ${data.current_milestone}`;
+
+          // Append to timeline
+          const emptyMsg = document.getElementById('emptyTimelineMsg');
+          if (emptyMsg) emptyMsg.style.display = 'none';
+
+          const tl = document.getElementById('timelineContainer');
+          const newItem = document.createElement('div');
+          newItem.className = 'timeline-item';
+          newItem.innerHTML = `
+            <div class="timeline-icon">✓</div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <div class="timeline-title">Stage ${data.milestone_index}: ${data.current_milestone}</div>
+                <div class="timeline-time">${data.timestamp}</div>
+              </div>
+              <div class="timeline-meta" style="color: #34d399; font-weight: 600;">
+                Milestone advanced successfully!
+              </div>
+            </div>
+          `;
+          tl.prepend(newItem);
+
+          // Advance to next stage pane after 1 second
+          setTimeout(() => {
+            if (data.milestone_index < 7) {
+              showStage(data.milestone_index + 1);
+            }
+          }, 800);
+
+        } else {
+          fb.innerHTML = `<span style="color: #ef4444; font-weight: 700;">✕ Error: ${data.message}</span>`;
+          const pinFb = document.getElementById('pinFeedback');
+          if (pinFb && milestoneKey === 'guest_pickup') {
+            pinFb.innerHTML = `<span style="color: #ef4444;">✕ ${data.message}</span>`;
+          }
+        }
+      } catch (err) {
+        fb.innerHTML = `<span style="color: #ef4444;">Network error: ${err.message}</span>`;
+      }
+    }
+
+    // Submit Quick Expense in Stage 6
+    async function submitQuickExpense(event) {
+      event.preventDefault();
+      const fb = document.getElementById('expenseFeedback');
+      fb.innerHTML = '<span style="color: #38bdf8;">Saving expense and uploading receipt...</span>';
+
+      const form = event.target;
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch(`/api/trip/${TRIP_ID}/expense/add/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          fb.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ ${data.message}</span>`;
+          document.getElementById('lblExpenseTotal').innerText = `Total: ₹${data.total_expenses.toFixed(2)}`;
+
+          const noRow = document.getElementById('noExpensesRow');
+          if (noRow) noRow.style.display = 'none';
+
+          const tbody = document.getElementById('expensesTableBody');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${data.expense_type}</strong></td>
+            <td style="color: #38bdf8; font-family: monospace;">₹${data.amount.toFixed(2)}</td>
+            <td>driver</td>
+            <td>${data.receipt_url ? `<a href="${data.receipt_url}" target="_blank" style="color: #34d399;">View Photo</a>` : '<span style="color: #64748b;">No photo</span>'}</td>
+          `;
+          tbody.prepend(tr);
+          form.reset();
+        } else {
+          fb.innerHTML = `<span style="color: #ef4444;">✕ ${data.message}</span>`;
+        }
+      } catch (err) {
+        fb.innerHTML = `<span style="color: #ef4444;">Network error: ${err.message}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>

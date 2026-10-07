@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -40,7 +41,7 @@ class ContractHealthFilter(admin.SimpleListFilter):
 # ==========================================================================
 
 @admin.register(SupplierContractProxy)
-class SupplierContractProxyAdmin(admin.ModelAdmin):
+class SupplierContractProxyAdmin(ModelAdmin):
     list_display = ('title_display', 'supplier_link', 'validity_display', 'sla_badge', 'document_link', 'active_badge')
     list_filter = (ContractHealthFilter, 'is_active', 'supplier')
     search_fields = ('title', 'supplier__name')
@@ -121,7 +122,7 @@ class SupplierContractProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(CommissionRuleProxy)
-class CommissionRuleProxyAdmin(admin.ModelAdmin):
+class CommissionRuleProxyAdmin(ModelAdmin):
     list_display = ('agent_display', 'commission_badge', 'active_badge')
     list_filter = ('is_active',)
     search_fields = ('agent_name',)
@@ -160,7 +161,7 @@ class CommissionRuleProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(AuditLogEntryProxy)
-class AuditLogEntryProxyAdmin(admin.ModelAdmin):
+class AuditLogEntryProxyAdmin(ModelAdmin):
     list_display = ('timestamp_display', 'action_badge', 'user_display', 'target_display', 'changes_preview')
     list_filter = ('action', 'content_type', 'timestamp')
     search_fields = ('action', 'user__username')

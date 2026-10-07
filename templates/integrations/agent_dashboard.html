@@ -1,0 +1,547 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}⚡ Agent Sales Cockpit & Follow-ups | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/crm/inquiry/" class="hover:text-primary-600 dark:hover:text-primary-400">CRM & Quotations</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">⚡ Agent Sales Cockpit</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --cockpit-dark-bg: #090e17;
+    --cockpit-panel-bg: rgba(17, 24, 39, 0.9);
+    --cockpit-panel-border: rgba(51, 65, 85, 0.45);
+    --cockpit-cyan: #38bdf8;
+    --cockpit-green: #10b981;
+    --cockpit-amber: #f59e0b;
+    --cockpit-purple: #a855f7;
+    --cockpit-blue: #1877f2;
+}
+
+.cockpit-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f1f5f9;
+    background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.06) 0%, transparent 45%),
+                var(--cockpit-dark-bg);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Header */
+.cockpit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.cockpit-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+}
+.cockpit-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+.cockpit-desc {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.btn-action-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.6rem 1.15rem;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    transition: all 0.15s;
+}
+.btn-action-primary:hover {
+    background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+    box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+.btn-action-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.15s;
+}
+.btn-action-secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* 4-Card KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.kpi-card {
+    background: var(--cockpit-panel-bg);
+    border: 1px solid var(--cockpit-panel-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    transition: transform 0.15s, border-color 0.15s;
+}
+.kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--kpi-glow, #38bdf8), transparent);
+}
+.kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.1;
+}
+.kpi-subtext {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 0.4rem;
+}
+
+/* Desk Cards & Tables */
+.desk-card {
+    background: var(--cockpit-panel-bg);
+    border: 1px solid var(--cockpit-panel-border);
+    border-radius: 18px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    margin-bottom: 1.75rem;
+    backdrop-filter: blur(12px);
+}
+.desk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.35);
+}
+.desk-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.badge-count {
+    background: rgba(56, 189, 248, 0.2);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    font-size: 0.74rem;
+    font-weight: 800;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace;
+}
+.desk-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.desk-table th {
+    background: rgba(30, 41, 59, 0.7);
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--cockpit-panel-border);
+}
+.desk-table th:first-child { border-top-left-radius: 8px; }
+.desk-table th:last-child { border-top-right-radius: 8px; }
+.desk-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.25);
+    color: #cbd5e1;
+    vertical-align: middle;
+}
+.desk-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.inq-link-cyan {
+    color: #38bdf8;
+    font-weight: 700;
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+.inq-link-cyan:hover {
+    text-decoration: underline;
+    color: #7dd3fc;
+}
+
+/* Badges */
+.stage-pill {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.stage-new { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; }
+.stage-in_progress { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; }
+.stage-quoted { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); color: #c084fc; }
+.stage-won { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; }
+.stage-lost { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171; }
+
+.source-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+}
+</style>
+
+<div class="cockpit-wrapper">
+    <!-- Header -->
+    <div class="cockpit-header">
+        <div class="header-left">
+            <div class="cockpit-icon-badge">⚡</div>
+            <div>
+                <h1 class="cockpit-title">Agent Sales Cockpit</h1>
+                <div class="cockpit-desc">
+                    Daily follow-ups, assigned traveler inquiries, and quotation pipeline for <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="/admin/crm/inquiry/add/" class="btn-action-primary">
+                ➕ New Inquiry
+            </a>
+            <a href="/admin/crm/kanban/" class="btn-action-secondary">
+                📋 CRM Kanban Board
+            </a>
+            <a href="/admin/integrations/" class="btn-action-secondary">
+                🔌 Integrations Hub
+            </a>
+            <a href="/admin/integrations/approvals/" class="btn-action-secondary">
+                🛡️ Approvals Queue
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-glow: #38bdf8;">
+            <div class="kpi-label">Assigned Inquiries</div>
+            <div class="kpi-value">{{ total_assigned }}</div>
+            <div class="kpi-subtext">Active traveler accounts under you</div>
+        </div>
+        <div class="kpi-card" style="--kpi-glow: #f59e0b;">
+            <div class="kpi-label">Pipeline In-Flight</div>
+            <div class="kpi-value">{{ in_pipeline }}</div>
+            <div class="kpi-subtext">New, Quoted & Negotiating</div>
+        </div>
+        <div class="kpi-card" style="--kpi-glow: #10b981;">
+            <div class="kpi-label">Confirmed Tours (Won)</div>
+            <div class="kpi-value">{{ won_count }}</div>
+            <div class="kpi-subtext">Closed & booked holiday packages</div>
+        </div>
+        <div class="kpi-card" style="--kpi-glow: #a855f7;">
+            <div class="kpi-label">Conversion Rate</div>
+            <div class="kpi-value">{{ conversion_rate }}%</div>
+            <div class="kpi-subtext">Assigned lead to booking win ratio</div>
+        </div>
+    </div>
+
+    <!-- Section 1: Scheduled Follow-ups -->
+    <div class="desk-card">
+        <div class="desk-header">
+            <h2 class="desk-title">
+                <span>⏰</span> Today's Scheduled Follow-Ups
+                <span class="badge-count">{{ pending_followups|length }}</span>
+            </h2>
+            <a href="/admin/crm/inquiryfollowup/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+                View All Follow-Ups →
+            </a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="desk-table">
+                <thead>
+                    <tr>
+                        <th>Scheduled Time</th>
+                        <th>Traveler / Lead</th>
+                        <th>Inquiry Reference</th>
+                        <th>Channel / Mode</th>
+                        <th>Notes / Discussion Agenda</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fu in pending_followups %}
+                    <tr>
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #ffffff;">
+                            {{ fu.scheduled_at|date:"d-M H:i" }}
+                        </td>
+                        <td>
+                            <strong style="color: #ffffff;">{{ fu.inquiry.party.name|default:fu.inquiry.guest_name }}</strong><br>
+                            <small style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">{{ fu.inquiry.guest_phone|default:"No phone" }}</small>
+                        </td>
+                        <td>
+                            <a href="/admin/crm/inquiry/{{ fu.inquiry.id }}/change/" class="inq-link-cyan">
+                                #{{ fu.inquiry.inquiry_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="source-tag">
+                                💬 {{ fu.get_channel_display|default:"Call" }}
+                            </span>
+                        </td>
+                        <td style="color: #94a3b8; max-width: 320px;">
+                            {{ fu.notes|truncatechars:70|default:"Scheduled follow-up regarding holiday package quote." }}
+                        </td>
+                        <td>
+                            <a href="/admin/crm/inquiryfollowup/{{ fu.id }}/change/" class="btn-action-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                                Update / Done
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">
+                            🎉 All caught up! No overdue or pending follow-ups scheduled for today.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section 2: Assigned Inquiries -->
+    <div class="desk-card">
+        <div class="desk-header">
+            <h2 class="desk-title">
+                <span>🧭</span> Recent Assigned Inquiries
+                <span class="badge-count">{{ my_inquiries|length }}</span>
+            </h2>
+            <a href="/admin/crm/inquiry/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+                Open Full CRM Registry →
+            </a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="desk-table">
+                <thead>
+                    <tr>
+                        <th>Inquiry #</th>
+                        <th>Lead / Guest</th>
+                        <th>Destination & Pax</th>
+                        <th>Lead Source</th>
+                        <th>Stage</th>
+                        <th>Received</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inq in my_inquiries %}
+                    <tr>
+                        <td>
+                            <a href="/admin/crm/inquiry/{{ inq.id }}/change/" class="inq-link-cyan">
+                                #{{ inq.inquiry_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <strong style="color: #ffffff;">{{ inq.party.name|default:inq.guest_name }}</strong><br>
+                            <small style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">{{ inq.guest_phone|default:"" }}</small>
+                        </td>
+                        <td>
+                            <span style="color: #ffffff;">{{ inq.destination|default:"Tamil Nadu Tour" }}</span>
+                            {% if inq.adult_count %}<span style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">({{ inq.adult_count }} Pax)</span>{% endif %}
+                        </td>
+                        <td>
+                            <span class="source-tag">
+                                {% if 'meta' in inq.source|lower or 'ad' in inq.source|lower %}📱 Meta Ads
+                                {% elif 'sheet' in inq.source|lower %}📊 Google Sheets
+                                {% elif 'whatsapp' in inq.source|lower %}💬 WhatsApp
+                                {% elif 'website' in inq.source|lower %}🌐 Website
+                                {% else %}🏢 {{ inq.get_source_display|default:inq.source }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="stage-pill stage-{{ inq.status }}">
+                                {{ inq.get_status_display|default:inq.status }}
+                            </span>
+                        </td>
+                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                            {{ inq.created_at|date:"d-M H:i" }}
+                        </td>
+                        <td>
+                            <a href="/admin/crm/inquiry/{{ inq.id }}/change/" class="btn-action-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                                Open File
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="padding: 2.5rem; text-align: center; color: #64748b;">
+                            No inquiries currently assigned to your account.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Section 3: Recent Quotations -->
+    <div class="desk-card">
+        <div class="desk-header">
+            <h2 class="desk-title">
+                <span>💼</span> Quotations Pipeline
+                <span class="badge-count">{{ my_quotations|length }}</span>
+            </h2>
+            <a href="/admin/crm/quotation/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+                View All Quotations →
+            </a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="desk-table">
+                <thead>
+                    <tr>
+                        <th>Quote Number</th>
+                        <th>Client</th>
+                        <th>Package / Title</th>
+                        <th>Total Quotation Amount</th>
+                        <th>Status</th>
+                        <th>Validity Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in my_quotations %}
+                    <tr>
+                        <td>
+                            <a href="/admin/crm/quotation/{{ q.id }}/change/" class="inq-link-cyan">
+                                #{{ q.quotation_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <strong style="color: #ffffff;">{{ q.party.name|default:q.guest_name }}</strong>
+                        </td>
+                        <td style="color: #94a3b8;">
+                            {{ q.title|default:"Custom Tour Package" }}
+                        </td>
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #34d399;">
+                            ₹{{ q.gross_price|default:"0.00" }}
+                        </td>
+                        <td>
+                            <span class="stage-pill stage-{{ q.status }}">
+                                {{ q.get_status_display|default:q.status }}
+                            </span>
+                        </td>
+                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                            {{ q.valid_until|date:"d-M-Y"|default:"30 Days" }}
+                        </td>
+                        <td>
+                            <a href="/admin/crm/quotation/{{ q.id }}/change/" class="btn-action-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+                                Edit Quote
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="padding: 2.5rem; text-align: center; color: #64748b;">
+                            No quotations generated yet. Create quotes from assigned inquiries.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

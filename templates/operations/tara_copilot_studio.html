@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}TARA AI Operations Business Brain | TravelERP{% endblock %}
+{% block header_title %}TARA AI Operations Business Brain{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  .tara-studio-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 300px;
+    gap: 20px;
+    height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  @media (max-width: 1200px) {
+    .tara-studio-grid {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+  }
+
+  /* Glass Card */
+  .tara-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Left Panel */
+  .tara-side-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tara-side-content {
+    padding: 16px 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* Chat Canvas */
+  .tara-chat-canvas {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .tara-canvas-header {
+    padding: 16px 24px;
+    background: rgba(15, 23, 42, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tara-canvas-stream {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .tara-canvas-input-bar {
+    padding: 16px 24px;
+    background: rgba(15, 23, 42, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    gap: 12px;
+  }
+</style>
+
+<div class="tara-studio-grid">
+  <!-- LEFT PANEL: Real-Time Operational Highlights -->
+  <aside class="tara-card">
+    <div class="tara-side-header">
+      <div style="font-weight: 700; color: #f8fafc; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+        <span>📊 Live Operations Pulse</span>
+      </div>
+      <span style="font-size: 10px; font-weight: 700; background: #0284c7; color: white; padding: 2px 8px; border-radius: 6px;">TODAY</span>
+    </div>
+    <div class="tara-side-content">
+      <!-- Active Tours Metric -->
+      <div style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="font-size: 11px; color: #7dd3fc; text-transform: uppercase; font-weight: 700;">Active Fleet Tours</div>
+        <div style="font-size: 28px; font-weight: 800; color: white; margin-top: 2px;">{{ active_tours.total_active_tours|default:"0" }}</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
+          • <strong>{{ active_tours.vehicles_currently_on_trip }}</strong> en-route on trip<br/>
+          • <strong>{{ active_tours.assigned_awaiting_start }}</strong> assigned & staged
+        </div>
+      </div>
+
+      <!-- Compliance Health -->
+      <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+        <div style="font-size: 11px; color: #fca5a5; text-transform: uppercase; font-weight: 700;">Compliance Expiry (30d)</div>
+        <div style="font-size: 28px; font-weight: 800; color: #f87171; margin-top: 2px;">{{ compliance.total_vehicle_compliance_alerts|default:"0" }}</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
+          • Insurance exp: <strong>{{ compliance.expiring_insurance_count }}</strong><br/>
+          • PUC exp: <strong>{{ compliance.expiring_puc_count }}</strong><br/>
+          • Driver licenses: <strong>{{ compliance.total_driver_license_alerts }}</strong>
+        </div>
+      </div>
+
+      <!-- Collection Rate -->
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 14px;">
+        <div style="font-size: 11px; color: #6ee7b7; text-transform: uppercase; font-weight: 700;">Revenue Collection</div>
+        <div style="font-size: 28px; font-weight: 800; color: #34d399; margin-top: 2px;">{{ finance.collection_rate_percent }}%</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
+          • Billed: ₹{{ finance.total_billed_revenue_inr|floatformat:0 }}<br/>
+          • Collected: ₹{{ finance.total_collections_received_inr|floatformat:0 }}
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CENTER: Dedicated AI Copilot Conversation Canvas -->
+  <main class="tara-card tara-chat-canvas">
+    <div class="tara-canvas-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);">
+          🧠
+        </div>
+        <div>
+          <div style="font-size: 17px; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+            <span>TARA AI Operations Studio</span>
+            <span style="font-size: 10px; font-weight: 700; background: {% if has_groq_key %}rgba(99, 102, 241, 0.2){% else %}rgba(16, 185, 129, 0.2){% endif %}; color: {% if has_groq_key %}#a5b4fc{% else %}#34d399{% endif %}; padding: 2px 8px; border-radius: 10px;">
+              {% if has_groq_key %}GROQ LLM ACTIVE ({{ groq_model }}){% else %}LOCAL SEMANTIC ORM READY{% endif %}
+            </span>
+          </div>
+          <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+            Real-time automated function calling &amp; telematics query engine
+          </div>
+        </div>
+      </div>
+      <div>
+        <button onclick="clearStudioChat()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
+          🗑️ Clear Conversation
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Feed -->
+    <div class="tara-canvas-stream" id="studioMessages">
+      <div class="tara-msg tara-msg-ai" style="max-width: 80%;">
+        <h3>👋 Welcome to the TARA AI Executive Operations Studio</h3>
+        <p style="margin: 6px 0 12px 0; color: #cbd5e1; line-height: 1.5;">
+          I am your enterprise operations copilot for Sivagayathiri Travels &amp; Tours. I can instantly analyze your active tours, review driver safety scorecards, check vehicle document expiries, verify fleet availability for tomorrow, and trigger dispatch actions.
+        </p>
+        <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Suggested Queries:</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <button class="tara-pill" onclick="sendStudioPrompt('How many tours are running today?')">🚌 How many tours are running today?</button>
+          <button class="tara-pill" onclick="sendStudioPrompt('Which vehicles need insurance renewal?')">⚠️ Vehicles needing insurance renewal</button>
+          <button class="tara-pill" onclick="sendStudioPrompt('What is our revenue and collection rate this month?')">💰 Revenue &amp; collection breakdown</button>
+          <button class="tara-pill" onclick="sendStudioPrompt('Show driver safety scorecard anomalies')">🛡️ Driver safety scorecard anomalies</button>
+          <button class="tara-pill" onclick="sendStudioPrompt('Which vehicles are available for tomorrow?')">🚗 Available vehicles for tomorrow</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Studio Typing Indicator -->
+    <div id="studioTyping" style="display: none; padding: 10px 24px; font-size: 12px; color: #818cf8; font-style: italic;">
+      ⚡ TARA AI is running live database tools &amp; synthesizing report...
+    </div>
+
+    <!-- Input Bar -->
+    <div class="tara-canvas-input-bar">
+      <input type="text" id="studioInput" placeholder="Ask TARA anything (e.g. 'Which Innovas are available tomorrow?', 'Show expired PUCs')..." style="flex: 1; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px 18px; color: white; font-size: 14px; outline: none;" onkeydown="if(event.key==='Enter') sendStudioMessage();" />
+      <button onclick="sendStudioMessage()" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none; border-radius: 12px; padding: 0 24px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+        <span>Ask TARA</span>
+        <span>➤</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL: 1-Click Operations Quick Actions -->
+  <aside class="tara-card">
+    <div class="tara-side-header">
+      <div style="font-weight: 700; color: #f8fafc; font-size: 14px;">⚡ Instant Actions</div>
+    </div>
+    <div class="tara-side-content" style="display: flex; flex-direction: column; gap: 10px;">
+      <a href="/admin/operations/fleet-radar/" class="tara-action-btn tara-action-primary" style="padding: 12px 16px; border-radius: 10px; font-size: 13px;">
+        <span>🛰️</span>
+        <span>Launch Fleet Radar</span>
+      </a>
+      <a href="/fleet/live/" class="tara-action-btn tara-action-secondary" style="padding: 12px 16px; border-radius: 10px; font-size: 13px;">
+        <span>🗺️</span>
+        <span>Live Mission Control</span>
+      </a>
+      <a href="/maintenance/compliance/" class="tara-action-btn tara-action-secondary" style="padding: 12px 16px; border-radius: 10px; font-size: 13px;">
+        <span>🛡️</span>
+        <span>Compliance Dashboard</span>
+      </a>
+      <a href="/admin/finance/payment-studio/" class="tara-action-btn tara-action-secondary" style="padding: 12px 16px; border-radius: 10px; font-size: 13px;">
+        <span>⚡</span>
+        <span>Dynamic UPI Studio</span>
+      </a>
+      <a href="/crm/queries/" class="tara-action-btn tara-action-secondary" style="padding: 12px 16px; border-radius: 10px; font-size: 13px;">
+        <span>🔎</span>
+        <span>Query Tracker 2.0</span>
+      </a>
+      <a href="/analytics/fleet/" class="tara-action-btn tara-action-secondary" style="padding: 12px 16px; border-radius: 10px; font-size: 13px;">
+        <span>📊</span>
+        <span>Fleet CPK Analytics</span>
+      </a>
+
+      <div style="margin-top: 14px; padding: 14px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
+        <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Groq LLM Engine</div>
+        <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
+          Model: <code>{{ groq_model }}</code><br/>
+          Status: <strong>{% if has_groq_key %}Connected{% else %}Using Local Semantic Engine{% endif %}</strong>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- Studio Chat Logic -->
+<script>
+  let studioHistory = [];
+
+  function clearStudioChat() {
+    studioHistory = [];
+    document.getElementById('studioMessages').innerHTML = `
+      <div class="tara-msg tara-msg-ai">
+        <h3>🧹 Chat Reset</h3>
+        <p style="margin: 4px 0; color: #cbd5e1;">Conversation cleared. Ask any operational question.</p>
+      </div>
+    `;
+  }
+
+  function sendStudioPrompt(p) {
+    document.getElementById('studioInput').value = p;
+    sendStudioMessage();
+  }
+
+  async function sendStudioMessage() {
+    const input = document.getElementById('studioInput');
+    const query = input.value.trim();
+    if (!query) return;
+
+    input.value = '';
+    const container = document.getElementById('studioMessages');
+
+    // Append User Message
+    const userDiv = document.createElement('div');
+    userDiv.className = 'tara-msg tara-msg-user';
+    userDiv.innerText = query;
+    container.appendChild(userDiv);
+    container.scrollTop = container.scrollHeight;
+
+    const typing = document.getElementById('studioTyping');
+    typing.style.display = 'block';
+
+    try {
+      const res = await fetch('/api/tara/chat/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: query, history: studioHistory })
+      });
+      const data = await res.json();
+      typing.style.display = 'none';
+
+      const aiDiv = document.createElement('div');
+      aiDiv.className = 'tara-msg tara-msg-ai';
+      aiDiv.style.maxWidth = '85%';
+
+      let html = renderSimpleMarkdown(data.reply || '');
+      if (data.kpi_cards && data.kpi_cards.length > 0) {
+        html += '<div class="tara-cards-grid">';
+        data.kpi_cards.forEach(c => {
+          html += `
+            <div class="tara-kpi-card" style="border-left: 3px solid ${c.color || '#6366f1'};">
+              <div>
+                <div class="tara-kpi-val" style="color: ${c.color || '#f8fafc'};">${c.value}</div>
+                <div class="tara-kpi-lbl">${c.label}</div>
+              </div>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+
+      if (data.action_buttons && data.action_buttons.length > 0) {
+        html += '<div class="tara-actions-wrap">';
+        data.action_buttons.forEach(act => {
+          const btnClass = act.primary ? 'tara-action-primary' : 'tara-action-secondary';
+          html += `<a href="${act.url}" class="tara-action-btn ${btnClass}">${act.label}</a>`;
+        });
+        html += '</div>';
+      }
+
+      aiDiv.innerHTML = html;
+      container.appendChild(aiDiv);
+      container.scrollTop = container.scrollHeight;
+
+      studioHistory.push({ role: 'user', content: query });
+      studioHistory.push({ role: 'assistant', content: data.reply });
+
+    } catch (e) {
+      typing.style.display = 'none';
+      const errDiv = document.createElement('div');
+      errDiv.className = 'tara-msg tara-msg-ai';
+      errDiv.innerHTML = `<span style="color: #ef4444;">Error:</span> ${e.message}`;
+      container.appendChild(errDiv);
+    }
+  }
+</script>
+{% endblock %}

@@ -15,10 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const upiRow = document.querySelector('.field-upi_id');
         const bloodGroupRow = document.querySelector('.field-blood_group');
 
-        // Helper function to show/hide
         function toggleRow(row, show) {
             if (row) {
-                row.style.display = show ? 'block' : 'none';
+                row.style.display = show ? '' : 'none';
             }
         }
 
@@ -55,6 +54,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Run on load
     toggleFields();
 
-    // Run on change
+    // Run on change / input
     driverTypeSelect.addEventListener('change', toggleFields);
+    driverTypeSelect.addEventListener('input', toggleFields);
+
+    // Watcher interval (bulletproof for Select2 and Unfold)
+    var lastType = driverTypeSelect.value;
+    setInterval(function() {
+        if (driverTypeSelect.value !== lastType) {
+            lastType = driverTypeSelect.value;
+            toggleFields();
+        }
+    }, 200);
 });
+

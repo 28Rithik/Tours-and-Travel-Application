@@ -1,0 +1,66 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+<!-- HTMX Dynamic Reactive Engine for Booking Form -->
+<div id="booking-htmx-deck" style="margin-bottom: 20px;">
+    <!-- Party Financial Ledger Container -->
+    <div id="party-ledger-htmx-container"
+         hx-get="{% url 'htmx_operations:party-ledger-summary' %}"
+         hx-trigger="change from:#id_party, party-updated from:body"
+         hx-include="#id_party">
+    </div>
+
+    <!-- Package & Batch Schedule Container -->
+    <div id="package-htmx-container"
+         hx-get="{% url 'htmx_operations:booking-package-context' %}"
+         hx-trigger="change from:#id_package, package-updated from:body"
+         hx-include="#id_package">
+    </div>
+
+    <!-- Live Quotation & Financial Summary Container -->
+    <div id="quote-htmx-container"
+         hx-get="{% url 'htmx_operations:booking-quote-calc' %}"
+         hx-trigger="input from:#id_quoted_price delay:150ms, input from:#id_pax_count delay:150ms, change from:#id_gst_rate, quote-updated from:body"
+         hx-include="#id_quoted_price, #id_pax_count, #id_gst_rate">
+    </div>
+</div>
+
+{{ block.super }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Observer for Select2 or native autocomplete value changes
+    function watchField(id, eventName) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var lastVal = el.value;
+        setInterval(function() {
+            var curVal = el.value;
+            if (curVal !== lastVal) {
+                lastVal = curVal;
+                document.body.dispatchEvent(new CustomEvent(eventName));
+            }
+        }, 200);
+    }
+
+    watchField('id_party', 'party-updated');
+    watchField('id_package', 'package-updated');
+    watchField('id_quoted_price', 'quote-updated');
+    watchField('id_pax_count', 'quote-updated');
+    watchField('id_gst_rate', 'quote-updated');
+
+    // Trigger initial load if fields have pre-existing values (e.g. change view)
+    setTimeout(function() {
+        if (document.getElementById('id_party') && document.getElementById('id_party').value) {
+            document.body.dispatchEvent(new CustomEvent('party-updated'));
+        }
+        if (document.getElementById('id_package') && document.getElementById('id_package').value) {
+            document.body.dispatchEvent(new CustomEvent('package-updated'));
+        }
+        if (document.getElementById('id_quoted_price') && document.getElementById('id_quoted_price').value) {
+            document.body.dispatchEvent(new CustomEvent('quote-updated'));
+        }
+    }, 150);
+});
+</script>
+{% endblock %}

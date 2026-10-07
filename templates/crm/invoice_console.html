@@ -1,417 +1,1275 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Commercial Invoicing &amp; Billing Suite | TravelERP CRM{% endblock %}
-{% block header_title %}Proforma &amp; Tax Invoices{% endblock %}
+{% block title %}Enterprise Billing & GST Invoicing Console | Sivagayathiri Travels{% endblock %}
+{% block header_title %}Billing &amp; Invoicing Console{% endblock %}
 
 {% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-  .inv-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .metric-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-  }
-  .metric-card .title {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #64748b;
-    margin-bottom: 4px;
-  }
-  .metric-card .val {
-    font-size: 22px;
-    font-weight: 800;
-    color: #0f172a;
-  }
-  .metric-card .sub {
-    font-size: 12px;
-    margin-top: 2px;
-    font-weight: 600;
-  }
+/* ==========================================================================
+   ENTERPRISE BILLING & GST INVOICING CONSOLE
+   ========================================================================== */
+.inv-root {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
 
-  .filter-bar {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .select-filter {
-    padding: 8px 12px;
-    font-size: 13px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    background: #ffffff;
-  }
+/* Header Banner */
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
 
-  .inv-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    font-size: 13.5px;
-  }
-  .inv-table th, .inv-table td {
-    padding: 12px 14px;
-    border-bottom: 1px solid #e2e8f0;
-    vertical-align: middle;
-  }
-  .inv-table th {
-    background: #f8fafc;
-    color: #475569;
-    font-size: 11px;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
+.inv-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(13, 148, 136, 0.08);
+  color: #0f766e;
+  border: 1px solid rgba(13, 148, 136, 0.25);
+  padding: 0.28rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.45rem;
+}
 
-  .badge-type {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .type-proforma { background: #ede9fe; color: #6d28d9; }
-  .type-tax_invoice { background: #ccfbf1; color: #0f766e; }
+.inv-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #14b8a6;
+  box-shadow: 0 0 8px #14b8a6;
+  animation: invPulse 2s infinite;
+}
 
-  .badge-status {
-    padding: 4px 9px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .st-paid { background: #dcfce7; color: #166534; }
-  .st-partially_paid { background: #fef3c7; color: #b45309; }
-  .st-issued { background: #dbeafe; color: #1e40af; }
-  .st-draft { background: #f1f5f9; color: #475569; }
-  .st-cancelled { background: #fee2e2; color: #991b1b; }
+@keyframes invPulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
 
-  /* Modal */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.6);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-  }
-  .modal-box {
-    background: #ffffff;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 640px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-  }
-  .modal-header {
-    background: #f8fafc;
-    padding: 16px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .modal-body {
-    padding: 20px 24px;
-    max-height: 75vh;
-    overflow-y: auto;
-  }
+.inv-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.75rem, 2.6vw, 2.25rem);
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.025em;
+}
+
+.inv-subtitle {
+  color: #64748b;
+  font-size: 0.92rem;
+  margin: 0;
+  max-width: 720px;
+}
+
+/* Actions Header Group */
+.inv-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.inv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inv-btn-primary {
+  background: #0d9488;
+  color: white;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.28);
+}
+.inv-btn-primary:hover {
+  background: #0f766e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.38);
+  color: white;
+}
+
+.inv-btn-dark {
+  background: #0f172a;
+  color: #38bdf8;
+  border-color: #334155;
+}
+.inv-btn-dark:hover {
+  background: #1e293b;
+  color: #e0f2fe;
+  transform: translateY(-2px);
+}
+
+.inv-btn-secondary {
+  background: white;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.inv-btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+}
+
+/* KPI Lane Cards Strip */
+.inv-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.inv-kpi-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.inv-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.inv-kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: #94a3b8;
+}
+
+.inv-kpi-billed::before { background: #0f172a; }
+.inv-kpi-tax::before { background: #0d9488; }
+.inv-kpi-received::before { background: #16a34a; }
+.inv-kpi-due::before { background: #dc2626; }
+.inv-kpi-due {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: linear-gradient(180deg, #fef2f2 0%, #ffffff 100%);
+}
+
+.inv-kpi-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+.inv-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+.inv-kpi-icon {
+  font-size: 1.15rem;
+}
+.inv-kpi-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
+}
+.inv-kpi-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+/* Filter Strip with Tabs and Search */
+.inv-filter-strip {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+}
+
+.inv-tabs-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.inv-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  text-decoration: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.inv-tab:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.inv-tab.active {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+}
+.inv-tab.due-tab.active {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.inv-tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  font-size: 0.7rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  font-weight: 800;
+}
+.inv-tab:not(.active) .inv-tab-badge {
+  background: #e2e8f0;
+  color: #334155;
+}
+.inv-tab:not(.active) .inv-tab-badge.due-badge {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Search and Filters Inline Form */
+.inv-search-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inv-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+.inv-search-input-wrap input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.85rem 0.55rem 2.25rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  background: #f8fafc;
+  color: #0f172a;
+  transition: all 0.15s ease;
+}
+.inv-search-input-wrap input:focus {
+  outline: none;
+  border-color: #0d9488;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+}
+.inv-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* Invoice Table Panel */
+.inv-board-panel {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.inv-board-header {
+  padding: 1.15rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.inv-board-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inv-counter-pill {
+  font-size: 0.75rem;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 0.15rem 0.6rem;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.81rem;
+  text-align: left;
+}
+
+.inv-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 0.65rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.inv-table td {
+  padding: 0.75rem 0.65rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  color: #334155;
+}
+
+.inv-table tr:hover td {
+  background: #fbfcfe;
+}
+
+.inv-table tr.highlight-due td {
+  background: #fffdfd;
+}
+
+/* Column Specific Elements */
+.inv-ref {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 700;
+  color: #0f766e;
+  font-size: 0.88rem;
+  text-decoration: none;
+  display: block;
+}
+.inv-ref:hover {
+  text-decoration: underline;
+}
+
+.inv-badge-type {
+  display: inline-flex;
+  padding: 0.18rem 0.45rem;
+  border-radius: 5px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.type-proforma { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+.type-tax_invoice { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+
+.inv-client-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-width: 220px;
+}
+.inv-client-name {
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inv-client-meta {
+  font-size: 0.72rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inv-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.st-paid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.st-partially_paid { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.st-issued { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+.st-draft { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+.st-cancelled { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Action Cell */
+.inv-actions-cell {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.inv-act-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.inv-act-print {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.inv-act-print:hover {
+  background: #0f172a;
+  color: white;
+  border-color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.inv-act-wa {
+  background: #25d366;
+  color: #064e3b;
+  border-color: #16a34a;
+}
+.inv-act-wa:hover {
+  background: #1eb857;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
+  color: #064e3b;
+}
+
+.inv-act-pay {
+  background: #0284c7;
+  color: white;
+  border-color: #0369a1;
+}
+.inv-act-pay:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
+  color: white;
+}
+
+/* Modal Windows */
+.inv-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease;
+}
+.inv-modal-backdrop.open {
+  display: flex;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.inv-modal {
+  background: white;
+  width: 100%;
+  max-width: 620px;
+  border-radius: 18px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.inv-modal-header {
+  padding: 1.25rem 1.5rem;
+  background: #0f172a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.inv-modal-header h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inv-modal-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.inv-modal-close:hover { color: white; }
+
+.inv-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.inv-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.inv-form-group {
+  margin-bottom: 1rem;
+}
+
+.inv-form-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inv-select, .inv-input, .inv-textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: white;
+  color: #0f172a;
+  box-sizing: border-box;
+}
+.inv-select:focus, .inv-input:focus, .inv-textarea:focus {
+  outline: none;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.inv-modal-footer {
+  padding: 1.15rem 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Floating Toast Notification */
+.inv-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: #0f172a;
+  color: white;
+  padding: 0.95rem 1.35rem;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  z-index: 99999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  border-left: 4px solid #14b8a6;
+}
+.inv-toast.show {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
 </style>
 
-<div class="invoicing-container">
-  <!-- Metrics Cards -->
-  <div class="inv-metrics">
-    <div class="metric-card">
-      <div class="title">Total Billed Invoices</div>
-      <div class="val">₹{{ total_billed|floatformat:2 }}</div>
-      <div class="sub" style="color: #64748b;">{{ invoice_count }} Commercial Documents</div>
+<div class="inv-root">
+  <!-- Top Header Strip -->
+  <div class="inv-header">
+    <div>
+      <div class="inv-eyebrow">
+        <span class="inv-pulse-dot"></span>
+        <span>Commercial Billing &amp; Financial Control • GST SAC 9964 / 998555</span>
+      </div>
+      <h1 class="inv-title">Invoicing &amp; Collections Console</h1>
+      <p class="inv-subtitle">
+        Proforma bills, official B2B/B2C GST tax invoices, one-click WhatsApp dispatches with instant UPI QR payment links, and accounts receivable reconciliation.
+      </p>
     </div>
-    <div class="metric-card">
-      <div class="title">Total GST Collected</div>
-      <div class="val" style="color: #0d5c58;">₹{{ total_tax|floatformat:2 }}</div>
-      <div class="sub" style="color: #0d5c58;">CGST + SGST / IGST (SAC 998555)</div>
-    </div>
-    <div class="metric-card">
-      <div class="title">Payments Realized</div>
-      <div class="val" style="color: #166534;">₹{{ total_received|floatformat:2 }}</div>
-      <div class="sub" style="color: #166534;">Customer Collections</div>
-    </div>
-    <div class="metric-card">
-      <div class="title">Outstanding Balance Due</div>
-      <div class="val" style="color: #dc2626;">₹{{ total_balance|floatformat:2 }}</div>
-      <div class="sub" style="color: #dc2626;">Pending Receivables</div>
+    <div class="inv-actions">
+      <button class="inv-btn inv-btn-primary" onclick="openCreateInvModal()">
+        <span>🧾</span> + Generate Invoice
+      </button>
+      <a class="inv-btn inv-btn-dark" href="{% url 'admin-gst-studio' %}">
+        <span>🏛️</span> Corporate GST &amp; E-Way Studio
+      </a>
+      <a class="inv-btn inv-btn-secondary" href="{% url 'accounting-export' %}">
+        <span>💰</span> Tally &amp; Payroll Export
+      </a>
+      <a class="inv-btn inv-btn-secondary" href="{% url 'admin-petty-cash-studio' %}">
+        <span>💵</span> Petty Cash Treasury
+      </a>
+      <button class="inv-btn inv-btn-secondary" onclick="window.location.reload();" title="Refresh Live Data">
+        <span>🔄</span> Refresh
+      </button>
     </div>
   </div>
 
-  <!-- Filter & Action Bar -->
-  <div class="filter-bar">
-    <form method="GET" action="{% url 'crm:invoice_console' %}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-      <select name="type" onchange="this.form.submit()" class="select-filter">
-        <option value="">All Invoice Types</option>
-        {% for t_code, t_label in invoice_types %}
-          <option value="{{ t_code }}" {% if selected_type == t_code %}selected{% endif %}>{{ t_label }}</option>
-        {% endfor %}
-      </select>
+  <!-- KPI Metrics Strip -->
+  <div class="inv-kpi-grid">
+    <div class="inv-kpi-card inv-kpi-billed">
+      <div class="inv-kpi-meta">
+        <span class="inv-kpi-label">Total Commercial Billed</span>
+        <span class="inv-kpi-icon">📈</span>
+      </div>
+      <div class="inv-kpi-value">
+        ₹{{ total_billed|floatformat:2 }}
+      </div>
+      <div class="inv-kpi-sub">{{ all_count }} Total Commercial Documents</div>
+    </div>
 
-      <select name="status" onchange="this.form.submit()" class="select-filter">
-        <option value="">All Statuses</option>
-        {% for st_code, st_label in statuses %}
-          <option value="{{ st_code }}" {% if selected_status == st_code %}selected{% endif %}>{{ st_label }}</option>
-        {% endfor %}
-      </select>
+    <div class="inv-kpi-card inv-kpi-tax">
+      <div class="inv-kpi-meta">
+        <span class="inv-kpi-label">Total GST Collected</span>
+        <span class="inv-kpi-icon">🏛️</span>
+      </div>
+      <div class="inv-kpi-value" style="color: #0f766e;">
+        ₹{{ total_tax|floatformat:2 }}
+      </div>
+      <div class="inv-kpi-sub">CGST + SGST (5%) &amp; Inter-State IGST</div>
+    </div>
 
-      {% if selected_type or selected_status %}
-        <a href="{% url 'crm:invoice_console' %}" class="btn btn-outline-secondary btn-sm" style="padding: 7px 12px;">Clear</a>
+    <div class="inv-kpi-card inv-kpi-received">
+      <div class="inv-kpi-meta">
+        <span class="inv-kpi-label">Payments Realized</span>
+        <span class="inv-kpi-icon">✅</span>
+      </div>
+      <div class="inv-kpi-value" style="color: #16a34a;">
+        ₹{{ total_received|floatformat:2 }}
+      </div>
+      <div class="inv-kpi-sub">Total Customer Collections Deposited</div>
+    </div>
+
+    <a class="inv-kpi-card inv-kpi-due" href="?tab=unpaid">
+      <div class="inv-kpi-meta">
+        <span class="inv-kpi-label">Outstanding Receivables</span>
+        <span class="inv-kpi-icon">⏳</span>
+      </div>
+      <div class="inv-kpi-value" style="color: #dc2626;">
+        ₹{{ total_balance|floatformat:2 }}
+      </div>
+      <div class="inv-kpi-sub">{{ unpaid_count }} Invoices awaiting final settlement</div>
+    </a>
+  </div>
+
+  <!-- Filter & Status Tabs Strip -->
+  <div class="inv-filter-strip">
+    <!-- Status Tabs -->
+    <div class="inv-tabs-bar">
+      <a class="inv-tab {% if current_tab == 'all' or not current_tab %}active{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>⚡ All Invoices</span>
+        <span class="inv-tab-badge">{{ all_count }}</span>
+      </a>
+
+      <a class="inv-tab due-tab {% if current_tab == 'unpaid' %}active{% endif %}" href="?tab=unpaid{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>⚠️ Overdue / Unpaid</span>
+        <span class="inv-tab-badge due-badge">{{ unpaid_count }}</span>
+      </a>
+
+      <a class="inv-tab {% if current_tab == 'partially_paid' %}active{% endif %}" href="?tab=partially_paid{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>⏳ Partially Paid</span>
+        <span class="inv-tab-badge">{{ partially_paid_count }}</span>
+      </a>
+
+      <a class="inv-tab {% if current_tab == 'paid' %}active{% endif %}" href="?tab=paid{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>✅ Fully Paid</span>
+        <span class="inv-tab-badge">{{ paid_count }}</span>
+      </a>
+
+      <a class="inv-tab {% if current_tab == 'tax_invoice' %}active{% endif %}" href="?tab=tax_invoice{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>🏛️ Tax Invoices</span>
+        <span class="inv-tab-badge">{{ tax_invoice_count }}</span>
+      </a>
+
+      <a class="inv-tab {% if current_tab == 'proforma' %}active{% endif %}" href="?tab=proforma{% if search_term %}&search={{ search_term }}{% endif %}">
+        <span>📄 Proforma Bills</span>
+        <span class="inv-tab-badge">{{ proforma_count }}</span>
+      </a>
+    </div>
+
+    <!-- Search & Range Form -->
+    <form class="inv-search-form" method="get">
+      <input type="hidden" name="tab" value="{{ current_tab|default:'all' }}">
+      <div class="inv-search-input-wrap">
+        <span class="inv-search-icon">🔍</span>
+        <input type="text" name="search" value="{{ search_term }}" placeholder="Search by Invoice Number (INV-...), Client Name, GSTIN, or Place of Supply...">
+      </div>
+
+      <button class="inv-btn inv-btn-primary" type="submit" style="padding: 0.55rem 1rem;">
+        Filter
+      </button>
+
+      {% if search_term %}
+      <a class="inv-btn inv-btn-secondary" href="?tab={{ current_tab|default:'all' }}" style="padding: 0.55rem 0.85rem;">
+        ✕ Clear
+      </a>
       {% endif %}
     </form>
-
-    <button onclick="document.getElementById('createInvModal').style.display='flex'" class="btn btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-weight: 600; padding: 8px 18px; border-radius: 6px;">
-      🧾 Generate New Invoice
-    </button>
   </div>
 
-  <!-- Invoices Table -->
-  {% if invoices %}
-    <div class="table-responsive">
+  <!-- Invoices Board Table Panel -->
+  <div class="inv-board-panel">
+    <div class="inv-board-header">
+      <h2>
+        <span>📋</span> Commercial Invoice Ledger
+      </h2>
+      <span class="inv-counter-pill">{{ invoices|length }} Invoices Displayed</span>
+    </div>
+
+    <div style="overflow-x: auto;">
       <table class="inv-table">
         <thead>
           <tr>
-            <th>Invoice Number</th>
+            <th>Invoice Ref &amp; Date</th>
             <th>Type</th>
-            <th>Billed Client</th>
-            <th>Taxable Value</th>
-            <th>GST Amount</th>
+            <th>Billed Client / Corporate Entity</th>
+            <th>Taxable Amount</th>
+            <th>GST Breakdown</th>
             <th>Total Billed</th>
             <th>Balance Due</th>
             <th>Status</th>
-            <th style="text-align: right;">Action</th>
+            <th style="text-align: right; white-space: nowrap;">1-Click Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for inv in invoices %}
-            <tr>
-              <td>
-                <div style="font-weight: 700; color: #0f172a;">{{ inv.invoice_number }}</div>
-                <div style="font-size: 11px; color: #64748b;">{{ inv.invoice_date|date:"d-M-Y" }}</div>
-              </td>
-              <td>
-                <span class="badge-type type-{{ inv.invoice_type }}">{{ inv.get_invoice_type_display }}</span>
-              </td>
-              <td>
-                <div style="font-weight: 600; color: #1e293b;">{{ inv.billing_name }}</div>
-                <div style="font-size: 11px; color: #64748b;">
-                  {% if inv.client_gstin %}GSTIN: {{ inv.client_gstin }} &bull; {% endif %}
+          <tr id="inv-row-{{ inv.id }}" class="{% if inv.balance_due > 0 and inv.status != 'paid' %}highlight-due{% endif %}">
+            <!-- 1. Invoice Ref & Date -->
+            <td>
+              <a class="inv-ref" href="{% url 'crm:invoice_detail' invoice_id=inv.id %}">
+                {{ inv.invoice_number }}
+              </a>
+              <div style="font-size: 0.75rem; color: #64748b; font-weight: 600;">
+                📅 {{ inv.invoice_date|date:"d M Y" }}
+                {% if inv.due_date %}
+                <span style="color: #94a3b8;">&bull; Due {{ inv.due_date|date:"d M" }}</span>
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- 2. Type -->
+            <td>
+              <span class="inv-badge-type type-{{ inv.invoice_type }}">
+                {{ inv.get_invoice_type_display }}
+              </span>
+            </td>
+
+            <!-- 3. Billed Entity -->
+            <td>
+              <div class="inv-client-cell">
+                <span class="inv-client-name">{{ inv.billing_name }}</span>
+                <span class="inv-client-meta">
+                  {% if inv.client_gstin %}<strong>GSTIN:</strong> {{ inv.client_gstin }} &bull; {% endif %}
                   {{ inv.place_of_supply }}
-                </div>
-              </td>
-              <td>
-                <div style="font-size: 13px; color: #334155;">₹{{ inv.taxable_amount|floatformat:2 }}</div>
-              </td>
-              <td>
-                <div style="font-size: 12px; color: #0d5c58; font-weight: 600;">
-                  ₹{{ inv.total_tax_amount|floatformat:2 }}
-                  <span style="font-size: 10px; color: #64748b;">({{ inv.gst_rate }}%)</span>
-                </div>
-              </td>
-              <td>
-                <div style="font-size: 14.5px; font-weight: 800; color: #0f172a;">₹{{ inv.total_invoice_amount|floatformat:2 }}</div>
-              </td>
-              <td>
-                <div style="font-size: 13.5px; font-weight: 700; color: {% if inv.balance_due > 0 %}#dc2626{% else %}#166534{% endif %};">
-                  ₹{{ inv.balance_due|floatformat:2 }}
-                </div>
-              </td>
-              <td>
-                <span class="badge-status st-{{ inv.status }}">{{ inv.get_status_display }}</span>
-              </td>
-              <td style="text-align: right;">
-                <div style="display: inline-flex; gap: 6px;">
-                  <a href="{% url 'crm:invoice_detail' invoice_id=inv.id %}" class="btn btn-sm btn-outline-dark" style="font-size: 11.5px; padding: 4px 10px; font-weight: 600;">
-                    🖨️ View &amp; Print
-                  </a>
-                  <button onclick="dispatchInvoice('{{ inv.id }}', '{{ inv.invoice_number }}', this)" class="btn btn-sm btn-outline-success" style="font-size: 11.5px; padding: 4px 8px;" title="Send via WhatsApp">
-                    📱
-                  </button>
-                </div>
-              </td>
-            </tr>
+                </span>
+                {% if inv.booking %}
+                <small class="muted" style="font-size: 0.72rem;">Ref Booking #{{ inv.booking.booking_number }}</small>
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- 4. Taxable Amount -->
+            <td>
+              <span style="font-weight: 700; color: #334155;">
+                ₹{{ inv.taxable_amount|floatformat:2 }}
+              </span>
+            </td>
+
+            <!-- 5. GST Breakdown -->
+            <td>
+              <div style="font-weight: 700; color: #0f766e; font-size: 0.85rem;">
+                ₹{{ inv.total_tax_amount|floatformat:2 }}
+              </div>
+              <div style="font-size: 0.72rem; color: #64748b;">
+                {{ inv.gst_rate }}% ({{ inv.get_tax_regime_display }})
+              </div>
+            </td>
+
+            <!-- 6. Total Billed -->
+            <td>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 0.98rem; color: #0f172a;">
+                ₹{{ inv.total_invoice_amount|floatformat:2 }}
+              </span>
+            </td>
+
+            <!-- 7. Balance Due -->
+            <td>
+              <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 0.95rem; color: {% if inv.balance_due > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+                ₹{{ inv.balance_due|floatformat:2 }}
+              </span>
+              {% if inv.paid_amount > 0 and inv.balance_due > 0 %}
+              <div style="font-size: 0.72rem; color: #16a34a;">Paid: ₹{{ inv.paid_amount|floatformat:2 }}</div>
+              {% endif %}
+            </td>
+
+            <!-- 8. Status Pill -->
+            <td>
+              <span id="inv-status-pill-{{ inv.id }}" class="inv-status-pill st-{{ inv.status }}">
+                {{ inv.get_status_display }}
+              </span>
+            </td>
+
+            <!-- 9. Actions -->
+            <td>
+              <div class="inv-actions-cell">
+                <!-- View & Print Official PDF -->
+                <a class="inv-act-btn inv-act-print" href="{% url 'crm:invoice_detail' invoice_id=inv.id %}" target="_blank" title="View & Print Official GST Letterhead">
+                  🖨️ PDF
+                </a>
+
+                <!-- 1-Click WhatsApp Dispatch with UPI Deep Link -->
+                <button type="button" class="inv-act-btn inv-act-wa" onclick="dispatchInvoiceWhatsApp('{{ inv.id }}', '{{ inv.invoice_number|escapejs }}', '{{ inv.billing_name|escapejs }}')" title="Dispatch Tax Invoice & UPI Deep Link to Client via WhatsApp">
+                  📲 Send
+                </button>
+
+                <!-- Record Payment Modal Trigger -->
+                {% if inv.balance_due > 0 %}
+                <button type="button" class="inv-act-btn inv-act-pay" onclick="openRecordPaymentModal('{{ inv.id }}', '{{ inv.invoice_number|escapejs }}', '{{ inv.billing_name|escapejs }}', '{{ inv.balance_due|floatformat:2 }}')" title="Record Received Payment">
+                  💳 Pay
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 3.5rem; color: #64748b;">
+              <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🧾</div>
+              <strong style="font-size: 1.05rem; color: #1e293b; display: block;">No invoices found matching the selected filter.</strong>
+              <p style="margin-top: 0.35rem; font-size: 0.85rem;">Click "+ Generate Invoice" to issue a proforma or tax bill.</p>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-  {% else %}
-    <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 48px; text-align: center; color: #64748b;">
-      <div style="font-size: 36px; margin-bottom: 12px;">🧾</div>
-      <div style="font-size: 16px; font-weight: 700; color: #1e293b;">No invoices generated</div>
-      <p style="font-size: 13px; margin: 6px 0 16px;">Generate compliant Proforma Bills or Tax Invoices for bookings and quotations.</p>
-      <button onclick="document.getElementById('createInvModal').style.display='flex'" class="btn btn-primary" style="background: #0d5c58; border-color: #0d5c58; font-size: 13px;">
-        Generate First Invoice
-      </button>
-    </div>
-  {% endif %}
+  </div>
 </div>
 
-<!-- Generate Invoice Modal -->
-<div id="createInvModal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h5 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Generate Commercial Invoice</h5>
-      <button type="button" onclick="document.getElementById('createInvModal').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+<!-- ========================================================================
+     MODAL 1: GENERATE COMMERCIAL INVOICE
+     ======================================================================== -->
+<div id="createInvModal" class="inv-modal-backdrop">
+  <div class="inv-modal">
+    <div class="inv-modal-header">
+      <h3>
+        <span>🧾</span> Generate Commercial GST Invoice
+      </h3>
+      <button class="inv-modal-close" onclick="closeCreateInvModal()">&times;</button>
     </div>
     <form method="POST" action="{% url 'crm:invoice_create' %}">
       {% csrf_token %}
-      <div class="modal-body">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+      <div class="inv-modal-body">
+        <div class="inv-form-grid">
           <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Invoice Type *</label>
-            <select name="invoice_type" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+            <label class="inv-form-label" for="invoiceTypeSelect">Invoice Document Type</label>
+            <select id="invoiceTypeSelect" name="invoice_type" class="inv-select">
               <option value="tax_invoice">Official Tax Invoice</option>
               <option value="proforma">Proforma Invoice / Advance Bill</option>
             </select>
           </div>
           <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Select Client / Partner *</label>
-            <select name="party" required style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
+            <label class="inv-form-label" for="partySelect">Select Client / Corporate Party</label>
+            <select id="partySelect" name="party" class="inv-select" required onchange="handlePartySelectChange(this)">
+              <option value="">-- Choose Party --</option>
               {% for p in parties %}
-                <option value="{{ p.id }}">{{ p.name }} ({{ p.get_party_type_display }})</option>
+              <option value="{{ p.id }}" data-name="{{ p.name }}" data-gstin="{{ p.gstin|default:'' }}" data-address="{{ p.address|default:'' }}" data-state="{{ p.state_code|default:'33' }}">
+                {{ p.name }} {% if p.gstin %}(GSTIN: {{ p.gstin }}){% endif %}
+              </option>
               {% endfor %}
             </select>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div class="inv-form-grid">
           <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Link to Booking (Optional)</label>
-            <select name="booking" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
-              <option value="">-- No Direct Booking Link --</option>
+            <label class="inv-form-label" for="billingNameInput">Billed Entity Name</label>
+            <input type="text" id="billingNameInput" name="billing_name" class="inv-input" placeholder="Legal / Company Name" required>
+          </div>
+          <div>
+            <label class="inv-form-label" for="clientGstinInput">Client GSTIN</label>
+            <input type="text" id="clientGstinInput" name="client_gstin" class="inv-input" placeholder="e.g. 33AAAAA0000A1Z5">
+          </div>
+        </div>
+
+        <div class="inv-form-grid">
+          <div>
+            <label class="inv-form-label" for="posInput">Place of Supply (State / Code)</label>
+            <input type="text" id="posInput" name="place_of_supply" class="inv-input" value="Tamil Nadu (33)" required>
+          </div>
+          <div>
+            <label class="inv-form-label" for="taxRegimeSelect">Tax Regime</label>
+            <select id="taxRegimeSelect" name="tax_regime" class="inv-select">
+              <option value="intra_state">Intra-State (CGST 2.5% + SGST 2.5%)</option>
+              <option value="inter_state">Inter-State (IGST 5.0%)</option>
+              <option value="exempt">Zero-Rated / Exempt</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="inv-form-grid">
+          <div>
+            <label class="inv-form-label" for="taxableAmountInput">Taxable Fare / Service Value (₹)</label>
+            <input type="number" step="0.01" id="taxableAmountInput" name="taxable_amount" class="inv-input" placeholder="0.00" required>
+          </div>
+          <div>
+            <label class="inv-form-label" for="gstRateSelect">GST Rate (%)</label>
+            <select id="gstRateSelect" name="gst_rate" class="inv-select">
+              <option value="5.00">5.0% (Transport / Tour Operator - SAC 9964)</option>
+              <option value="12.00">12.0% (Fleet Rent-a-Cab with Fuel ITC)</option>
+              <option value="18.00">18.0% (General Services / Event Transit)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="inv-form-grid">
+          <div>
+            <label class="inv-form-label" for="paidAmountInput">Advance Payment Received (₹)</label>
+            <input type="number" step="0.01" id="paidAmountInput" name="paid_amount" class="inv-input" value="0.00">
+          </div>
+          <div>
+            <label class="inv-form-label" for="dueDateInput">Payment Due Date</label>
+            <input type="date" id="dueDateInput" name="due_date" class="inv-input">
+          </div>
+        </div>
+
+        <!-- Optional Links to Operational Records -->
+        <div class="inv-form-grid">
+          <div>
+            <label class="inv-form-label" for="bookingLinkSelect">Link to Booking (Optional)</label>
+            <select id="bookingLinkSelect" name="booking" class="inv-select">
+              <option value="">-- Standalone / Direct B2B --</option>
               {% for b in bookings %}
-                <option value="{{ b.id }}">{{ b.booking_number }} - {{ b.guest_name }} ({{ b.destination }})</option>
+              <option value="{{ b.id }}">#{{ b.booking_number }} - {{ b.guest_name }} ({{ b.pickup_location }} ➡️ {{ b.destination }})</option>
               {% endfor %}
             </select>
           </div>
           <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Link to Quotation (Optional)</label>
-            <select name="quotation" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
-              <option value="">-- No Direct Quotation Link --</option>
+            <label class="inv-form-label" for="quoteLinkSelect">Link to Quotation (Optional)</label>
+            <select id="quoteLinkSelect" name="quotation" class="inv-select">
+              <option value="">-- Standalone --</option>
               {% for q in quotations %}
-                <option value="{{ q.id }}">{{ q.quotation_number }} - {{ q.guest_name }}</option>
+              <option value="{{ q.id }}">#{{ q.quotation_number }} - {{ q.guest_name }} (₹{{ q.total_quoted_price|floatformat:2 }})</option>
               {% endfor %}
             </select>
           </div>
         </div>
 
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Billing Name *</label>
-          <input type="text" name="billing_name" required placeholder="Guest Name or Corporate Company Name" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+        <div class="inv-form-group">
+          <label class="inv-form-label" for="descInput">Description of Service</label>
+          <input type="text" id="descInput" name="description_of_service" class="inv-input" value="Chauffeur-Driven Tourist Transport &amp; Ground Handling Services (SAC 9964)">
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Client GSTIN (If B2B)</label>
-            <input type="text" name="client_gstin" placeholder="33AAAAA0000A1Z5" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Place of Supply</label>
-            <input type="text" name="place_of_supply" value="Tamil Nadu (33)" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Taxable Base (₹) *</label>
-            <input type="number" step="0.01" name="taxable_amount" required placeholder="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Tax Regime</label>
-            <select name="tax_regime" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
-              <option value="intra_state">Intra-State (CGST + SGST)</option>
-              <option value="inter_state">Inter-State (IGST)</option>
-              <option value="exempt">Exempt / Zero-Rated</option>
-            </select>
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">GST Rate (%)</label>
-            <select name="gst_rate" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff;">
-              <option value="5.00">5% (Tour Operator Standard)</option>
-              <option value="12.00">12% (Transport Hire)</option>
-              <option value="18.00">18% (Standalone Management)</option>
-              <option value="0.00">0% (Exempt)</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Paid Advance / Receipt (₹)</label>
-            <input type="number" step="0.01" name="paid_amount" placeholder="0.00" value="0.00" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Due Date</label>
-            <input type="date" name="due_date" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-          </div>
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 4px;">Service Description / SAC Code</label>
-          <input type="text" name="description_of_service" value="Tour Package, Ground Transport &amp; Itinerary Operations (SAC: 998555)" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+        <div class="inv-form-group">
+          <label class="inv-form-label" for="billingAddressText">Billing Address</label>
+          <textarea id="billingAddressText" name="billing_address" rows="2" class="inv-textarea" placeholder="Office / Registered Address"></textarea>
         </div>
       </div>
-      <div style="background: #f8fafc; padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
-        <button type="button" onclick="document.getElementById('createInvModal').style.display='none'" class="btn btn-secondary btn-sm" style="padding: 8px 16px;">Cancel</button>
-        <button type="submit" class="btn btn-primary btn-sm" style="background: #0d5c58; border-color: #0d5c58; padding: 8px 20px; font-weight: 600;">Issue Invoice</button>
+
+      <div class="inv-modal-footer">
+        <button type="button" class="inv-btn inv-btn-secondary" onclick="closeCreateInvModal()">Cancel</button>
+        <button type="submit" class="inv-btn inv-btn-primary">
+          <span>⚡</span> Issue &amp; Generate Invoice
+        </button>
       </div>
     </form>
   </div>
 </div>
 
+<!-- ========================================================================
+     MODAL 2: RECORD PAYMENT RECEIPT
+     ======================================================================== -->
+<div id="recordPaymentModal" class="inv-modal-backdrop">
+  <div class="inv-modal" style="max-width: 480px;">
+    <div class="inv-modal-header">
+      <h3>
+        <span>💳</span> Record Payment Receipt
+      </h3>
+      <button class="inv-modal-close" onclick="closeRecordPaymentModal()">&times;</button>
+    </div>
+    <form id="recordPaymentForm" method="POST" action="" onsubmit="handleRecordPaymentSubmit(event)">
+      {% csrf_token %}
+      <div class="inv-modal-body">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem 1.15rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.25rem;">
+            <span class="muted" style="font-weight: 600;">Invoice Ref:</span>
+            <span id="payModalInvRef" style="font-weight: 800; color: #0f172a;">INV-2026-0000</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.25rem;">
+            <span class="muted" style="font-weight: 600;">Client:</span>
+            <span id="payModalClient" style="font-weight: 700; color: #0f172a;">Client Name</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.82rem;">
+            <span class="muted" style="font-weight: 600;">Outstanding Due:</span>
+            <span id="payModalBalance" style="font-weight: 800; color: #dc2626;">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="inv-form-group">
+          <label class="inv-form-label" for="payAmountInput">Payment Amount (₹)</label>
+          <input type="number" step="0.01" id="payAmountInput" name="payment_amount" class="inv-input" required>
+        </div>
+
+        <div class="inv-form-group">
+          <label class="inv-form-label" for="payModeSelect">Payment Mode</label>
+          <select id="payModeSelect" name="payment_mode" class="inv-select">
+            <option value="upi">Instant UPI (GPay / PhonePe / Paytm)</option>
+            <option value="bank_transfer">NEFT / RTGS / IMPS Bank Transfer</option>
+            <option value="cash">Cash (Deposited at Depot)</option>
+            <option value="cheque">Cheque / Demand Draft</option>
+            <option value="card">POS Credit/Debit Card</option>
+          </select>
+        </div>
+
+        <div class="inv-form-group">
+          <label class="inv-form-label" for="payRefInput">Transaction Reference / UTR Number</label>
+          <input type="text" id="payRefInput" name="reference_number" class="inv-input" placeholder="e.g. UTR-9821739102">
+        </div>
+      </div>
+
+      <div class="inv-modal-footer">
+        <button type="button" class="inv-btn inv-btn-secondary" onclick="closeRecordPaymentModal()">Cancel</button>
+        <button id="paySubmitBtn" type="submit" class="inv-btn inv-btn-primary">
+          <span>✅</span> Save Payment Receipt
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Floating Toast Notification -->
+<div id="invToast" class="inv-toast">
+  <span id="invToastIcon" style="font-size: 1.25rem;">✅</span>
+  <span id="invToastMsg">Notification message</span>
+</div>
+
 <script>
-function dispatchInvoice(invId, invNumber, btnElement) {
-  if(!confirm(`Send official invoice ${invNumber} directly to client via WhatsApp?`)) return;
+// ============================================================================
+// INVOICING CONSOLE JAVASCRIPT ENGINE
+// ============================================================================
 
-  const originalText = btnElement.innerHTML;
-  btnElement.innerHTML = '...';
-  btnElement.disabled = true;
+function showToast(message, isError = false) {
+  const toast = document.getElementById('invToast');
+  const msgEl = document.getElementById('invToastMsg');
+  const iconEl = document.getElementById('invToastIcon');
+  if (!toast || !msgEl) return;
 
-  fetch(`/crm/api/invoices/${invId}/dispatch/`, {
-    method: 'POST',
-    headers: {
-      'X-CSRFToken': '{{ csrf_token }}'
-    }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if(data.status === 'success') {
-      btnElement.innerHTML = '✓';
-      btnElement.className = 'btn btn-sm btn-success';
-      alert(`Invoice ${data.invoice_number} successfully dispatched to ${data.dispatched_to}!`);
-    } else {
-      btnElement.innerHTML = originalText;
-      btnElement.disabled = false;
-      alert("Error: " + (data.message || "Failed to dispatch invoice"));
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    btnElement.innerHTML = originalText;
-    btnElement.disabled = false;
-    alert("Request error.");
-  });
+  msgEl.textContent = message;
+  iconEl.textContent = isError ? '❌' : '📲';
+  toast.style.borderLeftColor = isError ? '#ef4444' : '#14b8a6';
+  toast.classList.add('show');
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 4500);
 }
+
+// Modal 1: Generate Invoice
+function openCreateInvModal() {
+  document.getElementById('createInvModal').classList.add('open');
+}
+
+function closeCreateInvModal() {
+  document.getElementById('createInvModal').classList.remove('open');
+}
+
+function handlePartySelectChange(select) {
+  const opt = select.options[select.selectedIndex];
+  if (!opt || !opt.value) return;
+
+  const name = opt.getAttribute('data-name') || '';
+  const gstin = opt.getAttribute('data-gstin') || '';
+  const addr = opt.getAttribute('data-address') || '';
+  const state = opt.getAttribute('data-state') || '33';
+
+  document.getElementById('billingNameInput').value = name;
+  document.getElementById('clientGstinInput').value = gstin;
+  document.getElementById('billingAddressText').value = addr;
+
+  if (state === '33' || state.toLowerCase().includes('tamil')) {
+    document.getElementById('posInput').value = 'Tamil Nadu (33)';
+    document.getElementById('taxRegimeSelect').value = 'intra_state';
+  } else {
+    document.getElementById('posInput').value = `Inter-State (${state})`;
+    document.getElementById('taxRegimeSelect').value = 'inter_state';
+  }
+}
+
+// Modal 2: Record Payment
+let currentPaymentInvoiceId = null;
+
+function openRecordPaymentModal(invId, invNumber, clientName, balanceDue) {
+  currentPaymentInvoiceId = invId;
+  const modal = document.getElementById('recordPaymentModal');
+  const form = document.getElementById('recordPaymentForm');
+
+  document.getElementById('payModalInvRef').textContent = invNumber;
+  document.getElementById('payModalClient').textContent = clientName;
+  document.getElementById('payModalBalance').textContent = '₹' + balanceDue;
+  document.getElementById('payAmountInput').value = balanceDue;
+
+  form.action = `/crm/api/invoices/${invId}/record-payment/`;
+  modal.classList.add('open');
+}
+
+function closeRecordPaymentModal() {
+  document.getElementById('recordPaymentModal').classList.remove('open');
+  currentPaymentInvoiceId = null;
+}
+
+// Submit Record Payment via AJAX
+async function handleRecordPaymentSubmit(e) {
+  e.preventDefault();
+  const form = e.target;
+  const submitBtn = document.getElementById('paySubmitBtn');
+  const originalBtnText = submitBtn.innerHTML;
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span>⏳</span> Processing...';
+
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      showToast(data.message || 'Payment receipt saved!');
+      closeRecordPaymentModal();
+      setTimeout(() => {
+        window.location.reload();
+      }, 900);
+    } else {
+      showToast(data.message || 'Error recording payment', true);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  } catch (err) {
+    console.error('Record Payment Error:', err);
+    form.submit();
+  }
+}
+
+// 1-Click WhatsApp Dispatch with UPI Deep Link
+async function dispatchInvoiceWhatsApp(invId, invNumber, clientName) {
+  showToast(`Dispatching ${invNumber} & UPI payment link to ${clientName} via WhatsApp...`);
+  try {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    const res = await fetch(`/crm/api/invoices/${invId}/dispatch/`, {
+      method: 'POST',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      showToast(`✅ ${invNumber} dispatched to WhatsApp (${data.dispatched_to})!`);
+    } else {
+      showToast(data.message || 'Error sending invoice', true);
+    }
+  } catch (err) {
+    console.error('WhatsApp Dispatch Error:', err);
+    showToast('Failed to dispatch WhatsApp message', true);
+  }
+}
+
+// Close modals when clicking backdrop
+document.getElementById('createInvModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeCreateInvModal();
+});
+document.getElementById('recordPaymentModal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeRecordPaymentModal();
+});
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeCreateInvModal();
+    closeRecordPaymentModal();
+  }
+});
 </script>
 {% endblock %}

@@ -173,3 +173,13 @@ def dispatch_payslip_alert(payslip, base_url="http://127.0.0.1:8000"):
         f"Thank you for your dedicated service!"
     )
     return send_whatsapp_message(driver.phone, message)
+
+
+def send_trip_invoice_pdf(trip_or_id, recipient_phone=None, base_url="http://127.0.0.1:8000"):
+    """
+    Dispatches automated WhatsApp notification with official GST invoice details
+    and PDF download link for a Trip or CorporateGSTInvoice.
+    """
+    from operations.whatsapp_bot import send_trip_invoice_pdf as _send_invoice
+    return _send_invoice(trip_or_id, recipient_phone=recipient_phone, base_url=base_url)
+

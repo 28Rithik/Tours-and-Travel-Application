@@ -1,0 +1,40 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+<!-- HTMX Dynamic Reactive Engine for Payment Form -->
+<div id="payment-htmx-deck" style="margin-bottom: 20px;">
+    <!-- Party Ledger Container -->
+    <div id="party-ledger-htmx-container"
+         hx-get="{% url 'htmx_operations:party-ledger-summary' %}"
+         hx-trigger="change from:#id_party, party-updated from:body"
+         hx-include="#id_party">
+    </div>
+</div>
+
+{{ block.super }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function watchField(id, eventName) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var lastVal = el.value;
+        setInterval(function() {
+            var curVal = el.value;
+            if (curVal !== lastVal) {
+                lastVal = curVal;
+                document.body.dispatchEvent(new CustomEvent(eventName));
+            }
+        }, 200);
+    }
+
+    watchField('id_party', 'party-updated');
+
+    setTimeout(function() {
+        if (document.getElementById('id_party') && document.getElementById('id_party').value) {
+            document.body.dispatchEvent(new CustomEvent('party-updated'));
+        }
+    }, 150);
+});
+</script>
+{% endblock %}

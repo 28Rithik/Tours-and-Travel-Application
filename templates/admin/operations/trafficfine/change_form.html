@@ -1,0 +1,40 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+<!-- HTMX Dynamic Reactive Engine for Traffic Fine Form -->
+<div id="traffic-fine-htmx-deck" style="margin-bottom: 20px;">
+    <!-- Trip Context Container -->
+    <div id="trip-context-htmx-container"
+         hx-get="{% url 'htmx_operations:fine-vehicle-driver' %}"
+         hx-trigger="change from:#id_trip, trip-selected from:body"
+         hx-include="#id_trip">
+    </div>
+</div>
+
+{{ block.super }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function watchField(id, eventName) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var lastVal = el.value;
+        setInterval(function() {
+            var curVal = el.value;
+            if (curVal !== lastVal) {
+                lastVal = curVal;
+                document.body.dispatchEvent(new CustomEvent(eventName));
+            }
+        }, 200);
+    }
+
+    watchField('id_trip', 'trip-selected');
+
+    setTimeout(function() {
+        if (document.getElementById('id_trip') && document.getElementById('id_trip').value) {
+            document.body.dispatchEvent(new CustomEvent('trip-selected'));
+        }
+    }, 150);
+});
+</script>
+{% endblock %}

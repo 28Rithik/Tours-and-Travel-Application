@@ -353,3 +353,32 @@ def driver_sos_trigger(request):
         'vehicle': vehicle,
         'active_trip': active_trip,
     })
+
+
+def pwa_manifest(request):
+    """Serve PWA manifest with standard application/manifest+json MIME type."""
+    from django.conf import settings
+    from django.http import HttpResponse
+    manifest_path = settings.BASE_DIR / 'static' / 'manifest.json'
+    try:
+        with open(manifest_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except Exception:
+        content = '{}'
+    return HttpResponse(content, content_type='application/manifest+json')
+
+
+def pwa_service_worker(request):
+    """Serve PWA Service Worker with Service-Worker-Allowed root scope."""
+    from django.conf import settings
+    from django.http import HttpResponse
+    sw_path = settings.BASE_DIR / 'static' / 'sw.js'
+    try:
+        with open(sw_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+    except Exception:
+        content = '// Service Worker'
+    response = HttpResponse(content, content_type='application/javascript')
+    response['Service-Worker-Allowed'] = '/'
+    return response
+

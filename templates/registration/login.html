@@ -1,4 +1,787 @@
 {% load static %}
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in | TravelERP</title><link rel="stylesheet" href="{% static 'app.css' %}"></head>
-<body><div class="auth-page"><section class="auth-card"><p class="eyebrow">Coimbatore operations desk</p><h1>Sivagayathiri</h1><p class="muted">Sign in to manage journeys and money movements.</p><form method="post">{% csrf_token %}{{ form.as_p }}<button class="button button-primary" type="submit">Sign in</button></form></section></div></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff Sign In | Operations Mission Control | Sivagayathiri Travels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --brand-navy: #090d16;
+      --brand-card: #111827;
+      --brand-cyan: #0284c7;
+      --brand-cyan-light: #38bdf8;
+      --brand-gold: #f59e0b;
+      --brand-emerald: #10b981;
+      --brand-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-glass: rgba(255, 255, 255, 0.1);
+      --border-focus: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #06090e;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Background Lights */
+    .ambient-glow-1 {
+      position: absolute;
+      top: -120px;
+      left: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(2, 132, 199, 0.22) 0%, rgba(0, 0, 0, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-2 {
+      position: absolute;
+      bottom: -150px;
+      right: -100px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Top Nav Bar */
+    .login-topbar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 1px solid var(--border-glass);
+      backdrop-filter: blur(12px);
+      background: rgba(6, 9, 14, 0.7);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: white;
+    }
+
+    .brand-logo-mark {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.15rem;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    }
+
+    .brand-text h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .brand-text span {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .link-quiet {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .link-quiet:hover {
+      color: #38bdf8;
+    }
+
+    /* Main Container Split Screen */
+    .login-main {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .login-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 3.5rem;
+      align-items: center;
+      width: 100%;
+    }
+
+    /* Left Side: Operations Command Briefing */
+    .ops-briefing {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    .ops-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(2, 132, 199, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.35rem 0.95rem;
+      border-radius: 9999px;
+      color: #7dd3fc;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      width: fit-content;
+    }
+
+    .ops-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .ops-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 3.2vw, 2.75rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .ops-title span {
+      background: linear-gradient(120deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .ops-desc {
+      color: #94a3b8;
+      font-size: 0.98rem;
+      line-height: 1.65;
+    }
+
+    /* Operations Metrics Strip */
+    .ops-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 14px;
+      padding: 1.1rem;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+    }
+
+    .metric-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .metric-num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: white;
+      display: block;
+      line-height: 1.1;
+    }
+
+    .metric-label {
+      font-size: 0.74rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-top: 0.35rem;
+      display: block;
+    }
+
+    /* Live Feature Pills */
+    .ops-features-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .ops-feature-tag {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* Right Side: The Sign In Card */
+    .auth-card-container {
+      position: relative;
+    }
+
+    .auth-glass-card {
+      background: rgba(17, 24, 39, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 2.75rem 2.25rem;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(2, 132, 199, 0.1);
+      backdrop-filter: blur(20px);
+      position: relative;
+    }
+
+    .auth-card-header {
+      margin-bottom: 2rem;
+    }
+
+    .auth-card-header h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: white;
+      margin: 0 0 0.4rem;
+      letter-spacing: -0.01em;
+    }
+
+    .auth-card-header p {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    /* Role Quick Helper */
+    .role-helper-strip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 0.6rem 0.85rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.76rem;
+    }
+
+    .role-helper-strip span {
+      color: #94a3b8;
+    }
+
+    .demo-autofill-btn {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.74rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .demo-autofill-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      transform: translateY(-1px);
+    }
+
+    /* Error Alert */
+    .alert-error {
+      background: rgba(244, 63, 94, 0.12);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      color: #fecdd3;
+      font-size: 0.84rem;
+    }
+
+    .alert-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    .alert-text strong {
+      display: block;
+      color: #ffffff;
+      margin-bottom: 0.15rem;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .input-icon-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-icon {
+      position: absolute;
+      left: 1rem;
+      color: #64748b;
+      font-size: 1rem;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 0.85rem 1rem 0.85rem 2.85rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: white;
+      outline: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .form-input::placeholder {
+      color: #64748b;
+    }
+
+    .form-input:focus {
+      border-color: var(--brand-cyan-light);
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .input-icon-wrapper:focus-within .field-icon {
+      color: var(--brand-cyan-light);
+    }
+
+    /* Password Toggle Button */
+    .toggle-pwd-btn {
+      position: absolute;
+      right: 0.85rem;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.35rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toggle-pwd-btn:hover {
+      color: white;
+    }
+
+    /* Checkbox & Help Row */
+    .form-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      margin-bottom: 1.75rem;
+      color: #94a3b8;
+    }
+
+    .remember-check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember-check input {
+      accent-color: #0284c7;
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+    }
+
+    .it-desk-hint {
+      color: #64748b;
+      font-size: 0.78rem;
+    }
+
+    /* Primary Submit Button */
+    .btn-submit-ops {
+      width: 100%;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 0.95rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.45);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit-ops:hover {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 30px -5px rgba(2, 132, 199, 0.6);
+    }
+
+    .btn-submit-ops:active {
+      transform: translateY(0);
+    }
+
+    /* Security Notice */
+    .security-badge-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      margin-top: 1.75rem;
+      font-size: 0.74rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .security-badge-footer span {
+      color: #10b981;
+    }
+
+    /* Bottom Subfooter */
+    .login-footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 1.25rem;
+      font-size: 0.78rem;
+      color: #64748b;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(6, 9, 14, 0.8);
+    }
+
+    .login-footer a {
+      color: #94a3b8;
+      text-decoration: none;
+      margin: 0 0.5rem;
+      transition: color 0.2s;
+    }
+
+    .login-footer a:hover {
+      color: #38bdf8;
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .login-layout {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      .ops-briefing {
+        text-align: center;
+        align-items: center;
+      }
+      .ops-metrics-grid {
+        width: 100%;
+      }
+      .login-topbar {
+        padding: 1rem 1.25rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .auth-glass-card {
+        padding: 2rem 1.25rem;
+      }
+      .ops-metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+  <div class="ambient-grid"></div>
+
+  <!-- Header Navigation -->
+  <header class="login-topbar">
+    <a href="{% url 'customer_portal:home' %}" class="brand-group">
+      <div class="brand-logo-mark">SG</div>
+      <div class="brand-text">
+        <h1>Sivagayathiri Travels</h1>
+        <span>Coimbatore Operations Mission Control</span>
+      </div>
+    </a>
+    <div class="topbar-actions">
+      <a href="{% url 'customer_portal:home' %}" class="link-quiet">
+        <span>← Public Portal</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="login-main">
+    <div class="login-layout">
+      <!-- Left Column: Mission Control Operations Briefing -->
+      <section class="ops-briefing">
+        <div class="ops-badge">
+          <span class="ops-pulse-dot"></span>
+          <span>MISSION CONTROL LIVE DESK</span>
+        </div>
+
+        <h2 class="ops-title">
+          Commercial Fleet & <span>Operations Command</span>
+        </h2>
+
+        <p class="ops-desc">
+          Unified operations terminal for fleet dispatch, real-time AIS-140 GPS radar tracking, 
+          automated GST corporate waybills, driver handover protocols, and financial ledger control.
+        </p>
+
+        <!-- KPI Metrics Grid -->
+        <div class="ops-metrics-grid">
+          <div class="metric-card">
+            <span class="metric-num">320+</span>
+            <span class="metric-label">Commercial Fleet</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-num">100%</span>
+            <span class="metric-label">AIS-140 Telematics</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-num">24/7</span>
+            <span class="metric-label">Dispatch Desk</span>
+          </div>
+        </div>
+
+        <!-- Operational Modules -->
+        <div class="ops-features-list">
+          <span class="ops-feature-tag">🛰️ Live GPS Fleet Radar</span>
+          <span class="ops-feature-tag">📋 Trip Sheets & Handovers</span>
+          <span class="ops-feature-tag">🧾 GST e-Way Bill Automation</span>
+          <span class="ops-feature-tag">💬 WhatsApp Dispatch Studio</span>
+          <span class="ops-feature-tag">💰 Party Ledgers & Petty Cash</span>
+        </div>
+      </section>
+
+      <!-- Right Column: Staff Authentication Card -->
+      <section class="auth-card-container">
+        <div class="auth-glass-card">
+          <div class="auth-card-header">
+            <h2>Staff Sign In</h2>
+            <p>Enter your authorized staff username and password to access the operations command center.</p>
+          </div>
+
+          <!-- Quick Autofill Demo Assistant for Testing -->
+          <div class="role-helper-strip">
+            <span>🔧 Testing credentials:</span>
+            <button type="button" class="demo-autofill-btn" onclick="autofillDemoAdmin()">
+              Autofill Admin (admin / admin)
+            </button>
+          </div>
+
+          <!-- Error Alert Banner -->
+          {% if form.errors %}
+          <div class="alert-error" role="alert">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-text">
+              <strong>Authentication Failed</strong>
+              <span>Invalid staff username or password. Please verify your credentials and try again.</span>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Authentication Form -->
+          <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next|default:'/dashboard/' }}">
+
+            <!-- Username Field -->
+            <div class="form-group">
+              <label for="id_username" class="form-label">Staff Username / ID</label>
+              <div class="input-icon-wrapper">
+                <span class="field-icon">👤</span>
+                <input 
+                  type="text" 
+                  name="username" 
+                  id="id_username" 
+                  class="form-input" 
+                  placeholder="e.g. admin or ops_coimbatore" 
+                  value="{{ form.username.value|default:'' }}" 
+                  required 
+                  autocomplete="username"
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+              <label for="id_password" class="form-label">Password</label>
+              <div class="input-icon-wrapper">
+                <span class="field-icon">🔒</span>
+                <input 
+                  type="password" 
+                  name="password" 
+                  id="id_password" 
+                  class="form-input" 
+                  placeholder="Enter security password" 
+                  required 
+                  autocomplete="current-password"
+                >
+                <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility()" title="Show/Hide Password" aria-label="Toggle password visibility">
+                  <span id="pwd-eye-icon">👁️</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Remember Me & IT Desk -->
+            <div class="form-meta-row">
+              <label class="remember-check">
+                <input type="checkbox" name="remember_terminal" checked>
+                <span>Remember this terminal</span>
+              </label>
+              <span class="it-desk-hint">IT Helpdesk: Ext 104</span>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit-ops">
+              <span>Sign In to Operations Console</span>
+              <span>→</span>
+            </button>
+
+            <!-- Security Badge -->
+            <div class="security-badge-footer">
+              <span>●</span> 256-Bit TLS Encrypted Session • Authorized Personnel Only
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="login-footer">
+    <p>
+      &copy; 2026 Sivagayathiri Travels & Expeditions. Gandhipuram Central Depot, Coimbatore, Tamil Nadu.
+      <br>
+      <a href="{% url 'customer_portal:home' %}">Public Portal</a> • 
+      <a href="/driver/login/">Driver Mobile Portal</a> • 
+      <a href="/admin/">Django Admin</a> • 
+      <a href="{% url 'customer_portal:about_us' %}">About Operations</a>
+    </p>
+  </footer>
+
+  <!-- JavaScript for Interactive Controls -->
+  <script>
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('id_password');
+      const eyeIcon = document.getElementById('pwd-eye-icon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        eyeIcon.textContent = '🔒';
+      } else {
+        pwdInput.type = 'password';
+        eyeIcon.textContent = '👁️';
+      }
+    }
+
+    function autofillDemoAdmin() {
+      const usernameInput = document.getElementById('id_username');
+      const passwordInput = document.getElementById('id_password');
+      usernameInput.value = 'admin';
+      passwordInput.value = 'admin';
+      passwordInput.focus();
+    }
+  </script>
+</body>
+</html>

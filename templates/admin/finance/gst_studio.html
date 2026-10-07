@@ -1,0 +1,1027 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🏛️ Corporate GST B2B Invoicing & NIC E-Way Bill Studio | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/finance/corporategstinvoice/" class="hover:text-primary-600 dark:hover:text-primary-400">Finance & Invoicing</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🏛️ Corporate GST & E-Way Bill Studio</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --studio-bg: #090d16;
+    --studio-card-bg: rgba(15, 23, 42, 0.85);
+    --studio-border: rgba(51, 65, 85, 0.5);
+    --studio-border-glow: rgba(56, 189, 248, 0.3);
+    --studio-cyan: #06b6d4;
+    --studio-emerald: #10b981;
+    --studio-amber: #f59e0b;
+    --studio-rose: #f43f5e;
+    --studio-indigo: #6366f1;
+}
+
+.studio-container {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #e2e8f0;
+    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+                var(--studio-bg);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Header Bar */
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--studio-card-bg);
+    border: 1px solid var(--studio-border);
+    border-radius: 16px;
+    padding: 1.25rem 1.75rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.header-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.badge-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.badge-indigo {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+/* KPI Metrics Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+    background: var(--studio-card-bg);
+    border: 1px solid var(--studio-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--studio-border-glow);
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+}
+
+.kpi-subtext {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.35rem;
+}
+
+/* Tab Navigation */
+.tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--studio-border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #94a3b8;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.tab-btn:hover {
+    color: #f8fafc;
+}
+.tab-btn.active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+}
+
+/* Tab Panes */
+.tab-pane {
+    display: none;
+}
+.tab-pane.active {
+    display: block;
+}
+
+/* Split Desk Grid */
+.desk-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+}
+@media (max-width: 1024px) {
+    .desk-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.desk-card {
+    background: var(--studio-card-bg);
+    border: 1px solid var(--studio-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.desk-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #f8fafc;
+}
+
+/* Form Controls */
+.form-group {
+    margin-bottom: 1.1rem;
+}
+.form-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.form-control {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid var(--studio-border);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    font-size: 0.9rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.form-control:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* Tax Calculation Preview Box */
+.tax-preview-box {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.tax-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    margin-bottom: 0.45rem;
+    color: #cbd5e1;
+}
+.tax-row.total {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #38bdf8;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.6rem;
+    margin-top: 0.6rem;
+}
+
+/* Buttons */
+.btn-primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    transition: all 0.2s ease;
+}
+.btn-primary-action:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    transform: translateY(-1px);
+}
+
+/* Tables */
+.studio-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+.studio-table th {
+    padding: 0.75rem 1rem;
+    background: rgba(30, 41, 59, 0.4);
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: 1px solid var(--studio-border);
+}
+.studio-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+    color: #cbd5e1;
+}
+.studio-table tr:hover td {
+    background: rgba(30, 41, 59, 0.2);
+}
+
+/* Schema Box */
+.schema-code-box {
+    background: #020617;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #38bdf8;
+    overflow-x: auto;
+    max-height: 460px;
+    white-space: pre;
+}
+
+/* Invoice Mini Preview Card */
+.invoice-preview-card {
+    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 14px;
+    padding: 1.25rem;
+    position: relative;
+}
+</style>
+
+<div class="studio-container">
+    <!-- Header -->
+    <div class="studio-header">
+        <div>
+            <div class="header-title">
+                <span>🏛️</span> Corporate GST B2B Invoicing & NIC E-Way Bill Studio
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
+                National Informatics Centre (NIC) Schema v1.04 • Rule 46 CGST Tax Invoicing • Automated Double-Entry GL Sync
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <span class="status-badge badge-active">● GSTN Active (33AAAAA0000A1Z5)</span>
+            <span class="status-badge badge-indigo">EWB Schema v1.04</span>
+            <a href="/finance/export/gstr1-b2b/" class="status-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; text-decoration: none; border: 1px solid rgba(16, 185, 129, 0.4);" title="Download GSTR-1 Table 4A CSV for Tally/ClearTax">
+                📊 GSTR-1 B2B CSV
+            </a>
+            <a href="/finance/export/itc-reconciliation/" class="status-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.4);" title="Download Input Tax Credit (ITC) Reconciliation CSV">
+                📑 ITC Reconciliation
+            </a>
+            <a href="/admin/finance/corporategstinvoice/" class="status-badge" style="background: rgba(255,255,255,0.08); color: #fff; text-decoration: none;">
+                📑 All Invoices
+            </a>
+        </div>
+    </div>
+
+    <!-- 5 Real-Time KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Taxable B2B Turnover</span>
+                <span style="color: #38bdf8;">💼</span>
+            </div>
+            <div class="kpi-value" style="color: #38bdf8;">₹{{ summary.total_taxable|floatformat:2 }}</div>
+            <div class="kpi-subtext">Across {{ summary.total_invoices }} corporate invoices</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Total GST Output Tax</span>
+                <span style="color: #34d399;">🏛️</span>
+            </div>
+            <div class="kpi-value" style="color: #34d399;">₹{{ summary.total_tax|floatformat:2 }}</div>
+            <div class="kpi-subtext">
+                CGST: ₹{{ summary.total_cgst|floatformat:0 }} | SGST: ₹{{ summary.total_sgst|floatformat:0 }} | IGST: ₹{{ summary.total_igst|floatformat:0 }}
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Active NIC E-Way Bills</span>
+                <span style="color: #fbbf24;">🚚</span>
+            </div>
+            <div class="kpi-value" style="color: #fbbf24;">{{ active_eway_bills|length }}</div>
+            <div class="kpi-subtext">Official 12-digit E-Way bills generated</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Multi-State Supply Points</span>
+                <span style="color: #818cf8;">🗺️</span>
+            </div>
+            <div class="kpi-value" style="color: #818cf8;">{{ summary.state_breakdown|length }}</div>
+            <div class="kpi-subtext">Intra-State (TN 33) & Inter-State POS</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>GSTIN Compliance Audit</span>
+                <span style="color: {% if summary.anomalies %}#f43f5e{% else %}#10b981{% endif %};">🚨</span>
+            </div>
+            <div class="kpi-value" style="color: {% if summary.anomalies %}#f43f5e{% else %}#10b981{% endif %};">
+                {{ summary.anomalies|length }}
+            </div>
+            <div class="kpi-subtext">{% if summary.anomalies %}Anomalies flagged for review{% else %}100% Valid & Compliant{% endif %}</div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button type="button" class="tab-btn {% if current_tab == 'overview' or not current_tab %}active{% endif %}" onclick="switchTab('workbench', this)">
+            ⚡ 1-Click Generator Workbench
+        </button>
+        <button type="button" class="tab-btn {% if current_tab == 'schema' %}active{% endif %}" onclick="switchTab('schema', this)">
+            📜 NIC E-Way Bill Schema Inspector & Exporter
+        </button>
+        <button type="button" class="tab-btn {% if current_tab == 'multistate' %}active{% endif %}" onclick="switchTab('multistate', this)">
+            🗺️ Multi-State GST Reconciliation & GSTR-1
+        </button>
+        <button type="button" class="tab-btn {% if current_tab == 'anomalies' %}active{% endif %}" onclick="switchTab('anomalies', this)">
+            🚨 GSTIN Compliance & Anomaly Radar ({{ summary.anomalies|length }})
+        </button>
+    </div>
+
+    <!-- TAB 1: 1-CLICK GENERATOR WORKBENCH -->
+    <div id="tab-workbench" class="tab-pane {% if current_tab == 'overview' or not current_tab %}active{% endif %}">
+        <div class="desk-grid">
+            <!-- Left: Invoice & E-Way Bill Configurator -->
+            <div class="desk-card">
+                <div class="desk-title">
+                    <span style="color: #38bdf8;">⚡</span> 1-Click Corporate B2B Tax Invoice & E-Way Bill Generator
+                </div>
+
+                <form id="gstInvoiceForm" onsubmit="event.preventDefault(); submitGenerateInvoice();">
+                    {% csrf_token %}
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label class="form-label">Link Scheduled Trip (Optional)</label>
+                            <select id="tripSelect" class="form-control" onchange="onTripSelected(this)">
+                                <option value="">-- Direct Corporate Invoice (No Trip) --</option>
+                                {% for t in available_trips %}
+                                <option value="{{ t.id }}" 
+                                        data-party="{{ t.party.id }}" 
+                                        data-party-name="{{ t.party.name }}" 
+                                        data-gstin="{{ t.party.gstin }}" 
+                                        data-state="{{ t.party.state_code }}" 
+                                        data-amount="{{ t.total_amount|default:5000 }}" 
+                                        data-vehicle="{{ t.vehicle.registration_number }}" 
+                                        data-distance="{{ t.used_km|default:50 }}">
+                                    #{{ t.trip_id }} - {{ t.party.name }} ({{ t.pickup_location|truncatechars:15 }} ➔ {{ t.destination|truncatechars:15 }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Corporate Client / Party *</label>
+                            <select id="partySelect" class="form-control" required onchange="onPartySelected(this)">
+                                <option value="">-- Select Corporate Client --</option>
+                                {% for p in corporate_parties %}
+                                <option value="{{ p.id }}" data-gstin="{{ p.gstin }}" data-state="{{ p.state_code }}">
+                                    {{ p.name }} {% if p.gstin %}({{ p.gstin }}){% else %}[Unregistered]{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label class="form-label">Transport SAC Code</label>
+                            <select id="sacCodeSelect" class="form-control" onchange="recalculateTaxes()">
+                                {% for code, desc in sac_codes.items %}
+                                <option value="{{ code }}">{{ code }} - {{ desc|truncatechars:28 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Taxable Value (₹) *</label>
+                            <input type="number" id="taxableValue" class="form-control" value="8500.00" step="0.01" required oninput="recalculateTaxes()">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">GST Rate (%)</label>
+                            <select id="gstRateSelect" class="form-control" onchange="recalculateTaxes()">
+                                <option value="5.00" selected>5.0% (Rent-a-cab standard)</option>
+                                <option value="12.00">12.0% (With ITC)</option>
+                                <option value="18.00">18.0% (General Services)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label class="form-label">Place of Supply (Recipient State)</label>
+                            <select id="recipientState" class="form-control" onchange="recalculateTaxes()">
+                                {% for code, name in states.items %}
+                                <option value="{{ code }}" {% if code == '33' %}selected{% endif %}>
+                                    {{ code }} - {{ name }} {% if code == '33' %}(Intra-State Supplier){% else %}(Inter-State IGST){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Assigned Vehicle Reg No</label>
+                            <input type="text" id="vehicleNumber" class="form-control" value="TN01BV9999" placeholder="e.g. TN01BV9999">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label class="form-label">Approx Distance (KM)</label>
+                            <input type="number" id="transDistance" class="form-control" value="75" min="1">
+                        </div>
+
+                        <div class="form-group" style="display: flex; align-items: center; margin-top: 1.5rem;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #fbbf24;">
+                                <input type="checkbox" id="isRcm" onchange="recalculateTaxes()">
+                                <span>Reverse Charge Mechanism (RCM Sec 9(3))</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Reactive Live Tax Calculation Box -->
+                    <div class="tax-preview-box">
+                        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; margin-bottom: 0.5rem;">
+                            Live Tax Breakdown & Supply Classification
+                        </div>
+                        <div class="tax-row">
+                            <span>Supply Classification:</span>
+                            <strong id="previewSupplyType" style="color: #34d399;">INTRA-STATE (CGST + SGST)</strong>
+                        </div>
+                        <div class="tax-row">
+                            <span>Taxable Value:</span>
+                            <span id="previewTaxable" style="font-family: 'JetBrains Mono', monospace;">₹8,500.00</span>
+                        </div>
+                        <div class="tax-row" id="cgstRow">
+                            <span id="cgstLabel">Output CGST (2.5%):</span>
+                            <span id="previewCgst" style="font-family: 'JetBrains Mono', monospace;">₹212.50</span>
+                        </div>
+                        <div class="tax-row" id="sgstRow">
+                            <span id="sgstLabel">Output SGST (2.5%):</span>
+                            <span id="previewSgst" style="font-family: 'JetBrains Mono', monospace;">₹212.50</span>
+                        </div>
+                        <div class="tax-row" id="igstRow" style="display: none;">
+                            <span id="igstLabel">Output IGST (5.0%):</span>
+                            <span id="previewIgst" style="font-family: 'JetBrains Mono', monospace;">₹0.00</span>
+                        </div>
+                        <div class="tax-row">
+                            <span>Round Off:</span>
+                            <span id="previewRoundOff" style="font-family: 'JetBrains Mono', monospace;">₹0.00</span>
+                        </div>
+                        <div class="tax-row total">
+                            <span>Total Invoice Value:</span>
+                            <span id="previewTotal" style="font-family: 'JetBrains Mono', monospace;">₹8,925.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnSubmitInvoice" class="btn-primary-action">
+                        <span>⚡ Generate Tax Invoice, NIC E-Way Bill & GL Entry</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right: Real-Time Generated Invoice Card & QR Stamp -->
+            <div class="desk-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="desk-title">
+                        <span style="color: #34d399;">📄</span> Live Tax Invoice & B2B QR Stamp Preview
+                    </div>
+
+                    <div id="invoiceCardOutput" class="invoice-preview-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem;">
+                            <div>
+                                <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">Tax Invoice</span>
+                                <div id="cardInvNumber" style="font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 800; color: #38bdf8;">
+                                    {% if recent_invoices.0 %}{{ recent_invoices.0.invoice_number }}{% else %}SGT/2026-27/SAMPLE{% endif %}
+                                </div>
+                                <div id="cardInvDate" style="font-size: 0.75rem; color: #94a3b8;">
+                                    {% if recent_invoices.0 %}{{ recent_invoices.0.invoice_date }}{% else %}25-09-2026{% endif %}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="cardEwbBadge" class="status-badge badge-active">
+                                    {% if recent_invoices.0.eway_bill %}EWB #{{ recent_invoices.0.eway_bill.eway_bill_number }}{% else %}EWB READY{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="font-size: 0.85rem; margin-bottom: 0.75rem;">
+                            <div style="color: #94a3b8; font-size: 0.75rem; text-transform: uppercase;">Billed To (Corporate Customer):</div>
+                            <strong id="cardPartyName" style="color: #f8fafc; font-size: 0.95rem;">
+                                {% if recent_invoices.0 %}{{ recent_invoices.0.recipient_legal_name }}{% else %}Infosys Limited (Bengaluru DC){% endif %}
+                            </strong>
+                            <div id="cardGstin" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #fbbf24;">
+                                GSTIN: {% if recent_invoices.0 %}{{ recent_invoices.0.recipient_gstin|default:"URP" }}{% else %}29AAAAA1111A1Z5{% endif %}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; align-items: center; background: rgba(0,0,0,0.25); border-radius: 10px; padding: 12px; margin-bottom: 1rem;">
+                            <div id="cardQrContainer" style="width: 110px; height: 110px; background: white; border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center;">
+                                {% if recent_invoices.0.qr_code_svg %}
+                                    {{ recent_invoices.0.qr_code_svg|safe }}
+                                {% else %}
+                                    <div style="font-size: 10px; color: #000; text-align: center; font-weight: 700;">Digital QR Stamp</div>
+                                {% endif %}
+                            </div>
+                            <div style="flex: 1; font-size: 0.8rem;">
+                                <div style="color: #94a3b8; margin-bottom: 2px;">Gross Invoice Value:</div>
+                                <div id="cardGrossVal" style="font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 800; color: #34d399;">
+                                    ₹{% if recent_invoices.0 %}{{ recent_invoices.0.total_invoice_value|floatformat:2 }}{% else %}8,925.00{% endif %}
+                                </div>
+                                <div id="cardGlBadge" style="font-size: 0.75rem; color: #818cf8; margin-top: 4px;">
+                                    ✓ Balanced GL Posting Posted
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="actionBtnGroup" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 1rem;">
+                    <a id="btnViewTaxInvoice" href="{% if recent_invoices.0 %}/finance/invoice/{{ recent_invoices.0.id }}/view/{% else %}#{% endif %}" target="_blank" class="btn-primary-action" style="background: rgba(255,255,255,0.08); box-shadow: none; border: 1px solid var(--studio-border); font-size: 0.8rem; padding: 10px 8px; text-align: center;">
+                        <span>📄 Rule 46 Invoice</span>
+                    </a>
+                    <a id="btnDownloadNicJson" href="{% if recent_invoices.0 %}/api/finance/invoice/{{ recent_invoices.0.id }}/eway-json/{% else %}#{% endif %}" download class="btn-primary-action" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); box-shadow: none; font-size: 0.8rem; padding: 10px 8px; text-align: center;">
+                        <span>📥 NIC JSON</span>
+                    </a>
+                    <button type="button" id="btnWhatsappInvoice" onclick="dispatchCurrentInvoiceWhatsapp()" class="btn-primary-action" style="background: rgba(37, 211, 102, 0.2); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.4); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2); font-size: 0.8rem; padding: 10px 8px; cursor: pointer; text-align: center;">
+                        <span>💬 WhatsApp PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: NIC SCHEMA INSPECTOR & EXPORTER -->
+    <div id="tab-schema" class="tab-pane {% if current_tab == 'schema' %}active{% endif %}">
+        <div class="desk-grid">
+            <div class="desk-card">
+                <div class="desk-title">
+                    <span style="color: #38bdf8;">📜</span> National Informatics Centre (NIC) JSON Schema Payload
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1rem;">
+                    Conforms to standard NIC E-Way Bill JSON Schema Specification v1.04 ready for direct batch upload on <code>ewaybillgst.gov.in</code>.
+                </div>
+                <div class="schema-code-box" id="nicJsonCodeBlock">{% if active_eway_bills.0 %}{{ active_eway_bills.0.nic_payload_json|pprint }}{% else %}{
+  "supplyType": "O",
+  "subSupplyType": "1",
+  "docType": "INV",
+  "docNo": "SGT/2026-27/00001",
+  "docDate": "25/09/2026",
+  "fromGstin": "33AAAAA0000A1Z5",
+  "fromTrdName": "SIVAGAYATHIRI TRAVELS",
+  "toGstin": "29AAAAA1111A1Z5",
+  "toTrdName": "INFOSYS LIMITED",
+  "totalValue": 8500.0,
+  "cgstValue": 212.5,
+  "sgstValue": 212.5,
+  "totInvValue": 8925.0,
+  "transDistance": 75,
+  "vehicleNo": "TN01BV9999",
+  "itemList": [
+    {
+      "itemNo": 1,
+      "productName": "Passenger Transport",
+      "hsnCode": 996601,
+      "quantity": 1.0,
+      "taxableAmount": 8500.0,
+      "sgstRate": 2.5,
+      "cgstRate": 2.5
+    }
+  ]
+}{% endif %}</div>
+                <div style="margin-top: 1rem; display: flex; gap: 10px;">
+                    <button type="button" class="btn-primary-action" onclick="copyNicJson()" style="background: rgba(255,255,255,0.08); box-shadow: none; border: 1px solid var(--studio-border);">
+                        📋 Copy Payload JSON
+                    </button>
+                </div>
+            </div>
+
+            <div class="desk-card">
+                <div class="desk-title">
+                    <span style="color: #34d399;">✓</span> NIC Schema Compliance Validator Checklist
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem;">
+                    <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; color: #34d399;">
+                        ✓ <strong>Header & Document Identification:</strong> <code>supplyType (O)</code>, <code>subSupplyType (1)</code>, <code>docType (INV)</code>, <code>docNo (&lt;=16 chars)</code>
+                    </div>
+                    <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; color: #34d399;">
+                        ✓ <strong>Supplier Verification:</strong> <code>fromGstin (15 chars)</code>, <code>actFromStateCode (33)</code>, <code>fromPincode (600001)</code>
+                    </div>
+                    <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; color: #34d399;">
+                        ✓ <strong>Recipient Place of Supply:</strong> <code>toGstin</code>, <code>actToStateCode</code>, <code>toPincode</code>, <code>toAddr1</code>
+                    </div>
+                    <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; color: #34d399;">
+                        ✓ <strong>Tax Valuation:</strong> <code>totalValue</code>, <code>cgstValue</code>, <code>sgstValue</code>, <code>igstValue</code>, <code>totInvValue</code>
+                    </div>
+                    <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; color: #34d399;">
+                        ✓ <strong>Vehicle & Transportation:</strong> <code>transMode (1-Road)</code>, <code>vehicleNo (e.g. TN01BV9999)</code>, <code>transDistance (&gt;0 KM)</code>
+                    </div>
+                    <div style="padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; color: #34d399;">
+                        ✓ <strong>Itemized SAC / HSN List:</strong> <code>itemNo</code>, <code>hsnCode (996601/996602)</code>, <code>taxableAmount</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: MULTI-STATE GST RECONCILIATION -->
+    <div id="tab-multistate" class="tab-pane {% if current_tab == 'multistate' %}active{% endif %}">
+        <div class="desk-card" style="margin-bottom: 1.5rem;">
+            <div class="desk-title">
+                <span style="color: #818cf8;">🗺️</span> Multi-State Tax Ledger Distribution (By Place of Supply)
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="studio-table">
+                    <thead>
+                        <tr>
+                            <th>POS State Code</th>
+                            <th>State Name</th>
+                            <th>Invoices</th>
+                            <th>Taxable Turnover</th>
+                            <th>CGST (Output)</th>
+                            <th>SGST (Output)</th>
+                            <th>IGST (Output)</th>
+                            <th>Total Tax</th>
+                            <th>Total Invoice Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for st in summary.state_breakdown %}
+                        <tr>
+                            <td>
+                                <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #38bdf8;">{{ st.state_code }}</span>
+                            </td>
+                            <td><strong>{{ st.state_name }}</strong></td>
+                            <td>{{ st.count }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ st.taxable|floatformat:2 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ st.cgst|floatformat:2 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ st.sgst|floatformat:2 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; color: #818cf8;">₹{{ st.igst|floatformat:2 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #34d399;">₹{{ st.total_tax|floatformat:2 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">₹{{ st.total_value|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; color: #64748b;">No multi-state invoices recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- GSTR-1 Categorization Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+            <div class="desk-card">
+                <div class="kpi-label">GSTR-1 Table 4A: Regular B2B Supplies</div>
+                <div class="kpi-value" style="color: #34d399;">₹{{ summary.gstr1_tables.table_4a_taxable|floatformat:2 }}</div>
+                <div class="kpi-subtext">{{ summary.gstr1_tables.table_4a_count }} B2B Tax Invoices</div>
+            </div>
+
+            <div class="desk-card">
+                <div class="kpi-label">GSTR-1 Table 4B: Reverse Charge Supplies (RCM)</div>
+                <div class="kpi-value" style="color: #fbbf24;">₹{{ summary.gstr1_tables.table_4b_taxable|floatformat:2 }}</div>
+                <div class="kpi-subtext">{{ summary.gstr1_tables.table_4b_count }} RCM Tax Invoices</div>
+            </div>
+
+            <div class="desk-card">
+                <div class="kpi-label">GSTR-1 Table 6B: SEZ Unit / Developer Supplies</div>
+                <div class="kpi-value" style="color: #818cf8;">₹{{ summary.gstr1_tables.table_6b_taxable|floatformat:2 }}</div>
+                <div class="kpi-subtext">{{ summary.gstr1_tables.table_6b_count }} Zero-rated / Deemed Exports</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: GSTIN COMPLIANCE & ANOMALY RADAR -->
+    <div id="tab-anomalies" class="tab-pane {% if current_tab == 'anomalies' %}active{% endif %}">
+        <div class="desk-card">
+            <div class="desk-title">
+                <span style="color: #f43f5e;">🚨</span> Corporate Client GSTIN Anomaly Detector
+            </div>
+            {% if summary.anomalies %}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for a in summary.anomalies %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 10px;">
+                    <div>
+                        <strong style="color: #fca5a5;">{{ a.party_name }}</strong><br>
+                        <span style="font-size: 0.8rem; color: #cbd5e1;">{{ a.issue }}</span>
+                    </div>
+                    <a href="/admin/core/party/{{ a.party_id }}/change/" target="_blank" class="status-badge badge-active" style="text-decoration: none;">
+                        Fix in Admin ➔
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="padding: 2.5rem; text-align: center; color: #34d399; font-weight: 700;">
+                ✓ 100% of Corporate Accounts have Valid GSTINs and Verified Place of Supply!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    el.classList.add('active');
+    const target = document.getElementById('tab-' + tabId);
+    if (target) target.classList.add('active');
+}
+
+function onTripSelected(select) {
+    const opt = select.options[select.selectedIndex];
+    if (!opt.value) return;
+    const partyId = opt.getAttribute('data-party');
+    const partyName = opt.getAttribute('data-party-name');
+    const gstin = opt.getAttribute('data-gstin');
+    const state = opt.getAttribute('data-state') || '33';
+    const amount = opt.getAttribute('data-amount') || '5000.00';
+    const vehicle = opt.getAttribute('data-vehicle') || 'TN01BV9999';
+    const distance = opt.getAttribute('data-distance') || '50';
+
+    if (partyId) {
+        document.getElementById('partySelect').value = partyId;
+    }
+    document.getElementById('taxableValue').value = parseFloat(amount).toFixed(2);
+    document.getElementById('vehicleNumber').value = vehicle;
+    document.getElementById('transDistance').value = parseInt(distance) || 50;
+    document.getElementById('recipientState').value = state.padStart(2, '0');
+    recalculateTaxes();
+}
+
+function onPartySelected(select) {
+    const opt = select.options[select.selectedIndex];
+    const state = opt.getAttribute('data-state');
+    if (state) {
+        document.getElementById('recipientState').value = state.padStart(2, '0');
+    }
+    recalculateTaxes();
+}
+
+function recalculateTaxes() {
+    const taxable = parseFloat(document.getElementById('taxableValue').value) || 0;
+    const rate = parseFloat(document.getElementById('gstRateSelect').value) || 5.0;
+    const recipState = document.getElementById('recipientState').value;
+    const isRcm = document.getElementById('isRcm').checked;
+    const suppState = '33'; // TN
+
+    const isIntra = (recipState === suppState);
+    let cgst = 0, sgst = 0, igst = 0;
+
+    if (isIntra) {
+        cgst = (taxable * (rate / 2.0)) / 100.0;
+        sgst = (taxable * (rate / 2.0)) / 100.0;
+        igst = 0;
+        document.getElementById('previewSupplyType').innerText = 'INTRA-STATE (CGST + SGST)';
+        document.getElementById('previewSupplyType').style.color = '#34d399';
+        document.getElementById('cgstRow').style.display = 'flex';
+        document.getElementById('sgstRow').style.display = 'flex';
+        document.getElementById('igstRow').style.display = 'none';
+        document.getElementById('cgstLabel').innerText = `Output CGST (${(rate / 2).toFixed(1)}%):`;
+        document.getElementById('sgstLabel').innerText = `Output SGST (${(rate / 2).toFixed(1)}%):`;
+        document.getElementById('previewCgst').innerText = '₹' + cgst.toFixed(2);
+        document.getElementById('previewSgst').innerText = '₹' + sgst.toFixed(2);
+    } else {
+        cgst = 0;
+        sgst = 0;
+        igst = (taxable * rate) / 100.0;
+        document.getElementById('previewSupplyType').innerText = 'INTER-STATE (IGST)';
+        document.getElementById('previewSupplyType').style.color = '#818cf8';
+        document.getElementById('cgstRow').style.display = 'none';
+        document.getElementById('sgstRow').style.display = 'none';
+        document.getElementById('igstRow').style.display = 'flex';
+        document.getElementById('igstLabel').innerText = `Output IGST (${rate.toFixed(1)}%):`;
+        document.getElementById('previewIgst').innerText = '₹' + igst.toFixed(2);
+    }
+
+    const totalTax = cgst + sgst + igst;
+    const unrounded = taxable + totalTax;
+    const rounded = Math.round(unrounded);
+    const roundOff = rounded - unrounded;
+
+    document.getElementById('previewTaxable').innerText = '₹' + taxable.toFixed(2);
+    document.getElementById('previewRoundOff').innerText = (roundOff >= 0 ? '+₹' : '-₹') + Math.abs(roundOff).toFixed(2);
+    document.getElementById('previewTotal').innerText = '₹' + rounded.toFixed(2);
+}
+
+function submitGenerateInvoice() {
+    const btn = document.getElementById('btnSubmitInvoice');
+    btn.disabled = true;
+    btn.innerText = '⚡ Processing & Stamping QR...';
+
+    const payload = {
+        trip_id: document.getElementById('tripSelect').value || null,
+        party_id: document.getElementById('partySelect').value,
+        taxable_value: document.getElementById('taxableValue').value,
+        gst_rate_percent: document.getElementById('gstRateSelect').value,
+        sac_code: document.getElementById('sacCodeSelect').value,
+        recipient_state_code: document.getElementById('recipientState').value,
+        vehicle_number: document.getElementById('vehicleNumber').value,
+        trans_distance_km: document.getElementById('transDistance').value,
+        is_reverse_charge: document.getElementById('isRcm').checked,
+        auto_generate_eway: true
+    };
+
+    fetch('/api/finance/generate-invoice-ewaybill/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerText = '⚡ Generate Tax Invoice, NIC E-Way Bill & GL Entry';
+
+        if (data.success) {
+            // Update Card Preview
+            document.getElementById('cardInvNumber').innerText = data.invoice_number;
+            document.getElementById('cardInvDate').innerText = data.invoice_date;
+            document.getElementById('cardGrossVal').innerText = '₹' + data.total_invoice_value.toFixed(2);
+            document.getElementById('cardEwbBadge').innerText = 'EWB #' + (data.eway_bill_number || 'N/A');
+            document.getElementById('cardGlBadge').innerText = '✓ Balanced GL Journal ' + data.gl_journal_entry;
+            
+            if (data.qr_code_svg) {
+                document.getElementById('cardQrContainer').innerHTML = data.qr_code_svg;
+            }
+
+            // Update Action Buttons
+            currentInvoiceId = data.invoice_id;
+            document.getElementById('btnViewTaxInvoice').href = `/finance/invoice/${data.invoice_id}/view/`;
+            document.getElementById('btnDownloadNicJson').href = `/api/finance/invoice/${data.invoice_id}/eway-json/`;
+
+            // Update Schema tab
+            if (data.nic_json) {
+                document.getElementById('nicJsonCodeBlock').innerText = JSON.stringify(data.nic_json, null, 2);
+            }
+
+            alert(`✅ Corporate Tax Invoice #${data.invoice_number} Generated with NIC E-Way Bill #${data.eway_bill_number} and Balanced General Ledger Posting!`);
+        } else {
+            alert('❌ Failed to generate invoice: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerText = '⚡ Generate Tax Invoice, NIC E-Way Bill & GL Entry';
+        alert('❌ Error: ' + err.message);
+    });
+}
+
+function copyNicJson() {
+    const text = document.getElementById('nicJsonCodeBlock').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('📋 NIC E-Way Bill JSON payload copied to clipboard!');
+    });
+}
+
+let currentInvoiceId = {% if recent_invoices.0 %}{{ recent_invoices.0.id }}{% else %}null{% endif %};
+
+function dispatchCurrentInvoiceWhatsapp(invId) {
+    const targetId = invId || currentInvoiceId;
+    if (!targetId) {
+        alert('Please generate or select an invoice first.');
+        return;
+    }
+
+    const phoneInput = prompt('Enter recipient WhatsApp phone number (leave blank to use corporate registered phone):');
+    if (phoneInput === null) return; // User cancelled
+
+    const btn = document.getElementById('btnWhatsappInvoice');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Dispatching...';
+    }
+
+    fetch(`/api/finance/invoice/${targetId}/whatsapp/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ phone: phoneInput.trim() })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = '💬 WhatsApp PDF';
+        }
+        if (data.success) {
+            alert(`✅ ${data.message}\nDelivered to: ${data.recipient_phone}`);
+        } else {
+            alert(`⚠️ WhatsApp Notice: ${data.message || 'Check phone number format'}`);
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = '💬 WhatsApp PDF';
+        }
+        alert('❌ Network error dispatching WhatsApp invoice: ' + err.message);
+    });
+}
+
+// Initial calculation on load
+window.addEventListener('DOMContentLoaded', () => {
+    recalculateTaxes();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handover Certificate - {{ inspection.inspection_number }} | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #1e293b;
+      --primary-accent: #4f46e5;
+      --border-color: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --pre-existing: #0284c7;
+      --new-damage: #dc2626;
+      --success: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+      color: var(--text-main);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .no-print-bar {
+      max-width: 900px;
+      margin: 0 auto 16px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #4f46e5;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #4338ca;
+    }
+    .btn-outline {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+    }
+    .btn-outline:hover {
+      background: #e2e8f0;
+    }
+
+    /* Print Document Container */
+    .certificate-sheet {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    /* Header */
+    .cert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+    .brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #0f172a;
+    }
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .cert-badge-box {
+      text-align: right;
+    }
+    .cert-type-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .type-checkout { background: #e0f2fe; color: #0284c7; }
+    .type-checkin { background: #fef2f2; color: #dc2626; }
+    .type-routine { background: #f3f4f6; color: #4b5563; }
+
+    .cert-no {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .cert-date {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Meta Grid */
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .meta-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+    .meta-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .meta-val.highlight {
+      font-family: 'JetBrains Mono', monospace;
+      color: #4f46e5;
+    }
+
+    /* Section Headings */
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #334155;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+    }
+
+    /* 2D Schematic Canvas */
+    .blueprint-wrapper {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #vehicleSchematicSvg {
+      width: 85%;
+      height: 85%;
+    }
+
+    /* Plotted Damage Markers on Blueprint */
+    .cert-pin {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      z-index: 5;
+    }
+    .cert-pin.pre-existing {
+      background: var(--pre-existing);
+      border: 2px solid #7dd3fc;
+    }
+    .cert-pin.new-damage {
+      background: var(--new-damage);
+      border: 2px solid #fca5a5;
+    }
+
+    /* Markers Table */
+    .damage-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 24px;
+    }
+    .damage-table th {
+      background: #f1f5f9;
+      color: #475569;
+      font-weight: 700;
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 2px solid #cbd5e1;
+    }
+    .damage-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+    }
+    .tag-pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .tag-new { background: #fee2e2; color: #dc2626; }
+    .tag-pre { background: #e0f2fe; color: #0284c7; }
+
+    /* Financial Settlement Box */
+    .finance-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .fin-card-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .fin-card-value {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .val-deposit { color: #0f172a; }
+    .val-deduction { color: #dc2626; }
+    .val-refund { color: #16a34a; }
+    .val-status { font-size: 13px; font-weight: 700; color: #4f46e5; text-transform: uppercase; }
+
+    /* Signatures Section */
+    .signatures-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .sig-box {
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #fafafa;
+    }
+    .sig-img-container {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sig-img {
+      max-height: 65px;
+      max-width: 100%;
+      object-fit: contain;
+    }
+    .sig-label-row {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #cbd5e1;
+      padding-top: 6px;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .legal-declaration {
+      font-size: 10px;
+      color: #94a3b8;
+      text-align: justify;
+      margin-top: 16px;
+      line-height: 1.4;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+      }
+      .no-print-bar {
+        display: none !important;
+      }
+      .certificate-sheet {
+        box-shadow: none;
+        padding: 20px;
+        max-width: 100%;
+        margin: 0;
+      }
+      .blueprint-wrapper {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .cert-pin {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar (Screen Only) -->
+  <div class="no-print-bar">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <a href="/maintenance/damage-marker/?inspection_id={{ inspection.pk }}" class="btn btn-outline">
+        ← Back to 2D Studio
+      </a>
+      <span style="font-size: 13px; color: #64748b;">
+        Viewing Handover Certificate for <strong>{{ inspection.vehicle.registration_number }}</strong>
+      </span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="window.print()" class="btn btn-primary">
+        🖨️ Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Printable Handover Certificate Document -->
+  <div class="certificate-sheet">
+
+    <!-- Document Header -->
+    <header class="cert-header">
+      <div>
+        <h1 class="brand-title">TRAVEL ERP</h1>
+        <div class="brand-subtitle">Fleet Operations &amp; Vehicle Handover Certificate</div>
+        <div style="font-size: 12px; color: #475569; margin-top: 4px;">
+          Depot / Rental Hub Inspection Report
+        </div>
+      </div>
+      <div class="cert-badge-box">
+        <span class="cert-type-pill {% if inspection.inspection_type == 'checkin' %}type-checkin{% elif inspection.inspection_type == 'checkout' %}type-checkout{% else %}type-routine{% endif %}">
+          {{ inspection.get_inspection_type_display }}
+        </span>
+        <div class="cert-no">{{ inspection.inspection_number }}</div>
+        <div class="cert-date">{{ inspection.created_at|date:"d M Y, h:i A" }}</div>
+      </div>
+    </header>
+
+    <!-- Inspection Metadata Details -->
+    <div class="meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">Vehicle Registration</span>
+        <span class="meta-val highlight">{{ inspection.vehicle.registration_number }}</span>
+        <span style="font-size: 11px; color: #64748b;">{{ inspection.vehicle.brand }} {{ inspection.vehicle.model }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Customer / Guest</span>
+        <span class="meta-val">{{ inspection.customer_name|default:"General Fleet Handover" }}</span>
+        <span style="font-size: 11px; color: #64748b;">{{ inspection.customer_phone|default:"-" }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Odometer Reading</span>
+        <span class="meta-val">{{ inspection.odometer_reading|default:0 }} KM</span>
+        <span style="font-size: 11px; color: #64748b;">Fuel Level: {{ inspection.fuel_level_percent }}%</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Inspector Name</span>
+        <span class="meta-val">{{ inspection.inspector_name|default:"Authorized Inspector" }}</span>
+        {% if inspection.baseline_checkout %}
+        <span style="font-size: 11px; color: #0284c7;">Baseline: #{{ inspection.baseline_checkout.inspection_number }}</span>
+        {% else %}
+        <span style="font-size: 11px; color: #64748b;">Initial Checkout</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 2D Vehicle Schematic with Pinpoint Markers -->
+    <div class="section-title">
+      <span>🚗 Vehicle 2D Blueprint Damage Mapping</span>
+      <span style="font-size: 11px; font-weight: 500; color: #64748b; margin-left: auto;">
+        Blue = Pre-existing | Red = New Incurred Damage
+      </span>
+    </div>
+
+    <div class="blueprint-wrapper">
+      <!-- Vector Car SVG Schematic -->
+      <svg id="vehicleSchematicSvg" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="certBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#334155" />
+            <stop offset="100%" stop-color="#1e293b" />
+          </linearGradient>
+          <linearGradient id="certGlassGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0284c7" stop-opacity="0.4" />
+            <stop offset="100%" stop-color="#0369a1" stop-opacity="0.2" />
+          </linearGradient>
+        </defs>
+
+        <ellipse cx="400" cy="225" rx="340" ry="140" fill="rgba(0,0,0,0.5)" filter="blur(8px)" />
+
+        <!-- Chassis Silhouette -->
+        {% if inspection.vehicle_body_style == 'sedan' %}
+        <path d="M 160 150 C 130 150, 100 175, 90 225 C 100 275, 130 300, 160 300 L 640 300 C 670 300, 700 275, 710 225 C 700 175, 670 150, 640 150 Z" fill="url(#certBodyGrad)" stroke="#64748b" stroke-width="2.5" />
+        {% elif inspection.vehicle_body_style == 'tempo' %}
+        <path d="M 140 135 C 120 135, 100 160, 95 225 C 100 290, 120 315, 140 315 L 670 315 C 690 315, 710 280, 710 225 C 710 170, 690 135, 670 135 Z" fill="url(#certBodyGrad)" stroke="#64748b" stroke-width="2.5" />
+        {% elif inspection.vehicle_body_style == 'bus' %}
+        <path d="M 110 130 C 95 130, 85 160, 85 225 C 85 290, 95 320, 110 320 L 710 320 C 725 320, 735 290, 735 225 C 735 160, 725 130, 710 130 Z" fill="url(#certBodyGrad)" stroke="#64748b" stroke-width="2.5" />
+        {% else %}
+        <!-- SUV Default -->
+        <path d="M 160 140 C 130 140, 100 170, 90 225 C 100 280, 130 310, 160 310 L 640 310 C 670 310, 700 280, 710 225 C 700 170, 670 140, 640 140 Z" fill="url(#certBodyGrad)" stroke="#64748b" stroke-width="2.5" />
+        {% endif %}
+
+        <!-- Panels & Glass -->
+        <path d="M 90 225 C 95 180, 120 150, 150 142 L 150 308 C 120 300, 95 270, 90 225 Z" fill="rgba(255,255,255,0.03)" stroke="#475569" stroke-width="1.5" />
+        <text x="115" y="228" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">FRONT</text>
+
+        <rect x="150" y="142" width="130" height="166" fill="rgba(255,255,255,0.02)" stroke="#475569" stroke-width="1.5" />
+        <text x="215" y="228" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle">HOOD</text>
+
+        <path d="M 280 150 L 330 165 L 330 285 L 280 300 Z" fill="url(#certGlassGrad)" stroke="#38bdf8" stroke-width="1.5" />
+        <rect x="330" y="165" width="180" height="120" fill="rgba(255,255,255,0.01)" stroke="#475569" stroke-width="1.5" />
+        <text x="420" y="228" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle">ROOF</text>
+
+        <path d="M 510 165 L 550 155 L 550 295 L 510 285 Z" fill="url(#certGlassGrad)" stroke="#38bdf8" stroke-width="1.5" />
+        <rect x="550" y="150" width="110" height="150" fill="rgba(255,255,255,0.02)" stroke="#475569" stroke-width="1.5" />
+        <text x="605" y="228" fill="#64748b" font-size="10" font-weight="700" text-anchor="middle">BOOT</text>
+
+        <path d="M 660 148 C 685 160, 705 190, 710 225 C 705 260, 685 290, 660 302 Z" fill="rgba(255,255,255,0.03)" stroke="#475569" stroke-width="1.5" />
+        <text x="685" y="228" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">REAR</text>
+
+        <!-- Wheels -->
+        <rect x="170" y="115" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+        <rect x="170" y="317" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+        <rect x="540" y="115" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+        <rect x="540" y="317" width="45" height="18" rx="4" fill="#0f172a" stroke="#475569" stroke-width="2" />
+      </svg>
+
+      <!-- Pinpoint Pins Plotted According to Stored Coordinates -->
+      {% for m in inspection.markers.all %}
+      <div class="cert-pin {% if m.is_new_damage %}new-damage{% else %}pre-existing{% endif %}"
+           style="left: {{ m.x_percent }}%; top: {{ m.y_percent }}%;"
+           title="#{{ m.marker_number }}: {{ m.get_damage_type_display }} ({{ m.get_panel_zone_display }})">
+        {{ m.marker_number }}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Damage Points Itemized Ledger Table -->
+    <div class="section-title">
+      <span>📋 Itemized Damage Audit Log</span>
+      <span style="font-size: 11px; font-weight: 500; color: #64748b; margin-left: auto;">
+        Total Markers: {{ inspection.markers.count }}
+      </span>
+    </div>
+
+    <table class="damage-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>Type of Damage</th>
+          <th>Severity</th>
+          <th>Panel Zone</th>
+          <th>Status</th>
+          <th>Est. Repair Cost</th>
+          <th>Inspector Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in inspection.markers.all %}
+        <tr>
+          <td><strong>#{{ m.marker_number }}</strong></td>
+          <td style="font-weight: 600;">{{ m.get_damage_type_display }}</td>
+          <td><span style="font-size: 11px; color: #64748b;">{{ m.get_severity_display }}</span></td>
+          <td><code>{{ m.get_panel_zone_display }}</code></td>
+          <td>
+            {% if m.is_new_damage %}
+            <span class="tag-pill tag-new">⚠️ New Damage</span>
+            {% else %}
+            <span class="tag-pill tag-pre">Pre-Existing</span>
+            {% endif %}
+          </td>
+          <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">₹{{ m.estimated_repair_cost|floatformat:2 }}</td>
+          <td style="color: #64748b;">{{ m.notes|default:"-" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; color: #94a3b8; padding: 16px;">
+            ✨ No damages reported or recorded during this handover inspection. Vehicle is in immaculate condition.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Financial Reconciliation Section -->
+    <div class="section-title">
+      <span>💰 Security Deposit &amp; Repair Reconciliation</span>
+    </div>
+
+    <div class="finance-summary-grid">
+      <div>
+        <div class="fin-card-label">Deposit Collected</div>
+        <div class="fin-card-value val-deposit">₹{{ inspection.security_deposit_held|floatformat:2 }}</div>
+      </div>
+      <div>
+        <div class="fin-card-label">New Damage Deductions</div>
+        <div class="fin-card-value val-deduction">- ₹{{ inspection.new_damage_deductions|floatformat:2 }}</div>
+      </div>
+      <div>
+        <div class="fin-card-label">Net Customer Refund</div>
+        <div class="fin-card-value val-refund">₹{{ inspection.deposit_refund_amount|floatformat:2 }}</div>
+      </div>
+      <div>
+        <div class="fin-card-label">Settlement Status</div>
+        <div class="fin-card-value val-status">{{ inspection.get_deposit_status_display }}</div>
+      </div>
+    </div>
+
+    {% if inspection.notes %}
+    <div style="background: #f8fafc; border-left: 3px solid #6366f1; padding: 10px 14px; margin-bottom: 20px; font-size: 12px; color: #334155;">
+      <strong>Audit Notes:</strong> {{ inspection.notes }}
+    </div>
+    {% endif %}
+
+    <!-- Signatures & Declarations -->
+    <div class="signatures-grid">
+      <!-- Customer Signature Box -->
+      <div class="sig-box">
+        <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">
+          Customer / Guest Signature
+        </div>
+        <div class="sig-img-container">
+          {% if inspection.customer_signature_data %}
+          <img src="{{ inspection.customer_signature_data }}" class="sig-img" alt="Customer Signature" />
+          {% else %}
+          <span style="font-size: 11px; color: #94a3b8; font-style: italic;">Digitally Acknowledged / Signed</span>
+          {% endif %}
+        </div>
+        <div class="sig-label-row">
+          <span>{{ inspection.customer_name|default:"Customer" }}</span>
+          <span>Date: {{ inspection.created_at|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+
+      <!-- Inspector Signature Box -->
+      <div class="sig-box">
+        <div style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">
+          Fleet Inspector / Dispatcher Sign-off
+        </div>
+        <div class="sig-img-container">
+          {% if inspection.inspector_signature_data %}
+          <img src="{{ inspection.inspector_signature_data }}" class="sig-img" alt="Inspector Signature" />
+          {% else %}
+          <span style="font-size: 11px; color: #94a3b8; font-style: italic;">Authorized Dispatcher Signature</span>
+          {% endif %}
+        </div>
+        <div class="sig-label-row">
+          <span>{{ inspection.inspector_name|default:"Authorized Inspector" }}</span>
+          <span>Date: {{ inspection.created_at|date:"d/m/Y" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="legal-declaration">
+      <strong>Handover Legal Acknowledgement:</strong> By signing above, both the Renter/Customer and the Fleet Dispatcher agree that the 2D damage mapping above accurately depicts the vehicle condition at the time of handover. Any new damages incurred during rental usage are liable for security deposit deduction as computed in this certificate.
+    </div>
+
+  </div>
+
+</body>
+</html>

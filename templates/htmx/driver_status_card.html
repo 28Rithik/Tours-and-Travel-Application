@@ -1,0 +1,32 @@
+<div id="driver-status-htmx-container" style="margin: 12px 0 16px; padding: 14px 18px; border-radius: 8px; background: {% if is_cleared %}rgba(16,185,129,0.12){% else %}rgba(245,158,11,0.15){% endif %}; border: 1px solid {% if is_cleared %}#10b981{% else %}#f59e0b{% endif %}; color: #f8fafc; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 24px; color: {% if is_cleared %}#4ade80{% else %}#fbbf24{% endif %};">
+                {% if is_cleared %}assignment_ind{% else %}warning{% endif %}
+            </span>
+            <div>
+                <strong style="font-size: 14px; color: {% if is_cleared %}#4ade80{% else %}#fbbf24{% endif %};">
+                    {% if is_cleared %}
+                        Captain {{ driver.name }} — Cleared for Trip Assignment
+                    {% else %}
+                        Captain {{ driver.name }} — Conflict / License Notice
+                    {% endif %}
+                </strong>
+                <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">
+                    Phone: <strong>{{ driver.phone }}</strong> &bull; License: <strong>{{ driver.license_number|default:"On File" }}</strong>
+                    &bull; Status: <strong>{{ driver.get_status_display }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if not is_cleared %}
+    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(245,158,11,0.3); font-size: 12px; color: #fde68a;">
+        <ul style="margin: 0; padding-left: 20px;">
+            {% for issue in issues %}
+            <li style="margin-bottom: 3px;"><strong>• {{ issue }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

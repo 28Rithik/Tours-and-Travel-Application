@@ -243,5 +243,202 @@
       </div>
     </div>
   </div>
+
+  <!-- Interactive Charts & Visual Analytics -->
+  <div class="report-section" style="margin-top: 24px;">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">📊 Interactive Visual Analytics &amp; Pipeline Distribution</h3>
+        <div class="section-sub">Real-time dynamic Chart.js charts for revenue circuits, sales stage distribution, and objection patterns</div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-sm btn-outline-primary" onclick="window.print()" style="font-weight: 600;">🖨️ Print Report</button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+      <!-- Chart 1: Destination Revenue -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px;">
+        <h4 style="font-size: 13px; font-weight: 700; color: #334155; margin: 0 0 12px; text-transform: uppercase;">
+          📍 Circuit Revenue Breakdown (₹)
+        </h4>
+        <div style="position: relative; height: 260px;">
+          <canvas id="destChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 2: Pipeline Funnel -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px;">
+        <h4 style="font-size: 13px; font-weight: 700; color: #334155; margin: 0 0 12px; text-transform: uppercase;">
+          🎯 Pipeline Stage Conversion Funnel
+        </h4>
+        <div style="position: relative; height: 260px;">
+          <canvas id="pipelineChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Chart 3: Objection Analysis -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px;">
+        <h4 style="font-size: 13px; font-weight: 700; color: #334155; margin: 0 0 12px; text-transform: uppercase;">
+          🥊 Lost Lead Objection Analysis
+        </h4>
+        <div style="position: relative; height: 260px;">
+          <canvas id="objectionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tenant Admin & Demo Data Operations Toolkit -->
+  <div class="report-section">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">⚙️ Tenant Admin &amp; Data Operations Toolkit</h3>
+        <div class="section-sub">Super-admin controls, sample test lead generation, activity logs, and view preferences</div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+      <button id="btnGenSample" onclick="triggerSampleGeneration()" class="btn btn-outline-success btn-sm" style="font-weight: 600; padding: 8px 16px;">
+        🎲 Generate 6 Sample Leads
+      </button>
+      <button id="btnCleanSample" onclick="triggerSampleCleanup()" class="btn btn-outline-danger btn-sm" style="font-weight: 600; padding: 8px 16px;">
+        🧹 Clean All Sample Records
+      </button>
+      <a href="{% url 'crm:tenant_admin_logs' %}" class="btn btn-outline-dark btn-sm" style="font-weight: 600; padding: 8px 16px;">
+        📜 Tenant Admin Activity Log &rarr;
+      </a>
+      <span id="sampleOpStatus" style="font-size: 13px; font-weight: 600; color: #0d5c58;"></span>
+    </div>
+  </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Chart 1: Destinations
+  const destLabels = {{ chart_dest_labels|safe }};
+  const destData = {{ chart_dest_revenue|safe }};
+  if (destLabels && destLabels.length) {
+    new Chart(document.getElementById('destChart'), {
+      type: 'bar',
+      data: {
+        labels: destLabels,
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: destData,
+          backgroundColor: '#0d5c58',
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: v => '₹' + v.toLocaleString() } }
+        }
+      }
+    });
+  }
+
+  // Chart 2: Pipeline
+  const pipeLabels = {{ chart_pipeline_labels|safe }};
+  const pipeData = {{ chart_pipeline_counts|safe }};
+  new Chart(document.getElementById('pipelineChart'), {
+    type: 'doughnut',
+    data: {
+      labels: pipeLabels,
+      datasets: [{
+        data: pipeData,
+        backgroundColor: ['#10b981', '#f59e0b', '#0284c7', '#8b5cf6', '#ef4444'],
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // Chart 3: Objections
+  const objLabels = {{ chart_objection_labels|safe }};
+  const objData = {{ chart_objection_counts|safe }};
+  new Chart(document.getElementById('objectionChart'), {
+    type: 'bar',
+    data: {
+      labels: objLabels.length ? objLabels : ['Price High', 'Competitor Won', 'Postponed', 'Budget Cut'],
+      datasets: [{
+        label: 'Lost Inquiries',
+        data: objData.length ? objData : [3, 2, 2, 1],
+        backgroundColor: '#f97316',
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+});
+
+async function triggerSampleGeneration() {
+  const btn = document.getElementById('btnGenSample');
+  const status = document.getElementById('sampleOpStatus');
+  btn.disabled = true;
+  status.innerText = 'Generating sample records...';
+  try {
+    const res = await fetch('{% url "crm:api_sample_records_generate" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    });
+    const d = await res.json();
+    status.innerText = '✅ ' + (d.message || 'Sample leads generated successfully!');
+    setTimeout(() => location.reload(), 1200);
+  } catch(e) {
+    status.innerText = '❌ Error generating records.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function triggerSampleCleanup() {
+  if (!confirm('Are you sure you want to clean all sample records?')) return;
+  const btn = document.getElementById('btnCleanSample');
+  const status = document.getElementById('sampleOpStatus');
+  btn.disabled = true;
+  status.innerText = 'Cleaning sample records...';
+  try {
+    const res = await fetch('{% url "crm:api_sample_records_clean" %}', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    });
+    const d = await res.json();
+    status.innerText = '🧹 ' + (d.message || 'Sample records cleaned!');
+    setTimeout(() => location.reload(), 1200);
+  } catch(e) {
+    status.innerText = '❌ Error cleaning records.';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
 {% endblock %}

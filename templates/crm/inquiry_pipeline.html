@@ -230,10 +230,15 @@
     <a href="?priority=high" class="pill-filter {% if priority_filter == 'high' %}active{% endif %}">🟠 High</a>
     <a href="?priority=medium" class="pill-filter {% if priority_filter == 'medium' %}active{% endif %}">🟡 Medium</a>
   </div>
-  <form method="get" style="display: flex; gap: 6px; align-items: center;">
-    <input type="text" name="q" value="{{ search_query }}" placeholder="Search guest, phone, destination..." style="padding: 6px 12px; border: 1px solid var(--line, #cbd5e1); border-radius: 6px; font-size: 12px; width: 220px;">
-    <button type="submit" class="button" style="padding: 6px 12px; font-size: 12px; background: #0f172a; color: #fff; border-radius: 6px;">Search</button>
-  </form>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <button id="btnPinView" type="button" onclick="togglePinView()" class="pill-filter" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #d97706; color: #b45309; background: #fffbeb;">
+      📌 <span>Pin this View</span>
+    </button>
+    <form method="get" style="display: flex; gap: 6px; align-items: center;">
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Search guest, phone, destination..." style="padding: 6px 12px; border: 1px solid var(--line, #cbd5e1); border-radius: 6px; font-size: 12px; width: 220px;">
+      <button type="submit" class="button" style="padding: 6px 12px; font-size: 12px; background: #0f172a; color: #fff; border-radius: 6px;">Search</button>
+    </form>
+  </div>
 </div>
 
 <!-- Inquiries Table -->
@@ -335,4 +340,47 @@
     </tbody>
   </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const currentSearch = window.location.search;
+  const pinnedSearch = localStorage.getItem('crm_pinned_pipeline_view');
+  const btnPin = document.getElementById('btnPinView');
+
+  // Auto-load pinned view if user opened root pipeline without any query params
+  if (!currentSearch && pinnedSearch && !sessionStorage.getItem('crm_view_redirected')) {
+    sessionStorage.setItem('crm_view_redirected', 'true');
+    window.location.search = pinnedSearch;
+    return;
+  }
+  sessionStorage.removeItem('crm_view_redirected');
+
+  // Update button appearance if current view is the pinned one
+  if (btnPin) {
+    if (currentSearch && pinnedSearch && currentSearch === pinnedSearch) {
+      btnPin.style.background = '#d97706';
+      btnPin.style.color = '#ffffff';
+      btnPin.style.borderColor = '#b45309';
+      btnPin.querySelector('span').innerText = 'Pinned View (Click to Unpin)';
+    } else {
+      btnPin.querySelector('span').innerText = 'Pin this View as Default';
+    }
+  }
+});
+
+function togglePinView() {
+  const currentSearch = window.location.search;
+  const pinnedSearch = localStorage.getItem('crm_pinned_pipeline_view');
+
+  if (pinnedSearch && currentSearch === pinnedSearch) {
+    localStorage.removeItem('crm_pinned_pipeline_view');
+    alert('📌 Unpinned view. Default view reset to All Leads.');
+    location.reload();
+  } else {
+    localStorage.setItem('crm_pinned_pipeline_view', currentSearch || '?');
+    alert('📌 View Pinned! This filter will now open automatically by default.');
+    location.reload();
+  }
+}
+</script>
 {% endblock %}

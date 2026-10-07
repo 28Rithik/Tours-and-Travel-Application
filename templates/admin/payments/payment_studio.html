@@ -1,0 +1,1164 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}⚡ Dynamic UPI & Payment Gateway Studio | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="{% url 'admin:finance_treasury_payment_changelist' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Finance & Treasury</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">⚡ Dynamic UPI & Payment Studio</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --studio-bg: #0b1120;
+    --studio-card-bg: rgba(17, 24, 39, 0.85);
+    --studio-border: rgba(51, 65, 85, 0.5);
+    --studio-border-glow: rgba(56, 189, 248, 0.3);
+    --studio-cyan: #06b6d4;
+    --studio-emerald: #10b981;
+    --studio-amber: #f59e0b;
+    --studio-purple: #8b5cf6;
+    --studio-indigo: #6366f1;
+}
+
+.studio-container {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #e2e8f0;
+    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
+                #090d16;
+    min-height: calc(100vh - 80px);
+    padding: 1.25rem;
+    box-sizing: border-box;
+}
+
+/* Header Bar */
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--studio-border);
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.studio-title-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.live-pulse-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+
+.pulse-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: studio-pulse 1.8s infinite;
+}
+
+@keyframes studio-pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.studio-h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.studio-subtitle {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 0.2rem;
+}
+
+/* KPI Metrics Grid */
+.studio-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--studio-border);
+    border-radius: 0.875rem;
+    padding: 1rem;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(14, 165, 233, 0.15);
+}
+
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+}
+
+.kpi-card.c-green::before { background: #10b981; }
+.kpi-card.c-cyan::before { background: #06b6d4; }
+.kpi-card.c-purple::before { background: #8b5cf6; }
+.kpi-card.c-amber::before { background: #f59e0b; }
+.kpi-card.c-indigo::before { background: #6366f1; }
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kpi-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.kpi-sub {
+    font-size: 0.7rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+/* Tabs Header */
+.studio-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--studio-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #94a3b8;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.625rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tab-btn:hover {
+    color: #ffffff;
+    background: rgba(30, 41, 59, 0.6);
+}
+
+.tab-btn.active {
+    background: rgba(14, 165, 233, 0.15);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+    animation: fadeIn 0.25s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 2-Column Studio Grid */
+.studio-dual-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+    .studio-dual-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Panels */
+.studio-panel {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--studio-border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.panel-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+    padding-bottom: 0.75rem;
+}
+
+/* Form Controls */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    border-radius: 0.5rem;
+    padding: 0.6rem 0.85rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+/* QR Showcase Box */
+.qr-terminal-card {
+    background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.95) 75%);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+.qr-frame {
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 1rem;
+    display: inline-block;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    margin: 1rem auto;
+    position: relative;
+    max-width: 260px;
+}
+
+.qr-frame svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 230px;
+}
+
+.qr-amount-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #38bdf8;
+    margin: 0.5rem 0;
+}
+
+.qr-ref-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(71, 85, 105, 0.6);
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: #cbd5e1;
+}
+
+/* Deep link buttons */
+.intent-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.intent-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.intent-btn.gpay { background: #ffffff; color: #1e293b; }
+.intent-btn.phonepe { background: #5f259f; color: #ffffff; }
+.intent-btn.paytm { background: #00b9f5; color: #ffffff; }
+.intent-btn.generic { background: #0ea5e9; color: #ffffff; }
+
+.intent-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Action Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+}
+
+.btn-secondary {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(71, 85, 105, 0.8);
+    color: #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(51, 65, 85, 0.8);
+    color: #ffffff;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+}
+
+/* Tables */
+.studio-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8rem;
+}
+
+.studio-table th {
+    background: rgba(30, 41, 59, 0.6);
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--studio-border);
+}
+
+.studio-table td {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+    color: #cbd5e1;
+}
+
+.studio-table tr:hover td {
+    background: rgba(30, 41, 59, 0.4);
+}
+
+.font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 0.375rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-info { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
+.badge-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+
+/* Execution Log Box */
+.terminal-box {
+    background: #020617;
+    border: 1px solid rgba(51, 65, 85, 0.7);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: #38bdf8;
+    height: 280px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.log-entry { margin-bottom: 0.35rem; }
+.log-success { color: #34d399; }
+.log-warning { color: #fbbf24; }
+.log-info { color: #93c5fd; }
+.log-purple { color: #c084fc; }
+</style>
+
+<div class="studio-container">
+    <!-- Top Command & Header -->
+    <div class="studio-header">
+        <div class="studio-title-box">
+            <div class="live-pulse-badge">
+                <span class="pulse-dot"></span>
+                <span>COLLECTIONS ENGINE ACTIVE</span>
+            </div>
+            <div>
+                <h1 class="studio-h1">⚡ Dynamic UPI QR & Payment Gateway Studio</h1>
+                <div class="studio-subtitle">
+                    NPCI Dynamic UPI QRs &bull; Multi-Gateway Webhook Ingestion &bull; Automated Double-Entry General Ledger
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="btn-secondary" onclick="refreshStudioMetrics()" title="Refresh live telemetry">
+                <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Sync Metrics
+            </button>
+            <a href="{% url 'admin:finance_journalentry_changelist' %}" class="btn-secondary">
+                <span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span> Open GL Ledger
+            </a>
+            <a href="{% url 'admin:payments_gateway_gatewaytransaction_changelist' %}" class="btn-secondary">
+                <span class="material-symbols-outlined" style="font-size: 16px;">receipt_long</span> Transactions
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI HUD Cards -->
+    <div class="studio-kpi-grid">
+        <div class="kpi-card c-green">
+            <div class="kpi-label">
+                <span>Collections Today</span>
+                <span>💳</span>
+            </div>
+            <div class="kpi-val" id="kpiTodayCollections">₹{{ today_collections|floatformat:2 }}</div>
+            <div class="kpi-sub">Total verified customer receipts</div>
+        </div>
+
+        <div class="kpi-card c-cyan">
+            <div class="kpi-label">
+                <span>Gateway In-Transit (1030)</span>
+                <span>⏳</span>
+            </div>
+            <div class="kpi-val" id="kpiGatewayClearing">₹{{ gateway_clearing_bal|floatformat:2 }}</div>
+            <div class="kpi-sub">Razorpay & Cashfree clearing funds</div>
+        </div>
+
+        <div class="kpi-card c-indigo">
+            <div class="kpi-label">
+                <span>Operating Bank (1020)</span>
+                <span>🏦</span>
+            </div>
+            <div class="kpi-val" id="kpiBankBalance">₹{{ operating_bank_bal|floatformat:2 }}</div>
+            <div class="kpi-sub">Direct UPI & liquid current account</div>
+        </div>
+
+        <div class="kpi-card c-amber">
+            <div class="kpi-label">
+                <span>Gateway MDR Fees (5030)</span>
+                <span>🏷️</span>
+            </div>
+            <div class="kpi-val" id="kpiGatewayFees">₹{{ gateway_fees_today|floatformat:2 }}</div>
+            <div class="kpi-sub">Today's transaction processing charges</div>
+        </div>
+
+        <div class="kpi-card c-purple">
+            <div class="kpi-label">
+                <span>GL Vouchers Posted</span>
+                <span>⚖️</span>
+            </div>
+            <div class="kpi-val" id="kpiJournalsCount">{{ today_journals_count }}</div>
+            <div class="kpi-sub">100% mathematically balanced (DR == CR)</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="studio-tabs">
+        <button class="tab-btn active" onclick="switchStudioTab('tab-upi', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px;">qr_code_2</span> Dynamic UPI QR Generator
+        </button>
+        <button class="tab-btn" onclick="switchStudioTab('tab-webhook-sandbox', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px;">webhook</span> Webhook Simulator & Sandbox
+        </button>
+        <button class="tab-btn" onclick="switchStudioTab('tab-gl-explorer', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px;">account_balance</span> Double-Entry General Ledger
+        </button>
+        <button class="tab-btn" onclick="switchStudioTab('tab-transactions', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px;">receipt_long</span> Gateway Transactions Log
+        </button>
+        <button class="tab-btn" onclick="switchStudioTab('tab-providers', this)">
+            <span class="material-symbols-outlined" style="font-size: 18px;">tune</span> Gateway Providers
+        </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: DYNAMIC UPI QR GENERATOR -->
+    <!-- ========================================================================= -->
+    <div id="tab-upi" class="tab-pane active">
+        <div class="studio-dual-grid">
+            <!-- Left Form: QR Generator Controls -->
+            <div class="studio-panel">
+                <div class="panel-title">
+                    <span>⚡ Generate Dynamic UPI Collection QR</span>
+                    <span class="badge badge-info">NPCI COMPLIANT</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Link to Active Booking (Optional)</label>
+                    <select id="upiBookingSelect" class="form-select" onchange="onBookingSelected(this)">
+                        <option value="">-- Custom Direct Payment (No Booking) --</option>
+                        {% for b in active_bookings %}
+                        <option value="{{ b.id }}" data-amount="{{ b.quoted_price|default:0 }}" data-ref="{{ b.booking_number }}" data-party="{{ b.party.name }}" data-guest="{{ b.guest_name }}">
+                            {{ b.booking_number }} &bull; {{ b.guest_name|default:b.party.name }} (₹{{ b.quoted_price|default:0|floatformat:2 }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label">Amount (₹ INR)</label>
+                        <input type="number" id="upiAmountInput" class="form-input font-mono" value="{{ initial_upi_pkg.amount|floatformat:2 }}" step="0.01" min="1.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reference ID / Trip Sheet #</label>
+                        <input type="text" id="upiRefInput" class="form-input font-mono" value="{{ initial_upi_pkg.reference_id }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Virtual Payment Address (VPA / UPI ID)</label>
+                    <select id="upiVpaSelect" class="form-select">
+                        <option value="sivagayathiritravels@icici" selected>sivagayathiritravels@icici (Primary Corporate Current A/c)</option>
+                        <option value="sivagayathiritravels.rzp@icici">sivagayathiritravels.rzp@icici (Razorpay Gateway Route)</option>
+                        <option value="sivagayathiri.cashfree@yesbank">sivagayathiri.cashfree@yesbank (Cashfree AutoCollect)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Note / Memo</label>
+                    <input type="text" id="upiNoteInput" class="form-input" value="Trip Advance & Settlement">
+                </div>
+
+                <button class="btn-primary" onclick="generateDynamicUpi()" style="margin-top: 0.5rem;">
+                    <span class="material-symbols-outlined">qr_code</span> Render Live Dynamic Vector QR
+                </button>
+
+                <!-- 12-Digit UTR Instant Reconciler -->
+                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed rgba(51, 65, 85, 0.6);">
+                    <div class="panel-title" style="font-size: 0.95rem; margin-bottom: 0.75rem; border: none; padding: 0;">
+                        <span>🛡️ Instant 12-Digit Bank UTR / RRN Settlement</span>
+                        <span class="badge badge-success">ZERO MDR (0%)</span>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.75rem;">
+                        Customer scanned the dynamic QR? Enter the 12-digit UPI UTR from their GPay/PhonePe screen to immediately post to Double-Entry General Ledger.
+                    </p>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="utrInput" class="form-input font-mono" placeholder="e.g. 426819203810" maxlength="20">
+                        <button class="btn-success" onclick="confirmDirectUpi()" style="width: auto; white-space: nowrap;">
+                            <span class="material-symbols-outlined">task_alt</span> Confirm & Post GL
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Showcase: QR Display & Mobile Apps -->
+            <div class="studio-panel">
+                <div class="qr-terminal-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="badge badge-info">UPI 2.0 INTENT</span>
+                        <span class="qr-ref-badge" id="qrRefBadge">{{ initial_upi_pkg.reference_id }}</span>
+                    </div>
+
+                    <div class="qr-amount-display" id="qrAmountDisplay">₹{{ initial_upi_pkg.amount|floatformat:2 }}</div>
+                    <div style="font-size: 0.8rem; color: #94a3b8;" id="qrMerchantDisplay">Pay to: <strong>{{ initial_upi_pkg.merchant_name }}</strong></div>
+                    <div style="font-size: 0.75rem; color: #64748b; font-family: 'JetBrains Mono', monospace;" id="qrVpaDisplay">{{ initial_upi_pkg.vpa }}</div>
+
+                    <!-- Rendered SVG Frame -->
+                    <div class="qr-frame" id="qrSvgContainer">
+                        {{ initial_upi_pkg.qr_svg|safe }}
+                    </div>
+
+                    <!-- App Intent Deep Links -->
+                    <div class="intent-buttons" id="intentButtonsGroup">
+                        <a href="{{ initial_upi_pkg.deep_links.gpay }}" target="_blank" class="intent-btn gpay">
+                            <span>Google Pay</span>
+                        </a>
+                        <a href="{{ initial_upi_pkg.deep_links.phonepe }}" target="_blank" class="intent-btn phonepe">
+                            <span>PhonePe</span>
+                        </a>
+                        <a href="{{ initial_upi_pkg.deep_links.paytm }}" target="_blank" class="intent-btn paytm">
+                            <span>Paytm</span>
+                        </a>
+                        <a href="{{ initial_upi_pkg.deep_links.generic }}" target="_blank" class="intent-btn generic">
+                            <span>Any UPI App</span>
+                        </a>
+                    </div>
+
+                    <!-- Utility Buttons -->
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <button class="btn-secondary" style="flex: 1;" onclick="copyUpiUri()">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span> Copy URI
+                        </button>
+                        <button class="btn-secondary" style="flex: 1;" onclick="simulateCustomerPayment()">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">bolt</span> Test Auto-Pay
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: WEBHOOK SIMULATOR & SANDBOX -->
+    <!-- ========================================================================= -->
+    <div id="tab-webhook-sandbox" class="tab-pane">
+        <div class="studio-dual-grid">
+            <!-- Left: Webhook Parameters -->
+            <div class="studio-panel">
+                <div class="panel-title">
+                    <span>🛠️ Live Gateway Webhook Simulator</span>
+                    <span class="badge badge-purple">SANDBOX RUNNER</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Payment Gateway Provider</label>
+                    <select id="simProvider" class="form-select" onchange="onSimProviderChange(this.value)">
+                        <option value="razorpay">Razorpay Corporate (X-Razorpay-Signature HMAC-SHA256)</option>
+                        <option value="cashfree">Cashfree AutoCollect (PAYMENT_SUCCESS_WEBHOOK)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Target Booking for Reconcile</label>
+                    <select id="simBookingSelect" class="form-select">
+                        {% for b in active_bookings %}
+                        <option value="{{ b.id }}">{{ b.booking_number }} &bull; {{ b.guest_name }} (₹{{ b.quoted_price|default:0|floatformat:2 }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Settlement Amount (₹ INR)</label>
+                    <input type="number" id="simAmountInput" class="form-input font-mono" value="4500.00" step="100.00">
+                </div>
+
+                <button class="btn-primary" onclick="dispatchSimulatedWebhook()" style="margin-top: 0.5rem;">
+                    <span class="material-symbols-outlined">send</span> Dispatch Webhook & Trigger Double-Entry GL Posting
+                </button>
+            </div>
+
+            <!-- Right: Real-time Execution Terminal -->
+            <div class="studio-panel">
+                <div class="panel-title">
+                    <span>🖥️ Webhook Execution Pipeline & Audit Terminal</span>
+                    <button class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;" onclick="clearTerminal()">Clear</button>
+                </div>
+
+                <div class="terminal-box" id="simTerminal">
+[SYSTEM READY] Listening for Gateway Webhook payloads...
+Ready to simulate Razorpay HMAC & Cashfree webhook events.
+Click "Dispatch Webhook" to execute the live Double-Entry accounting pipeline.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: DOUBLE-ENTRY GENERAL LEDGER -->
+    <!-- ========================================================================= -->
+    <div id="tab-gl-explorer" class="tab-pane">
+        <div class="studio-panel">
+            <div class="panel-title">
+                <span>📖 Real-Time General Ledger Stream (Double-Entry Balanced)</span>
+                <span class="badge badge-success">INVARIANT: Σ(DR) == Σ(CR)</span>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="studio-table">
+                    <thead>
+                        <tr>
+                            <th>Entry #</th>
+                            <th>Date</th>
+                            <th>Transaction Type</th>
+                            <th>Reference / UTR</th>
+                            <th>Narration</th>
+                            <th>Debit (DR)</th>
+                            <th>Credit (CR)</th>
+                            <th>Balance Audit</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="glTableBody">
+                        {% for je in recent_journals %}
+                        <tr>
+                            <td class="font-mono" style="font-weight: 700; color: #38bdf8;">{{ je.entry_number }}</td>
+                            <td>{{ je.date }}</td>
+                            <td><span class="badge badge-info">{{ je.get_entry_type_display }}</span></td>
+                            <td class="font-mono text-xs">{{ je.reference_id|default:"-" }}</td>
+                            <td style="max-width: 250px; font-size: 0.75rem;">{{ je.narration }}</td>
+                            <td class="font-mono" style="font-weight: 700; color: #34d399;">₹{{ je.total_debit|floatformat:2 }}</td>
+                            <td class="font-mono" style="font-weight: 700; color: #38bdf8;">₹{{ je.total_credit|floatformat:2 }}</td>
+                            <td>
+                                {% if je.is_balanced %}
+                                <span class="badge badge-success">✓ BALANCED</span>
+                                {% else %}
+                                <span class="badge badge-warning">⚠ UNBALANCED</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="/admin/finance/journalentry/{{ je.id }}/change/" class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.7rem;">Inspect</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; color: #64748b; padding: 2rem;">No journal vouchers posted yet. Simulate or confirm a payment to view live entries.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: GATEWAY TRANSACTIONS LOG -->
+    <!-- ========================================================================= -->
+    <div id="tab-transactions" class="tab-pane">
+        <div class="studio-panel">
+            <div class="panel-title">
+                <span>💳 Gateway Transactions Audit Log</span>
+                <span class="badge badge-info">AUTO RECONCILED</span>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="studio-table">
+                    <thead>
+                        <tr>
+                            <th>Txn ID</th>
+                            <th>Provider</th>
+                            <th>Gross Amount</th>
+                            <th>MDR Fee</th>
+                            <th>Net Settled</th>
+                            <th>Payment ID / UTR</th>
+                            <th>Booking</th>
+                            <th>Status</th>
+                            <th>GL Journal Voucher</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="txnTableBody">
+                        {% for txn in recent_txns %}
+                        <tr>
+                            <td class="font-mono" style="font-weight: 700; color: #ffffff;">{{ txn.transaction_id }}</td>
+                            <td><span class="badge badge-purple">{{ txn.get_provider_display }}</span></td>
+                            <td class="font-mono" style="font-weight: 700; color: #f8fafc;">₹{{ txn.gross_amount|floatformat:2 }}</td>
+                            <td class="font-mono text-xs" style="color: #f59e0b;">₹{{ txn.fee_amount|floatformat:2 }}</td>
+                            <td class="font-mono text-xs" style="color: #34d399;">₹{{ txn.net_amount|floatformat:2 }}</td>
+                            <td class="font-mono text-xs">{{ txn.gateway_payment_id|default:"-" }}</td>
+                            <td>
+                                {% if txn.booking %}
+                                <a href="/admin/operations/booking/{{ txn.booking.id }}/change/" class="text-primary-400 hover:underline">{{ txn.booking.booking_number }}</a>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>
+                                <span class="badge badge-success">{{ txn.get_status_display }}</span>
+                            </td>
+                            <td>
+                                {% if txn.journal_entry %}
+                                <a href="/admin/finance/journalentry/{{ txn.journal_entry.id }}/change/" class="badge badge-info font-mono">{{ txn.journal_entry.entry_number }}</a>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td style="font-size: 0.72rem; color: #64748b;">{{ txn.created_at|date:"d M Y, H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" style="text-align: center; color: #64748b; padding: 2rem;">No gateway transactions recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: GATEWAY PROVIDERS CONFIG -->
+    <!-- ========================================================================= -->
+    <div id="tab-providers" class="tab-pane">
+        <div class="studio-panel">
+            <div class="panel-title">
+                <span>⚙️ Active Payment Gateway Configurations</span>
+                <a href="{% url 'admin:payments_gateway_paymentgatewayconfig_changelist' %}" class="btn-secondary" style="font-size: 0.75rem; padding: 0.3rem 0.65rem;">
+                    Manage Providers in Admin
+                </a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+                {% for cfg in configs %}
+                <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid var(--studio-border); border-radius: 0.75rem; padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <strong style="color: #ffffff; font-size: 0.95rem;">{{ cfg.name }}</strong>
+                        {% if cfg.is_sandbox %}
+                        <span class="badge badge-warning">SANDBOX</span>
+                        {% else %}
+                        <span class="badge badge-success">LIVE</span>
+                        {% endif %}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.6;">
+                        <div>Provider: <strong class="text-white">{{ cfg.get_provider_display }}</strong></div>
+                        <div>UPI VPA: <span class="font-mono text-cyan-400">{{ cfg.upi_vpa }}</span></div>
+                        <div>MDR Fee: <strong class="text-white">{{ cfg.gateway_fee_percent }}%</strong> (+{{ cfg.gst_on_fee_percent }}% GST)</div>
+                        <div>Double-Entry Auto-Post: <strong style="color: #34d399;">{% if cfg.auto_post_to_gl %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+                    </div>
+                    <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid rgba(51, 65, 85, 0.5); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.72rem; color: #64748b;">MCC: {{ cfg.mcc_code }}</span>
+                        <a href="/admin/payments_gateway/paymentgatewayconfig/{{ cfg.id }}/change/" class="btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">Configure Keys</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Web Audio API Synthesizer for Digital Chimes
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playChime(type) {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'success') {
+        // Triumphant chord: 523Hz -> 659Hz -> 784Hz
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.25);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    } else if (type === 'qr') {
+        // High ping: 880Hz -> 1320Hz
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(1320, now + 0.15);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+    } else {
+        // Warning buzz
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.linearRampToValueAtTime(160, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+    }
+}
+
+// Current UPI state
+let currentUpiData = {
+    upi_url: "{{ initial_upi_pkg.upi_url|escapejs }}",
+    amount: {{ initial_upi_pkg.amount }},
+    reference_id: "{{ initial_upi_pkg.reference_id|escapejs }}"
+};
+
+function switchStudioTab(tabId, el) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+}
+
+function onBookingSelected(selectEl) {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    if (opt && opt.value) {
+        document.getElementById('upiAmountInput').value = parseFloat(opt.dataset.amount).toFixed(2);
+        document.getElementById('upiRefInput').value = opt.dataset.ref;
+        document.getElementById('upiNoteInput').value = `Trip Advance for ${opt.dataset.ref}`;
+        generateDynamicUpi();
+    }
+}
+
+async function generateDynamicUpi() {
+    const bookingId = document.getElementById('upiBookingSelect').value;
+    const amount = document.getElementById('upiAmountInput').value;
+    const ref = document.getElementById('upiRefInput').value;
+    const vpa = document.getElementById('upiVpaSelect').value;
+    const note = document.getElementById('upiNoteInput').value;
+
+    const url = `/api/payments/dynamic-upi/generate/?booking_id=${bookingId}&amount=${amount}&vpa=${encodeURIComponent(vpa)}`;
+
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.status === 'success') {
+            currentUpiData = data;
+            document.getElementById('qrSvgContainer').innerHTML = data.qr_svg;
+            document.getElementById('qrAmountDisplay').innerText = `₹${parseFloat(data.amount).toFixed(2)}`;
+            document.getElementById('qrRefBadge').innerText = data.reference_id;
+            document.getElementById('qrMerchantDisplay').innerHTML = `Pay to: <strong>${data.merchant_name}</strong>`;
+            document.getElementById('qrVpaDisplay').innerText = data.vpa;
+
+            // Update app deep links
+            const group = document.getElementById('intentButtonsGroup');
+            group.innerHTML = `
+                <a href="${data.deep_links.gpay}" target="_blank" class="intent-btn gpay">Google Pay</a>
+                <a href="${data.deep_links.phonepe}" target="_blank" class="intent-btn phonepe">PhonePe</a>
+                <a href="${data.deep_links.paytm}" target="_blank" class="intent-btn paytm">Paytm</a>
+                <a href="${data.deep_links.generic}" target="_blank" class="intent-btn generic">Any UPI App</a>
+            `;
+            playChime('qr');
+        }
+    } catch (e) {
+        console.error('Error generating UPI QR:', e);
+    }
+}
+
+function copyUpiUri() {
+    if (currentUpiData.upi_url) {
+        navigator.clipboard.writeText(currentUpiData.upi_url).then(() => {
+            alert('Copied NPCI UPI Intent URI to clipboard:\n' + currentUpiData.upi_url);
+        });
+    }
+}
+
+async function confirmDirectUpi() {
+    const utr = document.getElementById('utrInput').value.trim();
+    const amount = document.getElementById('upiAmountInput').value;
+    const bookingId = document.getElementById('upiBookingSelect').value;
+
+    if (!utr || utr.length < 6) {
+        alert('Please enter a valid 12-digit UPI UTR / RRN number.');
+        playChime('error');
+        return;
+    }
+
+    try {
+        const resp = await fetch('/api/payments/direct-upi/confirm/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                utr_number: utr,
+                amount: amount,
+                booking_id: bookingId || null
+            })
+        });
+        const res = await resp.json();
+        if (res.status === 'success') {
+            playChime('success');
+            alert(`✅ Direct UPI Settlement Confirmed!\n\nTxn: ${res.transaction_id}\nGL Voucher: ${res.journal_entry}\nAmount: ₹${res.amount}\nBooking: ${res.booking_number}`);
+            document.getElementById('utrInput').value = '';
+            refreshStudioMetrics();
+        } else {
+            alert('Error: ' + res.message);
+            playChime('error');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Failed to connect to confirmation endpoint');
+    }
+}
+
+async function simulateCustomerPayment() {
+    // Fill sample UTR and auto-confirm
+    const fakeUtr = '4' + Math.floor(10000000000 + Math.random() * 90000000000);
+    document.getElementById('utrInput').value = fakeUtr;
+    await confirmDirectUpi();
+}
+
+function logTerminal(msg, type = 'info') {
+    const term = document.getElementById('simTerminal');
+    const stamp = new Date().toLocaleTimeString();
+    const line = document.createElement('div');
+    line.className = `log-entry log-${type}`;
+    line.innerText = `[${stamp}] ${msg}`;
+    term.appendChild(line);
+    term.scrollTop = term.scrollHeight;
+}
+
+function clearTerminal() {
+    document.getElementById('simTerminal').innerHTML = '';
+}
+
+async function dispatchSimulatedWebhook() {
+    const provider = document.getElementById('simProvider').value;
+    const bookingId = document.getElementById('simBookingSelect').value;
+    const amount = document.getElementById('simAmountInput').value;
+
+    logTerminal(`Initiating ${provider.toUpperCase()} simulated webhook event...`, 'info');
+    logTerminal(`Payload target booking ID: ${bookingId}, Amount: ₹${amount}`, 'info');
+
+    try {
+        const resp = await fetch('/api/payments/simulate-webhook/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider, booking_id: bookingId, amount })
+        });
+        const res = await resp.json();
+        if (res.status === 'success') {
+            playChime('success');
+            logTerminal(`[200 OK] Webhook received & signature verified!`, 'success');
+            logTerminal(`Transaction Recorded: ${res.response.transaction_id}`, 'purple');
+            logTerminal(`Automated Double-Entry Posting: Journal Entry ${res.response.journal_entry}`, 'success');
+            logTerminal(`Debit Clearing: ₹${res.response.net_amount} | Credit Receivables: ₹${res.response.gross_amount}`, 'warning');
+            logTerminal(`Status: CAPTURED & POSTED TO GENERAL LEDGER.`, 'success');
+            refreshStudioMetrics();
+        } else {
+            logTerminal(`Error: ${JSON.stringify(res)}`, 'warning');
+            playChime('error');
+        }
+    } catch (e) {
+        logTerminal(`Dispatch error: ${e.message}`, 'warning');
+    }
+}
+
+async function refreshStudioMetrics() {
+    try {
+        const resp = await fetch('/api/payments/studio-metrics/');
+        const data = await resp.json();
+        if (data.status === 'success') {
+            document.getElementById('kpiTodayCollections').innerText = `₹${data.today_collections.toFixed(2)}`;
+            document.getElementById('kpiGatewayClearing').innerText = `₹${data.gateway_clearing_bal.toFixed(2)}`;
+            document.getElementById('kpiBankBalance').innerText = `₹${data.operating_bank_bal.toFixed(2)}`;
+            document.getElementById('kpiGatewayFees').innerText = `₹${data.gateway_fees_today.toFixed(2)}`;
+            document.getElementById('kpiJournalsCount').innerText = data.today_journals_count;
+        }
+    } catch (e) {
+        console.error('Error refreshing metrics:', e);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: "travelerp_gis_django"
+    metrics_path: "/gis/metrics/"
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+        labels:
+          service: "django-gis-engine"
+
+  - job_name: "travelerp_gis_gateway"
+    metrics_path: "/health"
+    static_configs:
+      - targets: ["gis_gateway:80"]
+        labels:
+          service: "nginx-gis-gateway"

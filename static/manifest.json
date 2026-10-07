@@ -1,0 +1,58 @@
+{
+  "name": "TravelERP Driver Portal",
+  "short_name": "Driver Desk",
+  "description": "Fleet ERP driver mobile portal for trip management, vehicle inspections, fuel logging, and emergency SOS",
+  "start_url": "/driver/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "scope": "/driver/",
+  "lang": "en-IN",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/static/admin/img/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/static/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "url": "/driver/",
+      "icons": [{"src": "/static/pwa/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Pre-Trip Inspection",
+      "short_name": "Inspect",
+      "url": "/driver/inspection/",
+      "icons": [{"src": "/static/pwa/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Fuel Log",
+      "short_name": "Fuel",
+      "url": "/driver/fuel/",
+      "icons": [{"src": "/static/pwa/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Emergency SOS",
+      "short_name": "SOS",
+      "url": "/driver/sos/",
+      "icons": [{"src": "/static/pwa/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}

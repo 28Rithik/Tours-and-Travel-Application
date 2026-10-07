@@ -1,0 +1,67 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+{% if fleet_kpi %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+    <!-- Total Fleet -->
+    <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #bae6fd; font-weight: 600;">Total Fleet Assets</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.total }}</div>
+            <div style="font-size: 11px; color: #e0f2fe; margin-top: 4px;">Owned &amp; outsourced vehicles</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">directions_bus</span></div>
+    </div>
+
+    <!-- Available Standby -->
+    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #a7f3d0; font-weight: 600;">Available in Depot</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.available }}</div>
+            <div style="font-size: 11px; color: #d1fae5; margin-top: 4px;">Ready for instant trip dispatch</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">check_circle</span></div>
+    </div>
+
+    <!-- On Trip -->
+    <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #e0e7ff; font-weight: 600;">Active On-Trip</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.on_trip }}</div>
+            <div style="font-size: 11px; color: #eef2ff; margin-top: 4px;">On highway / duty assignment</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">route</span></div>
+    </div>
+
+    <!-- Maintenance / Defects -->
+    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fef3c7; font-weight: 600;">Workshop &amp; Service</div>
+            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.maintenance }}</div>
+            <div style="font-size: 11px; color: #fffbeb; margin-top: 4px;">Under repair or service hold</div>
+        </div>
+        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">build</span></div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Live Fleet Command Bar -->
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 14px 20px; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); flex-wrap: wrap; gap: 12px;">
+    <div>
+        <strong style="color: #f8fafc; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: #38bdf8; font-size: 20px;">satellite_alt</span>
+            <span>Live Fleet Operations Radar &amp; Telematics Map</span>
+        </strong>
+        <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">
+            Real-time interactive GPS tracking across all 148 fleet vehicles, geofence monitoring, and emergency SOS incident alerts.
+        </div>
+    </div>
+    <div>
+        <a href="/admin/operations/fleet-radar/" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; font-weight: 700; padding: 9px 18px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">satellite_alt</span> 🛰️ Open Live Fleet Radar Map
+        </a>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}

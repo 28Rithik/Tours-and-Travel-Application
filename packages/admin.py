@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline, StackedInline
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -26,7 +27,7 @@ from .models import (
 # Inlines
 # ==============================================================================
 
-class ItineraryDayInline(admin.StackedInline):
+class ItineraryDayInline(StackedInline):
     model = ItineraryDay
     extra = 1
     fields = (
@@ -39,37 +40,37 @@ class ItineraryDayInline(admin.StackedInline):
     )
 
 
-class PackageVehicleTariffInline(admin.TabularInline):
+class PackageVehicleTariffInline(TabularInline):
     model = PackageVehicleTariff
     extra = 0
     fields = ('vehicle_type', 'seating_tier', 'rate_type', 'package_rate', 'per_day_rate', 'included_km', 'extra_km_rate', 'driver_bata_per_day', 'toll_parking_included', 'interstate_permit_included')
 
 
-class PackageSeasonalRateInline(admin.TabularInline):
+class PackageSeasonalRateInline(TabularInline):
     model = PackageSeasonalRate
     extra = 0
     fields = ('season_name', 'season_type', 'start_date', 'end_date', 'surge_percentage', 'price_with_food_override', 'price_without_food_override', 'is_active')
 
 
-class PackageHotelAllotmentInline(admin.TabularInline):
+class PackageHotelAllotmentInline(TabularInline):
     model = PackageHotelAllotment
     extra = 0
     fields = ('hotel_name', 'room_category', 'check_in_date', 'check_out_date', 'rooms_blocked', 'rooms_occupied', 'cost_per_room_night', 'status')
 
 
-class PackageAddonInline(admin.TabularInline):
+class PackageAddonInline(TabularInline):
     model = PackageAddon
     extra = 0
     fields = ('title', 'category', 'pricing_unit', 'cost_price', 'selling_price', 'is_mandatory_inclusion', 'is_active')
 
 
-class PackageB2BMarginInline(admin.TabularInline):
+class PackageB2BMarginInline(TabularInline):
     model = PackageB2BMargin
     extra = 0
     fields = ('tier_name', 'commission_percent', 'fixed_discount_per_pax', 'is_active')
 
 
-class TempleDarshanSlotInline(admin.StackedInline):
+class TempleDarshanSlotInline(StackedInline):
     model = TempleDarshanSlot
     extra = 0
     classes = ('collapse',)
@@ -82,7 +83,7 @@ class TempleDarshanSlotInline(admin.StackedInline):
     )
 
 
-class InternationalDocumentChecklistInline(admin.TabularInline):
+class InternationalDocumentChecklistInline(TabularInline):
     model = InternationalDocumentChecklist
     extra = 0
     classes = ('collapse',)
@@ -134,7 +135,7 @@ def clone_template_to_package(modeladmin, request, queryset):
 # ==============================================================================
 
 @admin.register(PackageTemplate)
-class PackageTemplateAdmin(admin.ModelAdmin):
+class PackageTemplateAdmin(ModelAdmin):
     list_display = ('name', 'category_badge', 'destination', 'duration_display', 'base_price_display', 'is_active')
     list_filter = ('category', 'destination', 'is_active')
     search_fields = ('name', 'destination')
@@ -164,7 +165,7 @@ class PackageTemplateAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(Package)
-class PackageAdmin(admin.ModelAdmin):
+class PackageAdmin(ModelAdmin):
     list_display = (
         'name_display', 'category_badge', 'destination_badge',
         'duration_display', 'dual_pricing_display', 'unit_margin_badge',
@@ -245,11 +246,13 @@ class PackageAdmin(admin.ModelAdmin):
         }),
     )
 
+    change_form_template = 'admin/packages/package/change_form.html'
+
     class Media:
         css = {
             'all': ('packages/css/package_admin_custom.css',)
         }
-        js = ('packages/js/package_dynamic_form.js',)
+        js = ()
 
     @admin.display(description='Package Name')
     def name_display(self, obj):
@@ -409,7 +412,7 @@ class PackageAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageVehicleTariff)
-class PackageVehicleTariffAdmin(admin.ModelAdmin):
+class PackageVehicleTariffAdmin(ModelAdmin):
     list_display = (
         'package_link', 'seating_tier_badge', 'rate_type_badge',
         'package_rate_display', 'per_seat_split_display', 'per_day_rate_display',
@@ -503,7 +506,7 @@ class PackageVehicleTariffAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(TempleDarshanSlot)
-class TempleDarshanSlotAdmin(admin.ModelAdmin):
+class TempleDarshanSlotAdmin(ModelAdmin):
     list_display = ('temple_name', 'deity_or_circuit', 'darshan_type_badge', 'booked_slot_time', 'token_ticket_number', 'senior_citizen_badge')
     list_filter = ('darshan_type', 'senior_citizen_support', 'package')
     search_fields = ('temple_name', 'deity_or_circuit', 'token_ticket_number')
@@ -529,7 +532,7 @@ class TempleDarshanSlotAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(InternationalDocumentChecklist)
-class InternationalDocumentChecklistAdmin(admin.ModelAdmin):
+class InternationalDocumentChecklistAdmin(ModelAdmin):
     list_display = ('package', 'document_name', 'is_mandatory_badge', 'submission_deadline_display')
     list_filter = ('is_mandatory', 'package')
     search_fields = ('package__name', 'document_name')
@@ -550,7 +553,7 @@ class InternationalDocumentChecklistAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(ItineraryDay)
-class ItineraryDayAdmin(admin.ModelAdmin):
+class ItineraryDayAdmin(ModelAdmin):
     list_display = ('package_link', 'day_badge', 'title_display', 'route_segment', 'stay_display', 'meals_display')
     list_filter = ('package',)
     search_fields = ('title', 'route_segment', 'night_stay_location', 'package__name')
@@ -597,7 +600,7 @@ class ItineraryDayAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageSeasonalRate)
-class PackageSeasonalRateAdmin(admin.ModelAdmin):
+class PackageSeasonalRateAdmin(ModelAdmin):
     list_display = ('season_name', 'package_link', 'season_type_badge', 'date_range_display', 'surge_badge', 'override_prices_display', 'is_active')
     list_filter = ('season_type', 'is_active', 'package')
     search_fields = ('season_name', 'package__name')
@@ -652,7 +655,7 @@ class PackageSeasonalRateAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageHotelAllotment)
-class PackageHotelAllotmentAdmin(admin.ModelAdmin):
+class PackageHotelAllotmentAdmin(ModelAdmin):
     list_display = ('hotel_name', 'package_link', 'room_category_badge', 'date_range_display', 'occupancy_gauge', 'cost_display', 'status_badge')
     list_filter = ('room_category', 'status', 'package')
     search_fields = ('hotel_name', 'package__name', 'confirmation_voucher_no')
@@ -714,7 +717,7 @@ class PackageHotelAllotmentAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageAddon)
-class PackageAddonAdmin(admin.ModelAdmin):
+class PackageAddonAdmin(ModelAdmin):
     list_display = ('title', 'package_link', 'category_badge', 'pricing_unit', 'cost_price_display', 'selling_price_display', 'margin_badge', 'is_mandatory_inclusion', 'is_active')
     list_filter = ('category', 'pricing_unit', 'is_mandatory_inclusion', 'is_active', 'package')
     search_fields = ('title', 'package__name')
@@ -752,7 +755,7 @@ class PackageAddonAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageB2BMargin)
-class PackageB2BMarginAdmin(admin.ModelAdmin):
+class PackageB2BMarginAdmin(ModelAdmin):
     list_display = ('tier_name_badge', 'package_link', 'commission_display', 'b2b_net_rates_display', 'is_active')
     list_filter = ('tier_name', 'is_active', 'package')
     search_fields = ('package__name',)
@@ -788,7 +791,7 @@ class PackageB2BMarginAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(TourFeedbackLog)
-class TourFeedbackLogAdmin(admin.ModelAdmin):
+class TourFeedbackLogAdmin(ModelAdmin):
     list_display = (
         'guest_name_display', 'package_link', 'trip_date',
         'star_rating_display', 'dimension_scores_display', 'nps_badge',
@@ -880,25 +883,25 @@ class TourFeedbackLogAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageInventory)
-class PackageInventoryHiddenAdmin(admin.ModelAdmin):
+class PackageInventoryHiddenAdmin(ModelAdmin):
     search_fields = ('package__name',)
     def has_module_permission(self, request):
         return False
 
 @admin.register(BoardingPoint)
-class BoardingPointHiddenAdmin(admin.ModelAdmin):
+class BoardingPointHiddenAdmin(ModelAdmin):
     search_fields = ('stop_name',)
     def has_module_permission(self, request):
         return False
 
 @admin.register(CollegeIVExpedition)
-class CollegeIVExpeditionHiddenAdmin(admin.ModelAdmin):
+class CollegeIVExpeditionHiddenAdmin(ModelAdmin):
     search_fields = ('college_name', 'department_and_batch')
     def has_module_permission(self, request):
         return False
 
 @admin.register(TourPassengerManifest)
-class TourPassengerManifestHiddenAdmin(admin.ModelAdmin):
+class TourPassengerManifestHiddenAdmin(ModelAdmin):
     search_fields = ('passenger_name', 'seat_number')
     def has_module_permission(self, request):
         return False

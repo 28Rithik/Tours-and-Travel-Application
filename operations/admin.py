@@ -1,21 +1,27 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
+from django.db import transaction
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 from .models import (
     Booking, Trip, TripCrewAssignment, TripJourney, TripHotel,
     BulkContract, BulkContractDay, TrafficFine,
     EmergencyIncidentAlert, VehicleTelematicsPing, DriverBehaviorLog, GeofenceZone,
+    WhatsAppBotMessage, DriverHandoverSession, TripMilestoneEvent,
+    TripItineraryDay,
 )
 from finance.models import TripExpense, FuelRecord, DriverSettlement, SupplierTripCost, Payment
 from documents.models import CustomerDocument
 
 @admin.register(TrafficFine)
-class TrafficFineAdmin(admin.ModelAdmin):
+class TrafficFineAdmin(ModelAdmin):
 	list_display = ('challan_number', 'trip_link', 'vehicle', 'driver', 'date_of_offence', 'violation_badge', 'fine_amount_display', 'paid_by_badge', 'financial_responsibility_badge')
 	list_filter = ('financial_responsibility', 'paid_by', 'violation_type', 'date_of_offence')
+	list_select_related = ('trip', 'vehicle', 'driver')
 	search_fields = ('challan_number', 'trip__trip_id', 'vehicle__registration_number', 'driver__name')
 	autocomplete_fields = ['trip', 'vehicle', 'driver']
 	date_hierarchy = 'date_of_offence'
+	change_form_template = 'admin/operations/trafficfine/change_form.html'
 
 	class Media:
 		js = ('admin/js/traffic_fine_admin_v2.js',)
@@ -67,38 +73,39 @@ class TrafficFineAdmin(admin.ModelAdmin):
 @admin.action(description="Convert selected Bookings to Trips")
 def convert_to_trip(modeladmin, request, queryset):
 	created_trips = []
-	for booking in queryset:
-		if booking.status in ['pending', 'confirmed']:
-			billing_m = 'fixed' if booking.billing_type == 'package' else ('km' if booking.billing_type == 'km' else 'day')
-			trip = Trip.objects.create(
-				booking=booking,
-				party=booking.party,
-				guest_name=booking.guest_name,
-				package=booking.package,
-				package_inventory=booking.package_inventory,
-				vehicle=booking.package_inventory.assigned_vehicle if (booking.package_inventory and booking.package_inventory.assigned_vehicle) else None,
-				driver=booking.package_inventory.assigned_driver if (booking.package_inventory and booking.package_inventory.assigned_driver) else None,
-				start_date=booking.pickup_date,
-				end_date=booking.drop_date or booking.pickup_date,
-				start_time=booking.pickup_time,
-				travel_pnr=booking.travel_pnr,
-				pax_count=booking.pax_count,
-				luggage_count=booking.luggage_count,
-				billing_model=billing_m,
-				fixed_amount=booking.quoted_price or 0,
-				notes=booking.special_requirements or booking.notes,
-				status='booked'
-			)
-			booking.status = 'dispatched'
-			booking.save(update_fields=['status'])
-			created_trips.append(trip.trip_id)
+	with transaction.atomic():
+		for booking in queryset.select_for_update():
+			if booking.status in ['pending', 'confirmed']:
+				billing_m = 'fixed' if booking.billing_type == 'package' else ('km' if booking.billing_type == 'km' else 'day')
+				trip = Trip.objects.create(
+					booking=booking,
+					party=booking.party,
+					guest_name=booking.guest_name,
+					package=booking.package,
+					package_inventory=booking.package_inventory,
+					vehicle=booking.package_inventory.assigned_vehicle if (booking.package_inventory and booking.package_inventory.assigned_vehicle) else None,
+					driver=booking.package_inventory.assigned_driver if (booking.package_inventory and booking.package_inventory.assigned_driver) else None,
+					start_date=booking.pickup_date,
+					end_date=booking.drop_date or booking.pickup_date,
+					start_time=booking.pickup_time,
+					travel_pnr=booking.travel_pnr,
+					pax_count=booking.pax_count,
+					luggage_count=booking.luggage_count,
+					billing_model=billing_m,
+					fixed_amount=booking.quoted_price or 0,
+					notes=booking.special_requirements or booking.notes,
+					status='booked'
+				)
+				booking.status = 'dispatched'
+				booking.save(update_fields=['status'])
+				created_trips.append(trip.trip_id)
 	modeladmin.message_user(request, f"Successfully converted {len(created_trips)} bookings to Trips ({', '.join(created_trips)}).")
 
-class CustomerDocumentInline(admin.TabularInline):
+class CustomerDocumentInline(TabularInline):
 	model = CustomerDocument
 	extra = 1
 
-class BookingPaymentInline(admin.TabularInline):
+class BookingPaymentInline(TabularInline):
 	model = Payment
 	extra = 0
 	verbose_name = "Advance / Payment Received"
@@ -107,13 +114,16 @@ class BookingPaymentInline(admin.TabularInline):
 	exclude = ('party', 'trip', 'contract_trip', 'statement')
 
 @admin.register(Booking)
-class BookingAdmin(admin.ModelAdmin):
+class BookingAdmin(ModelAdmin):
 	list_display = ('booking_number', 'party', 'guest_name', 'pickup_date', 'journey_type', 'status_badge', 'quoted_price', 'advance_received', 'outstanding_balance', 'linked_trip', 'whatsapp_quote', 'quick_actions')
 	list_filter = ('status', 'journey_type', 'pickup_date', 'billing_type')
+	list_select_related = ('party', 'package', 'package_inventory')
 	search_fields = ('booking_number', 'guest_name', 'guest_phone', 'party__name')
 	date_hierarchy = 'pickup_date'
 	autocomplete_fields = ['party', 'package', 'package_inventory']
 	inlines = [CustomerDocumentInline, BookingPaymentInline]
+	actions = [convert_to_trip]
+	change_form_template = 'admin/operations/booking/change_form.html'
 
 	class Media:
 		js = ('admin/js/booking_form_v2.js',)
@@ -172,14 +182,18 @@ class BookingAdmin(admin.ModelAdmin):
 
 	@admin.display(description="Actions")
 	def quick_actions(self, obj):
+		buttons = []
+		upi_studio_url = f"/admin/finance/payment-studio/?booking_id={obj.pk}"
+		buttons.append(f'<a class="button" href="{upi_studio_url}" style="padding:4px 6px; background:#4f46e5; color:white; border-radius:3px; text-decoration:none; font-size:11px; font-weight:600;" title="Collect Payment via Dynamic UPI QR">⚡ UPI QR</a>')
 		if obj.status in ['pending', 'confirmed'] and not obj.trips.exists():
 			url = reverse('admin:booking-quick-convert', args=[obj.pk])
-			return format_html('<a class="button" href="{}" style="padding:4px; background:#007bff; color:white; border-radius:3px; text-decoration:none;" title="Convert to Trip">▶️ Convert to Trip</a>', url)
+			buttons.append(f'<a class="button" href="{url}" style="padding:4px 6px; background:#0284c7; color:white; border-radius:3px; text-decoration:none; font-size:11px; font-weight:600;" title="Convert to Trip">▶️ Trip</a>')
 		elif obj.trips.exists():
 			trip = obj.trips.first()
 			url = reverse('admin:operations_trip_change', args=[trip.pk])
-			return format_html('<a class="button" href="{}" style="padding:4px; background:#17a2b8; color:white; border-radius:3px; text-decoration:none;" title="Open Trip">Trip #{}</a>', url, trip.trip_id)
-		return "-"
+			buttons.append(f'<a class="button" href="{url}" style="padding:4px 6px; background:#0f766e; color:white; border-radius:3px; text-decoration:none; font-size:11px; font-weight:600;" title="Open Trip">Trip #{trip.trip_id}</a>')
+		return mark_safe('<div style="display:flex; gap:4px; align-items:center;">' + "".join(buttons) + '</div>')
+
 		
 	def get_urls(self):
 		from django.urls import path
@@ -256,11 +270,11 @@ class BookingAdmin(admin.ModelAdmin):
 		return queryset, use_distinct
 
 
-class TripJourneyInline(admin.TabularInline):
+class TripJourneyInline(TabularInline):
 	model = TripJourney
 	extra = 0
 
-class TripCrewAssignmentInline(admin.TabularInline):
+class TripCrewAssignmentInline(TabularInline):
 	model = TripCrewAssignment
 	extra = 0
 
@@ -273,42 +287,128 @@ class TripCrewAssignmentInline(admin.TabularInline):
 			kwargs["queryset"] = Cleaner.objects.filter(status='active')
 		return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-class TripExpenseInline(admin.TabularInline):
+class TripExpenseInline(TabularInline):
 	model = TripExpense
 	extra = 0
 
-class TripHotelInline(admin.TabularInline):
+class TripHotelInline(TabularInline):
 	model = TripHotel
 	extra = 0
 
-class FuelRecordInline(admin.TabularInline):
+class FuelRecordInline(TabularInline):
 	model = FuelRecord
 	exclude = ('vehicle',)
 	extra = 0
 
-class DriverSettlementInline(admin.TabularInline):
+class DriverSettlementInline(TabularInline):
 	model = DriverSettlement
 	exclude = ('driver',)
 	extra = 0
 	max_num = 1
 
-class SupplierTripCostInline(admin.TabularInline):
+class SupplierTripCostInline(TabularInline):
 	model = SupplierTripCost
 	extra = 0
 	max_num = 1
 	exclude = ('supplier', 'vehicle')
 
-class TrafficFineInline(admin.TabularInline):
+class TrafficFineInline(TabularInline):
 	model = TrafficFine
 	extra = 0
 	fields = ('challan_number', 'date_of_offence', 'violation_type', 'fine_amount', 'paid_by', 'financial_responsibility', 'receipt_file', 'notes')
 
+class TripMilestoneEventInline(TabularInline):
+	model = TripMilestoneEvent
+	extra = 0
+	fields = ('milestone', 'milestone_index', 'timestamp', 'odometer_reading', 'passenger_pin_entered', 'is_pin_verified', 'location_name', 'notes')
+	readonly_fields = ('timestamp',)
+
+class TripItineraryDayInline(TabularInline):
+	model = TripItineraryDay
+	extra = 0
+	fields = ('day_number', 'date', 'title', 'route_segment', 'hotel_name', 'hotel_booking_status', 'meals_included', 'is_active_today')
+	ordering = ['day_number']
+
+@admin.register(TripItineraryDay)
+class TripItineraryDayAdmin(ModelAdmin):
+	list_display = ('trip_link', 'day_number_badge', 'date', 'title', 'route_segment', 'hotel_name', 'hotel_status_badge', 'meals_included', 'is_active_today')
+	list_filter = ('hotel_booking_status', 'is_active_today', 'date')
+	search_fields = ('trip__trip_id', 'title', 'route_segment', 'sightseeing_spots', 'hotel_name')
+	list_select_related = ('trip',)
+
+	@admin.display(description="Trip")
+	def trip_link(self, obj):
+		url = reverse('admin:operations_trip_change', args=[obj.trip.pk])
+		return format_html('<a href="{}" style="font-weight: 600; color: #38bdf8;">Trip #{}</a>', url, obj.trip.trip_id)
+
+	@admin.display(description="Day")
+	def day_number_badge(self, obj):
+		return format_html('<span style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 700;">Day {:02d}</span>', obj.day_number)
+
+	@admin.display(description="Hotel Status")
+	def hotel_status_badge(self, obj):
+		colors = {
+			'pending': ('#b45309', '#fef3c7', '⏳ Pending'),
+			'confirmed': ('#047857', '#d1fae5', '✅ Confirmed Voucher'),
+			'checked_in': ('#1d4ed8', '#dbeafe', '🏨 Checked In'),
+		}
+		fg, bg, label = colors.get(obj.hotel_booking_status, ('#4b5563', '#f3f4f6', obj.get_hotel_booking_status_display()))
+		return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">{}</span>', bg, fg, label)
+
 @admin.register(Trip)
-class TripAdmin(admin.ModelAdmin):
+class TripAdmin(ModelAdmin):
 	actions = ['batch_mark_billed']
-	list_display = ('trip_id', 'source_display', 'party', 'guest_name', 'vehicle_display', 'driver_display', 'status', 'start_date', 'total_amount', 'display_net_profit', 'send_whatsapp_driver', 'quick_actions')
+	list_display = ('trip_id', 'source_display', 'party', 'guest_name', 'vehicle_display', 'driver_display', 'status', 'itinerary_badge', 'milestone_badge', 'start_date', 'total_amount', 'display_net_profit', 'send_whatsapp_driver', 'quick_actions')
 	list_editable = ('status',)
-	list_filter = ('status', 'vehicle__ownership_type', 'driver__driver_type', 'billing_model', 'start_date')
+	list_filter = ('status', 'current_milestone', 'vehicle__ownership_type', 'driver__driver_type', 'billing_model', 'start_date')
+	list_select_related = ('party', 'vehicle', 'driver', 'booking', 'package')
+	search_fields = ('trip_id', 'booking__booking_number', 'guest_name', 'party__name', 'vehicle__registration_number', 'driver__name', 'bulk_contract_day__contract__name', 'pickup_pin')
+	autocomplete_fields = ['booking', 'package', 'package_inventory', 'bulk_contract_day', 'party', 'vehicle', 'driver']
+	date_hierarchy = 'start_date'
+
+	@admin.display(description="Itinerary")
+	def itinerary_badge(self, obj):
+		count = obj.itinerary_days.count()
+		builder_url = reverse('admin-trip-itinerary-builder', args=[obj.pk])
+		if count > 0:
+			return format_html('<a href="{}" target="_blank" style="background: rgba(99,102,241,0.15); border: 1px solid #6366f1; color: #818cf8; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; text-decoration: none;">🗺️ {} Days</a>', builder_url, count)
+		return format_html('<a href="{}" target="_blank" style="color: #94a3b8; font-size: 11px; text-decoration: none;">+ Add Days</a>', builder_url)
+
+	@admin.display(description="7-Milestone Lifecycle", ordering='current_milestone')
+	def milestone_badge(self, obj):
+		icons = {
+			'car_pickup': ('#38bdf8', '🚗 1. Car Pickup'),
+			'driver_reached': ('#06b6d4', '📍 2. Driver Reached'),
+			'guest_pickup': ('#a855f7', '🔢 3. Guest PIN OK'),
+			'on_trip': ('#10b981', '🛣️ 4. On Trip'),
+			'guest_drop': ('#f59e0b', '🏁 5. Guest Drop'),
+			'expenses_photo': ('#ec4899', '🧾 6. Expenses Logged'),
+			'car_drop': ('#64748b', '🅿️ 7. Car Drop / Closed'),
+		}
+		color, label = icons.get(obj.current_milestone, ('#94a3b8', obj.get_current_milestone_display()))
+		lifecycle_url = reverse('trip-lifecycle-portal', args=[obj.pk])
+		return format_html(
+			'<a href="{}" target="_blank" style="background: rgba(255,255,255,0.06); border: 1px solid {}; color: {}; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">{} ({}%)</a>',
+			lifecycle_url, color, color, label, obj.milestone_progress_percent
+		)
+
+	@admin.display(description="7-Milestone Tour Cockpit")
+	def lifecycle_portal_link(self, obj):
+		url = reverse('trip-lifecycle-portal', args=[obj.pk])
+		return format_html('<a href="{}" target="_blank" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; text-decoration: none;">🚀 Open 7-Milestone Tour Cockpit</a>', url)
+
+	@admin.display(description="Day-by-Day Itinerary Builder & Guest Portal")
+	def itinerary_builder_link(self, obj):
+		url = reverse('admin-trip-itinerary-builder', args=[obj.pk])
+		guest_url = obj.guest_itinerary_url
+		return format_html(
+			'<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">'
+			'<a href="{}" target="_blank" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">🗺️ Open Day-by-Day Itinerary Builder</a>'
+			'<a href="{}" target="_blank" style="background: rgba(99,102,241,0.12); border: 1px solid #6366f1; color: #818cf8; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 12px;">📱 Live Guest Experience Portal</a>'
+			'</div>',
+			url, guest_url
+		)
+	list_select_related = ('party', 'vehicle', 'driver', 'booking', 'package')
 	search_fields = ('trip_id', 'booking__booking_number', 'guest_name', 'party__name', 'vehicle__registration_number', 'driver__name', 'bulk_contract_day__contract__name')
 	autocomplete_fields = ['booking', 'package', 'package_inventory', 'bulk_contract_day', 'party', 'vehicle', 'driver']
 	date_hierarchy = 'start_date'
@@ -365,11 +465,20 @@ class TripAdmin(admin.ModelAdmin):
 	class Media:
 		js = ('admin/js/trip_admin_v2.js',)
 	
-	inlines = [TripCrewAssignmentInline, TripHotelInline, TripJourneyInline, TrafficFineInline, FuelRecordInline, TripExpenseInline, DriverSettlementInline, SupplierTripCostInline]
+	change_form_template = 'admin/operations/trip/change_form.html'
+	inlines = [TripItineraryDayInline, TripMilestoneEventInline, TripCrewAssignmentInline, TripHotelInline, TripJourneyInline, TrafficFineInline, FuelRecordInline, TripExpenseInline, DriverSettlementInline, SupplierTripCostInline]
 	
 	fieldsets = (
 		('Booking / Contract Information', {
 			'fields': ('trip_id', 'print_duty_slip', 'booking', 'package', 'package_inventory', 'bulk_contract_day', 'party', 'guest_name', 'travel_pnr', 'pax_count', 'luggage_count')
+		}),
+		('Multi-Day Tour Itinerary & Guest Portal', {
+			'fields': ('itinerary_builder_link',),
+			'description': 'Configure day-by-day sightseeing spots, route segments, and hotel stays, or share the mobile live guest companion portal'
+		}),
+		('7-Milestone Tour Lifecycle', {
+			'fields': ('current_milestone', 'pickup_pin', 'is_pin_verified', 'lifecycle_portal_link'),
+			'description': 'Real-time tour operational progression from depot departure through to guest drop & closing odometer'
 		}),
 		('Trip Execution', {
 			'fields': ('vehicle', 'driver', 'status')
@@ -388,7 +497,7 @@ class TripAdmin(admin.ModelAdmin):
 		}),
 	)
 	
-	readonly_fields = ('trip_id', 'print_duty_slip', 'total_distance', 'extra_km', 'customer_billable_fines_display', 'total_bill_amount_display', 'received_amount', 'total_supplier_cost', 'total_fuel_cost', 'company_paid_expenses', 'net_profit', 'whatsapp_dispatch_link', 'whatsapp_bill_link')
+	readonly_fields = ('trip_id', 'print_duty_slip', 'itinerary_builder_link', 'lifecycle_portal_link', 'total_distance', 'extra_km', 'customer_billable_fines_display', 'total_bill_amount_display', 'received_amount', 'total_supplier_cost', 'total_fuel_cost', 'company_paid_expenses', 'net_profit', 'whatsapp_dispatch_link', 'whatsapp_bill_link')
 
 	@admin.display(description="Passenger Fines (Billable)")
 	def customer_billable_fines_display(self, obj):
@@ -553,19 +662,19 @@ class TripAdmin(admin.ModelAdmin):
 
 from .models import Booking, Trip, TripCrewAssignment, TripJourney, TripHotel, BulkContract, BulkContractDay, TrafficFine, ContractVehicleRate, ContractDayRequirement
 
-class ContractVehicleRateInline(admin.TabularInline):
+class ContractVehicleRateInline(TabularInline):
 	model = ContractVehicleRate
 	extra = 1
 
-class ContractDayRequirementInline(admin.TabularInline):
+class ContractDayRequirementInline(TabularInline):
 	model = ContractDayRequirement
 	extra = 1
 
-class BulkContractDayInline(admin.TabularInline):
+class BulkContractDayInline(TabularInline):
 	model = BulkContractDay
 	extra = 0
 
-class BulkContractTripInline(admin.TabularInline):
+class BulkContractTripInline(TabularInline):
 	model = Trip
 	extra = 0
 	fk_name = 'bulk_contract_day'
@@ -664,7 +773,7 @@ def generate_trips_from_requirements(modeladmin, request, queryset):
 	modeladmin.message_user(request, f"Successfully generated {total_created} trips from vehicle requirements.")
 
 @admin.register(BulkContract)
-class BulkContractAdmin(admin.ModelAdmin):
+class BulkContractAdmin(ModelAdmin):
 	list_display = ('name', 'contract_type', 'customer', 'start_date', 'end_date', 'days_count_display', 'trips_count_display', 'status', 'billing_model')
 	list_filter = ('status', 'contract_type', 'billing_model', 'start_date')
 	search_fields = ('name', 'customer__name')
@@ -683,12 +792,13 @@ class BulkContractAdmin(admin.ModelAdmin):
 		js = ('admin/js/bulk_contract_vehicle_rates.js',)
 
 @admin.register(BulkContractDay)
-class BulkContractDayAdmin(admin.ModelAdmin):
+class BulkContractDayAdmin(ModelAdmin):
 	list_display = ('contract', 'date', 'requirements_summary', 'assignment_count')
 	list_filter = ('date', 'contract__contract_type')
 	search_fields = ('contract__name', 'contract__customer__name')
 	inlines = [ContractDayRequirementInline, BulkContractTripInline]
 	actions = [generate_trips_from_requirements]
+	change_form_template = 'admin/operations/bulkcontractday/change_form.html'
 
 	class Media:
 		js = ('admin/js/bulk_contract_day_admin.js',)
@@ -708,7 +818,7 @@ class BulkContractDayAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(EmergencyIncidentAlert)
-class EmergencyIncidentAlertAdmin(admin.ModelAdmin):
+class EmergencyIncidentAlertAdmin(ModelAdmin):
 	list_display = (
 		'incident_id',
 		'severity_badge',
@@ -804,7 +914,7 @@ class EmergencyIncidentAlertAdmin(admin.ModelAdmin):
 
 
 @admin.register(VehicleTelematicsPing)
-class VehicleTelematicsPingAdmin(admin.ModelAdmin):
+class VehicleTelematicsPingAdmin(ModelAdmin):
 	list_display = ('vehicle', 'timestamp', 'speed_kmh', 'ignition_display', 'fuel_display', 'coordinates_display', 'trip_link')
 	list_filter = ('ignition_on', 'vehicle')
 	search_fields = ('vehicle__registration_number', 'vehicle__gps_imei')
@@ -835,7 +945,7 @@ class VehicleTelematicsPingAdmin(admin.ModelAdmin):
 
 
 @admin.register(DriverBehaviorLog)
-class DriverBehaviorLogAdmin(admin.ModelAdmin):
+class DriverBehaviorLogAdmin(ModelAdmin):
 	list_display = ('timestamp', 'vehicle', 'driver', 'event_badge', 'severity_badge', 'speed_comparison', 'penalty_points', 'trip_link')
 	list_filter = ('event_type', 'severity', 'vehicle')
 	search_fields = ('vehicle__registration_number', 'driver__name', 'location_address')
@@ -878,7 +988,7 @@ class DriverBehaviorLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(GeofenceZone)
-class GeofenceZoneAdmin(admin.ModelAdmin):
+class GeofenceZoneAdmin(ModelAdmin):
 	list_display = ('name', 'zone_type_badge', 'coordinates_display', 'radius_display', 'speed_limit_display', 'is_active')
 	list_filter = ('zone_type', 'is_active')
 	search_fields = ('name',)
@@ -899,4 +1009,163 @@ class GeofenceZoneAdmin(admin.ModelAdmin):
 	@admin.display(description="Speed Limit")
 	def speed_limit_display(self, obj):
 		return f"{obj.speed_limit_kmh} km/h"
+
+
+@admin.register(WhatsAppBotMessage)
+class WhatsAppBotMessageAdmin(ModelAdmin):
+	list_display = ('created_at_fmt', 'direction_badge', 'intent_badge', 'sender_phone', 'recipient_phone', 'short_body', 'status_badge', 'trip_link')
+	list_filter = ('message_direction', 'intent', 'status', 'created_at')
+	search_fields = ('sender_phone', 'recipient_phone', 'message_body', 'trip__trip_id')
+	autocomplete_fields = ['trip', 'driver']
+	readonly_fields = ('created_at',)
+	date_hierarchy = 'created_at'
+
+	@admin.display(description="Timestamp", ordering='created_at')
+	def created_at_fmt(self, obj):
+		return obj.created_at.strftime('%Y-%m-%d %H:%M:%S')
+
+	@admin.display(description="Direction", ordering='message_direction')
+	def direction_badge(self, obj):
+		if obj.message_direction == 'inbound':
+			return mark_safe('<span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-weight: 700;">📥 Inbound</span>')
+		return mark_safe('<span style="background: rgba(37, 211, 102, 0.15); color: #25d366; padding: 2px 8px; border-radius: 4px; font-weight: 700;">📤 Outbound</span>')
+
+	@admin.display(description="Intent", ordering='intent')
+	def intent_badge(self, obj):
+		colors = {
+			'dispatch_alert': ('#25d366', '🚖 Dispatch Sheet'),
+			'driver_briefing': ('#38bdf8', '📋 Driver Briefing'),
+			'start_handover': ('#10b981', '🟢 Start Handover'),
+			'end_handover': ('#6366f1', '🏁 End Handover'),
+			'sos_trigger': ('#ef4444', '🚨 SOS Emergency'),
+			'trip_status': ('#f59e0b', '🛰️ Trip Status'),
+			'payment_upi': ('#ec4899', '💳 UPI Payment'),
+			'general_query': ('#94a3b8', '💬 General Chat'),
+		}
+		color, label = colors.get(obj.intent, ('#94a3b8', obj.get_intent_display()))
+		return format_html('<span style="color: {}; font-weight: 700;">{}</span>', color, label)
+
+	@admin.display(description="Message Body")
+	def short_body(self, obj):
+		text = obj.message_body or ""
+		if len(text) > 60:
+			return f"{text[:60]}..."
+		return text
+
+	@admin.display(description="Status", ordering='status')
+	def status_badge(self, obj):
+		colors = {
+			'sent': '#10b981',
+			'delivered': '#059669',
+			'received': '#38bdf8',
+			'failed': '#ef4444',
+			'simulated': '#f59e0b',
+		}
+		c = colors.get(obj.status, '#94a3b8')
+		return format_html('<span style="color: {}; font-weight: 600;">{}</span>', c, obj.get_status_display())
+
+	@admin.display(description="Trip")
+	def trip_link(self, obj):
+		if obj.trip:
+			url = reverse('admin:operations_trip_change', args=[obj.trip.pk])
+			return format_html('<a href="{}" style="color: #38bdf8; font-weight: 600;">#{}</a>', url, obj.trip.trip_id)
+		return "-"
+
+
+@admin.register(DriverHandoverSession)
+class DriverHandoverSessionAdmin(ModelAdmin):
+	list_display = ('trip_link', 'session_type_badge', 'driver', 'vehicle', 'odometer_display', 'fuel_badge', 'photo_thumb', 'status_badge', 'created_at_fmt', 'verified_by')
+	list_filter = ('session_type', 'status', 'created_at')
+	search_fields = ('trip__trip_id', 'driver__name', 'vehicle__registration_number')
+	autocomplete_fields = ['trip', 'driver', 'vehicle']
+	readonly_fields = ('created_at', 'verified_at')
+	date_hierarchy = 'created_at'
+
+	@admin.display(description="Trip")
+	def trip_link(self, obj):
+		url = reverse('admin:operations_trip_change', args=[obj.trip.pk])
+		return format_html('<a href="{}" style="color: #38bdf8; font-weight: 700;">#{}</a>', url, obj.trip.trip_id)
+
+	@admin.display(description="Session Type", ordering='session_type')
+	def session_type_badge(self, obj):
+		if obj.session_type == 'start':
+			return mark_safe('<span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: 700;">🟢 Start Duty</span>')
+		return mark_safe('<span style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 8px; border-radius: 4px; font-weight: 700;">🏁 End Duty</span>')
+
+	@admin.display(description="Odometer Reading")
+	def odometer_display(self, obj):
+		return format_html('<span style="font-family: monospace; font-weight: 700; color: #fff;">{} KM</span>', obj.odometer_reading)
+
+	@admin.display(description="Fuel Level")
+	def fuel_badge(self, obj):
+		return format_html('<span style="font-weight: 600; color: #fbbf24;">⛽ {}%</span>', obj.fuel_level_percent)
+
+	@admin.display(description="Odometer Photo")
+	def photo_thumb(self, obj):
+		if obj.odometer_photo:
+			return format_html('<a href="{}" target="_blank"><img src="{}" style="width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);"></a>', obj.odometer_photo.url, obj.odometer_photo.url)
+		return mark_safe('<span style="color: #64748b;">No photo</span>')
+
+	@admin.display(description="Audit Status", ordering='status')
+	def status_badge(self, obj):
+		colors = {
+			'approved': ('rgba(16, 185, 129, 0.2)', '#10b981', '✓ Approved'),
+			'submitted': ('rgba(245, 158, 11, 0.2)', '#fbbf24', '⏳ Submitted'),
+			'flagged': ('rgba(239, 68, 68, 0.2)', '#f87171', '✕ Flagged'),
+		}
+		bg, fg, label = colors.get(obj.status, ('rgba(255,255,255,0.1)', '#fff', obj.get_status_display()))
+		return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">{}</span>', bg, fg, label)
+
+	@admin.display(description="Timestamp", ordering='created_at')
+	def created_at_fmt(self, obj):
+		return obj.created_at.strftime('%Y-%m-%d %H:%M')
+
+
+@admin.register(TripMilestoneEvent)
+class TripMilestoneEventAdmin(ModelAdmin):
+	list_display = ('trip_link', 'milestone_step_badge', 'timestamp_fmt', 'odometer_display', 'pin_badge', 'location_name', 'actor_driver')
+	list_filter = ('milestone', 'is_pin_verified', 'timestamp')
+	search_fields = ('trip__trip_id', 'location_name', 'actor_driver__name', 'passenger_pin_entered')
+	autocomplete_fields = ['trip', 'actor_driver']
+	readonly_fields = ('timestamp',)
+	date_hierarchy = 'timestamp'
+
+	@admin.display(description="Trip")
+	def trip_link(self, obj):
+		url = reverse('admin:operations_trip_change', args=[obj.trip.pk])
+		return format_html('<a href="{}" style="color: #38bdf8; font-weight: 700;">#{}</a>', url, obj.trip.trip_id)
+
+	@admin.display(description="Milestone", ordering='milestone_index')
+	def milestone_step_badge(self, obj):
+		icons = {
+			'car_pickup': ('#38bdf8', '🚗 1. Car Pickup'),
+			'driver_reached': ('#06b6d4', '📍 2. Driver Reached'),
+			'guest_pickup': ('#a855f7', '🔢 3. Guest Pickup'),
+			'on_trip': ('#10b981', '🛣️ 4. On Trip'),
+			'guest_drop': ('#f59e0b', '🏁 5. Guest Drop'),
+			'expenses_photo': ('#ec4899', '🧾 6. Expenses Photo'),
+			'car_drop': ('#64748b', '🅿️ 7. Car Drop'),
+		}
+		color, label = icons.get(obj.milestone, ('#94a3b8', obj.get_milestone_display()))
+		return format_html('<span style="background: rgba(255,255,255,0.08); border: 1px solid {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">{}</span>', color, color, label)
+
+	@admin.display(description="Odometer")
+	def odometer_display(self, obj):
+		if obj.odometer_reading:
+			return f"{obj.odometer_reading} KM"
+		return "-"
+
+	@admin.display(description="PIN Verified")
+	def pin_badge(self, obj):
+		if obj.milestone == 'guest_pickup':
+			if obj.is_pin_verified:
+				return format_html('<span style="color: #10b981; font-weight: 700;">✓ Verified ({})</span>', obj.passenger_pin_entered)
+			return format_html('<span style="color: #ef4444; font-weight: 700;">✕ Invalid</span>')
+		return "-"
+
+	@admin.display(description="Timestamp", ordering='timestamp')
+	def timestamp_fmt(self, obj):
+		return obj.timestamp.strftime('%Y-%m-%d %H:%M')
+
+
 

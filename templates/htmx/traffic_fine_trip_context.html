@@ -1,0 +1,40 @@
+{% if trip %}
+<div class="traffic-fine-trip-context-card" style="background: #1e293b; border: 1px solid #334155; border-left: 4px solid #38bdf8; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px; color: #f8fafc; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 6px; margin-bottom: 10px;">
+        <span style="font-weight: 700; font-size: 13px; color: #38bdf8;">
+            🚔 Trip #{{ trip.trip_id }} Context & Telematics Linkage
+        </span>
+        <span style="font-size: 11px; color: #94a3b8;">
+            Date: {{ start_date|date:"d M Y"|default:"N/A" }}
+        </span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; font-size: 12px;">
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Assigned Vehicle</div>
+            <div style="font-weight: 600; color: #f8fafc;">
+                {% if vehicle %}
+                    {{ vehicle.registration_number }} ({{ vehicle.vehicle_type.name|default:"Fleet" }})
+                {% else %}
+                    <span style="color: #f87171;">No vehicle linked</span>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Operating Captain / Driver</div>
+            <div style="font-weight: 600; color: #f8fafc;">
+                {% if driver %}
+                    {{ driver.name }} ({{ driver.phone }})
+                {% else %}
+                    <span style="color: #f87171;">No driver assigned</span>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Customer / Corporate Account</div>
+            <div style="font-weight: 600; color: #cbd5e1;">
+                {{ trip.party.name|default:"Direct Retail" }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,6 +1,7 @@
 import re
 import datetime
 from django.contrib import admin, messages
+from unfold.admin import ModelAdmin, TabularInline, StackedInline
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.html import format_html, escape
@@ -17,7 +18,7 @@ from .models import (
     SupplierProfile, SupplierContractedRate, SupplierServiceVoucher,
     DmcTask,
     FlightMaster, DmcDocument, TravelComplaint, SupplierPaymentRequisition,
-    DmcInvoice,
+    DmcInvoice, StaffNotification,
 )
 from .services import generate_quotation_pdf
 from operations.models import Booking
@@ -37,6 +38,41 @@ def mark_as_quoted(modeladmin, request, queryset):
 def mark_as_lost(modeladmin, request, queryset):
     updated = queryset.exclude(status='won').update(status='lost')
     modeladmin.message_user(request, f"{updated} inquiry(s) marked as Lost.")
+
+
+@admin.action(description="📄 Clone selected Inquiry (creates fresh lead)")
+def clone_inquiry(modeladmin, request, queryset):
+    cloned = 0
+    for original in queryset[:5]:  # Limit to 5 at a time
+        original.pk = None
+        original.id = None
+        original.inquiry_number = ''
+        original.status = 'new'
+        original.created_at = None
+        original.tat_deadline = None
+        original.converted_booking = None
+        original.converted_trip = None
+        original.lost_reason = ''
+        original.competitor_name = ''
+        original.objection_notes = ''
+        original.win_loss_rating = None
+        original.assigned_to = request.user
+        original.pickup_date = timezone.now().date()
+        original.save()
+        cloned += 1
+    modeladmin.message_user(request, f"📄 {cloned} inquiry(s) cloned as fresh leads.")
+
+
+@admin.action(description="👥 Reassign selected inquiries to me")
+def mass_reassign_to_me(modeladmin, request, queryset):
+    updated = queryset.update(assigned_to=request.user)
+    modeladmin.message_user(request, f"✅ {updated} inquiry(s) reassigned to {request.user.username}.")
+    StaffNotification.push(
+        notification_type='system',
+        title=f'{updated} leads reassigned to {request.user.get_full_name() or request.user.username}',
+        body='Performed via admin bulk action.',
+        recipient=request.user,
+    )
 
 
 # ==========================================================================
@@ -75,14 +111,21 @@ class PipelineStageFilter(admin.SimpleListFilter):
 #  1. Inquiry Admin — Sales Pipeline
 # ==========================================================================
 
-class InquiryFollowUpInline(admin.TabularInline):
+class InquiryFollowUpInline(TabularInline):
     model = InquiryFollowUp
     extra = 1
     fields = ('scheduled_at', 'interaction_type', 'notes', 'next_action', 'performed_by', 'is_done')
 
 
+class InquiryDocumentAttachmentInline(TabularInline):
+    model = DmcDocument
+    fk_name = 'related_inquiry'
+    extra = 1
+    fields = ('title', 'category', 'document_file', 'description', 'uploaded_by')
+
+
 @admin.register(Inquiry)
-class InquiryAdmin(admin.ModelAdmin):
+class InquiryAdmin(ModelAdmin):
     autocomplete_fields = ['party', 'vehicle_type']
     list_display = (
         'inquiry_number_display', 'guest_display', 'party_link',
@@ -92,10 +135,11 @@ class InquiryAdmin(admin.ModelAdmin):
         'pipeline_status_badge', 'age_display', 'quick_actions'
     )
     list_filter = (PipelineStageFilter, 'status', 'priority', 'source', 'journey_type', 'pickup_date')
+    list_select_related = ('party', 'assigned_to', 'vehicle_type')
     search_fields = ('inquiry_number', 'guest_name', 'guest_phone', 'party__name', 'destination', 'pickup_location', 'notes')
     readonly_fields = ('inquiry_number', 'created_at', 'tat_deadline', 'client_profile_snapshot', 'client_comm_history')
-    actions = ['convert_to_booking', 'download_quotation', mark_as_quoted, mark_as_lost]
-    inlines = [InquiryFollowUpInline]
+    actions = ['convert_to_booking', 'download_quotation', mark_as_quoted, mark_as_lost, clone_inquiry, mass_reassign_to_me]
+    inlines = [InquiryFollowUpInline, InquiryDocumentAttachmentInline]
     date_hierarchy = 'pickup_date'
     change_list_template = 'admin/crm/inquiry/change_list.html'
 
@@ -112,9 +156,10 @@ class InquiryAdmin(admin.ModelAdmin):
         }),
         ('2. Circuit Route & Schedule', {
             'fields': (
-                ('pickup_location', 'destination'),
+                ('destination_dropdown', 'destination'),
+                ('pickup_location', 'journey_type'),
                 ('pickup_date', 'pickup_time', 'drop_date'),
-                ('journey_type', 'adult_count', 'child_count'),
+                ('adult_count', 'child_count'),
             )
         }),
         ('3. Fleet Allocation & Commercial Quotation', {
@@ -128,6 +173,15 @@ class InquiryAdmin(admin.ModelAdmin):
             'fields': ('client_comm_history',),
             'classes': ('collapse',),
             'description': 'Recent WhatsApp and Email interactions with this client.'
+        }),
+        ('5. 🔴 Objection Management (Fill when Lost)', {
+            'fields': (
+                ('lost_reason', 'competitor_name'),
+                'objection_notes',
+                'win_loss_rating',
+            ),
+            'classes': ('collapse',),
+            'description': '⚠️ Fill this section when marking a lead as Lost. Helps analyse objection patterns and improve conversion rates.'
         }),
     )
 
@@ -427,7 +481,7 @@ class InquiryAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(CustomerPreference)
-class CustomerPreferenceAdmin(admin.ModelAdmin):
+class CustomerPreferenceAdmin(ModelAdmin):
     autocomplete_fields = ['client', 'preferred_vehicle_type']
     list_display = ('client_display', 'party_type_badge', 'preferred_vehicle_badge', 'dietary_badge', 'notification_channels', 'quick_contact')
     list_filter = ('whatsapp_opt_in', 'email_opt_in', 'preferred_vehicle_type', 'client__party_type')
@@ -547,7 +601,7 @@ class CustomerPreferenceAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(CommunicationLog)
-class CommunicationLogAdmin(admin.ModelAdmin):
+class CommunicationLogAdmin(ModelAdmin):
     list_display = ('client_display', 'booking_link', 'channel_badge', 'intent_badge', 'message_preview', 'sent_at', 'status_badge')
     list_filter = ('comm_type', 'status', 'sent_at', ('booking', admin.EmptyFieldListFilter))
     search_fields = ('client__name', 'booking__booking_number', 'message_content')
@@ -675,7 +729,7 @@ class CommunicationLogAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(CouponProxy)
-class CouponProxyAdmin(admin.ModelAdmin):
+class CouponProxyAdmin(ModelAdmin):
     autocomplete_fields = ['applicable_package']
     list_display = ('code_display', 'discount_display', 'package_scope_badge', 'usage_progress_display', 'expiry_countdown_badge', 'active_badge')
     list_filter = ('is_active', 'applicable_package__category')
@@ -786,7 +840,7 @@ class CouponProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(EmailCampaignProxy)
-class EmailCampaignProxyAdmin(admin.ModelAdmin):
+class EmailCampaignProxyAdmin(ModelAdmin):
     list_display = ('name_display', 'subject_display', 'theme_badge', 'sent_badge', 'active_badge')
     list_filter = ('is_active', 'sent_at')
     search_fields = ('name', 'subject')
@@ -880,7 +934,7 @@ class EmailCampaignProxyAdmin(admin.ModelAdmin):
 # ==========================================================================
 
 @admin.register(UpsellRecommendationProxy)
-class UpsellRecommendationProxyAdmin(admin.ModelAdmin):
+class UpsellRecommendationProxyAdmin(ModelAdmin):
     autocomplete_fields = ['package']
     list_display = ('title_display', 'package_category_badge', 'package_link', 'price_display', 'description_snippet')
     list_filter = ('package__category',)
@@ -971,7 +1025,7 @@ class UpsellRecommendationProxyAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(HotelMaster)
-class HotelMasterAdmin(admin.ModelAdmin):
+class HotelMasterAdmin(ModelAdmin):
     list_display = ('name', 'destination', 'star_category_badge', 'room_type', 'cp_rate_display', 'map_rate_display', 'ap_rate_display', 'peak_surge_display', 'is_active')
     list_filter = ('destination', 'star_category', 'is_active')
     search_fields = ('name', 'destination', 'contact_phone', 'address')
@@ -1011,7 +1065,7 @@ class HotelMasterAdmin(admin.ModelAdmin):
 
 
 @admin.register(MonumentEntranceMaster)
-class MonumentEntranceMasterAdmin(admin.ModelAdmin):
+class MonumentEntranceMasterAdmin(ModelAdmin):
     list_display = ('name', 'destination', 'domestic_rates_display', 'foreigner_rates_display', 'camera_fee_display', 'operating_hours', 'is_active')
     list_filter = ('destination', 'is_active')
     search_fields = ('name', 'destination')
@@ -1030,7 +1084,7 @@ class MonumentEntranceMasterAdmin(admin.ModelAdmin):
 
 
 @admin.register(ActivityMaster)
-class ActivityMasterAdmin(admin.ModelAdmin):
+class ActivityMasterAdmin(ModelAdmin):
     list_display = ('name', 'destination', 'pricing_type_badge', 'rate_display', 'duration_display', 'is_active')
     list_filter = ('destination', 'pricing_type', 'is_active')
     search_fields = ('name', 'destination')
@@ -1052,7 +1106,7 @@ class ActivityMasterAdmin(admin.ModelAdmin):
 
 
 @admin.register(GuideChargeMaster)
-class GuideChargeMasterAdmin(admin.ModelAdmin):
+class GuideChargeMasterAdmin(ModelAdmin):
     list_display = ('destination', 'language_badge', 'half_day_display', 'full_day_display', 'is_active')
     list_filter = ('destination', 'language', 'is_active')
     search_fields = ('destination',)
@@ -1077,21 +1131,21 @@ class GuideChargeMasterAdmin(admin.ModelAdmin):
 #  Custom Quotation Admin
 # ==============================================================================
 
-class QuotationItemInline(admin.TabularInline):
+class QuotationItemInline(TabularInline):
     model = QuotationItem
     extra = 1
     fields = ('category', 'item_name', 'quantity', 'unit_cost', 'total_cost')
     readonly_fields = ('total_cost',)
 
 
-class QuotationDayInline(admin.StackedInline):
+class QuotationDayInline(StackedInline):
     model = QuotationDay
     extra = 1
     fields = ('day_number', 'title', 'overnight_destination', 'hotel', 'hotel_meal_plan', 'description')
 
 
 @admin.register(Quotation)
-class QuotationAdmin(admin.ModelAdmin):
+class QuotationAdmin(ModelAdmin):
     list_display = (
         'quotation_number', 'version_badge', 'guest_name', 'destination',
         'duration_display', 'pax_count', 'net_cost_display', 'markup_display',
@@ -1224,14 +1278,14 @@ class QuotationAdmin(admin.ModelAdmin):
 #  4. Phase B Admin — FTO, Corporate, Supplier & Vouchers
 # ==============================================================================
 
-class PartyContactPersonInline(admin.TabularInline):
+class PartyContactPersonInline(TabularInline):
     model = PartyContactPerson
     extra = 1
     fields = ('name', 'designation', 'contact_type', 'phone', 'mobile', 'email', 'is_primary')
 
 
 @admin.register(PartnerProfile)
-class PartnerProfileAdmin(admin.ModelAdmin):
+class PartnerProfileAdmin(ModelAdmin):
     list_display = ('party_name', 'category_badge', 'trade_name', 'credit_limit_display', 'pan_number', 'agreement_status', 'created_at')
     list_filter = ('category', 'agreement_valid_until')
     search_fields = ('party__name', 'trade_name', 'pan_number', 'iata_number', 'bank_name')
@@ -1291,7 +1345,7 @@ class PartnerProfileAdmin(admin.ModelAdmin):
 
 
 @admin.register(B2CCustomerProfile)
-class B2CCustomerProfileAdmin(admin.ModelAdmin):
+class B2CCustomerProfileAdmin(ModelAdmin):
     list_display = ('full_name', 'vip_badge', 'nationality', 'phone_display', 'city', 'passport_number', 'created_at')
     list_filter = ('is_vip', 'nationality', 'state')
     search_fields = ('full_name', 'party__name', 'party__phone', 'party__email', 'passport_number', 'city')
@@ -1326,14 +1380,14 @@ class B2CCustomerProfileAdmin(admin.ModelAdmin):
         return obj.party.phone or obj.alternate_phone or '-'
 
 
-class SupplierContractedRateInline(admin.TabularInline):
+class SupplierContractedRateInline(TabularInline):
     model = SupplierContractedRate
     extra = 1
     fields = ('service_category', 'service_name', 'room_type', 'meal_plan', 'seasonality', 'rack_rate', 'contracted_buy_rate', 'is_active')
 
 
 @admin.register(SupplierProfile)
-class SupplierProfileAdmin(admin.ModelAdmin):
+class SupplierProfileAdmin(ModelAdmin):
     list_display = ('supplier_name', 'type_badge', 'destination_city', 'rates_count', 'preferred_badge', 'contract_status')
     list_filter = ('supplier_type', 'destination_city', 'is_preferred')
     search_fields = ('party__name', 'trade_name', 'destination_city', 'gstin', 'pan_number')
@@ -1388,7 +1442,7 @@ class SupplierProfileAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupplierContractedRate)
-class SupplierContractedRateAdmin(admin.ModelAdmin):
+class SupplierContractedRateAdmin(ModelAdmin):
     list_display = ('supplier_name', 'service_name', 'seasonality_badge', 'room_type', 'meal_plan', 'rack_rate_display', 'contracted_rate_display', 'savings_display', 'is_active')
     list_filter = ('seasonality', 'service_category', 'is_active')
     search_fields = ('service_name', 'supplier__party__name', 'room_type')
@@ -1417,7 +1471,7 @@ class SupplierContractedRateAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupplierServiceVoucher)
-class SupplierServiceVoucherAdmin(admin.ModelAdmin):
+class SupplierServiceVoucherAdmin(ModelAdmin):
     list_display = ('voucher_number', 'voucher_type_badge', 'supplier_name', 'guest_name', 'dates_display', 'settlement_display', 'status_badge', 'actions_display')
     list_filter = ('status', 'voucher_type', 'service_date_start')
     search_fields = ('voucher_number', 'guest_name', 'supplier__party__name', 'confirmation_reference')
@@ -1514,7 +1568,7 @@ class SupplierServiceVoucherAdmin(admin.ModelAdmin):
 
 
 @admin.register(DmcTask)
-class DmcTaskAdmin(admin.ModelAdmin):
+class DmcTaskAdmin(ModelAdmin):
     list_display = ('title', 'priority_badge', 'assigned_to', 'due_date', 'status_badge', 'overdue_badge')
     list_filter = ('status', 'priority', 'due_date', 'assigned_to')
     search_fields = ('title', 'description', 'assigned_to__username')
@@ -1539,14 +1593,14 @@ class DmcTaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(FlightMaster)
-class FlightMasterAdmin(admin.ModelAdmin):
+class FlightMasterAdmin(ModelAdmin):
     list_display = ('airline', 'flight_number', 'origin_airport', 'destination_airport', 'departure_time', 'arrival_time', 'cabin_class', 'is_active')
     list_filter = ('airline', 'origin_airport', 'destination_airport', 'cabin_class', 'is_active')
     search_fields = ('airline', 'flight_number', 'origin_airport', 'destination_airport')
 
 
 @admin.register(DmcDocument)
-class DmcDocumentAdmin(admin.ModelAdmin):
+class DmcDocumentAdmin(ModelAdmin):
     list_display = ('title', 'category_badge', 'uploaded_by', 'created_at', 'download_link')
     list_filter = ('category', 'created_at')
     search_fields = ('title', 'description')
@@ -1563,7 +1617,7 @@ class DmcDocumentAdmin(admin.ModelAdmin):
 
 
 @admin.register(TravelComplaint)
-class TravelComplaintAdmin(admin.ModelAdmin):
+class TravelComplaintAdmin(ModelAdmin):
     list_display = ('complaint_number', 'complainant_name', 'category', 'severity_badge', 'status_badge', 'supplier_involved', 'supplier_rating_awarded', 'lodged_at')
     list_filter = ('status', 'severity', 'category', 'complainant_type')
     search_fields = ('complaint_number', 'complainant_name', 'complainant_phone', 'issue_description')
@@ -1591,7 +1645,7 @@ class TravelComplaintAdmin(admin.ModelAdmin):
 
 
 @admin.register(SupplierPaymentRequisition)
-class SupplierPaymentRequisitionAdmin(admin.ModelAdmin):
+class SupplierPaymentRequisitionAdmin(ModelAdmin):
     list_display = ('requisition_number', 'supplier', 'amount_requested', 'payment_type', 'status_badge', 'cost_to_company', 'cost_to_client', 'gross_margin_display', 'created_at')
     list_filter = ('status', 'payment_type', 'created_at')
     search_fields = ('requisition_number', 'supplier__company_name', 'invoice_number')
@@ -1620,7 +1674,7 @@ class SupplierPaymentRequisitionAdmin(admin.ModelAdmin):
 
 
 @admin.register(DmcInvoice)
-class DmcInvoiceAdmin(admin.ModelAdmin):
+class DmcInvoiceAdmin(ModelAdmin):
     list_display = ('invoice_number', 'invoice_type_badge', 'billing_name', 'taxable_amount', 'total_tax_amount', 'total_invoice_amount', 'balance_due', 'status_badge', 'invoice_date')
     list_filter = ('invoice_type', 'status', 'tax_regime', 'invoice_date')
     search_fields = ('invoice_number', 'billing_name', 'client_gstin', 'client_pan', 'party__name')
@@ -1637,3 +1691,53 @@ class DmcInvoiceAdmin(admin.ModelAdmin):
         return format_html('<span class="badge" style="background:{}; color:#fff; padding:2px 6px; border-radius:4px;">{}</span>', colors.get(obj.status, '#64748b'), obj.get_status_display())
 
 
+# ==========================================================================
+# Phase 6 — Staff Notification Centre Admin
+# ==========================================================================
+
+@admin.action(description="✅ Mark selected notifications as Read")
+def mark_all_notifications_read(modeladmin, request, queryset):
+    cnt = queryset.update(is_read=True)
+    modeladmin.message_user(request, f"{cnt} notification(s) marked as read.")
+
+
+@admin.action(description="🗑️ Delete all Read notifications")
+def delete_read_notifications(modeladmin, request, queryset):
+    cnt, _ = queryset.filter(is_read=True).delete()
+    modeladmin.message_user(request, f"{cnt} read notification(s) deleted.")
+
+
+@admin.register(StaffNotification)
+class StaffNotificationAdmin(ModelAdmin):
+    list_display = ('type_badge', 'title', 'recipient_display', 'is_read', 'created_at')
+    list_filter = ('notification_type', 'is_read', 'created_at')
+    search_fields = ('title', 'body', 'recipient__username')
+    date_hierarchy = 'created_at'
+    readonly_fields = ('created_at',)
+    actions = [mark_all_notifications_read, delete_read_notifications]
+
+    @admin.display(description='Type')
+    def type_badge(self, obj):
+        colors = {
+            'new_booking': '#0ea5e9',
+            'payment_received': '#10b981',
+            'payment_failed': '#ef4444',
+            'trip_departing': '#f59e0b',
+            'tat_breach': '#f97316',
+            'lead_won': '#8b5cf6',
+            'lead_lost': '#64748b',
+            'task_due': '#ec4899',
+            'complaint_lodged': '#dc2626',
+            'voucher_confirmed': '#059669',
+            'system': '#475569',
+        }
+        icon = obj.get_notification_type_display().split(' ')[0]
+        label = obj.get_notification_type_display()
+        color = colors.get(obj.notification_type, '#475569')
+        return format_html('<span style="background:{}; color:#fff; padding:3px 8px; border-radius:5px; font-size:.78rem;">{}</span>', color, label)
+
+    @admin.display(description='Recipient')
+    def recipient_display(self, obj):
+        if obj.recipient:
+            return format_html('👤 {}', obj.recipient.username)
+        return format_html('<span style="color:#f59e0b;">📢 Broadcast (All Staff)</span>')

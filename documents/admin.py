@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from .models import CustomerDocument
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -6,7 +7,7 @@ from .models import CustomerDocument
 # ──────────────────────────────────────────────────────────────────────────
 
 @admin.register(CustomerDocument)
-class CustomerDocumentAdmin(admin.ModelAdmin):
+class CustomerDocumentAdmin(ModelAdmin):
     list_display = ('title', 'customer', 'booking', 'document_type', 'uploaded_at')
     list_filter = ('document_type', 'uploaded_at')
     search_fields = ('title', 'customer__name', 'booking__booking_number')

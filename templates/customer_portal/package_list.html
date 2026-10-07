@@ -1,31 +1,223 @@
 {% extends "customer_portal/base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Packages" %} | Customer Portal{% endblock %}
+{% block title %}Tour Packages Catalog | Sivagayathiri Travels{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 2rem;">
-    <h1>{% trans "Available Packages" %}</h1>
-    <p style="color: var(--text-muted);">{% trans "Browse our curated travel experiences." %}</p>
-</div>
+<section class="section-wrapper" style="padding-top: 3rem;">
+    <!-- Catalog Header -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <span class="section-subtitle-tag">EXPEDITIONS DIRECTORY</span>
+            <h1 class="section-title">All Tour Packages & Holiday Circuits</h1>
+            <p class="section-desc">
+                Explore curated itineraries covering South India's top hill stations, sacred temple yatras, college IVs, and family beach getaways.
+            </p>
+        </div>
+        <div style="background: rgba(2, 132, 199, 0.08); border: 1px solid rgba(2, 132, 199, 0.25); padding: 0.6rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; color: #0284c7;">
+            🎒 {{ total_count|default:page_obj.paginator.count }} Packages • Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+    </div>
 
-<div class="grid">
-    {% for package in packages %}
-    <div class="glass-card">
-        <h3>{{ package.name }}</h3>
-        <p style="color: var(--text-muted);">{{ package.destination }} • {{ package.duration_days }} {% trans "Days" %}</p>
-        <p style="font-size: 1.25rem; font-weight: bold; color: var(--primary);">
-            {% trans "From" %} ₹{{ package.base_price }}
-        </p>
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 1rem 0;">
-        <a href="{% url 'customer_portal:package_detail' package.id %}" class="btn-primary" style="width: 100%; text-align: center; display: block; box-sizing: border-box;">
-            {% trans "View Details" %}
-        </a>
+    <!-- Search & Filter Controls -->
+    <form method="GET" action="{% url 'customer_portal:package_list' %}" style="background: white; border: 1px solid var(--border-light); border-radius: var(--radius-xl); padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; box-shadow: var(--shadow-sm); display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 1rem; align-items: end;">
+        <div>
+            <label class="form-label">Search Circuit / Destination</label>
+            <input type="text" name="q" value="{{ search_query }}" placeholder="e.g. Ooty, Mysore, Kerala, Temple..." class="form-control">
+        </div>
+
+        <div>
+            <label class="form-label">Category</label>
+            <select name="category" class="form-control">
+                <option value="all">All Categories</option>
+                {% for code, label in categories_choices %}
+                    <option value="{{ code }}" {% if selected_category == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label class="form-label">Sort By</label>
+            <select name="sort" class="form-control">
+                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+                <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                <option value="duration" {% if sort_by == 'duration' %}selected{% endif %}>Duration (Days)</option>
+            </select>
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.5rem; width: 100%;">
+                Filter Results 🔍
+            </button>
+        </div>
+    </form>
+
+    <!-- Custom Tour & College IV Specialist Callout Banner -->
+    <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%); border-radius: var(--radius-xl); padding: 1.5rem 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; color: white; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.35); border: 1px solid rgba(255, 255, 255, 0.12);">
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(99, 102, 241, 0.25); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;">
+                ✨
+            </div>
+            <div>
+                <div style="display: inline-block; background: #10b981; color: white; font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">
+                    Bespoke Itinerary Desk
+                </div>
+                <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem; font-weight: 700; color: white; margin: 0 0 0.2rem;">
+                    Need a custom route, specific hotel, or College IV batch quote?
+                </h3>
+                <p style="color: #cbd5e1; font-size: 0.85rem; margin: 0; line-height: 1.4;">
+                    Tell us your group size and destination. We generate a full day-wise PDF plan & direct operator rates in 60 seconds on WhatsApp.
+                </p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" onclick="openCustomTripModal('college_iv')" class="btn" style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white; font-weight: 700; border: none; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
+                🎓 Plan College IV →
+            </button>
+            <button type="button" onclick="openCustomTripModal()" class="btn btn-outline" style="color: #f8fafc; border-color: rgba(255, 255, 255, 0.3); font-weight: 600; padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.88rem; cursor: pointer;">
+                ✨ Custom Tour Quote
+            </button>
+        </div>
     </div>
-    {% empty %}
-    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
-        <p style="color: var(--text-muted);">{% trans "No packages currently available." %}</p>
+
+    <!-- Packages Cards Grid -->
+    <div class="package-cards-grid">
+        {% for pkg in packages %}
+        <div class="package-card">
+            <div class="package-card-media">
+                <img src="/static/images/hero_tour_bus.jpg" alt="{{ pkg.name }}" loading="lazy">
+                <span class="media-badge-tag">
+                    {% if pkg.category == 'hill_station' %}⛰️ Hill Station{% elif pkg.category == 'devotional' %}🕉️ Devotional{% elif pkg.category == 'college_iv' %}🎓 College IV{% else %}🏖️ Holiday{% endif %}
+                </span>
+                <span class="media-duration-tag">
+                    {{ pkg.duration_nights }}N / {{ pkg.duration_days }}D
+                </span>
+            </div>
+
+            <div class="package-card-body">
+                <div class="package-destination">
+                    <span>📍</span> {{ pkg.destination }}
+                </div>
+                <h3 class="package-title">{{ pkg.name }}</h3>
+
+                <ul class="package-inclusions-list">
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>{{ pkg.vehicle_seating_desc|default:'Luxury Coach Transit' }}</span>
+                    </li>
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>{{ pkg.hotel_star_category|default:'Star Category Resort' }}</span>
+                    </li>
+                    {% if pkg.has_campfire_dj %}
+                    <li>
+                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                        <span>DJ with Campfire Experience</span>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <div class="package-card-footer">
+                    <div class="package-price-box">
+                        <div class="price-label">Starting From</div>
+                        <div class="price-value">
+                            ₹{{ pkg.price_with_food|default:pkg.base_price|floatformat:0 }}
+                            <small style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">/ person</small>
+                        </div>
+                    </div>
+                    <a href="{% url 'customer_portal:package_detail' pkg.id %}" class="btn btn-primary" style="padding: 0.55rem 1rem;">
+                        View Itinerary & Book →
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: span 3; text-align: center; padding: 4rem 2rem; background: white; border-radius: var(--radius-xl); border: 1px solid var(--border-light);">
+            <h3>No packages match your search criteria.</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">Try modifying your search keywords or explore all categories.</p>
+            <a href="{% url 'customer_portal:package_list' %}" class="btn btn-outline" style="margin-top: 1.25rem;">Reset All Filters</a>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
+
+    <!-- Pagination Controls (Strictly 25 Packages Per Page, 1 to N Pages) -->
+    {% if page_obj.has_other_pages %}
+    <style>
+        .page-nav-link {
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: white;
+            color: var(--brand-navy);
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        .page-nav-link:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #0284c7;
+        }
+        .page-nav-active {
+            padding: 0.5rem 0.95rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+        }
+    </style>
+
+    <nav class="pagination-wrapper" aria-label="Catalog Page Navigation" style="margin: 3.5rem 0 2rem; display: flex; flex-direction: column; align-items: center; gap: 1.25rem;">
+        <!-- Page Count Summary -->
+        <div style="font-size: 0.92rem; color: var(--text-secondary); font-weight: 500;">
+            Showing <strong style="color: var(--brand-navy);">{{ page_obj.start_index }}</strong> to <strong style="color: var(--brand-navy);">{{ page_obj.end_index }}</strong> of <strong style="color: var(--brand-navy);">{{ total_count|default:page_obj.paginator.count }}</strong> tour packages (25 per page)
+        </div>
+
+        <ul style="display: flex; align-items: center; gap: 0.35rem; list-style: none; padding: 0; margin: 0; flex-wrap: wrap; justify-content: center;">
+            <!-- First & Previous Buttons -->
+            {% if page_obj.has_previous %}
+                <li>
+                    <a href="?page=1{{ querystring }}" class="page-nav-link" title="First Page">&laquo; First</a>
+                </li>
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}{{ querystring }}" class="page-nav-link" title="Previous Page">&lsaquo; Prev</a>
+                </li>
+            {% endif %}
+
+            <!-- Numbered Page Pills (Surrounding window around current page) -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li>
+                        <span class="page-nav-active">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-4' and num < page_obj.number|add:'4' %}
+                    <li>
+                        <a href="?page={{ num }}{{ querystring }}" class="page-nav-link">{{ num }}</a>
+                    </li>
+                {% elif num == page_obj.number|add:'-4' or num == page_obj.number|add:'4' %}
+                    <li style="padding: 0 0.25rem; color: var(--text-muted); font-size: 0.9rem;">...</li>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next & Last Buttons -->
+            {% if page_obj.has_next %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}{{ querystring }}" class="page-nav-link" title="Next Page">Next &rsaquo;</a>
+                </li>
+                <li>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{{ querystring }}" class="page-nav-link" title="Last Page">Last ({{ page_obj.paginator.num_pages }}) &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</section>
 {% endblock %}

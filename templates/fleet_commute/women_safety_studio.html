@@ -1,0 +1,419 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🛡️ Women Safety IVR Simulator & Commute Buddy Command | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/fleet_commute/commutermanifestproxy/" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🛡️ Women Safety & IVR Simulator</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+.safety-container {
+    padding: 24px;
+    background: #090d16;
+    color: #f8fafc;
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.safety-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+.live-beacon {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #f87171;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+.beacon-dot {
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ef4444;
+    animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.kpi-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 14px;
+    padding: 18px 20px;
+    backdrop-filter: blur(8px);
+}
+.kpi-val {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+}
+.workspace-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+}
+@media (max-width: 1024px) {
+    .workspace-grid { grid-template-columns: 1fr; }
+}
+.glass-panel {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 16px;
+    padding: 24px;
+}
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.table-custom th {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+    color: #94a3b8;
+    font-weight: 600;
+}
+.table-custom td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+}
+.badge-night {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.badge-buddy {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+.btn-ivr {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #fff;
+    border: 1px solid #38bdf8;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-ivr:hover {
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    transform: translateY(-1px);
+}
+/* Phone Mockup */
+.phone-mockup {
+    background: #020617;
+    border: 4px solid #334155;
+    border-radius: 36px;
+    padding: 24px 20px;
+    max-width: 340px;
+    margin: 0 auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    text-align: center;
+}
+.phone-notch {
+    width: 90px;
+    height: 14px;
+    background: #1e293b;
+    border-radius: 10px;
+    margin: 0 auto 20px;
+}
+.phone-screen {
+    background: linear-gradient(180deg, #0f172a, #020617);
+    border-radius: 20px;
+    padding: 16px;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.keypad-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+.key-btn {
+    padding: 16px 10px;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.2s;
+    border: 1px solid transparent;
+}
+.key-btn:active { transform: scale(0.95); }
+.key-safe {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+    color: #34d399;
+}
+.key-sos {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #f87171;
+}
+</style>
+
+<div class="safety-container">
+    <div class="safety-header">
+        <div>
+            <h1 style="font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px; margin: 0;">
+                🛡️ Women Safety IVR Simulator & Commute Buddy Command
+            </h1>
+            <p style="color: #94a3b8; font-size: 13px; margin: 4px 0 0;">
+                Statutory Night Shift Guardrails (8 PM – 6 AM) &bull; Automated Outbound Drop Verification &bull; Escort Pairing
+            </p>
+        </div>
+        <div class="live-beacon">
+            <span class="beacon-dot"></span>
+            <span>24/7 STATUTORY WOMEN SAFETY MONITOR ACTIVE</span>
+        </div>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">🌙 Night Shift Commuters</div>
+            <div class="kpi-val" style="color: #38bdf8;">{{ passes.count }}</div>
+        </div>
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">⚠️ Isolated Female Drops</div>
+            <div class="kpi-val" style="color: #ef4444;" id="kpiIsolatedCount">2</div>
+        </div>
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">✅ Safe Drop Confirmed (Key 1)</div>
+            <div class="kpi-val" style="color: #10b981;" id="kpiSafeCount">14</div>
+        </div>
+        <div class="kpi-card">
+            <div style="font-size: 12px; color: #94a3b8;">🚨 SOS Panic Escalations</div>
+            <div class="kpi-val" style="color: #f59e0b;" id="kpiSosCount">0</div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace-grid">
+        <!-- Commuter Roster & Buddy Matching -->
+        <div class="glass-panel">
+            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #e2e8f0; display: flex; justify-content: space-between;">
+                <span>📋 Night Shift Commuters & Guardrails Roster</span>
+                <a href="{% url 'fleet_commute:bulk_roster_import' %}" style="font-size: 12px; color: #38bdf8; text-decoration: none;">+ Bulk CSV Importer &rarr;</a>
+            </h3>
+
+            <div style="overflow-x: auto;">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th>Commuter</th>
+                            <th>Stop & Route</th>
+                            <th>Safety Status</th>
+                            <th>Commute Buddy</th>
+                            <th>IVR Verification</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bp in passes %}
+                        <tr id="row-{{ bp.id }}">
+                            <td>
+                                <strong style="color: #fff;">{{ bp.commuter.name }}</strong>
+                                <div style="font-size: 11px; color: #94a3b8;">{{ bp.commuter.commuter_id }} &bull; {{ bp.commuter.get_gender_display }}</div>
+                            </td>
+                            <td>
+                                <div>{{ bp.commuter.boarding_stop.name|default:"Depot / Campus Hub" }}</div>
+                                <div style="font-size: 11px; color: #64748b;">{{ bp.shift.shift_name|default:"Night Shift (10 PM)" }}</div>
+                            </td>
+                            <td>
+                                {% if bp.is_isolated_night_drop %}
+                                    <span class="badge-night">⚠️ Isolated Last Drop</span>
+                                {% else %}
+                                    <span style="color: #10b981; font-size: 11px; font-weight: 600;">🛡️ Escorted</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if bp.commute_buddy %}
+                                    <span class="badge-buddy">👥 {{ bp.commute_buddy.commuter.name }}</span>
+                                {% elif bp.suggested_buddy %}
+                                    <span style="font-size: 11px; color: #f59e0b;">Pair: {{ bp.suggested_buddy.commuter.name }}</span>
+                                {% else %}
+                                    <span style="color: #64748b; font-size: 11px;">None</span>
+                                {% endif %}
+                            </td>
+                            <td id="status-{{ bp.id }}">
+                                <span style="font-size: 11px; font-weight: 600;">{{ bp.get_ivr_status_display }}</span>
+                            </td>
+                            <td>
+                                <button class="btn-ivr" onclick="loadSimPhone('{{ bp.id }}', '{{ bp.commuter.name }}', '{{ bp.commuter.phone|default:'+91 98401 22345' }}', '{{ bp.pass_token }}')">
+                                    📞 Dial IVR
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #94a3b8; padding: 24px;">
+                                No active night commuters scheduled for today. Use Bulk Importer to load rosters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Phone IVR Simulator -->
+        <div class="glass-panel">
+            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #e2e8f0;">
+                📱 Telecom Outbound IVR Webhook Simulator
+            </h3>
+
+            <div class="phone-mockup">
+                <div class="phone-notch"></div>
+                <div class="phone-screen">
+                    <div>
+                        <div style="font-size: 11px; color: #38bdf8; font-weight: 700; text-transform: uppercase;">Incoming Automated Call</div>
+                        <h4 id="phoneCommuterName" style="color: #fff; font-size: 18px; margin: 8px 0 2px;">Pick a Commuter</h4>
+                        <div id="phoneCommuterNum" style="color: #94a3b8; font-size: 12px; font-family: 'JetBrains Mono';">+91 98401 XXXXX</div>
+                        <div id="callTimer" style="font-size: 12px; color: #10b981; margin-top: 4px; display: none;">00:05 Ringing...</div>
+                    </div>
+
+                    <div id="ivrScriptBox" style="background: rgba(0,0,0,0.5); border: 1px dashed #334155; border-radius: 12px; padding: 12px; font-size: 11px; color: #cbd5e1; text-align: left; line-height: 1.5; margin: 16px 0;">
+                        Click <strong>"Dial IVR"</strong> on any commuter to initiate the voice safety check call.
+                    </div>
+
+                    <div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; font-weight: 600;">SIMULATE DTMF KEYPRESS:</div>
+                        <div class="keypad-grid">
+                            <button class="key-btn key-safe" id="btnKey1" onclick="sendDTMF('1')" disabled>
+                                <div style="font-size: 20px;">1</div>
+                                <div style="font-size: 11px;">Safe Home</div>
+                            </button>
+                            <button class="key-btn key-sos" id="btnKey2" onclick="sendDTMF('2')" disabled>
+                                <div style="font-size: 20px;">2</div>
+                                <div style="font-size: 11px;">Panic SOS</div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webhook Response Log -->
+            <div style="margin-top: 16px; background: #020617; border: 1px solid #1e293b; border-radius: 10px; padding: 12px; font-family: 'JetBrains Mono'; font-size: 11px; color: #34d399;" id="webhookLog">
+                [READY] IVR Webhook Simulator awaiting outbound call dispatch...
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentPassToken = null;
+let currentPassId = null;
+
+function playAudioChime(freq = 800) {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
+}
+
+async function loadSimPhone(passId, name, phone, token) {
+    currentPassId = passId;
+    currentPassToken = token;
+    playAudioChime(1000);
+
+    document.getElementById('phoneCommuterName').innerText = name;
+    document.getElementById('phoneCommuterNum').innerText = phone;
+    document.getElementById('callTimer').style.display = 'block';
+    document.getElementById('ivrScriptBox').innerHTML = `<em>Calling ${name}...</em>`;
+    document.getElementById('btnKey1').disabled = false;
+    document.getElementById('btnKey2').disabled = false;
+
+    // Trigger Outbound IVR API
+    const resp = await fetch('{% url "fleet_commute:api_simulate_ivr_call" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `pass_id=${passId}`
+    });
+    const data = await resp.json();
+    if (data.status === 'success') {
+        document.getElementById('ivrScriptBox').innerHTML = `<strong>Voice Prompt:</strong><br/>"${data.ivr_audio_script}"`;
+        document.getElementById('webhookLog').innerText = `[CALL INITIATED] Call ID: ${data.call_id} -> Dialed ${data.phone}`;
+        document.getElementById(`status-${passId}`).innerHTML = '<span style="color:#38bdf8;">📞 Ringing...</span>';
+    }
+}
+
+async function sendDTMF(digit) {
+    if (!currentPassToken) return;
+    playAudioChime(digit === '1' ? 1200 : 440);
+
+    document.getElementById('webhookLog').innerText = `[TRANSMITTING DTMF] Key ${digit} pressed...`;
+
+    const resp = await fetch('{% url "fleet_commute:api_ivr_dtmf_webhook" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `pass_token=${currentPassToken}&digit=${digit}`
+    });
+    const data = await resp.json();
+
+    if (digit === '1') {
+        document.getElementById('ivrScriptBox').innerHTML = `<span style="color:#10b981;font-weight:700;">✅ SAFE DROP CONFIRMED</span><br/>${data.message}`;
+        document.getElementById('webhookLog').innerText = `[WEBHOOK 200 OK] ${data.message}`;
+        if (currentPassId) {
+            document.getElementById(`status-${currentPassId}`).innerHTML = '<span style="color:#10b981;font-weight:700;">✅ Safe Confirmed</span>';
+        }
+    } else {
+        document.getElementById('ivrScriptBox').innerHTML = `<span style="color:#ef4444;font-weight:800;">🚨 SOS EMERGENCY ALARM DISPATCHED</span><br/>Incident Alert created for Control Room.`;
+        document.getElementById('webhookLog').innerText = `[ALERT] 🚨 EMERGENCY INCIDENT CREATED! Key 2 panic triggered.`;
+        if (currentPassId) {
+            document.getElementById(`status-${currentPassId}`).innerHTML = '<span style="color:#ef4444;font-weight:800;">🚨 SOS ESCALATED</span>';
+        }
+    }
+}
+</script>
+{% endblock %}

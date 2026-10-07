@@ -13,4 +13,7 @@ urlpatterns = [
     path('trip/<int:trip_id>/end/', views.driver_trip_end, name='trip_end'),
     path('fuel/', views.driver_fuel_log, name='fuel_log'),
     path('sos/', views.driver_sos_trigger, name='sos'),
+    path('manifest.json', views.pwa_manifest, name='manifest'),
+    path('sw.js', views.pwa_service_worker, name='sw'),
 ]
+

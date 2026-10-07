@@ -1,0 +1,37 @@
+<!-- 🚐 Convoy Multi-Vehicle Quotation Result (HTMX Partial) -->
+<div class="bg-gradient-to-br from-slate-800/80 to-slate-900/90 rounded-xl border border-slate-600/30 overflow-hidden">
+  <div class="px-6 py-4 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border-b border-slate-700/50">
+    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+      🚐 <span>Convoy Quotation — {{ convoy.origin|title }} → {{ convoy.destination|title }}</span>
+    </h3>
+    <p class="text-xs text-slate-400 mt-1">{{ convoy.fleet_total_vehicles }} Vehicles · {{ convoy.fleet_total_pax }} Passengers · {{ convoy.duration_days }} Day{{ convoy.duration_days|pluralize }}</p>
+  </div>
+
+  {% for v in convoy.vehicle_breakdown %}
+  <div class="px-6 py-3 border-b border-slate-700/30 {% if forloop.last %}border-b-0{% endif %}">
+    <div class="flex justify-between items-center">
+      <div>
+        <span class="text-sm font-bold text-white">{{ v.vehicle_type }}</span>
+        <span class="text-xs text-slate-400 ml-2">× {{ v.unit_count }} units</span>
+        {% if v.is_hill_station %}<span class="ml-2 px-1.5 py-0.5 rounded text-xs bg-amber-500/10 text-amber-400">⛰️ Hill</span>{% endif %}
+        {% if v.is_interstate %}<span class="ml-2 px-1.5 py-0.5 rounded text-xs bg-indigo-500/10 text-indigo-400">📋 Interstate</span>{% endif %}
+      </div>
+      <div class="text-right">
+        <div class="font-mono font-bold text-white">₹{{ v.fleet_subtotal|floatformat:2 }}</div>
+        <div class="text-xs text-slate-500">₹{{ v.grand_total|floatformat:0 }} × {{ v.unit_count }}</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="px-6 py-4 bg-gradient-to-r from-emerald-900/40 to-emerald-800/20">
+    <div class="flex justify-between items-center">
+      <span class="text-base font-bold text-emerald-300">🎯 CONVOY GRAND TOTAL</span>
+      <span class="text-2xl font-mono font-black text-emerald-400">₹{{ convoy.fleet_grand_total|floatformat:2 }}</span>
+    </div>
+    <div class="flex justify-between items-center mt-2">
+      <span class="text-xs text-slate-400">Per Passenger Cost ({{ convoy.fleet_total_pax }} pax)</span>
+      <span class="font-mono font-bold text-sky-400">₹{{ convoy.fleet_per_pax_cost|floatformat:2 }} /pax</span>
+    </div>
+  </div>
+</div>

@@ -26,5 +26,15 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     documentTypeField.addEventListener("change", updateFormVisibility);
+    documentTypeField.addEventListener("input", updateFormVisibility);
     updateFormVisibility();
+
+    var lastType = documentTypeField.value;
+    setInterval(function() {
+        if (documentTypeField.value !== lastType) {
+            lastType = documentTypeField.value;
+            updateFormVisibility();
+        }
+    }, 200);
 });
+

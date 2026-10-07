@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice #{{ invoice.invoice_number }} - Siva Gayathiri Travels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm 15mm;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1e293b;
+            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .invoice-sheet {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            box-sizing: border-box;
+            border-radius: 4px;
+        }
+        .text-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+        }
+        .company-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+        }
+        .badge-tax-invoice {
+            display: inline-block;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 5px 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 2px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        .info-box {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .info-box-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 14px;
+            font-size: 11.5px;
+        }
+        .items-table th {
+            background: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 10.5px;
+            padding: 8px 6px;
+            border: 1px solid #cbd5e1;
+            text-align: left;
+        }
+        .items-table td {
+            padding: 8px 6px;
+            border: 1px solid #cbd5e1;
+            vertical-align: top;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .summary-table {
+            width: 100%;
+            margin-top: 6px;
+            font-size: 12px;
+        }
+        .summary-table td {
+            padding: 4px 6px;
+        }
+        .total-row {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            background: #f1f5f9;
+            border-top: 2px solid #0f172a;
+            border-bottom: 2px solid #0f172a;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1fr 140px 180px;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid #cbd5e1;
+            font-size: 11px;
+        }
+        .qr-box {
+            width: 130px;
+            height: 130px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            padding: 4px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .print-btn-bar {
+            max-width: 820px;
+            margin: 0 auto 14px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-print {
+            background: #0284c7;
+            color: #ffffff;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+            .invoice-sheet {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .print-btn-bar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-btn-bar">
+        <a href="/admin/finance/gst-studio/" style="color: #64748b; text-decoration: none; font-size: 13px; font-weight: 600;">
+            ← Back to GST Studio
+        </a>
+        <div style="display: flex; gap: 10px;">
+            {% if invoice.eway_bill %}
+            <a href="/api/finance/invoice/{{ invoice.id }}/eway-json/" download class="btn-print" style="background: #10b981;">
+                📥 Download NIC E-Way Bill JSON
+            </a>
+            {% endif %}
+            <button class="btn-print" id="btnShareWa" onclick="shareTaxInvoiceWhatsApp()" style="background: #25d366;">
+                💬 WhatsApp Invoice
+            </button>
+            <button class="btn-print" onclick="window.print()">
+                🖨️ Print Tax Invoice
+            </button>
+        </div>
+    </div>
+
+    <div class="invoice-sheet">
+        <!-- Header -->
+        <table class="header-table">
+            <tr>
+                <td style="vertical-align: top; width: 65%;">
+                    <div class="company-title">{{ invoice.supplier_legal_name }}</div>
+                    <div style="font-size: 11px; color: #475569; margin-top: 2px;">
+                        <strong>Passenger Fleet Operations & Corporate Commute Services</strong><br>
+                        {{ invoice.supplier_address }}<br>
+                        Email: billing@sivagayathiritravels.com | Phone: +91 94440 12345
+                    </div>
+                    <div style="margin-top: 6px; font-size: 11.5px;">
+                        <strong>GSTIN:</strong> <span class="text-mono" style="font-weight: 700;">{{ invoice.supplier_gstin }}</span> &nbsp;|&nbsp;
+                        <strong>State:</strong> Tamil Nadu (Code 33) &nbsp;|&nbsp;
+                        <strong>PAN:</strong> AAAAA0000A
+                    </div>
+                </td>
+                <td style="vertical-align: top; text-align: right; width: 35%;">
+                    <div class="badge-tax-invoice">TAX INVOICE</div>
+                    <div style="font-size: 10px; color: #64748b; margin-top: 4px;">(Issued under Section 31 of CGST Act read with Rule 46)</div>
+                    <div style="margin-top: 8px; font-size: 12px;">
+                        <strong>Invoice No:</strong> <span class="text-mono" style="font-weight: 800; color: #0284c7;">{{ invoice.invoice_number }}</span><br>
+                        <strong>Invoice Date:</strong> {{ invoice.invoice_date|date:"d-m-Y" }}<br>
+                        <strong>Due Date:</strong> {{ invoice.due_date|default:invoice.invoice_date|date:"d-m-Y" }}
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Billed To & Consignee Box -->
+        <div class="grid-2">
+            <div class="info-box">
+                <div class="info-box-title">Details of Receiver / Billed To:</div>
+                <strong style="font-size: 13px; color: #0f172a;">{{ invoice.recipient_legal_name }}</strong><br>
+                {{ invoice.recipient_address|linebreaksbr }}<br>
+                <div style="margin-top: 4px;">
+                    <strong>GSTIN / UIN:</strong> <span class="text-mono" style="font-weight: 700; color: #0284c7;">{{ invoice.recipient_gstin|default:"URP (Unregistered Party)" }}</span><br>
+                    <strong>State & Code:</strong> {{ invoice.place_of_supply }}
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">Transportation & Supply Details:</div>
+                <table style="width: 100%; font-size: 11.5px;">
+                    <tr>
+                        <td style="color: #64748b;">Place of Supply:</td>
+                        <td><strong>{{ invoice.place_of_supply }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #64748b;">Supply Type:</td>
+                        <td><strong>{{ invoice.get_supply_type_display }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #64748b;">Reverse Charge (RCM):</td>
+                        <td><strong style="color: {% if invoice.is_reverse_charge %}#b45309{% else %}#15803d{% endif %};">{% if invoice.is_reverse_charge %}YES (Sec 9(3)){% else %}NO{% endif %}</strong></td>
+                    </tr>
+                    {% if invoice.eway_bill %}
+                    <tr>
+                        <td style="color: #64748b;">NIC E-Way Bill No:</td>
+                        <td><strong class="text-mono" style="color: #0284c7;">{{ invoice.eway_bill.eway_bill_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #64748b;">Vehicle Reg No:</td>
+                        <td><strong class="text-mono">{{ invoice.eway_bill.vehicle_number }}</strong></td>
+                    </tr>
+                    {% elif invoice.trip %}
+                    <tr>
+                        <td style="color: #64748b;">Assigned Vehicle:</td>
+                        <td><strong class="text-mono">{{ invoice.trip.vehicle.registration_number }}</strong></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="text-center" style="width: 30px;">#</th>
+                    <th>Description of Goods / Services</th>
+                    <th class="text-center" style="width: 65px;">SAC Code</th>
+                    <th class="text-center" style="width: 40px;">Qty</th>
+                    <th class="text-right" style="width: 70px;">Rate (₹)</th>
+                    <th class="text-right" style="width: 80px;">Taxable (₹)</th>
+                    {% if invoice.supply_type == 'intra_state' %}
+                    <th class="text-right" style="width: 65px;">CGST ({{ invoice.cgst_rate }}%)</th>
+                    <th class="text-right" style="width: 65px;">SGST ({{ invoice.sgst_rate }}%)</th>
+                    {% else %}
+                    <th class="text-right" style="width: 80px;">IGST ({{ invoice.igst_rate }}%)</th>
+                    {% endif %}
+                    <th class="text-right" style="width: 85px;">Total (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in line_items %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ item.item_description }}</strong>
+                        {% if item.trip %}
+                        <div style="font-size: 10px; color: #64748b;">
+                            Route: {{ item.trip.pickup_location }} ➔ {{ item.trip.destination }} | Reporting: {{ item.trip.reporting_time|default:"On-Schedule" }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center text-mono">{{ item.sac_code }}</td>
+                    <td class="text-center">{{ item.quantity|floatformat:0 }} {{ item.unit }}</td>
+                    <td class="text-right text-mono">₹{{ item.rate|floatformat:2 }}</td>
+                    <td class="text-right text-mono font-bold">₹{{ item.taxable_amount|floatformat:2 }}</td>
+                    {% if invoice.supply_type == 'intra_state' %}
+                    <td class="text-right text-mono">₹{{ item.cgst_amount|floatformat:2 }}</td>
+                    <td class="text-right text-mono">₹{{ item.sgst_amount|floatformat:2 }}</td>
+                    {% else %}
+                    <td class="text-right text-mono">₹{{ item.igst_amount|floatformat:2 }}</td>
+                    {% endif %}
+                    <td class="text-right text-mono" style="font-weight: 700;">₹{{ item.total_amount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="text-center">1</td>
+                    <td>
+                        <strong>Passenger Transport Services (Rent-a-cab)</strong>
+                        <div style="font-size: 10px; color: #64748b;">Chauffeur-Driven Corporate Commute Service</div>
+                    </td>
+                    <td class="text-center text-mono">{{ invoice.sac_code }}</td>
+                    <td class="text-center">1 TRIP</td>
+                    <td class="text-right text-mono">₹{{ invoice.taxable_value|floatformat:2 }}</td>
+                    <td class="text-right text-mono font-bold">₹{{ invoice.taxable_value|floatformat:2 }}</td>
+                    {% if invoice.supply_type == 'intra_state' %}
+                    <td class="text-right text-mono">₹{{ invoice.cgst_amount|floatformat:2 }}</td>
+                    <td class="text-right text-mono">₹{{ invoice.sgst_amount|floatformat:2 }}</td>
+                    {% else %}
+                    <td class="text-right text-mono">₹{{ invoice.igst_amount|floatformat:2 }}</td>
+                    {% endif %}
+                    <td class="text-right text-mono" style="font-weight: 700;">₹{{ invoice.total_invoice_value|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Monetary Summary Grid -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; align-items: start;">
+            <div>
+                <div style="font-size: 11px; margin-bottom: 8px;">
+                    <strong>Invoice Value in Words:</strong><br>
+                    <span style="font-style: italic; color: #334155;">{{ amount_words }}</span>
+                </div>
+
+                <div class="info-box" style="font-size: 11px;">
+                    <div class="info-box-title">Bank Remittance Particulars (RTGS / NEFT):</div>
+                    <strong>Bank Name:</strong> {{ company_bank.bank_name }}<br>
+                    <strong>A/c Name:</strong> {{ company_bank.account_name }}<br>
+                    <strong>A/c No:</strong> <span class="text-mono" style="font-weight: 700;">{{ company_bank.account_number }}</span><br>
+                    <strong>IFSC Code:</strong> <span class="text-mono" style="font-weight: 700;">{{ company_bank.ifsc_code }}</span><br>
+                    <strong>UPI ID:</strong> <span class="text-mono">{{ company_bank.upi_id }}</span>
+                </div>
+            </div>
+
+            <div>
+                <table class="summary-table">
+                    <tr>
+                        <td style="color: #64748b;">Total Taxable Value:</td>
+                        <td class="text-right text-mono">₹{{ invoice.taxable_value|floatformat:2 }}</td>
+                    </tr>
+                    {% if invoice.supply_type == 'intra_state' %}
+                    <tr>
+                        <td style="color: #64748b;">Central GST (CGST @ {{ invoice.cgst_rate }}%):</td>
+                        <td class="text-right text-mono">₹{{ invoice.cgst_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #64748b;">State GST (SGST @ {{ invoice.sgst_rate }}%):</td>
+                        <td class="text-right text-mono">₹{{ invoice.sgst_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td style="color: #64748b;">Integrated GST (IGST @ {{ invoice.igst_rate }}%):</td>
+                        <td class="text-right text-mono">₹{{ invoice.igst_amount|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if invoice.round_off %}
+                    <tr>
+                        <td style="color: #64748b;">Round Off:</td>
+                        <td class="text-right text-mono">{% if invoice.round_off > 0 %}+{% endif %}₹{{ invoice.round_off|floatformat:2 }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr class="total-row">
+                        <td>Total Invoice Value (INR):</td>
+                        <td class="text-right text-mono">₹{{ invoice.total_invoice_value|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer / QR Stamp / Signatory -->
+        <div class="footer-grid">
+            <div>
+                <div style="font-size: 10px; color: #64748b; line-height: 1.4;">
+                    <strong>Terms & Conditions:</strong><br>
+                    1. Payment terms: 30 days from date of submission of this invoice.<br>
+                    2. Interest @ 18% p.a. will be levied on overdue payments.<br>
+                    3. All disputes subject to Chennai jurisdiction only.<br>
+                    4. This is a computer-generated tax invoice verified with GSTN & NIC E-Way Bill digital fingerprint.
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <div class="qr-box">
+                    {% if invoice.qr_code_svg %}
+                        {{ invoice.qr_code_svg|safe }}
+                    {% else %}
+                        <div style="font-size: 9px; color: #64748b;">Digital QR Verification</div>
+                    {% endif %}
+                </div>
+                <div style="font-size: 9px; color: #64748b; margin-top: 4px; font-weight: 700;">
+                    GST Rule 46 QR Stamp
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <div style="font-size: 11px; font-weight: 700; color: #0f172a; margin-bottom: 45px;">
+                    For {{ invoice.supplier_legal_name }}
+                </div>
+                <div style="border-top: 1px solid #0f172a; display: inline-block; padding-top: 4px; width: 140px; text-align: center; font-size: 10.5px; font-weight: 700;">
+                    Authorized Signatory
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function shareTaxInvoiceWhatsApp() {
+        const btn = document.getElementById('btnShareWa');
+        const defaultPhone = '{{ invoice.party.phone|default:"" }}';
+        const phone = prompt('Enter recipient WhatsApp phone number (leave blank for registered party phone):', defaultPhone);
+        if (phone === null) return;
+
+        btn.innerText = '⏳ Sending...';
+        btn.disabled = true;
+
+        fetch('/api/finance/invoice/{{ invoice.id }}/whatsapp/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ phone: phone.trim() })
+        })
+        .then(r => r.json())
+        .then(d => {
+            btn.innerText = '💬 WhatsApp Invoice';
+            btn.disabled = false;
+            if (d.success) {
+                alert('✅ Corporate Tax Invoice dispatched via WhatsApp!\nRecipient: ' + d.recipient_phone);
+            } else {
+                alert('⚠️ WhatsApp Notice: ' + (d.message || 'Delivery skipped or phone invalid'));
+            }
+        })
+        .catch(err => {
+            btn.innerText = '💬 WhatsApp Invoice';
+            btn.disabled = false;
+            alert('❌ Network error: ' + err.message);
+        });
+    }
+    </script>
+</body>
+</html>

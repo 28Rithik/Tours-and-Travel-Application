@@ -1,54 +1,1172 @@
 {% load i18n %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}">
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Customer Portal | Sivagayathiri Travels{% endblock %}</title>
+    <title>{% block title %}Sivagayathiri Travels | Premier Bus Fleet & Holiday Tours Operator{% endblock %}</title>
+    <meta name="description" content="Book South India's finest holiday tour packages, college industrial visits, devotional temple circuits, and luxury outstation fleet rentals (Innova Crysta, Force Urbania, Volvo Coaches).">
+    
+    <!-- Modern Typography & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Portal CSS Design System -->
     <link rel="stylesheet" href="/static/css/portal.css">
+    
+    <!-- HTMX & Alpine.js for Micro-Interactions -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
-        <a href="{% url 'customer_portal:home' %}" class="nav-brand">Sivagayathiri Travels</a>
-        <div class="nav-links">
-            {% if user.is_authenticated %}
-                <a href="{% url 'customer_portal:home' %}">{% trans "Dashboard" %}</a>
-                <a href="{% url 'customer_portal:bookings' %}">{% trans "My Bookings" %}</a>
-                <a href="{% url 'customer_portal:documents' %}">{% trans "Documents" %}</a>
-                <a href="{% url 'customer_portal:logout' %}">{% trans "Logout" %}</a>
-            {% else %}
-                <a href="{% url 'customer_portal:login' %}">{% trans "Login" %}</a>
-            {% endif %}
-            <form action="{% url 'set_language' %}" method="post" style="display: inline-block; margin-left: 1rem;">
+    <!-- Top Announcement Bar -->
+    <aside class="top-bar" aria-label="Quick contact and hotline">
+        <div class="top-bar-badges">
+            <span class="badge-live-pulse"><span class="pulse-dot"></span> 320+ FLEET ON ACTIVE TELEMATICS</span>
+            <span style="color: rgba(255,255,255,0.4);">|</span>
+            <span>📍 Headquarters: Gandhipuram, Coimbatore, Tamil Nadu</span>
+        </div>
+        <div style="display: flex; gap: 1.25rem; align-items: center;">
+            <a href="tel:+919842533777">📞 24x7 Helpline: +91 98425 33777 | Coimbatore Central Depot</a>
+            <a href="https://wa.me/919842533777" target="_blank" style="color: #34d399; font-weight: 600;">💬 WhatsApp Inquiry</a>
+            <form action="{% url 'set_language' %}" method="post" style="display: inline-flex; align-items: center; margin: 0;">
                 {% csrf_token %}
-                <select name="language" onchange="this.form.submit()" style="padding: 0.2rem; border-radius: 4px; border: 1px solid var(--border);">
-                    {% get_current_language as LANGUAGE_CODE %}
+                <select name="language" onchange="this.form.submit()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.75rem; cursor: pointer;">
+                    {% get_current_language as CURRENT_LANG %}
                     {% get_available_languages as LANGUAGES %}
                     {% for lang in LANGUAGES %}
-                        <option value="{{ lang.0 }}" {% if lang.0 == LANGUAGE_CODE %}selected{% endif %}>
+                        <option value="{{ lang.0 }}" {% if lang.0 == CURRENT_LANG %}selected{% endif %} style="background: #0f172a; color: white;">
                             {{ lang.1 }}
                         </option>
                     {% endfor %}
                 </select>
             </form>
         </div>
-    </nav>
+    </aside>
 
-    <main class="container">
-        {% if messages %}
-            {% for message in messages %}
-                <div style="background: #D1FAE5; color: #065F46; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    {{ message }}
+    <!-- Main Navigation Bar with Unified 4-Tab Brand Switcher -->
+    <header>
+        <style>
+            .brand-nav-pills {
+                display: flex;
+                align-items: center;
+                gap: 0.4rem;
+                background: rgba(15, 23, 42, 0.65);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                padding: 0.3rem 0.5rem;
+                border-radius: 9999px;
+            }
+            .brand-nav-tab {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                padding: 0.4rem 0.85rem;
+                border-radius: 9999px;
+                font-size: 0.84rem;
+                font-weight: 600;
+                color: #94a3b8;
+                text-decoration: none;
+                transition: all 0.2s ease;
+            }
+            .brand-nav-tab:hover {
+                color: #f8fafc;
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .brand-nav-tab.active {
+                background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                color: #ffffff;
+                box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+            }
+            .brand-nav-tab.external-tab:hover {
+                border-color: rgba(56, 189, 248, 0.4);
+            }
+            .external-badge {
+                font-size: 0.65rem;
+                background: rgba(56, 189, 248, 0.18);
+                color: #38bdf8;
+                padding: 0.1rem 0.35rem;
+                border-radius: 4px;
+                font-weight: 700;
+            }
+
+            /* Services Dropdown in Navbar */
+            .nav-dropdown {
+                position: relative;
+                display: inline-block;
+            }
+            .nav-dropdown-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                margin-top: 0.55rem;
+                background: #ffffff;
+                min-width: 630px;
+                border-radius: 18px;
+                box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.08);
+                padding: 0.9rem;
+                z-index: 1005;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.45rem;
+            }
+            @media (max-width: 820px) {
+                .nav-dropdown-menu {
+                    grid-template-columns: 1fr;
+                    min-width: 310px;
+                }
+            }
+            .nav-dropdown:hover .nav-dropdown-menu,
+            .nav-dropdown:focus-within .nav-dropdown-menu {
+                display: grid;
+            }
+            .nav-dropdown-full-span {
+                grid-column: 1 / -1;
+                border-top: 1px solid #f1f5f9;
+                padding-top: 0.45rem;
+                margin-top: 0.2rem;
+            }
+            .nav-dropdown-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.65rem 0.85rem;
+                border-radius: 10px;
+                text-decoration: none;
+                color: #1e293b;
+                transition: background 0.15s ease;
+            }
+            .nav-dropdown-item:hover {
+                background: #f8fafc;
+            }
+            .nav-dropdown-item:hover .nav-dropdown-item-title {
+                color: #0284c7;
+            }
+            .nav-dropdown-item-icon {
+                font-size: 1.3rem;
+                width: 34px;
+                height: 34px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: #f1f5f9;
+                border-radius: 8px;
+                flex-shrink: 0;
+            }
+            .nav-dropdown-item-title {
+                font-weight: 700;
+                font-size: 0.84rem;
+                color: #0f172a;
+                margin-bottom: 0.1rem;
+                line-height: 1.2;
+            }
+            .nav-dropdown-item-desc {
+                font-size: 0.72rem;
+                color: #64748b;
+                line-height: 1.3;
+            }
+
+            /* Option C: Floating Action Bar & WhatsApp Pulse Styles */
+            .floating-action-bar {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 9999;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 10px;
+                pointer-events: none;
+            }
+            .floating-action-bar * {
+                pointer-events: auto;
+            }
+            .btn-floating-plan {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                padding: 0.65rem 1rem;
+                border-radius: 9999px;
+                font-family: inherit;
+                font-size: 0.86rem;
+                font-weight: 700;
+                cursor: pointer;
+                box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.35);
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                text-decoration: none;
+            }
+            .btn-floating-plan:hover {
+                transform: translateY(-3px) scale(1.02);
+                box-shadow: 0 16px 32px -4px rgba(15, 23, 42, 0.55), 0 0 18px rgba(99, 102, 241, 0.5);
+                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+                border-color: rgba(165, 180, 252, 0.5);
+            }
+            .btn-floating-plan .quote-pill {
+                background: #10b981;
+                color: #ffffff;
+                font-size: 0.7rem;
+                padding: 0.15rem 0.5rem;
+                border-radius: 9999px;
+                font-weight: 800;
+                letter-spacing: 0.02em;
+            }
+            .btn-floating-whatsapp {
+                position: relative;
+                width: 58px;
+                height: 58px;
+                border-radius: 50%;
+                background: #25D366;
+                color: #ffffff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 10px 25px -3px rgba(37, 211, 102, 0.45);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+            }
+            .btn-floating-whatsapp:hover {
+                transform: scale(1.1);
+                box-shadow: 0 15px 32px -3px rgba(37, 211, 102, 0.65);
+            }
+            .wa-svg {
+                width: 32px;
+                height: 32px;
+                fill: currentColor;
+            }
+            .wa-ping-ring {
+                position: absolute;
+                inset: -4px;
+                border-radius: 50%;
+                border: 2px solid #25D366;
+                animation: waPulseRing 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+                opacity: 0.7;
+            }
+            @keyframes waPulseRing {
+                0% { transform: scale(0.95); opacity: 0.8; }
+                50% { transform: scale(1.3); opacity: 0; }
+                100% { transform: scale(0.95); opacity: 0; }
+            }
+            .wa-tooltip {
+                position: absolute;
+                right: 68px;
+                background: #0f172a;
+                color: #ffffff;
+                padding: 0.45rem 0.85rem;
+                border-radius: 8px;
+                font-size: 0.78rem;
+                font-weight: 600;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease, transform 0.2s ease;
+                transform: translateX(6px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+            .btn-floating-whatsapp:hover .wa-tooltip {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            /* Option C: Custom Trip Modal Styles */
+            .custom-trip-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 100000;
+                background: rgba(15, 23, 42, 0.8);
+                backdrop-filter: blur(8px);
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+            }
+            .custom-trip-dialog {
+                background: #ffffff;
+                color: #1e293b;
+                max-width: 740px;
+                width: 100%;
+                border-radius: 20px;
+                padding: 2rem;
+                box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35);
+                position: relative;
+                max-height: 90vh;
+                overflow-y: auto;
+                border: 1px solid #e2e8f0;
+            }
+            .custom-trip-close {
+                position: absolute;
+                top: 1.25rem;
+                right: 1.25rem;
+                background: #f1f5f9;
+                border: none;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                font-size: 1.3rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #64748b;
+                transition: all 0.2s;
+            }
+            .custom-trip-close:hover {
+                background: #e2e8f0;
+                color: #0f172a;
+            }
+            .custom-trip-header {
+                margin-bottom: 1.5rem;
+                border-bottom: 1px solid #f1f5f9;
+                padding-bottom: 1rem;
+            }
+            .trip-header-badge {
+                display: inline-block;
+                background: #e0e7ff;
+                color: #4338ca;
+                font-size: 0.72rem;
+                font-weight: 800;
+                padding: 0.2rem 0.6rem;
+                border-radius: 9999px;
+                letter-spacing: 0.04em;
+                margin-bottom: 0.4rem;
+            }
+            .trip-header-title {
+                font-family: 'Space Grotesk', sans-serif;
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #0f172a;
+                margin: 0 0 0.25rem;
+            }
+            .trip-header-subtitle {
+                font-size: 0.85rem;
+                color: #64748b;
+                margin: 0;
+            }
+            .form-section-label {
+                font-size: 0.78rem;
+                font-weight: 700;
+                color: #334155;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                margin-bottom: 0.6rem;
+            }
+            .trip-type-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+                gap: 0.5rem;
+            }
+            .trip-type-pill {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 0.7rem 0.5rem;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: all 0.2s;
+                background: #f8fafc;
+                user-select: none;
+            }
+            .trip-type-pill:hover {
+                border-color: #cbd5e1;
+                background: #f1f5f9;
+            }
+            .trip-type-pill.active {
+                border-color: #4f46e5;
+                background: #eef2ff;
+                box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+            }
+            .trip-type-pill input {
+                display: none;
+            }
+            .pill-icon {
+                font-size: 1.5rem;
+                margin-bottom: 0.2rem;
+            }
+            .pill-title {
+                font-size: 0.8rem;
+                font-weight: 700;
+                color: #0f172a;
+                line-height: 1.2;
+            }
+            .pill-sub {
+                font-size: 0.66rem;
+                color: #64748b;
+                margin-top: 0.15rem;
+                white-space: nowrap;
+            }
+            .form-grid-2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+            @media (max-width: 640px) {
+                .form-grid-2 {
+                    grid-template-columns: 1fr;
+                }
+                .btn-floating-plan .plan-text {
+                    display: none;
+                }
+            }
+            .inclusions-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45rem;
+            }
+            .inclusion-chip {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.4rem 0.75rem;
+                border-radius: 9999px;
+                border: 1px solid #cbd5e1;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #334155;
+                cursor: pointer;
+                background: #ffffff;
+                transition: all 0.2s;
+                user-select: none;
+            }
+            .inclusion-chip input {
+                display: none;
+            }
+            .inclusion-chip:hover {
+                border-color: #94a3b8;
+                background: #f8fafc;
+            }
+            .inclusion-chip.active {
+                background: #ecfdf5;
+                border-color: #10b981;
+                color: #047857;
+                box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+            }
+        </style>
+
+        <nav class="main-navbar" aria-label="Main navigation">
+            <a href="{% url 'customer_portal:home' %}" class="brand-wrapper" id="nav-brand-logo">
+                <div class="brand-logo-icon">🚌</div>
+                <div>
+                    <div class="brand-text-title">SIVAGAYATHIRI</div>
+                    <div class="brand-text-subtitle">TRAVELS & EXPEDITIONS</div>
                 </div>
-            {% endfor %}
-        {% endif %}
-        
+            </a>
+
+            <!-- The Unified Brand Navigation Tabs -->
+            <div class="brand-nav-pills">
+                <!-- 1. Bus Tickets (Links to Intercity CRS on Port 8005) -->
+                <a href="http://127.0.0.1:8005/" class="brand-nav-tab external-tab" title="Book Scheduled Intercity Night Bus Tickets">
+                    <span>🚌</span> Bus Tickets <span class="external-badge">CRS ↗</span>
+                </a>
+
+                <!-- 2. Tour Packages (Active on Port 8000) -->
+                <a href="/customer-portal/packages/" class="brand-nav-tab {% if '/packages/' in request.path or request.resolver_match.url_name == 'package_list' or request.resolver_match.url_name == 'package_detail' %}active{% endif %}">
+                    <span>🌴</span> Tour Packages
+                </a>
+
+                <!-- 3. Commercial Fleets (Card Grid) -->
+                <a href="{% url 'customer_portal:fleet' %}" class="brand-nav-tab {% if '/fleet/' in request.path or request.resolver_match.url_name == 'fleet' or request.resolver_match.url_name == 'vehicle_detail' %}active{% endif %}">
+                    <span>🚗</span> Fleets
+                </a>
+
+                <!-- 4. Our Services Dropdown -->
+                <div class="nav-dropdown">
+                    <a href="{% url 'customer_portal:services_overview' %}" class="brand-nav-tab {% if '/services/' in request.path %}active{% endif %}">
+                        <span>🛡️</span> Services <span style="font-size: 0.65rem; margin-left: 2px;">▾</span>
+                    </a>
+                    <div class="nav-dropdown-menu">
+                        <!-- Column 1: Corporate & Industrial -->
+                        <a href="{% url 'customer_portal:employee_transportation' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">🏢</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">Employee Transportation</div>
+                                <div class="nav-dropdown-item-desc">Tech park & corporate workforce commute</div>
+                            </div>
+                        </a>
+                        <a href="{% url 'customer_portal:industrial_factory_transit' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">🏭</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">Industrial Factory 3-Shift</div>
+                                <div class="nav-dropdown-item-desc">Manufacturing plant 24/7 shift transit</div>
+                            </div>
+                        </a>
+                        <a href="{% url 'customer_portal:mice_corporate_offsites' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">🌲</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">MICE & Corporate Offsites</div>
+                                <div class="nav-dropdown-item-desc">Conferences & leadership retreats</div>
+                            </div>
+                        </a>
+                        <a href="{% url 'customer_portal:institutional_transport' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">🏫</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">School & College Campus</div>
+                                <div class="nav-dropdown-item-desc">Safe student commute with caretakers</div>
+                            </div>
+                        </a>
+
+                        <!-- Column 2: Events, Aviation & Experiential -->
+                        <a href="{% url 'customer_portal:airport_transfers' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">✈️</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">Airport Chauffeur Transfers</div>
+                                <div class="nav-dropdown-item-desc">Flight radar synced, meet-and-greet</div>
+                            </div>
+                        </a>
+                        <a href="{% url 'customer_portal:wedding_event_transport' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">💍</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">Wedding Transit Convoys</div>
+                                <div class="nav-dropdown-item-desc">10–40 vehicles with on-site manager</div>
+                            </div>
+                        </a>
+                        <a href="{% url 'customer_portal:luxury_camper_caravan' %}" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">🚐</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">Luxury Camper & Caravan</div>
+                                <div class="nav-dropdown-item-desc">Experiential glamping in Western Ghats</div>
+                            </div>
+                        </a>
+                        <a href="/customer-portal/packages/?category=college_iv" class="nav-dropdown-item">
+                            <span class="nav-dropdown-item-icon">🎓</span>
+                            <div>
+                                <div class="nav-dropdown-item-title">College IV & Expeditions</div>
+                                <div class="nav-dropdown-item-desc">Factory visits & student educational tours</div>
+                            </div>
+                        </a>
+
+                        <!-- Full Span Footer -->
+                        <div class="nav-dropdown-full-span">
+                            <a href="{% url 'customer_portal:services_overview' %}" class="nav-dropdown-item" style="padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                <span class="nav-dropdown-item-icon" style="background: #e0f2fe; color: #0284c7;">🌟</span>
+                                <div>
+                                    <div class="nav-dropdown-item-title" style="color: #0284c7;">All Services Overview Hub</div>
+                                    <div class="nav-dropdown-item-desc">5-Stakeholder Value Proposition & SLAs</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. About Us -->
+                <a href="{% url 'customer_portal:about_us' %}" class="brand-nav-tab {% if '/about/' in request.path or request.resolver_match.url_name == 'about_us' %}active{% endif %}">
+                    <span>🏛️</span> About Us
+                </a>
+            </div>
+
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'customer_portal:bookings' %}" class="btn btn-outline" style="font-size: 0.85rem;">My Expeditions</a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary" style="font-size: 0.85rem;">Staff Dashboard</a>
+                    {% endif %}
+                    <a href="{% url 'customer_portal:logout' %}" class="btn btn-outline" style="font-size: 0.85rem;">Logout</a>
+                {% else %}
+                    <a href="{% url 'customer_portal:login' %}" class="btn btn-outline" style="font-size: 0.85rem;">Customer Login</a>
+                    <a href="{% url 'login' %}" class="btn btn-primary" style="font-size: 0.85rem;">Staff Login</a>
+                {% endif %}
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- Flash Messages Container -->
+    {% if messages %}
+    <div style="max-width: 1280px; margin: 1.25rem auto 0; padding: 0 1.5rem;" class="no-print">
+        {% for message in messages %}
+            <div style="background: {% if message.tags == 'error' %}#fee2e2; color: #991b1b; border: 1px solid #f87171;{% else %}#d1fae5; color: #065f46; border: 1px solid #6ee7b7;{% endif %} padding: 0.9rem 1.25rem; border-radius: var(--radius-md); margin-bottom: 0.75rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+                <span>{{ message }}</span>
+                <button onclick="this.parentElement.remove()" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: inherit;">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main style="flex: 1;">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Enterprise Footer -->
+    <footer class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="brand-wrapper" style="margin-bottom: 1rem;">
+                    <div class="brand-logo-icon">🚌</div>
+                    <div>
+                        <div class="brand-text-title" style="color: white;">SIVAGAYATHIRI</div>
+                        <div class="brand-text-subtitle" style="color: #94a3b8;">TRAVELS & EXPEDITIONS</div>
+                    </div>
+                </div>
+                <p style="font-size: 0.88rem; line-height: 1.6; margin-bottom: 1.25rem;">
+                    South India's foremost passenger transit, corporate employee commute, and bespoke holiday expeditions operator. Serving over 50,000 satisfied passengers annually across Tamil Nadu, Kerala, and Karnataka.
+                </p>
+                <div style="display: flex; gap: 0.75rem; font-size: 0.82rem; color: #cbd5e1;">
+                    <span>🛡️ ISO 9001:2015 Certified</span> • 
+                    <span>⭐ 4.9/5 Rated on Google</span>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Popular Circuits</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'customer_portal:package_list' %}?category=hill_station">⛰️ Ooty - Coorg - Munnar Circuits</a></li>
+                    <li><a href="{% url 'customer_portal:package_list' %}?category=devotional">🕉️ Arupadai Veedu Murugan Yatra</a></li>
+                    <li><a href="{% url 'customer_portal:package_list' %}?category=college_iv">🎓 Kerala College IV Expeditions</a></li>
+                    <li><a href="{% url 'customer_portal:package_list' %}?category=holiday">🏖️ Goa & Pondicherry Holidays</a></li>
+                    <li><a href="{% url 'customer_portal:home' %}#fare-estimator">🚗 Outstation Fleet Hire</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Services & Fleets</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'customer_portal:employee_transportation' %}">🏢 Corporate Employee Commute</a></li>
+                    <li><a href="{% url 'customer_portal:industrial_factory_transit' %}">🏭 Industrial Factory 3-Shift</a></li>
+                    <li><a href="{% url 'customer_portal:airport_transfers' %}">✈️ Airport Chauffeur Transfers</a></li>
+                    <li><a href="{% url 'customer_portal:wedding_event_transport' %}">💍 Wedding & Event Convoys</a></li>
+                    <li><a href="{% url 'customer_portal:mice_corporate_offsites' %}">🌲 MICE & Corporate Offsites</a></li>
+                    <li><a href="{% url 'customer_portal:luxury_camper_caravan' %}">🚐 Luxury Camper & Caravan</a></li>
+                    <li><a href="{% url 'customer_portal:institutional_transport' %}">🏫 School & Campus Fleets</a></li>
+                    <li><a href="{% url 'customer_portal:fleet' %}">🚗 Commercial Fleet (320+ Directory)</a></li>
+                    <li><a href="{% url 'customer_portal:about_us' %}">🏛️ About Us & 15+ Years Legacy</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Verified Booking & Security</h4>
+                <p style="font-size: 0.85rem; margin-bottom: 1rem;">
+                    Instant zero-convenience-fee booking via National Payments Corporation of India (NPCI) Dynamic UPI QR, Google Pay, PhonePe, and Razorpay.
+                </p>
+                <div style="background: rgba(255,255,255,0.06); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.12);">
+                    <div style="font-weight: 700; color: white; font-size: 0.82rem; margin-bottom: 0.4rem;">ACCEPTING ALL SECURE PAYMENTS</div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.75rem; color: #a5b4fc; font-weight: 600;">
+                        <span>✓ NPCI UPI</span> • <span>✓ Google Pay</span> • <span>✓ PhonePe</span> • <span>✓ Paytm</span> • <span>✓ RuPay / Visa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>
+                &copy; {{ now|date:'Y'|default:'2026' }} Sivagayathiri Travels and Transport LLP. All Rights Reserved.
+            </div>
+            <div style="display: flex; gap: 1.5rem; align-items: center;">
+                <button type="button" onclick="openPolicyModal('privacy')" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;">Privacy Policy</button>
+                <button type="button" onclick="openPolicyModal('terms')" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;">Terms of Service</button>
+                <button type="button" onclick="openPolicyModal('refund')" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0; font-size: inherit; font-family: inherit;">Cancellation & Refund Policy</button>
+                <a href="{% url 'dashboard' %}" style="color: #a5b4fc; text-decoration: none; font-weight: 600;">Staff Portal</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Policy Information Modal -->
+    <div id="policyModal" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 1rem;">
+        <div style="background: #ffffff; color: #1e293b; max-width: 650px; width: 100%; border-radius: 16px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; max-height: 85vh; overflow-y: auto;">
+            <button onclick="closePolicyModal()" type="button" style="position: absolute; top: 1.25rem; right: 1.25rem; background: #f1f5f9; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #64748b;" aria-label="Close modal">&times;</button>
+            <div id="policyModalTitle" style="font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem;"></div>
+            <div id="policyModalBody" style="font-size: 0.92rem; line-height: 1.65; color: #475569;"></div>
+            <div style="margin-top: 1.5rem; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
+                <button onclick="closePolicyModal()" type="button" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Understood & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const policyData = {
+        privacy: {
+            title: "🔒 Privacy Policy & Data Protection",
+            content: `
+                <p><strong>Sivagayathiri Travels and Transport LLP</strong> respects your privacy and is committed to protecting all personal information shared during booking and travel operations in compliance with India's Digital Personal Data Protection (DPDP) Act.</p>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">1. Information We Collect</h4>
+                <p>We collect essential passenger names, mobile numbers, pickup coordinates, and payment transaction identifiers (UPI UTR / Gateway IDs) solely for trip fulfillment, safety tracking, and automated GST-compliant invoicing.</p>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">2. Telematics & GPS Security</h4>
+                <p>Live satellite GPS tracking is enabled on all active fleet vehicles solely to ensure passenger safety, on-time arrivals, and 24x7 SOS emergency monitoring from our Coimbatore Mission Control.</p>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">3. Zero Third-Party Data Selling</h4>
+                <p>We never sell, rent, or trade your contact or travel history to third-party advertisers. All data is encrypted and retained strictly for legal compliance and accounting audits.</p>
+            `
+        },
+        terms: {
+            title: "📜 Terms of Service & Passenger Conduct",
+            content: `
+                <p>By booking a holiday package or hiring an outstation fleet vehicle with <strong>Sivagayathiri Travels</strong>, you agree to the following operational standards:</p>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">1. Vehicle Cleanliness & Safety</h4>
+                <p>Smoking, consumption of alcohol, and carriage of prohibited substances are strictly prohibited inside all passenger coaches and rental cabs. Chauffeurs are authorized to refuse boarding to unruly or intoxicated passengers.</p>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">2. Speed Limits & Driver Duty Hours</h4>
+                <p>In accordance with statutory road safety guidelines, our vehicles are fitted with electronic speed governors (80 km/h on highways). Drivers are entitled to adequate rest breaks during long outstation circuits.</p>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">3. Tolls, Parking & Permit Charges</h4>
+                <p>State border road tax permits, interstate entry levies, and electronic toll plaza (FASTag) charges are payable as per actual receipts unless explicitly included in all-inclusive fixed package tariffs.</p>
+            `
+        },
+        refund: {
+            title: "💳 Cancellation & Refund Policy",
+            content: `
+                <p>We offer transparent and customer-friendly cancellation terms for tour packages and outstation vehicle hires:</p>
+                <ul style="padding-left: 1.25rem; margin: 0.75rem 0;">
+                    <li style="margin-bottom: 0.5rem;"><strong>Up to 48 Hours Before Pickup:</strong> 100% full refund of the booking advance, minus a nominal ₹150 administrative processing fee.</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Between 24 to 48 Hours:</strong> 50% refund of the paid booking advance.</li>
+                    <li style="margin-bottom: 0.5rem;"><strong>Less than 24 Hours / No-Show:</strong> Non-refundable advance to cover vehicle staging and driver positioning costs.</li>
+                </ul>
+                <h4 style="color: #0f172a; margin: 1rem 0 0.5rem;">Refund Processing Timeline</h4>
+                <p>All approved refunds are reversed directly to the original bank account or UPI VPA within <strong>2 to 3 business working days</strong> with automated SMS and WhatsApp confirmation receipts.</p>
+            `
+        }
+    };
+
+    function openPolicyModal(type) {
+        const modal = document.getElementById('policyModal');
+        const title = document.getElementById('policyModalTitle');
+        const body = document.getElementById('policyModalBody');
+        if (modal && policyData[type]) {
+            title.innerHTML = policyData[type].title;
+            body.innerHTML = policyData[type].content;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closePolicyModal() {
+        const modal = document.getElementById('policyModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Close on backdrop click or Escape key
+    window.addEventListener('click', function(e) {
+        const policyModal = document.getElementById('policyModal');
+        const customTripModal = document.getElementById('customTripModal');
+        if (e.target === policyModal) {
+            closePolicyModal();
+        }
+        if (e.target === customTripModal) {
+            closeCustomTripModal();
+        }
+    });
+
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePolicyModal();
+            closeCustomTripModal();
+        }
+    });
+
+    /* =========================================================================
+       Option C: Interactive Custom Trip Modal & Lead Generator Logic
+       ========================================================================= */
+    function openCustomTripModal(category) {
+        const modal = document.getElementById('customTripModal');
+        if (!modal) return;
+        
+        // Default travel date to 7 days ahead, min date tomorrow
+        const dateInput = document.getElementById('ct_date');
+        if (dateInput) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = tomorrow.toISOString().split('T')[0];
+            if (!dateInput.value) {
+                const nextWeek = new Date();
+                nextWeek.setDate(nextWeek.getDate() + 7);
+                dateInput.value = nextWeek.toISOString().split('T')[0];
+            }
+        }
+        
+        // Reset state
+        const form = document.getElementById('customTripForm');
+        const success = document.getElementById('customTripSuccess');
+        if (form) form.style.display = 'block';
+        if (success) success.style.display = 'none';
+
+        if (category) {
+            const radio = document.querySelector(`input[name="trip_type"][value="${category}"]`);
+            if (radio) {
+                radio.checked = true;
+                handleTripTypeChange(category);
+            }
+        }
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCustomTripModal() {
+        const modal = document.getElementById('customTripModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    function handleTripTypeChange(value) {
+        // Highlight active pill
+        document.querySelectorAll('.trip-type-pill').forEach(pill => {
+            const radio = pill.querySelector('input');
+            if (radio && radio.value === value) {
+                pill.classList.add('active');
+            } else {
+                pill.classList.remove('active');
+            }
+        });
+        
+        // Smart contextual defaults
+        const dest = document.getElementById('ct_destination');
+        const pax = document.getElementById('ct_passengers');
+        const fleet = document.getElementById('ct_vehicle');
+        const org = document.getElementById('ct_org');
+        
+        if (value === 'college_iv') {
+            if (pax) pax.value = 45;
+            if (fleet) fleet.value = 'Volvo Multi-Axle Luxury Coach (49-54 Seater)';
+            if (dest) dest.value = 'Munnar & Kochi, Kerala';
+            if (org) org.placeholder = 'e.g. PSG Tech / CIT / KCT College';
+        } else if (value === 'corporate') {
+            if (pax) pax.value = 25;
+            if (fleet) fleet.value = 'Force Urbania / Luxury Tempo (12-17 Seater)';
+            if (dest) dest.value = 'Coorg & Chikmagalur Coffee Estates';
+            if (org) org.placeholder = 'e.g. TCS / Cognizant / Infosys';
+        } else if (value === 'family') {
+            if (pax) pax.value = 6;
+            if (fleet) fleet.value = 'Toyota Innova Crysta (7-Seater Premium MPV)';
+            if (dest) dest.value = 'Ooty & Nilgiris Heritage Circuit';
+            if (org) org.placeholder = 'e.g. Family Vacation Group';
+        } else if (value === 'pilgrimage') {
+            if (pax) pax.value = 14;
+            if (fleet) fleet.value = 'Force Urbania / Luxury Tempo (12-17 Seater)';
+            if (dest) dest.value = 'Tirupati Balaji & Kalahasti Temple';
+            if (org) org.placeholder = 'e.g. Yatra Sangam';
+        } else if (value === 'fleet_rental') {
+            if (pax) pax.value = 4;
+            if (fleet) fleet.value = 'Toyota Innova Crysta (7-Seater Premium MPV)';
+            if (dest) dest.value = 'South India Intercity Route';
+            if (org) org.placeholder = 'e.g. Personal / Business';
+        }
+    }
+
+    // Toggle chip active state on click
+    document.addEventListener('change', function(e) {
+        if (e.target.closest('.inclusion-chip')) {
+            const chip = e.target.closest('.inclusion-chip');
+            const cb = chip.querySelector('input[type="checkbox"]');
+            if (cb && cb.checked) {
+                chip.classList.add('active');
+            } else if (cb) {
+                chip.classList.remove('active');
+            }
+        }
+    });
+
+    // Handle AJAX Form Submission
+    async function handleCustomTripSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('ct_submit_btn');
+        const btnText = document.getElementById('ct_btn_text');
+        const btnSpinner = document.getElementById('ct_btn_spinner');
+        
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.style.display = 'none';
+        if (btnSpinner) btnSpinner.style.display = 'inline';
+        
+        const form = document.getElementById('customTripForm');
+        const formData = new FormData(form);
+        
+        const inclusions = [];
+        form.querySelectorAll('input[name="inclusions"]:checked').forEach(cb => {
+            inclusions.push(cb.value);
+        });
+        
+        const payload = {
+            name: formData.get('name'),
+            phone: formData.get('phone'),
+            email: formData.get('email') || '',
+            organization: formData.get('organization') || '',
+            trip_type: formData.get('trip_type') || 'college_iv',
+            pickup_location: formData.get('pickup_location') || 'Coimbatore',
+            destination: formData.get('destination') || 'Custom Circuit',
+            travel_date: formData.get('travel_date'),
+            duration_days: parseInt(formData.get('duration_days') || '3'),
+            passengers: parseInt(formData.get('passengers') || '45'),
+            vehicle_preference: formData.get('vehicle_preference') || 'Recommended Fleet',
+            inclusions: inclusions,
+            notes: formData.get('notes') || ''
+        };
+        
+        try {
+            const response = await fetch('/customer-portal/api/custom-inquiry/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.status === 'success') {
+                form.style.display = 'none';
+                const successView = document.getElementById('customTripSuccess');
+                const ticketBadge = document.getElementById('successTicketBadge');
+                const guestName = document.getElementById('successGuestName');
+                const destinationEl = document.getElementById('successDestination');
+                const waLink = document.getElementById('successWhatsAppLink');
+                
+                if (ticketBadge) ticketBadge.textContent = 'CRM Ref #' + data.inquiry_number;
+                if (guestName) guestName.textContent = data.guest_name;
+                if (destinationEl) destinationEl.textContent = data.destination;
+                if (waLink) waLink.href = data.whatsapp_url;
+                
+                if (successView) successView.style.display = 'block';
+                
+                // Open WhatsApp automatically after 1.8s
+                setTimeout(() => {
+                    if (data.whatsapp_url) {
+                        window.open(data.whatsapp_url, '_blank');
+                    }
+                }, 1800);
+            } else {
+                alert('Notice: ' + (data.message || 'Error processing request.'));
+            }
+        } catch (err) {
+            console.error('Error submitting inquiry:', err);
+            // Fallback: direct WhatsApp open
+            const fallbackMsg = encodeURIComponent(`Hi Sivagayathiri Travels, I would like to plan a custom trip for ${payload.passengers} travelers to ${payload.destination}. Coordinator: ${payload.name} (${payload.phone}).`);
+            window.open(`https://wa.me/919842533777?text=${fallbackMsg}`, '_blank');
+        } finally {
+            if (btn) btn.disabled = false;
+            if (btnText) btnText.style.display = 'inline';
+            if (btnSpinner) btnSpinner.style.display = 'none';
+        }
+    }
+    </script>
+
+    <!-- Option C: Floating WhatsApp & Custom Tour Action Bar -->
+    <div class="floating-action-bar no-print" id="floatingActionBar">
+        <!-- Floating Custom Itinerary Trigger -->
+        <button type="button" class="btn-floating-plan" onclick="openCustomTripModal()" id="btn-floating-plan-trip" title="Design Custom Tour, IV or Outstation Fleet Itinerary">
+            <span>✨</span>
+            <span class="plan-text">Plan Custom Tour / IV</span>
+            <span class="quote-pill">Instant Quote</span>
+        </button>
+
+        <!-- Floating WhatsApp Live Desk Button -->
+        <a href="https://wa.me/919842533777?text=Hi%20Sivagayathiri%20Travels%2C%20I%20would%20like%20to%20plan%20a%20tour%20package%20%2F%20hire%20a%20fleet%20vehicle." 
+           target="_blank" 
+           rel="noopener noreferrer" 
+           class="btn-floating-whatsapp" 
+           id="btn-floating-whatsapp" 
+           aria-label="Direct WhatsApp Chat with Tour Desk">
+            <div class="wa-ping-ring"></div>
+            <svg class="wa-svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.54 1.77.818 2.788.818 3.18 0 5.767-2.587 5.767-5.766.001-3.181-2.585-5.766-5.764-5.766zm4.195 8.163c-.177.498-.921.944-1.397.994-.469.049-.878.077-2.617-.616-1.579-.628-2.67-2.186-2.766-2.316-.096-.13-1.002-1.332-1.002-2.54 0-1.209.634-1.805.859-2.048.225-.244.492-.305.656-.305.164 0 .328.002.471.01.152.008.355-.058.556.425.207.498.707 1.727.768 1.85.061.124.103.269.02.434-.082.164-.124.268-.246.41-.123.143-.258.32-.369.43-.123.123-.25.257-.107.502.143.246.637 1.05 1.368 1.701.939.837 1.732 1.096 1.978 1.218.246.123.389.103.533-.062.144-.164.614-.718.778-.964.164-.246.328-.205.553-.123s1.436.677 1.682.8c.246.123.41.185.471.288.062.103.062.596-.115 1.094zM12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.981-1.309A9.957 9.957 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/>
+            </svg>
+            <span class="wa-tooltip">WhatsApp Tour Desk (24x7)</span>
+        </a>
+    </div>
+
+    <!-- Option C: Custom Itinerary & WhatsApp Lead Generator Modal -->
+    <div id="customTripModal" class="custom-trip-backdrop" style="display: none;">
+        <div class="custom-trip-dialog">
+            <!-- Modal Close Button -->
+            <button onclick="closeCustomTripModal()" type="button" class="custom-trip-close" aria-label="Close custom trip builder">&times;</button>
+            
+            <!-- Modal Header -->
+            <div class="custom-trip-header">
+                <div class="trip-header-badge">⚡ 60-SEC BESPOKE TOUR DESIGNER</div>
+                <h3 class="trip-header-title">Design Your Custom Itinerary & Fleet Quote</h3>
+                <p class="trip-header-subtitle">
+                    College Industrial Visits (IV) • Corporate Offsites • Family Getaways • Pilgrimage Circuits
+                </p>
+            </div>
+
+            <!-- Form Content -->
+            <form id="customTripForm" onsubmit="handleCustomTripSubmit(event)">
+                <!-- 1. Trip Type Pill Selectors -->
+                <div class="form-section-label">1. Choose Journey Category</div>
+                <div class="trip-type-grid">
+                    <label class="trip-type-pill active">
+                        <input type="radio" name="trip_type" value="college_iv" checked onchange="handleTripTypeChange(this.value)">
+                        <span class="pill-icon">🎓</span>
+                        <span class="pill-title">College IV</span>
+                        <span class="pill-sub">Study Tour & Industrial</span>
+                    </label>
+                    <label class="trip-type-pill">
+                        <input type="radio" name="trip_type" value="corporate" onchange="handleTripTypeChange(this.value)">
+                        <span class="pill-icon">🏢</span>
+                        <span class="pill-title">Corporate Offsite</span>
+                        <span class="pill-sub">Team Outing & MICE</span>
+                    </label>
+                    <label class="trip-type-pill">
+                        <input type="radio" name="trip_type" value="family" onchange="handleTripTypeChange(this.value)">
+                        <span class="pill-icon">👨‍👩‍👧</span>
+                        <span class="pill-title">Family Holiday</span>
+                        <span class="pill-sub">Hill Station & Leisure</span>
+                    </label>
+                    <label class="trip-type-pill">
+                        <input type="radio" name="trip_type" value="pilgrimage" onchange="handleTripTypeChange(this.value)">
+                        <span class="pill-icon">🛕</span>
+                        <span class="pill-title">Pilgrimage</span>
+                        <span class="pill-sub">Temple & Devotional</span>
+                    </label>
+                    <label class="trip-type-pill">
+                        <input type="radio" name="trip_type" value="fleet_rental" onchange="handleTripTypeChange(this.value)">
+                        <span class="pill-icon">🚗</span>
+                        <span class="pill-title">Fleet Rental</span>
+                        <span class="pill-sub">Chauffeur Outstation</span>
+                    </label>
+                </div>
+
+                <!-- 2. Circuit & Schedule Grid -->
+                <div class="form-section-label" style="margin-top: 1.25rem;">2. Route & Schedule</div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="ct_pickup">Starting City / Campus *</label>
+                        <input type="text" id="ct_pickup" name="pickup_location" class="form-input" value="Coimbatore / Tiruppur Hub" placeholder="e.g. Coimbatore, Chennai, Salem" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ct_destination">Destination / Circuit *</label>
+                        <input type="text" id="ct_destination" name="destination" class="form-input" value="Munnar & Kochi, Kerala" placeholder="e.g. Ooty, Wayanad, Goa, Kodaikanal" required>
+                    </div>
+                </div>
+                <div class="form-grid-2" style="margin-top: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="ct_date">Travel Date *</label>
+                        <input type="date" id="ct_date" name="travel_date" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ct_duration">Duration</label>
+                        <select id="ct_duration" name="duration_days" class="form-input">
+                            <option value="1">1 Day (Same-Day Excursion)</option>
+                            <option value="2">2 Days / 1 Night</option>
+                            <option value="3" selected>3 Days / 2 Nights (Most Popular)</option>
+                            <option value="4">4 Days / 3 Nights</option>
+                            <option value="5">5 Days / 4 Nights</option>
+                            <option value="6">6+ Days Grand Expedition</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 3. Group Size & Fleet -->
+                <div class="form-section-label" style="margin-top: 1.25rem;">3. Group Size & Fleet Preference</div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="ct_passengers">Estimated Headcount (Pax) *</label>
+                        <input type="number" id="ct_passengers" name="passengers" class="form-input" min="1" max="500" value="45" required>
+                        <small style="color: #64748b; font-size: 0.75rem; margin-top: 0.2rem; display: block;">For college IVs, specify batch size (e.g. 45 or 90 students)</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ct_vehicle">Fleet Preference</label>
+                        <select id="ct_vehicle" name="vehicle_preference" class="form-input">
+                            <option value="Volvo Multi-Axle Luxury Coach (49-54 Seater)" selected>Volvo Multi-Axle Luxury Coach (49-54 Seater)</option>
+                            <option value="Deluxe Tourist Mini Bus (36-Seater Pushback)">Deluxe Tourist Mini Bus (36-Seater Pushback)</option>
+                            <option value="Force Urbania / Luxury Tempo (12-17 Seater)">Force Urbania / Luxury Tempo (12-17 Seater)</option>
+                            <option value="Toyota Innova Crysta (7-Seater Premium MPV)">Toyota Innova Crysta (7-Seater Premium MPV)</option>
+                            <option value="Let Travel Desk Suggest Best Fleet Configuration">💡 Let Travel Desk Suggest Fleet</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 4. Package Inclusions (Multi-Select Chips) -->
+                <div class="form-section-label" style="margin-top: 1.25rem;">4. Required Tour Inclusions</div>
+                <div class="inclusions-chips">
+                    <label class="inclusion-chip active">
+                        <input type="checkbox" name="inclusions" value="Hotel Stay" checked>
+                        <span>🏨 3★ / 4★ Hotel Stay</span>
+                    </label>
+                    <label class="inclusion-chip active">
+                        <input type="checkbox" name="inclusions" value="Buffet Meals" checked>
+                        <span>🍽️ All Meals (Buffet)</span>
+                    </label>
+                    <label class="inclusion-chip active">
+                        <input type="checkbox" name="inclusions" value="Campfire & DJ" checked>
+                        <span>🔥 Campfire & DJ Night</span>
+                    </label>
+                    <label class="inclusion-chip active">
+                        <input type="checkbox" name="inclusions" value="IV Permission" checked>
+                        <span>🏭 Industrial Plant Visit Coordination</span>
+                    </label>
+                    <label class="inclusion-chip">
+                        <input type="checkbox" name="inclusions" value="Sightseeing Tickets">
+                        <span>🎟️ Sightseeing / Boating Entry</span>
+                    </label>
+                    <label class="inclusion-chip">
+                        <input type="checkbox" name="inclusions" value="Tour Guide">
+                        <span>👨‍✈️ Dedicated Tour Escort</span>
+                    </label>
+                </div>
+
+                <!-- 5. Coordinator Details -->
+                <div class="form-section-label" style="margin-top: 1.25rem;">5. Trip Coordinator Details</div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="ct_name">Full Name / Staff / Lead *</label>
+                        <input type="text" id="ct_name" name="name" class="form-input" placeholder="e.g. Prof. Anand / Rajesh Kumar" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ct_phone">WhatsApp Mobile Number *</label>
+                        <input type="tel" id="ct_phone" name="phone" class="form-input" placeholder="e.g. 9842511223" pattern="[0-9]{10}" title="Please enter a 10-digit mobile number" required>
+                    </div>
+                </div>
+                <div class="form-grid-2" style="margin-top: 0.75rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="ct_org">College / Company / Group Name</label>
+                        <input type="text" id="ct_org" name="organization" class="form-input" placeholder="e.g. PSG Tech / TCS / Family Group">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ct_email">Email Address (Optional)</label>
+                        <input type="email" id="ct_email" name="email" class="form-input" placeholder="for GST invoice / quotation PDF">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 0.75rem;">
+                    <label class="form-label" for="ct_notes">Specific Stops, DJ Requests, or Itinerary Notes</label>
+                    <textarea id="ct_notes" name="notes" class="form-input" rows="2" placeholder="e.g. Need factory visit at Wonderla or Tea Factory, plus campfire dinner on Day 2."></textarea>
+                </div>
+
+                <!-- Submit Button Area -->
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button type="submit" id="ct_submit_btn" class="btn btn-primary" style="padding: 0.85rem 1.5rem; font-size: 1rem; width: 100%; justify-content: center; font-weight: 700; border-radius: 12px; background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);">
+                        <span id="ct_btn_text">🚀 Generate Itinerary & Connect on WhatsApp</span>
+                        <span id="ct_btn_spinner" style="display: none;">⏳ Generating CRM Blueprint...</span>
+                    </button>
+                    <div style="text-align: center; font-size: 0.78rem; color: #64748b;">
+                        🔒 Instant CRM Lead Allocation • Verified Sivagayathiri Travel Desk (+91 98425 33777)
+                    </div>
+                </div>
+            </form>
+
+            <!-- Success State Screen -->
+            <div id="customTripSuccess" style="display: none; padding: 2rem 1rem; text-align: center;">
+                <div style="width: 72px; height: 72px; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 2.2rem; color: #15803d; box-shadow: 0 10px 25px -5px rgba(22, 163, 74, 0.3);">
+                    ✓
+                </div>
+                <div style="display: inline-block; background: #e0e7ff; color: #3730a3; padding: 0.3rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;" id="successTicketBadge">
+                    CRM Inquiry #INQ-XXXX
+                </div>
+                <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; color: #0f172a; margin-bottom: 0.5rem;">
+                    Itinerary Blueprint Dispatched!
+                </h3>
+                <p style="color: #475569; font-size: 0.95rem; line-height: 1.6; max-width: 520px; margin: 0 auto 1.5rem;">
+                    Thank you <strong id="successGuestName">Guest</strong>! Your custom itinerary for <strong id="successDestination">Destination</strong> has been logged. Our fleet coordinator is ready to send the complete day-wise PDF quote on WhatsApp.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; max-width: 420px; margin: 0 auto;">
+                    <a href="#" id="successWhatsAppLink" target="_blank" rel="noopener noreferrer" class="btn" style="background: #25D366; color: white; padding: 0.85rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 1rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 10px 25px -5px rgba(37, 211, 102, 0.5);">
+                        <span>💬 Continue on WhatsApp (+91 98425 33777)</span>
+                    </a>
+                    <button type="button" onclick="closeCustomTripModal()" class="btn btn-outline" style="padding: 0.65rem 1.25rem; border-radius: 10px; font-size: 0.9rem;">
+                        Close Window
+                    </button>
+                </div>
+                <div style="margin-top: 1.25rem; font-size: 0.78rem; color: #94a3b8;">
+                    Redirecting to WhatsApp automatically in 2 seconds...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

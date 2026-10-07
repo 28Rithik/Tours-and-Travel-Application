@@ -44,8 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
         durationBadge.id = 'contract-duration-badge';
         durationBadge.style.marginTop = '8px';
         durationBadge.style.fontSize = '13px';
-        durationBadge.style.fontWeight = '600';
-        endDateInput.closest('.form-row').appendChild(durationBadge);
+        const parentEl = endDateInput.closest('.form-row, .field-end_date, [class*="field-end_date"]') || endDateInput.parentElement;
+        if (parentEl) parentEl.appendChild(durationBadge);
     }
 
     function calculateContractDuration() {

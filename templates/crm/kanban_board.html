@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lead Management CRM — Drag & Drop Kanban Pipeline | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 28, 45, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info: #0ea5e9;
+      --purple: #a855f7;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 50px;
+      overflow-x: auto;
+    }
+
+    /* Ambient background glows */
+    .ambient-glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { top: -100px; left: -100px; width: 500px; height: 500px; background: rgba(99, 102, 241, 0.15); }
+    .glow-2 { bottom: -100px; right: -100px; width: 550px; height: 550px; background: rgba(16, 185, 129, 0.12); }
+
+    /* Top Sticky Navigation Bar */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 13, 22, 0.9);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .studio-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .studio-badge {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #818cf8;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* View Mode Switcher Toggle */
+    .view-toggle {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 4px;
+    }
+    .view-toggle-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+      outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-emerald {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .btn-emerald:hover { transform: translateY(-1px); }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* Main Container */
+    .kanban-container {
+      max-width: 1720px;
+      margin: 20px auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* KPI Summary Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.2s;
+    }
+    .kpi-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+    }
+    .kpi-meta h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .kpi-meta .kpi-num {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    /* Filter Strip */
+    .filter-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-select, .search-input {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+    }
+    .filter-select:focus, .search-input:focus {
+      border-color: var(--primary);
+    }
+    .search-input {
+      width: 240px;
+    }
+
+    /* Kanban Board Columns Container */
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(280px, 1fr));
+      gap: 16px;
+      align-items: start;
+      overflow-x: auto;
+      padding-bottom: 20px;
+    }
+
+    /* Single Kanban Column */
+    .kanban-col {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 270px);
+      transition: all 0.2s;
+    }
+    .kanban-col.drag-over {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.08);
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .col-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 14px 14px 0 0;
+      z-index: 5;
+    }
+    .col-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .col-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .col-count-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .col-sum {
+      font-size: 12px;
+      font-weight: 800;
+      color: #34d399;
+      letter-spacing: -0.01em;
+    }
+
+    .cards-zone {
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 150px;
+    }
+
+    /* Draggable Kanban Card */
+    .kanban-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      backdrop-filter: blur(8px);
+      cursor: grab;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      user-select: none;
+    }
+    .kanban-card:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+    .kanban-card:active {
+      cursor: grabbing;
+    }
+    .kanban-card.dragging {
+      opacity: 0.45;
+      transform: scale(0.97);
+      border-style: dashed;
+      border-color: var(--primary);
+    }
+
+    /* Priority Indicator Strip */
+    .priority-strip-urgent { border-left: 4px solid var(--danger); }
+    .priority-strip-high { border-left: 4px solid var(--warning); }
+    .priority-strip-medium { border-left: 4px solid var(--primary); }
+    .priority-strip-low { border-left: 4px solid #64748b; }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .card-inq-id {
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #818cf8;
+    }
+    .card-source-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #cbd5e1;
+    }
+
+    .card-guest-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-phone {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-phone a {
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .card-phone a:hover { color: #38bdf8; }
+
+    .card-route-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 11px;
+    }
+    .card-circuit {
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-details-sub {
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .card-bottom-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .card-deal-val {
+      font-size: 14px;
+      font-weight: 800;
+      color: #34d399;
+    }
+
+    .card-tat-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .tat-alert-breached { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .tat-alert-ok { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+
+    /* Action bar on cards */
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+    .card-btn {
+      flex: 1;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .card-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .card-btn.wa:hover {
+      background: #25d366;
+      color: #064e3b;
+      border-color: #25d366;
+    }
+    .card-btn.won:hover {
+      background: #10b981;
+      color: #fff;
+      border-color: #10b981;
+    }
+
+    /* Modal dialog styling */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      display: none;
+      place-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 520px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .form-input, .form-select, .form-textarea {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 700;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+    }
+    #toast.success { border-color: var(--accent); color: #34d399; }
+    #toast.error { border-color: var(--danger); color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <a href="{% url 'admin:index' %}" class="back-btn">
+        <i class="fa-solid fa-arrow-left"></i> ERP Admin
+      </a>
+      <div class="studio-title">
+        <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i>
+        <span>Lead Management CRM Pipeline</span>
+        <span class="studio-badge">Phase 6 Live</span>
+      </div>
+
+      <!-- View Switcher -->
+      <div class="view-toggle">
+        <a href="{% url 'crm:kanban_board' %}" class="view-toggle-btn active">
+          <i class="fa-solid fa-table-columns"></i> Kanban Board
+        </a>
+        <a href="{% url 'crm:inquiry_pipeline' %}" class="view-toggle-btn">
+          <i class="fa-solid fa-list-check"></i> Tabular List
+        </a>
+      </div>
+    </div>
+
+    <div class="action-group">
+      <button type="button" class="btn btn-emerald" id="btnOpenNewLead">
+        <i class="fa-solid fa-circle-plus"></i> + Log Inquiry
+      </button>
+      <a href="{% url 'crm:quotation_create' %}" class="btn btn-primary" target="_blank">
+        <i class="fa-solid fa-file-invoice"></i> + New Quotation
+      </a>
+      <a href="/admin/crm/inquiry/" class="btn btn-outline" target="_blank">
+        <i class="fa-solid fa-sliders"></i> Admin Records
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="kanban-container">
+    <!-- KPI Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+          <i class="fa-solid fa-coins"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Total Pipeline Value</h3>
+          <div class="kpi-num" style="color: #818cf8;">₹{{ total_pipeline_value|floatformat:0 }}</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
+          <i class="fa-solid fa-fire"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Active Leads in Flight</h3>
+          <div class="kpi-num" style="color: #38bdf8;">{{ active_leads_count }}</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Converted (Won) Deals</h3>
+          <div class="kpi-num" style="color: #34d399;">{{ won_leads_count }}</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+          <i class="fa-solid fa-chart-pie"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>Conversion Win Rate</h3>
+          <div class="kpi-num" style="color: #c084fc;">{{ win_rate }}%</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="kpi-meta">
+          <h3>SLA Overdue Alerts</h3>
+          <div class="kpi-num" style="color: {% if overdue_count > 0 %}#f87171{% else %}#34d399{% endif %};">
+            {{ overdue_count }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Strip -->
+    <div class="filter-bar">
+      <form method="GET" class="filter-left" id="filterForm">
+        <select name="assigned_to" class="filter-select" onchange="this.form.submit()">
+          <option value="">-- All Specialists --</option>
+          {% for spec in specialists %}
+            <option value="{{ spec.id }}" {% if selected_specialist == spec.id|stringformat:'s' %}selected{% endif %}>👤 {{ spec.username }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="priority" class="filter-select" onchange="this.form.submit()">
+          <option value="">-- All Priorities --</option>
+          {% for p_key, p_lbl in priorities %}
+            <option value="{{ p_key }}" {% if selected_priority == p_key %}selected{% endif %}>{{ p_lbl }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="source" class="filter-select" onchange="this.form.submit()">
+          <option value="">-- All Lead Sources --</option>
+          {% for s_key, s_lbl in sources %}
+            <option value="{{ s_key }}" {% if selected_source == s_key %}selected{% endif %}>{{ s_lbl }}</option>
+          {% endfor %}
+        </select>
+
+        {% if selected_specialist or selected_priority or selected_source or search_query %}
+          <a href="?" class="btn btn-outline" style="padding: 5px 10px; font-size: 11px;">Reset</a>
+        {% endif %}
+      </form>
+
+      <form method="GET" style="display: flex; gap: 8px;">
+        <input type="text" name="q" class="search-input" value="{{ search_query }}" placeholder="Search guest, phone, destination...">
+        <button type="submit" class="btn btn-primary" style="padding: 7px 12px; font-size: 12px;">Search</button>
+      </form>
+    </div>
+
+    <!-- Drag-and-Drop Kanban Board Grid -->
+    <div class="board-grid">
+      {% for col in columns %}
+      <div class="kanban-col" data-stage="{{ col.key }}" id="col-{{ col.key }}"
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '{{ col.key }}')">
+        
+        <div class="col-header">
+          <div class="col-title-wrap">
+            <i class="fa-solid {{ col.icon }}" style="color: {{ col.color }};"></i>
+            <span class="col-title">{{ col.title }}</span>
+            <span class="col-count-badge" id="count-{{ col.key }}">{{ col.count }}</span>
+          </div>
+          <div class="col-sum" id="sum-{{ col.key }}">₹{{ col.total_value|floatformat:0 }}</div>
+        </div>
+
+        <div class="cards-zone" id="zone-{{ col.key }}">
+          {% for inq in col.inquiries %}
+          <div class="kanban-card priority-strip-{{ inq.priority }}" 
+               id="card-{{ inq.id }}" 
+               draggable="true" 
+               ondragstart="handleDragStart(event, '{{ inq.id }}')"
+               ondragend="handleDragEnd(event)">
+
+            <div class="card-top">
+              <span class="card-inq-id">{{ inq.inquiry_number }}</span>
+              <span class="card-source-badge">{{ inq.get_source_display }}</span>
+            </div>
+
+            <div class="card-guest-name">
+              <span>{{ inq.guest_name }}</span>
+              {% if inq.priority == 'urgent' %}
+                <span style="font-size: 10px; color: #ef4444; font-weight: 800;">🔴 VIP</span>
+              {% endif %}
+            </div>
+
+            <div class="card-phone">
+              <i class="fa-solid fa-phone" style="font-size: 10px;"></i>
+              <a href="tel:{{ inq.guest_phone }}">{{ inq.guest_phone|default:"No phone" }}</a>
+            </div>
+
+            <div class="card-route-box">
+              <div class="card-circuit" title="{{ inq.pickup_location }} ➔ {{ inq.destination }}">
+                <i class="fa-solid fa-location-dot" style="color: #38bdf8;"></i>
+                <span>{{ inq.pickup_location }} ➔ {{ inq.destination }}</span>
+              </div>
+              <div class="card-details-sub">
+                <span><i class="fa-solid fa-calendar-days"></i> {{ inq.pickup_date|date:"d M" }}</span>
+                <span><i class="fa-solid fa-users"></i> {{ inq.adult_count }}A {% if inq.child_count %}+ {{ inq.child_count }}C{% endif %}</span>
+                <span><i class="fa-solid fa-car"></i> {{ inq.vehicle_type.name|default:"AC Car" }}</span>
+              </div>
+            </div>
+
+            <div class="card-bottom-row">
+              <div class="card-deal-val">₹{{ inq.deal_value|floatformat:0 }}</div>
+              <div>
+                {% if inq.is_overdue %}
+                  <span class="card-tat-badge tat-alert-breached">🚨 SLA Breached</span>
+                {% elif inq.status == 'won' %}
+                  <span class="card-tat-badge tat-alert-ok">🏆 Won</span>
+                {% else %}
+                  <span class="card-tat-badge" style="background: rgba(255,255,255,0.06); color: #cbd5e1;">{{ inq.tat_remaining_hours|default:"24" }}h SLA</span>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if inq.converted_trip %}
+              <div style="margin-top: 8px; font-size: 11px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 4px 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #34d399; font-weight: 700;"><i class="fa-solid fa-van-shuttle"></i> Trip #{{ inq.converted_trip.trip_id }}</span>
+                <a href="/admin/operations/trip/{{ inq.converted_trip.id }}/change/" target="_blank" style="color: #38bdf8; font-weight: 600; text-decoration: none;">View ➔</a>
+              </div>
+            {% endif %}
+
+            <!-- Hover Action Buttons -->
+            <div class="card-actions">
+              <button type="button" class="card-btn wa" onclick="openWhatsAppModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}', '{{ inq.guest_phone }}')" title="1-Click WhatsApp Proposal">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </button>
+              <button type="button" class="card-btn" onclick="openFollowUpModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}')" title="Log Call / Interaction">
+                <i class="fa-solid fa-phone"></i> Log
+              </button>
+              {% if inq.status != 'won' and not inq.converted_trip %}
+                <button type="button" class="card-btn won" onclick="openConvertModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}', '{{ inq.deal_value|floatformat:0 }}')" title="Convert to Confirmed Trip">
+                  <i class="fa-solid fa-bolt"></i> Convert
+                </button>
+              {% endif %}
+              <a href="/admin/crm/inquiry/{{ inq.id }}/change/" target="_blank" class="card-btn" style="text-decoration: none;" title="Open in Admin">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+
+  <!-- Modal 1: Quick Interaction Follow-Up Log -->
+  <div class="modal-backdrop" id="followUpModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-headset" style="color: #38bdf8;"></i> Log Follow-Up Interaction</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="followUpForm">
+        <input type="hidden" name="inquiry_id" id="fuInquiryId">
+        <div class="form-group">
+          <label class="form-label">Client / Lead</label>
+          <input type="text" id="fuGuestName" class="form-input" readonly style="opacity: 0.8;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Interaction Channel</label>
+          <select name="interaction_type" class="form-select">
+            <option value="phone">📞 Phone Call</option>
+            <option value="whatsapp">💬 WhatsApp Message</option>
+            <option value="meeting">🤝 In-Person / Desk Meeting</option>
+            <option value="email">✉️ Email Exchange</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Discussion Notes & Feedback</label>
+          <textarea name="notes" class="form-textarea" placeholder="e.g. Discussed package options. Client interested in 4-star Ooty resort with private vehicle." required></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Next Action</label>
+          <input type="text" name="next_action" class="form-input" placeholder="e.g. Send revised itinerary with Ooty toy train tickets">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Schedule Next Reminder In</label>
+          <select name="next_followup_days" class="form-select">
+            <option value="1">Tomorrow (+1 Day)</option>
+            <option value="2" selected>In 2 Days</option>
+            <option value="4">In 4 Days</option>
+            <option value="7">In 1 Week</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
+          <i class="fa-solid fa-check"></i> Save Interaction & Schedule Reminder
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: 1-Click WhatsApp Proposal Dispatcher -->
+  <div class="modal-backdrop" id="waModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-brands fa-whatsapp" style="color: #25d366;"></i> Dispatch WhatsApp Proposal</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="waForm">
+        <input type="hidden" name="inquiry_id" id="waInquiryId">
+        <div class="form-group">
+          <label class="form-label">Recipient Phone</label>
+          <input type="text" id="waPhone" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personalized Special Note (Optional)</label>
+          <input type="text" name="custom_note" class="form-input" placeholder="e.g. Complimentary airport pickup included if booked today!">
+        </div>
+        <div style="background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #cbd5e1; line-height: 1.5;">
+          <i class="fa-solid fa-circle-info" style="color: #25d366;"></i>
+          Automatically prepares verified quotation summary, vehicle category, dates, and direct WhatsApp click-to-chat link.
+        </div>
+        <button type="submit" class="btn" style="background: #25d366; color: #064e3b; width: 100%; justify-content: center; padding: 12px; font-weight: 800;">
+          <i class="fa-brands fa-whatsapp"></i> Generate & Open WhatsApp Chat
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: 1-Click Convert to Confirmed Booking & Trip -->
+  <div class="modal-backdrop" id="convertModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-bolt" style="color: #10b981;"></i> Convert Lead to Confirmed Trip</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="convertForm">
+        <input type="hidden" name="inquiry_id" id="convertInquiryId">
+        <div class="form-group">
+          <label class="form-label">Guest / Client</label>
+          <input type="text" id="convertGuestName" class="form-input" readonly style="opacity: 0.85;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Agreed Commercial Amount (₹)</label>
+          <input type="number" id="convertDealVal" class="form-input" required>
+        </div>
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #cbd5e1; line-height: 1.5;">
+          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+          Instantly creates an active <strong>operations.Booking</strong>, auto-generates <strong>Trip #TR-XXXX</strong>, flags inquiry as <strong>Won</strong>, and enables live GPS tracking & milestone dispatch.
+        </div>
+        <button type="submit" class="btn btn-emerald" style="width: 100%; justify-content: center; padding: 12px; font-weight: 800;">
+          <i class="fa-solid fa-check-double"></i> Confirm & Generate Trip
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMessage">Success</span>
+  </div>
+
+  <script>
+    let draggedInquiryId = null;
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMessage');
+      toast.className = type;
+      msg.innerText = message;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(m => m.style.display = 'none');
+    }
+
+    window.onclick = (e) => {
+      if (e.target.classList.contains('modal-backdrop')) {
+        closeModals();
+      }
+    };
+
+    // Drag and Drop Event Handlers
+    function handleDragStart(e, inquiryId) {
+      draggedInquiryId = inquiryId;
+      e.dataTransfer.setData('text/plain', inquiryId);
+      e.dataTransfer.effectAllowed = 'move';
+      const card = document.getElementById(`card-${inquiryId}`);
+      if (card) {
+        setTimeout(() => card.classList.add('dragging'), 10);
+      }
+    }
+
+    function handleDragEnd(e) {
+      if (draggedInquiryId) {
+        const card = document.getElementById(`card-${draggedInquiryId}`);
+        if (card) card.classList.remove('dragging');
+      }
+      document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
+      draggedInquiryId = null;
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const col = e.currentTarget;
+      if (!col.classList.contains('drag-over')) {
+        col.classList.add('drag-over');
+      }
+    }
+
+    function handleDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    async function handleDrop(e, newStatus) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      const inqId = e.dataTransfer.getData('text/plain') || draggedInquiryId;
+      if (!inqId) return;
+
+      const card = document.getElementById(`card-${inqId}`);
+      const targetZone = document.getElementById(`zone-${newStatus}`);
+
+      // Optimistic UI move
+      if (card && targetZone) {
+        targetZone.prepend(card);
+      }
+
+      try {
+        const res = await fetch(`/crm/api/inquiries/${inqId}/update-stage/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ new_status: newStatus })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+        } else {
+          showToast(data.message || 'Error updating status', 'error');
+          setTimeout(() => window.location.reload(), 800);
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+        setTimeout(() => window.location.reload(), 800);
+      }
+    }
+
+    // Modal Triggers
+    function openFollowUpModal(inqId, guestName) {
+      document.getElementById('fuInquiryId').value = inqId;
+      document.getElementById('fuGuestName').value = guestName;
+      document.getElementById('followUpModal').style.display = 'grid';
+    }
+
+    function openWhatsAppModal(inqId, guestName, phone) {
+      document.getElementById('waInquiryId').value = inqId;
+      document.getElementById('waPhone').value = phone || 'No phone recorded';
+      document.getElementById('waModal').style.display = 'grid';
+    }
+
+    function openConvertModal(inqId, guestName, dealVal) {
+      document.getElementById('convertInquiryId').value = inqId;
+      document.getElementById('convertGuestName').value = guestName;
+      document.getElementById('convertDealVal').value = dealVal;
+      document.getElementById('convertModal').style.display = 'grid';
+    }
+
+    document.getElementById('btnOpenNewLead').onclick = () => {
+      window.open('/admin/crm/inquiry/add/', '_blank');
+    };
+
+    // Submit Follow-Up
+    document.getElementById('followUpForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const inqId = document.getElementById('fuInquiryId').value;
+      const formData = new FormData(e.target);
+
+      try {
+        const res = await fetch(`/crm/api/inquiries/${inqId}/quick-followup/`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+          closeModals();
+        } else {
+          showToast(data.message || 'Error logging follow-up', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+
+    // Submit WhatsApp Dispatch
+    document.getElementById('waForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const inqId = document.getElementById('waInquiryId').value;
+      const formData = new FormData(e.target);
+
+      try {
+        const res = await fetch(`/crm/api/inquiries/${inqId}/dispatch-whatsapp/`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast('WhatsApp quotation prepared!', 'success');
+          closeModals();
+          if (data.wa_url) {
+            window.open(data.wa_url, '_blank');
+          }
+        } else {
+          showToast(data.message || 'Error creating WhatsApp message', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+
+    // Submit 1-Click Convert
+    document.getElementById('convertForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const inqId = document.getElementById('convertInquiryId').value;
+      const dealVal = document.getElementById('convertDealVal').value;
+
+      try {
+        const res = await fetch(`/crm/api/inquiries/${inqId}/convert-to-booking/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deal_value: dealVal })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          showToast(data.message, 'success');
+          closeModals();
+          setTimeout(() => {
+            if (data.admin_trip_url) {
+              window.open(data.admin_trip_url, '_blank');
+            }
+            window.location.reload();
+          }, 800);
+        } else {
+          showToast(data.message || 'Error converting inquiry', 'error');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    };
+  </script>
+</body>
+</html>

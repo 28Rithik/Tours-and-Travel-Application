@@ -36,3 +36,4 @@ Thumbs.db
 
 # Generated files
 *.xlsx
+scripts/*.json

@@ -1,0 +1,97 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🏢 Corporate & Institutional Client Transparency Portals | TravelERP{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/fleet_commute/commutermanifestproxy/" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🏢 Client Portals</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+.portal-container {
+    padding: 24px;
+    background: #090d16;
+    color: #f8fafc;
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+.portal-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(51, 65, 85, 0.6);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s, border-color 0.2s;
+}
+.portal-card:hover {
+    transform: translateY(-2px);
+    border-color: #38bdf8;
+}
+.badge-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.badge-active { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+</style>
+
+<div class="portal-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+            <h1 style="font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;">
+                🏢 Corporate & Institutional Client Transparency Portals
+            </h1>
+            <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">
+                Verified client-facing portals displaying live SLA punctuality, women safety compliance, and ESG carbon certificates.
+            </p>
+        </div>
+        <a href="http://127.0.0.1:3001/d/153ee409-5a59-42fb-b8c3-8701de3e0074/siva-gayathri-fleet-operations-and-safety-kpis" target="_blank" style="padding: 10px 18px; background: #0284c7; color: #fff; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600;">
+            📊 Open Grafana Live Dashboard
+        </a>
+    </div>
+
+    <div class="portal-grid">
+        {% for c in contracts %}
+        <div class="portal-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <div>
+                    <h3 style="font-size: 16px; font-weight: 700; color: #38bdf8; margin: 0;">{{ c.name }}</h3>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">{{ c.customer.name|default:"Corporate Partner" }}</div>
+                </div>
+                <span class="badge-status badge-active">{{ c.status|upper }}</span>
+            </div>
+
+            <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 16px;">
+                <div><strong>Category:</strong> {{ c.get_contract_category_display|default:c.contract_category }}</div>
+                <div><strong>Committed Vehicles:</strong> {{ c.committed_vehicle_count }} Cabs / Shuttles</div>
+                <div><strong>SLA Penalty Cap:</strong> {{ c.sla_penalty_cap_pct }}%</div>
+            </div>
+
+            <a href="{% url 'fleet_commute:client_transparency_portal' c.id %}" style="display: block; text-align: center; padding: 10px 0; background: linear-gradient(135deg, #0284c7, #10b981); color: #fff; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700;">
+                👁️ View Live Client Transparency Portal &rarr;
+            </a>
+        </div>
+        {% empty %}
+        <div style="color: #94a3b8; font-size: 14px;">No active corporate contracts found.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

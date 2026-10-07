@@ -1,0 +1,541 @@
+{% extends "customer_portal/base.html" %}
+{% load i18n %}
+
+{% block title %}Employee Transportation Services & Corporate Fleet Mobility | Sivagayathiri Travels{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Corporate Employee Transport Page Styles (Matching Reference Images 1 & 4) */
+.corp-hero {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
+    color: white;
+    padding: 4rem 1.5rem 4.5rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+.corp-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: url('/static/images/corporate_employee_transport.jpg') center/cover no-repeat;
+    opacity: 0.22;
+    filter: brightness(0.7) contrast(1.1);
+    pointer-events: none;
+}
+.corp-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.corp-badge {
+    display: inline-block;
+    background: rgba(99, 102, 241, 0.25);
+    border: 1px solid rgba(165, 180, 252, 0.4);
+    color: #e0e7ff;
+    padding: 0.35rem 0.95rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+}
+.corp-hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.1rem, 4vw, 3.2rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    line-height: 1.15;
+}
+.corp-hero h1 span {
+    background: linear-gradient(120deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.corp-hero p {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    max-width: 780px;
+    margin: 0 auto 2rem;
+}
+
+/* 6 Key Pillars Strip (Image 1 Style) */
+.corp-pillars-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    max-width: 1080px;
+    margin: -2.5rem auto 3.5rem;
+    position: relative;
+    z-index: 3;
+    padding: 0 1rem;
+}
+.corp-pillar-card {
+    background: #ffffff;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.corp-pillar-card:hover {
+    transform: translateY(-3px);
+    border-color: #0284c7;
+}
+.corp-pillar-icon {
+    width: 48px;
+    height: 48px;
+    background: #e0f2fe;
+    color: #0284c7;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+.corp-pillar-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin: 0 0 0.25rem;
+}
+.corp-pillar-card p {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* 5-Stakeholder Matrix (Matching Reference Image 1) */
+.matrix-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    margin-bottom: 4rem;
+}
+@media (max-width: 868px) {
+    .matrix-row {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .matrix-row:nth-child(even) .matrix-img-col {
+        order: -1;
+    }
+}
+.matrix-img-col {
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: 0 15px 35px -10px rgba(15, 23, 42, 0.2);
+    position: relative;
+    aspect-ratio: 16/10;
+}
+.matrix-img-col img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.matrix-badge-tag {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.matrix-text-col h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--brand-navy);
+    margin: 0 0 1rem;
+}
+.matrix-section-box {
+    margin-bottom: 1.25rem;
+}
+.matrix-section-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #0284c7;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.matrix-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.matrix-list li {
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+.matrix-list li span.bullet {
+    color: #10b981;
+    font-weight: 800;
+}
+
+/* Corporate RFQ Form Section */
+.corp-form-section {
+    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
+    border-radius: var(--radius-xl);
+    padding: 3.5rem 2.5rem;
+    color: white;
+    margin: 4rem auto 2rem;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. Hero Banner -->
+<section class="corp-hero">
+    <div class="corp-hero-bg"></div>
+    <div class="corp-hero-content">
+        <span class="corp-badge">🏢 B2B CORPORATE MOBILITY & EMPLOYEE TRANSIT</span>
+        <h1>Effective, Reliable & Safe <span>Staff Transportation</span></h1>
+        <p>
+            We are South India’s trusted transit partner for tech parks, industrial corridors, and global enterprises. Combining elite commercial fleet operations with satellite telematics to ensure 100% on-time shift arrivals.
+        </p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+            <a href="#corporate-rfq" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-weight: 700;">
+                Request Corporate Transport RFQ →
+            </a>
+            <button type="button" onclick="openCustomTripModal('corporate')" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.75rem 1.25rem;">
+                💬 Instant WhatsApp Consultation
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- 2. The 6 Key Pillars (Matching Reference Image 1 Header Strip) -->
+<div class="corp-pillars-grid">
+    <div class="corp-pillar-card">
+        <div class="corp-pillar-icon">📡</div>
+        <div>
+            <h4>24x7 Telematics Desk</h4>
+            <p>Live satellite GPS tracking with centralized Coimbatore Mission Control.</p>
+        </div>
+    </div>
+    <div class="corp-pillar-card">
+        <div class="corp-pillar-icon">🛡️</div>
+        <div>
+            <h4>Safe & Punctual Commute</h4>
+            <p>99.8% on-time shift arrivals with dedicated standby buffer vehicles.</p>
+        </div>
+    </div>
+    <div class="corp-pillar-card">
+        <div class="corp-pillar-icon">🧾</div>
+        <div>
+            <h4>Digitized Compliance & Billing</h4>
+            <p>100% paperless trip sheets, automated GST invoicing & MIS analytics.</p>
+        </div>
+    </div>
+    <div class="corp-pillar-card">
+        <div class="corp-pillar-icon">👨‍✈️</div>
+        <div>
+            <h4>Trained Chauffeurs on RTO SOP</h4>
+            <p>Defensive driving certified, background verified & breathalyzer screened.</p>
+        </div>
+    </div>
+    <div class="corp-pillar-card">
+        <div class="corp-pillar-icon">🚌</div>
+        <div>
+            <h4>Scalable 320+ Fleet</h4>
+            <p>From executive AC Innova Crystas to 54-seater multi-axle luxury coaches.</p>
+        </div>
+    </div>
+    <div class="corp-pillar-card">
+        <div class="corp-pillar-icon">🏢</div>
+        <div>
+            <h4>BCP Continuity Management</h4>
+            <p>Guaranteed replacement vehicle dispatch within 30 minutes of any glitch.</p>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Your Needs – Our Solutions: The 5-Stakeholder Matrix (Matching Reference Image 1) -->
+<main class="section-wrapper" style="padding-top: 1rem;">
+    <div style="text-align: center; max-width: 760px; margin: 0 auto 3.5rem;">
+        <span class="section-subtitle-tag">STAKEHOLDER VALUE PROPOSITION</span>
+        <h2 class="section-title">Your Needs – Our Solutions</h2>
+        <p class="section-desc">
+            How Sivagayathiri Travels delivers end-to-end corporate mobility across every organizational division.
+        </p>
+    </div>
+
+    <!-- Stakeholder 1: Company / Enterprise -->
+    <div class="matrix-row">
+        <div class="matrix-img-col">
+            <img src="/static/images/corporate_employee_transport.jpg" alt="Corporate Fleet at Tech Park">
+            <span class="matrix-badge-tag">STAKEHOLDER: THE COMPANY</span>
+        </div>
+        <div class="matrix-text-col">
+            <h3>Enterprise Productivity & Punctuality</h3>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">🎯 Company Need:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">•</span> Absolute employee punctuality to prevent production line and software project delays.</li>
+                    <li><span class="bullet">•</span> High employee commute satisfaction to boost retention.</li>
+                    <li><span class="bullet">•</span> Robust Business Continuity Planning (BCP) with zero operational disruption.</li>
+                </ul>
+            </div>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">💡 Our Solution:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">✓</span> Automated route optimization to reduce commute times by up to 25%.</li>
+                    <li><span class="bullet">✓</span> Well-maintained, sanitized, and air-conditioned commercial fleet dedicated to your campus.</li>
+                    <li><span class="bullet">✓</span> Dedicated Client Relationship Manager with round-the-clock priority escalation.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stakeholder 2: Employee / Passenger -->
+    <div class="matrix-row">
+        <div class="matrix-text-col">
+            <h3>Employee Comfort & Women Safety First</h3>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">🎯 Employee Need:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">•</span> Predictable ETA notifications with real-time live bus tracking.</li>
+                    <li><span class="bullet">•</span> Stress-free, restful commute after long shifts.</li>
+                    <li><span class="bullet">•</span> Strict physical safety and security protocols during late-night shift drop-offs.</li>
+                </ul>
+            </div>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">💡 Our Solution:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">✓</span> Smartphone passenger tracking app with precise pickup point countdown.</li>
+                    <li><span class="bullet">✓</span> Mandatory female security escort protocols for unescorted female drop-offs between 8 PM and 6 AM.</li>
+                    <li><span class="bullet">✓</span> Physical SOS emergency panic buttons inside all vehicles linked to Coimbatore Mission Control.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="matrix-img-col">
+            <img src="/static/images/fleet/volvo_coach.jpg" alt="Comfortable Coach Passenger Commute">
+            <span class="matrix-badge-tag">STAKEHOLDER: EMPLOYEES</span>
+        </div>
+    </div>
+
+    <!-- Stakeholder 3: Finance & Accounts -->
+    <div class="matrix-row">
+        <div class="matrix-img-col">
+            <img src="/static/images/fleet_lineup.jpg" alt="Transparent Fleet Logistics">
+            <span class="matrix-badge-tag">STAKEHOLDER: FINANCE</span>
+        </div>
+        <div class="matrix-text-col">
+            <h3>Financial Transparency & Paperless Billing</h3>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">🎯 Finance Need:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">•</span> Cost-effective route operations without hidden fuel markups.</li>
+                    <li><span class="bullet">•</span> Timely, error-free consolidated billing with GST input compliance.</li>
+                    <li><span class="bullet">•</span> Audit-ready digital data logs for monthly reconciliation.</li>
+                </ul>
+            </div>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">💡 Our Solution:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">✓</span> 100% paperless digital trip logsheets with automated GPS odometer validation.</li>
+                    <li><span class="bullet">✓</span> Fixed transparent per-KM or per-seat billing structure with GST invoice input credit.</li>
+                    <li><span class="bullet">✓</span> Monthly MIS reporting covering occupancy rates, route efficiency, and fuel indices.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stakeholder 4: Operations & Dispatch -->
+    <div class="matrix-row">
+        <div class="matrix-text-col">
+            <h3>Reliable Dispatch & 30-Min Standby Guarantee</h3>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">🎯 Operations Need:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">•</span> Highest quality standards of sanitized vehicles and disciplined chauffeurs.</li>
+                    <li><span class="bullet">•</span> Instant handling of employee routing changes and ad-hoc shift requests.</li>
+                    <li><span class="bullet">•</span> Flexibility to ramp up vehicle capacity on demand during audits or conferences.</li>
+                </ul>
+            </div>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">💡 Our Solution:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">✓</span> 100% police-verified chauffeurs with mandatory daily breathalyzer screenings.</li>
+                    <li><span class="bullet">✓</span> 320+ vehicle reserve capacity allowing immediate ramp-up for corporate events.</li>
+                    <li><span class="bullet">✓</span> Guaranteed standby replacement vehicle on-site within 30 minutes in case of emergency.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="matrix-img-col">
+            <img src="/static/images/fleet/innova_crysta.jpg" alt="Corporate Fleet Chauffeur Service">
+            <span class="matrix-badge-tag">STAKEHOLDER: OPERATIONS</span>
+        </div>
+    </div>
+
+    <!-- Stakeholder 5: Regulatory Compliance -->
+    <div class="matrix-row">
+        <div class="matrix-img-col">
+            <img src="/static/images/fleet/force_urbania.jpg" alt="Compliant Fleet Vehicle">
+            <span class="matrix-badge-tag">STAKEHOLDER: COMPLIANCE</span>
+        </div>
+        <div class="matrix-text-col">
+            <h3>Zero-Compromise RTO Regulatory Adherence</h3>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">🎯 Compliance Need:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">•</span> 100% statutory adherence to state transport authority and RTO mandates.</li>
+                    <li><span class="bullet">•</span> Real-time speed governor enforcement (80 km/h max).</li>
+                    <li><span class="bullet">•</span> Up-to-date commercial insurance, fitness certificates, and road tax permits.</li>
+                </ul>
+            </div>
+            <div class="matrix-section-box">
+                <div class="matrix-section-title">💡 Our Solution:</div>
+                <ul class="matrix-list">
+                    <li><span class="bullet">✓</span> Centralized automated compliance tracker alerting team 30 days before any document expiry.</li>
+                    <li><span class="bullet">✓</span> Certified AIS-140 GPS hardware with speed limiter validation on every single fleet unit.</li>
+                    <li><span class="bullet">✓</span> Comprehensive third-party commercial passenger liability insurance coverage.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Corporate RFQ Request Form -->
+    <div class="corp-form-section" id="corporate-rfq">
+        <div style="text-align: center; max-width: 680px; margin: 0 auto 2rem;">
+            <span style="font-size: 0.75rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+                PARTNER WITH SOUTH INDIA'S FLEET LEADER
+            </span>
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin: 0 0 0.5rem;">
+                Request a Corporate Mobility Proposal
+            </h2>
+            <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin: 0;">
+                Tell us your campus location, shift timings, and headcount. Our mobility solution architects will deliver a custom route blueprint and commercial rate card within 24 hours.
+            </p>
+        </div>
+
+        <form style="max-width: 740px; margin: 0 auto;" onsubmit="handleCorpSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Enterprise / Company Name *</label>
+                    <input type="text" id="cr_company" placeholder="e.g. Cognizant / TCS / Robert Bosch" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Contact Person & Designation *</label>
+                    <input type="text" id="cr_name" placeholder="e.g. S. Meenakshi (HR / Admin Head)" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Work Email Address *</label>
+                    <input type="email" id="cr_email" placeholder="admin@company.com" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Direct Mobile / WhatsApp Number *</label>
+                    <input type="tel" id="cr_phone" placeholder="10-digit mobile" pattern="[0-9]{10}" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Campus / Facility Location</label>
+                    <input type="text" id="cr_location" placeholder="e.g. Saravanampatti IT Corridor / TIDEL Park" style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Estimated Daily Commuters (Pax)</label>
+                    <select id="cr_pax" style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: #1e1b4b; color: white; font-family: inherit;">
+                        <option value="50">20 - 50 Employees</option>
+                        <option value="150" selected>50 - 200 Employees</option>
+                        <option value="500">200 - 500 Employees</option>
+                        <option value="1000">500+ Large Campus Employees</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Shift Requirements & Scope</label>
+                <textarea id="cr_notes" rows="2" placeholder="e.g. Need 3 shift timings: 7 AM, 3 PM, and 11 PM with female security escorts for the night drop." style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;"></textarea>
+            </div>
+
+            <button type="submit" id="cr_btn" class="btn btn-primary" style="width: 100%; padding: 0.9rem; font-size: 1rem; font-weight: 700; justify-content: center; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                🚀 Submit Corporate Mobility Request & Get Instant Quote
+            </button>
+        </form>
+    </div>
+</main>
+
+<script>
+async function handleCorpSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('cr_btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing Corporate RFP...';
+
+    const company = document.getElementById('cr_company').value;
+    const name = document.getElementById('cr_name').value;
+    const email = document.getElementById('cr_email').value;
+    const phone = document.getElementById('cr_phone').value;
+    const location = document.getElementById('cr_location').value;
+    const pax = document.getElementById('cr_pax').value;
+    const notes = document.getElementById('cr_notes').value;
+
+    const payload = {
+        name: name,
+        phone: phone,
+        email: email,
+        organization: company,
+        trip_type: 'corporate',
+        pickup_location: location || 'Coimbatore Tech Park',
+        destination: 'Campus Employee Transit',
+        travel_date: new Date(Date.now() + 7*86400000).toISOString().split('T')[0],
+        duration_days: 30,
+        passengers: parseInt(pax),
+        vehicle_preference: 'Corporate Shuttle Bus & Innova Fleet',
+        inclusions: ['Automated Roster App', 'AIS-140 GPS Telematics', 'Female Security Escort', 'Consolidated GST Invoicing'],
+        notes: `Corporate RFP from ${company} (${pax} pax). Location: ${location}. Notes: ${notes}`
+    };
+
+    try {
+        const res = await fetch('/customer-portal/api/custom-inquiry/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+            window.open(data.whatsapp_url, '_blank');
+            alert(`Corporate proposal request logged under CRM #${data.inquiry_number}! Our corporate account director will contact you immediately.`);
+        } else {
+            alert('Notice: ' + (data.message || 'Error processing request'));
+        }
+    } catch(err) {
+        const fallback = encodeURIComponent(`Hi Sivagayathiri Travels, Corporate Transport RFP for ${company} (${pax} employees). Contact: ${name} (${phone}). Location: ${location}.`);
+        window.open(`https://wa.me/919842533777?text=${fallback}`, '_blank');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 Submit Corporate Mobility Request & Get Instant Quote';
+    }
+}
+</script>
+{% endblock %}

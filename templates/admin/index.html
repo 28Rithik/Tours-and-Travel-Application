@@ -2,131 +2,148 @@
 {% load i18n %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box shadow">
-            <span class="info-box-icon bg-info elevation-1"><i class="fas fa-road"></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text">Active Trips</span>
-                <span class="info-box-number">{{ active_trips_count|default:"0" }}</span>
+<!-- ═══ KPI Dashboard Cards ═══ -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+
+    <!-- Active Trips -->
+    <div style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(14,165,233,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(14,165,233,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(14,165,233,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Active Trips</div>
+                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ active_trips_count|default:"0" }}</div>
+            </div>
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">route</span>
+            </div>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Today's live operations</div>
+    </div>
+
+    <!-- Active Drivers -->
+    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(16,185,129,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Active Drivers</div>
+                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ active_drivers_count|default:"0" }}</div>
+            </div>
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">person</span>
+            </div>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Fleet crew on duty</div>
+    </div>
+
+    <!-- Pending Bookings -->
+    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(245,158,11,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(245,158,11,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(245,158,11,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Pending Bookings</div>
+                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ pending_bookings_count|default:"0" }}</div>
+            </div>
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">event</span>
+            </div>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Awaiting confirmation</div>
+    </div>
+
+    <!-- Unsettled Advances -->
+    <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(239,68,68,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(239,68,68,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Unsettled Advances</div>
+                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ unsettled_advances_count|default:"0" }}</div>
+            </div>
+            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">payments</span>
+            </div>
+        </div>
+        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Pending driver settlements</div>
+    </div>
+
+</div>
+
+<!-- ═══ TARA AI Business Brain Command Banner ═══ -->
+<div style="background: linear-gradient(135deg, #312e81 0%, #1e1b4b 50%, #0f172a 100%); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 18px 24px; margin-bottom: 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.25);">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px;">
+            🧠
+        </div>
+        <div>
+            <div style="font-weight: 700; color: #f8fafc; font-size: 16px; display: flex; align-items: center; gap: 10px;">
+                <span>TARA AI Operations Business Brain</span>
+                <span style="font-size: 11px; text-transform: uppercase; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">Powered by Groq LLM</span>
+            </div>
+            <div style="font-size: 13px; color: #cbd5e1; margin-top: 3px;">
+                Natural language operations copilot. Instant queries on active tours, insurance/PUC renewals, driver safety scorecards, and revenue collection.
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box shadow">
-            <span class="info-box-icon bg-success elevation-1"><i class="fas fa-user-tie"></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text">Active Drivers</span>
-                <span class="info-box-number">{{ active_drivers_count|default:"0" }}</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box shadow">
-            <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-calendar-check text-white"></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text">Pending Bookings</span>
-                <span class="info-box-number">{{ pending_bookings_count|default:"0" }}</span>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-6 col-md-3">
-        <div class="info-box shadow">
-            <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-money-bill-wave"></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text">Unsettled Advances</span>
-                <span class="info-box-number">{{ unsettled_advances_count|default:"0" }}</span>
-            </div>
-        </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="/admin/operations/tara-ai/" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <span class="material-symbols-outlined" style="font-size: 18px;">psychology</span> Launch TARA Studio
+        </a>
+        <button onclick="toggleTaraPanel()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #c7d2fe; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            <span style="font-size: 16px;">💬</span> Quick Chat
+        </button>
     </div>
 </div>
 
-<!-- Enterprise Systemic Sections Navigator -->
-<div class="card card-outline card-primary shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap" style="border-bottom: 1px solid #e2e8f0; padding: 12px 20px;">
-        <div class="d-flex align-items-center mb-1 mb-md-0">
-            <span class="mr-2" style="font-size: 18px;">⚡</span>
-            <strong style="font-size: 15px; color: #0d5c58;">Enterprise Operations Directory</strong>
-            <span class="badge badge-light ml-2" style="border: 1px solid #cbd5e1; color: #475569;">8 Business Domains</span>
+<!-- ═══ Live Operations Radar Command Banner ═══ -->
+<div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 18px 24px; margin-bottom: 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #38bdf8;">satellite_alt</span>
         </div>
-        <div class="w-100 w-md-auto" style="min-width: 280px;">
-            <input type="text" id="adminModelFilter" class="form-control form-control-sm" placeholder="🔍 Quick filter any module (e.g. quote, trip, fuel, invoice)..." onkeyup="filterAdminModels()" style="border-radius: 20px; padding: 6px 16px;">
+        <div>
+            <div style="font-weight: 700; color: #f8fafc; font-size: 16px; display: flex; align-items: center; gap: 10px;">
+                <span>🛰️ Live Fleet Operations & Telematics Radar</span>
+                <span style="font-size: 11px; text-transform: uppercase; background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">Live GPS</span>
+            </div>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 3px;">
+                Interactive Leaflet mission control with 148 fleet vehicles, active telematics pings, geofence status, and instant standby unit dispatch.
+            </div>
         </div>
     </div>
-    <div class="card-body py-2" style="background: #f8fafc;">
-        <div class="d-flex flex-wrap gap-2" style="gap: 8px;">
-            <span class="badge badge-pill badge-primary p-2" style="cursor: pointer; font-size: 11.5px; background: #0d5c58;" onclick="filterByDomain('all')">All Domains</span>
-            <span class="badge badge-pill badge-info p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('crm')">🎯 CRM &amp; Quotations</span>
-            <span class="badge badge-pill badge-success p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('operations')">🚗 Fleet Dispatch</span>
-            <span class="badge badge-pill badge-warning p-2 text-white" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('packages')">📦 Tour Packages</span>
-            <span class="badge badge-pill badge-secondary p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('contracts')">🏢 Contracts &amp; Shuttles</span>
-            <span class="badge badge-pill badge-danger p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('maintenance')">🛠️ Vehicles &amp; Workshop</span>
-            <span class="badge badge-pill badge-dark p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('crew')">👤 Drivers &amp; Portal</span>
-            <span class="badge badge-pill badge-success p-2" style="cursor: pointer; font-size: 11.5px; background: #047857;" onclick="filterByDomain('finance')">💰 Finance, Fuel &amp; Payroll</span>
-            <span class="badge badge-pill badge-secondary p-2" style="cursor: pointer; font-size: 11.5px;" onclick="filterByDomain('governance')">🛡️ Governance &amp; Auth</span>
-        </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="/admin/operations/fleet-radar/" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(2,132,199,0.35); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <span class="material-symbols-outlined" style="font-size: 18px;">satellite_alt</span> Launch Admin Radar Map
+        </a>
+        <a href="/admin/operations/trip/" style="background: rgba(255,255,255,0.08); border: 1px solid #475569; color: #cbd5e1; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">alt_route</span> Active Trips
+        </a>
     </div>
 </div>
 
-<script>
-function filterAdminModels() {
-    var input = document.getElementById("adminModelFilter");
-    var filter = input.value.toLowerCase().trim();
-    var cards = document.querySelectorAll(".card");
-
-    cards.forEach(function(card) {
-        // Skip the KPI row and search card
-        if (card.closest(".mb-4") || card.querySelector("#adminModelFilter")) return;
-
-        var header = card.querySelector(".card-header");
-        var rows = card.querySelectorAll("tbody tr");
-        var hasVisibleRow = false;
-
-        rows.forEach(function(row) {
-            var text = row.textContent.toLowerCase();
-            if (filter === "" || text.indexOf(filter) > -1) {
-                row.style.display = "";
-                hasVisibleRow = true;
-            } else {
-                row.style.display = "none";
-            }
-        });
-
-        if (header && (filter === "" || header.textContent.toLowerCase().indexOf(filter) > -1 || hasVisibleRow)) {
-            card.style.display = "";
-            if (header.textContent.toLowerCase().indexOf(filter) > -1 && filter !== "") {
-                rows.forEach(function(r) { r.style.display = ""; });
-            }
-        } else {
-            card.style.display = hasVisibleRow ? "" : "none";
-        }
-    });
-}
-
-function filterByDomain(domain) {
-    var searchInput = document.getElementById("adminModelFilter");
-    if(domain === 'all') {
-        searchInput.value = '';
-    } else if(domain === 'crm') {
-        searchInput.value = 'crm';
-    } else if(domain === 'operations') {
-        searchInput.value = 'operations';
-    } else if(domain === 'packages') {
-        searchInput.value = 'package';
-    } else if(domain === 'contracts') {
-        searchInput.value = 'contract';
-    } else if(domain === 'maintenance') {
-        searchInput.value = 'maintenance';
-    } else if(domain === 'crew') {
-        searchInput.value = 'driver';
-    } else if(domain === 'finance') {
-        searchInput.value = 'finance';
-    } else if(domain === 'governance') {
-        searchInput.value = 'governance';
-    }
-    filterAdminModels();
-}
-</script>
+<!-- ═══ Dynamic UPI & Multi-Gateway Studio Command Banner ═══ -->
+<div style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid #4338ca; border-radius: 12px; padding: 18px 24px; margin-bottom: 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.35); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #818cf8;">qr_code_2</span>
+        </div>
+        <div>
+            <div style="font-weight: 700; color: #f8fafc; font-size: 16px; display: flex; align-items: center; gap: 10px;">
+                <span>⚡ Dynamic UPI QR & Payment Gateway Studio</span>
+                <span style="font-size: 11px; text-transform: uppercase; background: #4f46e5; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">Auto GL Posting</span>
+            </div>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 3px;">
+                NPCI Dynamic UPI QRs, Razorpay & Cashfree webhook ingestion, instant 12-digit UTR reconciliation, and automated Double-Entry General Ledger posting.
+            </div>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="/admin/finance/payment-studio/" style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(79,70,229,0.35); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+            <span class="material-symbols-outlined" style="font-size: 18px;">point_of_sale</span> Launch Payment Studio
+        </a>
+        <a href="/admin/finance/journalentry/" style="background: rgba(255,255,255,0.08); border: 1px solid #475569; color: #cbd5e1; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span class="material-symbols-outlined" style="font-size: 18px;">menu_book</span> General Ledger
+        </a>
+    </div>
+</div>
 
 {{ block.super }}
+
+<!-- TARA AI Operations Copilot Floating Widget -->
+{% include "components/tara_copilot_widget.html" %}
 {% endblock %}
+

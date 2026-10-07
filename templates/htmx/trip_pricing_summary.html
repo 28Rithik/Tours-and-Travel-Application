@@ -1,0 +1,34 @@
+{% if grand_total or total_km %}
+<div class="trip-pricing-summary-card" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px; color: #f8fafc; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 8px; margin-bottom: 10px;">
+        <span style="font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #38bdf8;">
+            ⚡ Live Billing Calculator (Model: {{ billing_model|upper }})
+        </span>
+        <span style="font-size: 11px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+            Real-time Tariff
+        </span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; font-size: 12px;">
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Total Distance</div>
+            <div style="font-weight: 700; color: #f8fafc; font-size: 15px;">{{ total_km|floatformat:1 }} KM</div>
+        </div>
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Base Tariff</div>
+            <div style="font-weight: 700; color: #cbd5e1; font-size: 15px;">₹{{ base_amount|floatformat:2 }}</div>
+        </div>
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Driver Bata</div>
+            <div style="font-weight: 700; color: #cbd5e1; font-size: 15px;">₹{{ driver_bata|floatformat:2 }}</div>
+        </div>
+        <div>
+            <div style="color: #94a3b8; font-size: 11px;">Customer Billable Fines</div>
+            <div style="font-weight: 700; color: #f87171; font-size: 15px;">+₹{{ fines|floatformat:2 }}</div>
+        </div>
+        <div style="border-left: 1px solid #334155; padding-left: 12px;">
+            <div style="color: #38bdf8; font-size: 11px; font-weight: 600;">Projected Bill Total</div>
+            <div style="font-weight: 800; color: #34d399; font-size: 18px;">₹{{ grand_total|floatformat:2 }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}

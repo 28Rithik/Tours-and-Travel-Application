@@ -1,0 +1,40 @@
+{% extends "admin/change_form.html" %}
+
+{% block content %}
+<!-- HTMX Dynamic Reactive Engine for Bulk Contract Day Form -->
+<div id="bulk-day-htmx-deck" style="margin-bottom: 20px;">
+    <!-- Contract Rates Container -->
+    <div id="contract-rates-htmx-container"
+         hx-get="{% url 'htmx_operations:contract-rate-lookup' %}"
+         hx-trigger="change from:#id_contract, contract-selected from:body"
+         hx-include="#id_contract">
+    </div>
+</div>
+
+{{ block.super }}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function watchField(id, eventName) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var lastVal = el.value;
+        setInterval(function() {
+            var curVal = el.value;
+            if (curVal !== lastVal) {
+                lastVal = curVal;
+                document.body.dispatchEvent(new CustomEvent(eventName));
+            }
+        }, 200);
+    }
+
+    watchField('id_contract', 'contract-selected');
+
+    setTimeout(function() {
+        if (document.getElementById('id_contract') && document.getElementById('id_contract').value) {
+            document.body.dispatchEvent(new CustomEvent('contract-selected'));
+        }
+    }, 150);
+});
+</script>
+{% endblock %}

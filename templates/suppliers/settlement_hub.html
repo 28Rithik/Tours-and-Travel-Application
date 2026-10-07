@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Outsourced Fleet & Partner Settlements | TravelERP{% endblock %}
+{% block header_title %}Outsourced Fleet Settlements & Partner Hub{% endblock %}
+
+{% block content %}
+<div class="settlement-studio" style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
+
+  <!-- Header Banner -->
+  <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 24px; color: #fff; margin-bottom: 24px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span style="font-size: 24px;">🤝</span>
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Outsourced Fleet &amp; Partner Settlement Hub</h1>
+        <span style="background: #3b82f6; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Sec 194C Compliant</span>
+      </div>
+      <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+        Manage partner cab/bus duties, contracted buy vs. sell margins, statutory TDS deductions (1% / 2%), and automated double-entry vendor settlements.
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="{% url 'suppliers:hotel-vouchers-hub' %}" class="button button-secondary" style="background: #334155; color: #fff; border-color: #475569; text-decoration: none;">
+        🏨 Hotel Vouchers Hub
+      </a>
+      <button onclick="openNewSettlementModal()" class="button" style="background: #2563eb; color: #fff; border: none; font-weight: 600; cursor: pointer;">
+        + New Settlement
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Outsourced Duties</span>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ total_count }}</div>
+      <div style="font-size: 12px; color: #3b82f6; margin-top: 4px;">{{ pending_count }} pending audit</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Partner Buy Turnover</span>
+      <div style="font-size: 26px; font-weight: 800; color: #1e293b; margin-top: 4px;">₹{{ total_buy|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Agreed operator billings</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">TDS Withheld (194C)</span>
+      <div style="font-size: 26px; font-weight: 800; color: #7c3aed; margin-top: 4px;">₹{{ total_tds|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #7c3aed; margin-top: 4px;">Form 26Q tax credit</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Net Operator Payables</span>
+      <div style="font-size: 26px; font-weight: 800; color: #d97706; margin-top: 4px;">₹{{ total_net|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #d97706; margin-top: 4px;">Net clearances to pay</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Gross Margin Retained</span>
+      <div style="font-size: 26px; font-weight: 800; color: #16a34a; margin-top: 4px;">₹{{ total_margin|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #16a34a; margin-top: 4px;">Outsourced commission</div>
+    </div>
+  </div>
+
+  <!-- Filter & Actions Bar -->
+  <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+    <form method="get" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 0;">
+      <select name="status" class="form-control" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="this.form.submit()">
+        <option value="">All Settlement Statuses</option>
+        <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
+        <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Verified</option>
+        <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved (In GL)</option>
+        <option value="paid" {% if selected_status == 'paid' %}selected{% endif %}>Settled &amp; Paid</option>
+      </select>
+      <select name="supplier" class="form-control" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="this.form.submit()">
+        <option value="">All Partner Suppliers</option>
+        {% for s in suppliers_list %}
+        <option value="{{ s.id }}" {% if selected_supplier == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+      {% if selected_status or selected_supplier %}
+      <a href="{% url 'suppliers:settlement-hub' %}" style="color: #ef4444; font-size: 13px; text-decoration: none;">Clear Filter</a>
+      {% endif %}
+    </form>
+    <div>
+      <span style="font-size: 13px; color: #64748b;">Showing latest records</span>
+    </div>
+  </div>
+
+  <!-- Unsettled Trips Alert Table (If any) -->
+  {% if unsettled_trips %}
+  <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: #b45309; font-size: 18px;">⚠️</span>
+        <strong style="color: #92400e; font-size: 15px;">{{ unsettled_trips|length }} Trips Executed via Outsourced Fleet Awaiting Settlement</strong>
+      </div>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="text-align: left; color: #92400e; border-bottom: 1px solid #fde68a;">
+            <th style="padding: 8px;">Trip Ref</th>
+            <th style="padding: 8px;">Dates</th>
+            <th style="padding: 8px;">Outsourced Vehicle</th>
+            <th style="padding: 8px;">Supplier / Owner</th>
+            <th style="padding: 8px;">Customer Revenue</th>
+            <th style="padding: 8px; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in unsettled_trips %}
+          <tr style="border-bottom: 1px solid #fef3c7;">
+            <td style="padding: 8px; font-weight: 600;">Trip #{{ t.id }}</td>
+            <td style="padding: 8px;">{{ t.start_date|date:"d M" }} - {{ t.end_date|date:"d M Y" }}</td>
+            <td style="padding: 8px;"><span style="background: #fef08a; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ t.vehicle.registration_number }}</span> ({{ t.vehicle.vehicle_type.name }})</td>
+            <td style="padding: 8px;">{{ t.vehicle.owner_party.name|default:"Partner Supplier" }}</td>
+            <td style="padding: 8px; font-weight: 600; color: #16a34a;">₹{{ t.total_amount|default:"0.00" }}</td>
+            <td style="padding: 8px; text-align: right;">
+              <button onclick="prefillSettlementModal('{{ t.id }}', '{{ t.vehicle.owner_party.id }}', '{{ t.vehicle.id }}', '{{ t.total_amount|default:0 }}', '{{ t.vehicle.supplier_daily_rate|default:0 }}', '{{ t.vehicle.supplier_driver_name|default:'' }}', '{{ t.vehicle.supplier_driver_phone|default:'' }}')" 
+                      class="button" style="background: #b45309; color: #fff; padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
+                ⚡ Calculate &amp; Settle
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Main Settlements Ledger Table -->
+  <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Outsourced Trip Settlements Ledger</h2>
+      <span style="font-size: 12px; color: #64748b;">Sorted by newest</span>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="background: #f8fafc; color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 12px 16px;">Voucher Ref</th>
+            <th style="padding: 12px 16px;">Date</th>
+            <th style="padding: 12px 16px;">Supplier &amp; Vehicle</th>
+            <th style="padding: 12px 16px;">Driver &amp; Odo KM</th>
+            <th style="padding: 12px 16px; text-align: right;">Buy Rate</th>
+            <th style="padding: 12px 16px; text-align: right;">TDS (194C)</th>
+            <th style="padding: 12px 16px; text-align: right;">Net Payable</th>
+            <th style="padding: 12px 16px; text-align: right;">Margin</th>
+            <th style="padding: 12px 16px; text-align: center;">Status</th>
+            <th style="padding: 12px 16px; text-align: right;">Documents &amp; Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in settlements %}
+          <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <td style="padding: 12px 16px;">
+              <span style="font-weight: 700; color: #0f172a; font-family: monospace;">{{ s.settlement_number }}</span>
+              {% if s.trip %}<br><small style="color: #64748b;">Trip #{{ s.trip.id }}</small>{% endif %}
+            </td>
+            <td style="padding: 12px 16px; color: #475569;">{{ s.settlement_date|date:"d M Y" }}</td>
+            <td style="padding: 12px 16px;">
+              <strong style="color: #1e293b;">{{ s.supplier.name }}</strong><br>
+              <span style="background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                {{ s.vehicle.registration_number }}
+              </span>
+            </td>
+            <td style="padding: 12px 16px; color: #475569;">
+              {{ s.driver_name|default:"Partner Driver" }}<br>
+              <small style="color: #64748b;">{{ s.total_km_run }} KM run</small>
+            </td>
+            <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #1e293b;">
+              ₹{{ s.agreed_buy_rate|floatformat:2 }}
+            </td>
+            <td style="padding: 12px 16px; text-align: right; color: #7c3aed;">
+              -₹{{ s.tds_amount|floatformat:2 }}<br>
+              <small style="font-size: 10px; color: #64748b;">({{ s.tds_rate_percent }}%)</small>
+            </td>
+            <td style="padding: 12px 16px; text-align: right;">
+              <strong style="color: #d97706; font-size: 14px;">₹{{ s.net_payable_amount|floatformat:2 }}</strong>
+            </td>
+            <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #16a34a;">
+              ₹{{ s.gross_margin_earned|floatformat:2 }}
+            </td>
+            <td style="padding: 12px 16px; text-align: center;">
+              {% if s.status == 'approved' or s.status == 'paid' %}
+              <span style="background: #dcfce7; color: #166534; font-weight: 700; font-size: 11px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase;">
+                ✓ {{ s.get_status_display }}
+              </span>
+              {% else %}
+              <span style="background: #fef3c7; color: #92400e; font-weight: 700; font-size: 11px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase;">
+                ⏳ {{ s.get_status_display }}
+              </span>
+              {% endif %}
+            </td>
+            <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
+              <a href="{% url 'suppliers:duty-slip-print' s.id %}" target="_blank" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
+                📄 Duty Slip
+              </a>
+              <a href="{% url 'suppliers:settlement-print' s.id %}" target="_blank" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
+                🧾 Voucher
+              </a>
+              {% if s.status == 'draft' or s.status == 'verified' %}
+              <button onclick="approveSettlement({{ s.id }}, this)" class="button" style="background: #16a34a; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;">
+                Approve GL
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" style="padding: 30px; text-align: center; color: #64748b;">
+              No outsourced settlements recorded yet. Click <strong>+ New Settlement</strong> to begin.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Settle Outsourced Trip -->
+<div id="settlementModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: #fff; width: 100%; max-width: 680px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+    <div style="padding: 18px 24px; background: #0f172a; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 17px; font-weight: 700;">Calculate Partner Vehicle Settlement</h3>
+      <button onclick="closeSettlementModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">✕</button>
+    </div>
+    
+    <div style="padding: 24px; overflow-y: auto;">
+      <input type="hidden" id="modal_trip_id">
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Supplier / Transporter *</label>
+          <select id="modal_supplier_id" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="">Select Supplier</option>
+            {% for s in suppliers_list %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Outsourced Vehicle *</label>
+          <select id="modal_vehicle_id" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="">Select Vehicle</option>
+            {% for v in outsourced_vehicles %}
+            <option value="{{ v.id }}">{{ v.registration_number }} ({{ v.vehicle_type.name }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Agreed Buy Rate (₹) *</label>
+          <input type="number" id="modal_buy_rate" step="0.01" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="e.g. 8500" oninput="liveCalculateSettlement()">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Toll / Parking Receipts (₹)</label>
+          <input type="number" id="modal_toll_parking" step="0.01" value="0" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="liveCalculateSettlement()">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Driver Bata (₹)</label>
+          <input type="number" id="modal_driver_bata" step="0.01" value="0" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="liveCalculateSettlement()">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Advance Disbursed (₹)</label>
+          <input type="number" id="modal_advance_paid" step="0.01" value="0" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="liveCalculateSettlement()">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Company Fuel Filled (₹)</label>
+          <input type="number" id="modal_fuel_deducted" step="0.01" value="0" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" oninput="liveCalculateSettlement()">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Statutory TDS (Sec 194C)</label>
+          <select id="modal_tds_section" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="liveCalculateSettlement()">
+            <option value="194C_INDIVIDUAL">Sec 194C - Individual / HUF (1.00%)</option>
+            <option value="194C_COMPANY">Sec 194C - Company / Firm (2.00%)</option>
+            <option value="206AA_NO_PAN">Sec 206AA - No PAN Furnished (20.00%)</option>
+            <option value="EXEMPT_DECLARATION">Exempt Form 194C(6) (0.00%)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Operator PAN (Optional)</label>
+          <input type="text" id="modal_pan" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; text-transform: uppercase;" placeholder="ABCDE1234F">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Driver Name</label>
+          <input type="text" id="modal_driver_name" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Driver name">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Driver Phone</label>
+          <input type="text" id="modal_driver_phone" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="+91 98422 XXXXX">
+        </div>
+      </div>
+
+      <!-- Live Settlement Calculation Preview Box -->
+      <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+          <span>Gross Hire Payable:</span>
+          <strong id="preview_gross">₹0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #7c3aed; margin-bottom: 4px;">
+          <span>TDS Deducted:</span>
+          <strong id="preview_tds">-₹0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #ef4444; margin-bottom: 6px;">
+          <span>Advances &amp; Fuel Deducted:</span>
+          <strong id="preview_deductions">-₹0.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: #0f172a; border-top: 1px solid #cbd5e1; padding-top: 6px;">
+          <span>Net Operator Payout:</span>
+          <strong id="preview_net" style="color: #d97706;">₹0.00</strong>
+        </div>
+      </div>
+
+    </div>
+    
+    <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+      <button onclick="closeSettlementModal()" class="button button-quiet" style="border: 1px solid #cbd5e1;">Cancel</button>
+      <button onclick="submitSettlement()" class="button" style="background: #2563eb; color: #fff; border: none; font-weight: 600; cursor: pointer;">
+        Save &amp; Generate Settlement
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openNewSettlementModal() {
+  document.getElementById('modal_trip_id').value = '';
+  document.getElementById('modal_buy_rate').value = '';
+  document.getElementById('modal_toll_parking').value = '0';
+  document.getElementById('modal_driver_bata').value = '0';
+  document.getElementById('modal_advance_paid').value = '0';
+  document.getElementById('modal_fuel_deducted').value = '0';
+  liveCalculateSettlement();
+  document.getElementById('settlementModal').style.display = 'flex';
+}
+
+function prefillSettlementModal(tripId, supplierId, vehicleId, customerSell, defaultBuy, driverName, driverPhone) {
+  document.getElementById('modal_trip_id').value = tripId;
+  if (supplierId) document.getElementById('modal_supplier_id').value = supplierId;
+  if (vehicleId) document.getElementById('modal_vehicle_id').value = vehicleId;
+  document.getElementById('modal_buy_rate').value = defaultBuy > 0 ? defaultBuy : (customerSell * 0.75).toFixed(2);
+  document.getElementById('modal_driver_name').value = driverName || '';
+  document.getElementById('modal_driver_phone').value = driverPhone || '';
+  liveCalculateSettlement();
+  document.getElementById('settlementModal').style.display = 'flex';
+}
+
+function closeSettlementModal() {
+  document.getElementById('settlementModal').style.display = 'none';
+}
+
+function liveCalculateSettlement() {
+  const buy = parseFloat(document.getElementById('modal_buy_rate').value) || 0;
+  const toll = parseFloat(document.getElementById('modal_toll_parking').value) || 0;
+  const bata = parseFloat(document.getElementById('modal_driver_bata').value) || 0;
+  const adv = parseFloat(document.getElementById('modal_advance_paid').value) || 0;
+  const fuel = parseFloat(document.getElementById('modal_fuel_deducted').value) || 0;
+  const tdsSec = document.getElementById('modal_tds_section').value;
+
+  let tdsRate = 0.01;
+  if (tdsSec === '194C_COMPANY') tdsRate = 0.02;
+  else if (tdsSec === '206AA_NO_PAN') tdsRate = 0.20;
+  else if (tdsSec === 'EXEMPT_DECLARATION') tdsRate = 0.00;
+
+  const gross = buy + toll + bata;
+  const tds = (buy * tdsRate);
+  const totalDeductions = adv + fuel + tds;
+  const net = Math.max(0, gross - totalDeductions);
+
+  document.getElementById('preview_gross').textContent = '₹' + gross.toFixed(2);
+  document.getElementById('preview_tds').textContent = '-₹' + tds.toFixed(2) + ' (' + (tdsRate*100).toFixed(0) + '%)';
+  document.getElementById('preview_deductions').textContent = '-₹' + (adv + fuel).toFixed(2);
+  document.getElementById('preview_net').textContent = '₹' + net.toFixed(2);
+}
+
+function submitSettlement() {
+  const supplierId = document.getElementById('modal_supplier_id').value;
+  const vehicleId = document.getElementById('modal_vehicle_id').value;
+  const buyRate = document.getElementById('modal_buy_rate').value;
+
+  if (!supplierId || !vehicleId || !buyRate) {
+    alert('Please fill in Supplier, Vehicle, and Agreed Buy Rate.');
+    return;
+  }
+
+  const payload = {
+    trip_id: document.getElementById('modal_trip_id').value || null,
+    supplier_id: supplierId,
+    vehicle_id: vehicleId,
+    agreed_buy_rate: buyRate,
+    toll_parking_allowance: document.getElementById('modal_toll_parking').value,
+    driver_bata_payable: document.getElementById('modal_driver_bata').value,
+    advance_paid: document.getElementById('modal_advance_paid').value,
+    fuel_deducted: document.getElementById('modal_fuel_deducted').value,
+    custom_tds_section: document.getElementById('modal_tds_section').value,
+    pan_number: document.getElementById('modal_pan').value,
+    driver_name: document.getElementById('modal_driver_name').value,
+    driver_phone: document.getElementById('modal_driver_phone').value
+  };
+
+  fetch('/suppliers/api/settlement/calculate/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert('Settlement ' + data.settlement_number + ' generated successfully! Net Payable: ₹' + data.net_payable);
+      window.location.reload();
+    } else {
+      alert('Error: ' + (data.error || 'Failed to generate settlement.'));
+    }
+  })
+  .catch(err => alert('Network error: ' + err));
+}
+
+function approveSettlement(settlementId, btn) {
+  if (!confirm('Approve this settlement and post payable to Supplier Ledger?')) return;
+  btn.disabled = true;
+  btn.textContent = 'Posting...';
+
+  fetch('/suppliers/api/settlement/' + settlementId + '/approve/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      window.location.reload();
+    } else {
+      alert('Error: ' + data.error);
+      btn.disabled = false;
+      btn.textContent = 'Approve GL';
+    }
+  })
+  .catch(err => {
+    alert('Error: ' + err);
+    btn.disabled = false;
+  });
+}
+</script>
+{% endblock %}

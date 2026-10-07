@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Hotel Vouchers &amp; Rooming Manifests | TravelERP{% endblock %}
+{% block header_title %}Hotel Vouchers &amp; Rooming Manifests Hub{% endblock %}
+
+{% block content %}
+<div class="hotel-vouchers-studio" style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
+
+  <!-- Header Banner -->
+  <div style="background: linear-gradient(135deg, #065f46 0%, #064e3b 100%); border-radius: 12px; padding: 24px; color: #fff; margin-bottom: 24px; border: 1px solid #047857; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span style="font-size: 24px;">🏨</span>
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Hotel Confirmation Vouchers &amp; Rooming Hub</h1>
+        <span style="background: #10b981; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Tour Ops</span>
+      </div>
+      <p style="margin: 0; color: #a7f3d0; font-size: 14px;">
+        Issue 1-click branded confirmation vouchers, rooming manifests, and pre-formatted WhatsApp transmission links to partner hotels across Tamil Nadu &amp; Kerala.
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="{% url 'suppliers:settlement-hub' %}" class="button button-secondary" style="background: #047857; color: #fff; border-color: #059669; text-decoration: none;">
+        🤝 Partner Settlements
+      </a>
+      <button onclick="openVoucherModal()" class="button" style="background: #10b981; color: #fff; border: none; font-weight: 600; cursor: pointer;">
+        + Generate Hotel Voucher
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Metrics -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Vouchers Generated</span>
+      <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ total_vouchers }}</div>
+      <div style="font-size: 12px; color: #10b981; margin-top: 4px;">Across all holiday tours</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Active / Upcoming Stays</span>
+      <div style="font-size: 26px; font-weight: 800; color: #065f46; margin-top: 4px;">{{ active_stays }}</div>
+      <div style="font-size: 12px; color: #64748b; margin-top: 4px;">In-flight &amp; confirmed</div>
+    </div>
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Hotel Commitments</span>
+      <div style="font-size: 26px; font-weight: 800; color: #d97706; margin-top: 4px;">₹{{ total_hotel_tariff|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #d97706; margin-top: 4px;">Contracted tariff payables</div>
+    </div>
+  </div>
+
+  <!-- Unvouchered Stays Warning (If any) -->
+  {% if pending_hotels %}
+  <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 16px; margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+      <span style="color: #059669; font-size: 18px;">📋</span>
+      <strong style="color: #065f46; font-size: 15px;">{{ pending_hotels|length }} Upcoming Tour Hotel Bookings Requiring Official Vouchers</strong>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="text-align: left; color: #065f46; border-bottom: 1px solid #a7f3d0;">
+            <th style="padding: 8px;">Trip &amp; Guest</th>
+            <th style="padding: 8px;">Hotel / Resort</th>
+            <th style="padding: 8px;">Check-In Date</th>
+            <th style="padding: 8px;">Check-Out Date</th>
+            <th style="padding: 8px;">Room Type</th>
+            <th style="padding: 8px; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in pending_hotels %}
+          <tr style="border-bottom: 1px solid #d1fae5;">
+            <td style="padding: 8px; font-weight: 600;">Trip #{{ h.trip.id }} - {{ h.trip.booking.customer.name|default:"Tour Guest" }}</td>
+            <td style="padding: 8px;"><strong>{{ h.hotel_name }}</strong></td>
+            <td style="padding: 8px;">{{ h.check_in_date|date:"d M Y"|default:"TBD" }}</td>
+            <td style="padding: 8px;">{{ h.check_out_date|date:"d M Y"|default:"TBD" }}</td>
+            <td style="padding: 8px;">{{ h.hotel_room_type|default:"Deluxe Room" }}</td>
+            <td style="padding: 8px; text-align: right;">
+              <button onclick="prefillHotelModal('{{ h.trip.id }}', '{{ h.id }}', '{{ h.hotel_name }}', '{{ h.hotel_room_type|default:'' }}', '{{ h.check_in_date|date:'Y-m-d' }}', '{{ h.check_out_date|date:'Y-m-d' }}', '{{ h.trip.booking.customer.name|default:'' }}', '{{ h.trip.booking.customer.phone|default:'' }}')"
+                      class="button" style="background: #059669; color: #fff; padding: 4px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer;">
+                ⚡ Issue Voucher
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Main Vouchers Table -->
+  <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Issued Hotel Confirmation Vouchers</h2>
+      <span style="font-size: 12px; color: #64748b;">Live Registry</span>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="background: #f8fafc; color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 12px 16px;">Voucher Ref</th>
+            <th style="padding: 12px 16px;">Hotel &amp; Destination</th>
+            <th style="padding: 12px 16px;">Primary Guest</th>
+            <th style="padding: 12px 16px;">Stay Period</th>
+            <th style="padding: 12px 16px;">Rooms &amp; Category</th>
+            <th style="padding: 12px 16px;">Meal Plan</th>
+            <th style="padding: 12px 16px;">Billing Mode</th>
+            <th style="padding: 12px 16px; text-align: center;">Status</th>
+            <th style="padding: 12px 16px; text-align: right;">Dispatch &amp; Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in vouchers %}
+          <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+            <td style="padding: 12px 16px;">
+              <span style="font-weight: 700; color: #065f46; font-family: monospace;">{{ v.voucher_number }}</span><br>
+              <small style="color: #64748b;">Trip #{{ v.trip.id }}</small>
+            </td>
+            <td style="padding: 12px 16px;">
+              <strong style="color: #1e293b;">{{ v.hotel_name }}</strong><br>
+              <small style="color: #64748b;">📍 {{ v.hotel_city }}</small>
+            </td>
+            <td style="padding: 12px 16px;">
+              <strong style="color: #1e293b;">{{ v.lead_guest_name }}</strong><br>
+              <small style="color: #64748b;">{{ v.total_adults }} Adults, {{ v.total_children }} Children</small>
+            </td>
+            <td style="padding: 12px 16px; color: #475569;">
+              {{ v.check_in_date|date:"d M" }} - {{ v.check_out_date|date:"d M Y" }}<br>
+              <small style="color: #059669; font-weight: 600;">{{ v.total_nights }} Night(s)</small>
+            </td>
+            <td style="padding: 12px 16px;">
+              <span style="font-weight: 600;">{{ v.total_rooms }}x</span> {{ v.get_room_category_display }}
+            </td>
+            <td style="padding: 12px 16px;">
+              {% if v.meal_plan == 'AP' %}
+              <span style="background: #dbeafe; color: #1e40af; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px;">AP (All Meals)</span>
+              {% elif v.meal_plan == 'MAP' %}
+              <span style="background: #fef3c7; color: #92400e; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px;">MAP (Bfast+Dinner)</span>
+              {% elif v.meal_plan == 'CP' %}
+              <span style="background: #dcfce7; color: #166534; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px;">CP (Breakfast)</span>
+              {% else %}
+              <span style="background: #f1f5f9; color: #475569; font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 12px;">EP (Room Only)</span>
+              {% endif %}
+            </td>
+            <td style="padding: 12px 16px; font-size: 12px; color: #475569;">
+              {{ v.get_billing_instruction_display|truncatechars:25 }}
+            </td>
+            <td style="padding: 12px 16px; text-align: center;">
+              <span style="background: #dcfce7; color: #166534; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 12px; text-transform: uppercase;">
+                {{ v.get_status_display }}
+              </span>
+            </td>
+            <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
+              <a href="{% url 'suppliers:hotel-voucher-print' v.id %}" target="_blank" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
+                🖨️ Print
+              </a>
+              <button onclick="dispatchHotelWhatsApp({{ v.id }})" class="button" style="background: #25d366; color: #fff; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; font-weight: 600; cursor: pointer;">
+                💬 WhatsApp
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" style="padding: 30px; text-align: center; color: #64748b;">
+              No hotel confirmation vouchers generated yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Generate Hotel Confirmation Voucher -->
+<div id="hotelModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: #fff; width: 100%; max-width: 680px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
+    <div style="padding: 18px 24px; background: #064e3b; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 17px; font-weight: 700;">Generate Hotel Confirmation Voucher</h3>
+      <button onclick="closeHotelModal()" style="background: transparent; border: none; color: #a7f3d0; font-size: 20px; cursor: pointer;">✕</button>
+    </div>
+    
+    <div style="padding: 24px; overflow-y: auto;">
+      <input type="hidden" id="hmodal_trip_id">
+      <input type="hidden" id="hmodal_trip_hotel_id">
+      
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Hotel / Resort Name *</label>
+          <input type="text" id="hmodal_hotel_name" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="e.g. Sterling Ooty Fern Hill">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Destination City *</label>
+          <input type="text" id="hmodal_hotel_city" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" value="Ooty">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Check-In Date *</label>
+          <input type="date" id="hmodal_check_in" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Check-Out Date *</label>
+          <input type="date" id="hmodal_check_out" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Lead Guest Name *</label>
+          <input type="text" id="hmodal_guest_name" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Mr. Rajesh Kumar">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Adults</label>
+          <input type="number" id="hmodal_adults" value="2" min="1" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Children</label>
+          <input type="number" id="hmodal_children" value="0" min="0" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Rooms Count</label>
+          <input type="number" id="hmodal_rooms" value="1" min="1" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Room Category</label>
+          <select id="hmodal_room_category" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="deluxe">Deluxe Room</option>
+            <option value="super_deluxe">Super Deluxe Room</option>
+            <option value="executive_suite">Executive Suite</option>
+            <option value="family_cottage">Family Cottage / Villa</option>
+            <option value="luxury_tent">Luxury Tent / Treehouse</option>
+            <option value="standard">Standard AC Room</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Meal Plan</label>
+          <select id="hmodal_meal_plan" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="MAP" selected>MAP (Breakfast + Dinner)</option>
+            <option value="AP">AP (All Meals - B, L, D)</option>
+            <option value="CP">CP (Bed &amp; Breakfast)</option>
+            <option value="EP">EP (Room Only)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Hotel Phone / Desk (Optional)</label>
+          <input type="text" id="hmodal_phone" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="+91 94432 XXXXX">
+        </div>
+        <div>
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Billing Instruction</label>
+          <select id="hmodal_billing" class="form-control" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">
+            <option value="bill_to_company" selected>Bill to Sivagayathiri Travels (Credit)</option>
+            <option value="direct_payment">Room to Company, Extras by Guest</option>
+            <option value="guest_direct_all">All Charges Direct by Guest</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">Special Instructions / Driver Accommodation</label>
+        <textarea id="hmodal_notes" class="form-control" rows="2" style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;">Driver accommodation and food requested. Late evening check-in.</textarea>
+      </div>
+
+    </div>
+    
+    <div style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+      <button onclick="closeHotelModal()" class="button button-quiet" style="border: 1px solid #cbd5e1;">Cancel</button>
+      <button onclick="submitHotelVoucher()" class="button" style="background: #059669; color: #fff; border: none; font-weight: 600; cursor: pointer;">
+        Issue Confirmation Voucher
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openVoucherModal() {
+  document.getElementById('hmodal_trip_id').value = '1';
+  document.getElementById('hmodal_trip_hotel_id').value = '';
+  document.getElementById('hotelModal').style.display = 'flex';
+}
+
+function prefillHotelModal(tripId, tripHotelId, hotelName, roomType, cin, cout, guestName, guestPhone) {
+  document.getElementById('hmodal_trip_id').value = tripId;
+  document.getElementById('hmodal_trip_hotel_id').value = tripHotelId;
+  document.getElementById('hmodal_hotel_name').value = hotelName || '';
+  if (cin) document.getElementById('hmodal_check_in').value = cin;
+  if (cout) document.getElementById('hmodal_check_out').value = cout;
+  if (guestName) document.getElementById('hmodal_guest_name').value = guestName;
+  document.getElementById('hotelModal').style.display = 'flex';
+}
+
+function closeHotelModal() {
+  document.getElementById('hotelModal').style.display = 'none';
+}
+
+function submitHotelVoucher() {
+  const tripId = document.getElementById('hmodal_trip_id').value;
+  const hotelName = document.getElementById('hmodal_hotel_name').value;
+  const cin = document.getElementById('hmodal_check_in').value;
+  const cout = document.getElementById('hmodal_check_out').value;
+  const guestName = document.getElementById('hmodal_guest_name').value;
+
+  if (!hotelName || !cin || !cout || !guestName) {
+    alert('Please fill in Hotel Name, Check-in, Check-out, and Guest Name.');
+    return;
+  }
+
+  const payload = {
+    trip_id: tripId,
+    trip_hotel_id: document.getElementById('hmodal_trip_hotel_id').value || null,
+    hotel_name: hotelName,
+    hotel_city: document.getElementById('hmodal_hotel_city').value,
+    check_in_date: cin,
+    check_out_date: cout,
+    lead_guest_name: guestName,
+    total_adults: document.getElementById('hmodal_adults').value,
+    total_children: document.getElementById('hmodal_children').value,
+    total_rooms: document.getElementById('hmodal_rooms').value,
+    room_category: document.getElementById('hmodal_room_category').value,
+    meal_plan: document.getElementById('hmodal_meal_plan').value,
+    hotel_phone: document.getElementById('hmodal_phone').value,
+    billing_instruction: document.getElementById('hmodal_billing').value,
+    special_requests: document.getElementById('hmodal_notes').value
+  };
+
+  fetch('/suppliers/api/hotel-voucher/create/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert('Voucher ' + data.voucher_number + ' generated! Opening print preview...');
+      window.open(data.print_url, '_blank');
+      window.location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  })
+  .catch(err => alert('Network error: ' + err));
+}
+
+function dispatchHotelWhatsApp(voucherId) {
+  fetch('/suppliers/api/hotel-voucher/' + voucherId + '/whatsapp/')
+  .then(res => res.json())
+  .then(data => {
+    if (data.success && data.whatsapp_url) {
+      window.open(data.whatsapp_url, '_blank');
+    } else {
+      alert('Error generating WhatsApp message.');
+    }
+  })
+  .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}

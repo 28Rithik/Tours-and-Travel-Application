@@ -1,0 +1,215 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 2,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 0 },
+      "id": 101,
+      "title": "Employee Shuttle On-Time %",
+      "type": "gauge",
+      "targets": [
+        { "expr": "fleet_shuttle_on_time_pct", "legendFormat": "Punctuality %" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 80,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#f59e0b", "value": 90 },
+              { "color": "#10b981", "value": 95 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 0 },
+      "id": 102,
+      "title": "Tour Package Fuel Efficiency (km/L)",
+      "type": "stat",
+      "targets": [
+        { "expr": "fleet_fuel_efficiency_kml", "legendFormat": "Avg km/L" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "kml",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 11 },
+              { "color": "green", "value": 13 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 0 },
+      "id": 103,
+      "title": "School Bus Geofence Breaches",
+      "type": "stat",
+      "targets": [
+        { "expr": "fleet_school_geofence_breaches_total", "legendFormat": "Breaches" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 0 },
+      "id": 104,
+      "title": "Excessive Idling Fuel Waste (L)",
+      "type": "stat",
+      "targets": [
+        { "expr": "fleet_excessive_idling_liters_total", "legendFormat": "Liters Lost" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "L",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 25 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 7 },
+      "id": 105,
+      "title": "Live Fleet Telemetry Velocity & Speed Violations",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(gis_telemetry_pings_total[1m])", "legendFormat": "Ingestion Rate (pings/s)" },
+        { "expr": "gis_postgis_query_latency_ms", "legendFormat": "PostGIS Query Latency (ms)" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 7 },
+      "id": 106,
+      "title": "OSRM Routing Latency & Route Optimization Frequency",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "gis_osrm_query_latency_ms", "legendFormat": "OSRM Routing Latency (ms)" },
+        { "expr": "rate(gis_osrm_total_queries[1m])", "legendFormat": "Route Queries / Sec" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 16 },
+      "id": 107,
+      "title": "Night Shift Escort Compliance %",
+      "type": "gauge",
+      "targets": [
+        { "expr": "fleet_compliance_female_escort_pct", "legendFormat": "Escort Audit %" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 85,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#f59e0b", "value": 95 },
+              { "color": "#10b981", "value": 99.9 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 16 },
+      "id": 108,
+      "title": "School Speed Limit Compliance %",
+      "type": "gauge",
+      "targets": [
+        { "expr": "fleet_school_speed_compliance_pct", "legendFormat": "Strict <=40 km/h" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 85,
+          "max": 100,
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "#f59e0b", "value": 95 },
+              { "color": "#10b981", "value": 99 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 16 },
+      "id": 109,
+      "title": "Net ESG Carbon Avoided (kg CO₂)",
+      "type": "stat",
+      "targets": [
+        { "expr": "fleet_esg_co2_saved_kg_total", "legendFormat": "kg CO₂ Avoided" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#10b981" },
+          "unit": "masskg"
+        }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 16 },
+      "id": 110,
+      "title": "RabbitMQ Telemetry Queue Ingestion (msg/s)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "rate(telemetry_rabbitmq_messages_published_total[1m])", "legendFormat": "Broker Ingress (msg/s)" },
+        { "expr": "rate(telemetry_rabbitmq_messages_consumed_total[1m])", "legendFormat": "Worker Drain (msg/s)" }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["travelerp", "fleet-kpis", "shuttle", "school-transport", "fuel", "esg", "compliance"],
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Siva Gayathri Fleet Operations & Safety KPIs",
+  "version": 2
+}

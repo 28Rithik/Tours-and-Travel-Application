@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleFields() {
         if (canDriveCheckbox.checked) {
-            licenseFieldset.style.display = 'block';
+            licenseFieldset.style.display = '';
         } else {
             licenseFieldset.style.display = 'none';
         }
@@ -16,4 +16,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleFields();
     canDriveCheckbox.addEventListener('change', toggleFields);
+    canDriveCheckbox.addEventListener('input', toggleFields);
+
+    var lastChecked = canDriveCheckbox.checked;
+    setInterval(function() {
+        if (canDriveCheckbox.checked !== lastChecked) {
+            lastChecked = canDriveCheckbox.checked;
+            toggleFields();
+        }
+    }, 200);
 });
+

@@ -217,11 +217,11 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
         `;
 
-        var targetContainer = $('#collegeivexpedition_form, .change-form form, #jazzy-tabs');
+        var targetContainer = $('#collegeivexpedition_form, #collegeivproxy_form, #tourdeparturebatchproxy_form, .change-form form, #content-main form');
         if (targetContainer.length) {
             targetContainer.first().prepend(groupBarHtml);
         } else {
-            $('.form-row').first().before(groupBarHtml);
+            $('.form-row, [class*="field-"]').first().before(groupBarHtml);
         }
 
         var MODES_CONFIG = {
@@ -464,26 +464,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            // Find Tab Card Title / Description
-            var tabCardTitle = $('#tour-transit-logistics-tab .card-title, .grp-flybus-specs .card-title, [id*="transit"] .card-title');
+            // Find Tab Card Title / Description / Header
+            var tabCardTitle = $('#tour-transit-logistics-tab h2, .grp-flybus-specs h2, [id*="transit"] h2, .card-title');
 
-            // Find field rows in Jazzmin (.form-group) and standard Django Admin (.form-row)
-            var modeContainer = $('#id_transit_mode').closest('.form-group');
+            // Find field rows in Unfold / Django Admin (.form-row, [class*="field-"], .form-group)
+            var modeContainer = $('#id_transit_mode').closest('.form-row, [class*="field-transit_mode"], .form-group');
             if (!modeContainer.length) {
-                modeContainer = $('.form-group.field-transit_mode').first();
+                modeContainer = $('.field-transit_mode, .form-group.field-transit_mode').first();
             }
 
-            var rowFlights = $('.field-onward_transit_details, .field-return_transit_details').closest('.form-group, .form-row');
-            if (!rowFlights.length) rowFlights = $('.field-onward_transit_details');
+            var rowFlights = $('.field-onward_transit_details, .field-return_transit_details').closest('.form-row, [class*="field-"], .form-group');
+            if (!rowFlights.length) rowFlights = $('.field-onward_transit_details, .field-return_transit_details');
 
-            var rowPnr = $('.field-transit_pnr_or_booking_ref, .field-baggage_allowance').closest('.form-group, .form-row');
-            if (!rowPnr.length) rowPnr = $('.field-transit_pnr_or_booking_ref');
+            var rowPnr = $('.field-transit_pnr_or_booking_ref, .field-baggage_allowance').closest('.form-row, [class*="field-"], .form-group');
+            if (!rowPnr.length) rowPnr = $('.field-transit_pnr_or_booking_ref, .field-baggage_allowance');
 
-            var rowTerminal = $('.field-reporting_terminal, .field-destination_coach_partner').closest('.form-group, .form-row');
-            if (!rowTerminal.length) rowTerminal = $('.field-reporting_terminal');
+            var rowTerminal = $('.field-reporting_terminal, .field-destination_coach_partner').closest('.form-row, [class*="field-"], .form-group');
+            if (!rowTerminal.length) rowTerminal = $('.field-reporting_terminal, .field-destination_coach_partner');
 
-            var rowCity = $('.field-destination_city, .field-aadhaar_id_mandatory').closest('.form-group, .form-row');
-            if (!rowCity.length) rowCity = $('.field-destination_city');
+            var rowCity = $('.field-destination_city, .field-aadhaar_id_mandatory').closest('.form-row, [class*="field-"], .form-group');
+            if (!rowCity.length) rowCity = $('.field-destination_city, .field-aadhaar_id_mandatory');
 
             // CRITICAL: Clean up ALL existing notice elements by class (removes any orphaned duplicate elements)
             $('.sg-transit-notice').remove();

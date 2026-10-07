@@ -35,6 +35,29 @@ class Inquiry(models.Model):
         ('agent_referral', '🤝 B2B / FTO Agent Referral'),
         ('walk_in', '🏢 Walk-in Front Desk'),
         ('email', '✉️ Corporate Email'),
+        ('facebook', '📱 Facebook Lead Ads / Page'),
+        ('instagram', '📸 Instagram Ads / DM'),
+    ]
+    POPULAR_DESTINATIONS = [
+        ('ooty', '🌲 Ooty / Nilgiris, TN'),
+        ('kodaikanal', '🌸 Kodaikanal, TN'),
+        ('munnar', '🍃 Munnar Tea Hills, KL'),
+        ('kochi', '⛵ Kochi / Alleppey Backwaters, KL'),
+        ('wayanad', '🌿 Wayanad Wildlife, KL'),
+        ('madurai', '🛕 Madurai Temple Circuit, TN'),
+        ('rameshwaram', '🌊 Rameshwaram & Dhanushkodi, TN'),
+        ('kanyakumari', '🌅 Kanyakumari Sunset Point, TN'),
+        ('pondicherry', '🏖️ Pondicherry / Auroville'),
+        ('mysore_coorg', '🏰 Mysore Palace & Coorg, KA'),
+        ('bangalore', '🏙️ Bangalore Tech Hub / Transit'),
+        ('chennai', '🏛️ Chennai Metropolitan & Mahabalipuram'),
+        ('goa', '🌴 Goa Coastal Holiday'),
+        ('tirupati', '🙏 Tirupati Balaji Darshan, AP'),
+        ('yercaud', '⛰️ Yercaud Shevaroy Hills, TN'),
+        ('coimbatore', '🏭 Coimbatore Hub / Isha Yoga'),
+        ('golden_triangle', '👑 Delhi - Agra - Jaipur Triangle'),
+        ('shimla_manali', '❄️ Himachal (Shimla / Manali)'),
+        ('other', '📍 Custom / Other Destination'),
     ]
     JOURNEY_TYPES = Booking.JOURNEY_TYPES
 
@@ -46,6 +69,13 @@ class Inquiry(models.Model):
 
     pickup_location = models.CharField(max_length=255)
     destination = models.CharField(max_length=255)
+    destination_dropdown = models.CharField(
+        max_length=50,
+        choices=POPULAR_DESTINATIONS,
+        blank=True,
+        default='',
+        help_text="Quick select from top holiday circuits & travel destinations"
+    )
     pickup_date = models.DateField()
     pickup_time = models.TimeField()
     drop_date = models.DateField(null=True, blank=True)
@@ -65,6 +95,13 @@ class Inquiry(models.Model):
 
     estimated_km = models.PositiveIntegerField(null=True, blank=True)
     quoted_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    estimated_deal_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Anticipated deal value in ₹")
+    kanban_order = models.PositiveIntegerField(default=0, help_text="Card ordering within column")
+    last_followup_at = models.DateTimeField(null=True, blank=True)
+    next_followup_at = models.DateTimeField(null=True, blank=True)
+    converted_booking = models.ForeignKey('operations.Booking', on_delete=models.SET_NULL, null=True, blank=True, related_name='source_inquiries')
+    converted_trip = models.ForeignKey('operations.Trip', on_delete=models.SET_NULL, null=True, blank=True, related_name='source_inquiries')
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True)
@@ -72,10 +109,14 @@ class Inquiry(models.Model):
     class Meta:
         verbose_name = 'Inquiry'
         verbose_name_plural = 'Inquiries'
-        ordering = ['-created_at']
+        ordering = ['kanban_order', '-created_at']
 
     def __str__(self):
         return f"{self.inquiry_number} - {self.guest_name} ({self.destination})"
+
+    @property
+    def deal_value(self):
+        return self.estimated_deal_value or self.quoted_price or Decimal('0.00')
 
     @property
     def is_overdue(self):
@@ -97,6 +138,16 @@ class Inquiry(models.Model):
             last_inquiry = Inquiry.objects.order_by('-id').first()
             next_number = (last_inquiry.id + 1) if last_inquiry else 1
             self.inquiry_number = f'INQ-{next_number:04d}'
+        if self.destination_dropdown and (not self.destination or self.destination == self.destination_dropdown):
+            self.destination = dict(self.POPULAR_DESTINATIONS).get(self.destination_dropdown, self.destination_dropdown)
+        elif self.destination and not self.destination_dropdown:
+            dest_lower = self.destination.lower()
+            for code, name in self.POPULAR_DESTINATIONS:
+                if code in dest_lower or code.replace('_', ' ') in dest_lower:
+                    self.destination_dropdown = code
+                    break
+        if not self.estimated_deal_value and self.quoted_price:
+            self.estimated_deal_value = self.quoted_price
         if not self.tat_deadline:
             created_base = self.created_at or timezone.now()
             self.tat_deadline = created_base + datetime.timedelta(hours=self.target_tat_hours)
@@ -1328,4 +1379,121 @@ class DmcInvoice(models.Model):
 
     def __str__(self):
         return f"{self.invoice_number} - {self.billing_name} (₹{self.total_invoice_amount})"
+
+
+# ==============================================================================
+# 14. STAFF NOTIFICATION CENTRE  (Phase 6 — TutterflyCRM Power-Ups)
+# ==============================================================================
+
+class StaffNotification(models.Model):
+    """
+    Real-time on-screen notification centre for logged-in staff.
+    Triggered automatically by booking events, payment webhooks, trip milestones,
+    TAT breaches, and task deadlines.
+    """
+    NOTIFICATION_TYPES = [
+        ('new_booking',     '📋 New Booking Received'),
+        ('payment_received','💰 Payment Received'),
+        ('payment_failed',  '❌ Payment Failed'),
+        ('trip_departing',  '🚌 Trip Departing Soon'),
+        ('tat_breach',      '⏰ SLA / TAT Breach'),
+        ('lead_won',        '🎉 Lead Converted — Won!'),
+        ('lead_lost',       '😢 Lead Lost'),
+        ('task_due',        '📌 Task Due Today'),
+        ('complaint_lodged','🚨 New Complaint Lodged'),
+        ('voucher_confirmed','✅ Supplier Voucher Confirmed'),
+        ('system',          '⚙️ System Alert'),
+    ]
+
+    recipient = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='staff_notifications',
+        help_text="Leave blank to broadcast to ALL staff"
+    )
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES, default='system')
+    title = models.CharField(max_length=255)
+    body = models.TextField(blank=True)
+    link_url = models.CharField(max_length=512, blank=True, help_text="Clickable action URL")
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Staff Notification'
+        verbose_name_plural = 'Staff Notifications'
+        indexes = [
+            models.Index(fields=['recipient', 'is_read', '-created_at']),
+        ]
+
+    def __str__(self):
+        target = self.recipient.username if self.recipient else 'ALL'
+        return f"[{self.get_notification_type_display()}] {self.title} → {target}"
+
+    @classmethod
+    def push(cls, notification_type, title, body='', link_url='', recipient=None):
+        """
+        Class-level helper to create a notification in one call.
+        Usage:
+            StaffNotification.push('new_booking', 'New Booking BKG-0042', '/bookings/42/')
+        """
+        return cls.objects.create(
+            recipient=recipient,
+            notification_type=notification_type,
+            title=title,
+            body=body,
+            link_url=link_url,
+        )
+
+
+# ==============================================================================
+# 15. OBJECTION MANAGEMENT MIXIN — Extend Inquiry (Phase 6)
+# ==============================================================================
+# NOTE: Rather than a separate model, objection fields are added via migration.
+# This section documents the intended additions (see migration below).
+# Fields added to Inquiry:
+#   lost_reason        – Why the lead was lost
+#   competitor_name    – Which competitor won the deal
+#   objection_notes    – Full objection text
+#   win_loss_rating    – Self-assessment star rating (1–5)
+#
+# We patch them onto Inquiry here so they appear in the same model file.
+
+def _patch_inquiry_objection_fields():
+    """
+    Adds objection-management fields to the Inquiry model if not already present.
+    Called once at import time.
+    """
+    LOST_REASONS = [
+        ('price_too_high',     '💸 Price Too High / Better Offer Elsewhere'),
+        ('competitor_won',     '🥊 Competitor Won the Deal'),
+        ('client_postponed',   '📅 Client Postponed / Will Book Later'),
+        ('budget_cut',         '✂️ Budget Cut / Trip Cancelled'),
+        ('no_vehicle',         '🚌 Required Vehicle Type Not Available'),
+        ('unresponsive',       '📵 Client Became Unresponsive'),
+        ('changed_mind',       '🔄 Client Changed Mind / Destination'),
+        ('other',              '📝 Other Reason'),
+    ]
+    fields_to_add = {
+        'lost_reason': models.CharField(
+            max_length=40, choices=LOST_REASONS, blank=True,
+            help_text="Primary reason the lead was lost"
+        ),
+        'competitor_name': models.CharField(
+            max_length=255, blank=True,
+            help_text="Competitor agency / platform that won the business"
+        ),
+        'objection_notes': models.TextField(
+            blank=True,
+            help_text="Verbatim objection or feedback from the client"
+        ),
+        'win_loss_rating': models.PositiveSmallIntegerField(
+            null=True, blank=True,
+            help_text="Self-assessment: How well did we handle this lead? (1=Poor, 5=Excellent)"
+        ),
+    }
+    for field_name, field in fields_to_add.items():
+        if not hasattr(Inquiry, field_name):
+            field.contribute_to_class(Inquiry, field_name)
+
+_patch_inquiry_objection_fields()
 

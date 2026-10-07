@@ -55,11 +55,12 @@
 
             function injectPolicyBox() {
                 if ($('#id_financial_responsibility').length && !$('#traffic-fine-policy-box').length) {
-                    const $row = $('#id_financial_responsibility').closest('.form-group');
+                    const $el = $('#id_financial_responsibility');
+                    const $row = $el.closest('.form-group, .form-row, [class*="field-financial_responsibility"]');
                     if ($row.length) {
                         $row.append($policyHelperBox);
                     } else {
-                        $('.field-financial_responsibility').first().append($policyHelperBox);
+                        $el.parent().append($policyHelperBox);
                     }
                 }
             }
@@ -179,7 +180,7 @@
 
             $tripSelect.on('change select2:select', handleTripChange);
 
-            $(document).on('shown.bs.tab click', 'a[data-toggle="tab"], button[data-toggle="tab"], .nav-tabs a', function() {
+            $(document).on('shown.bs.tab click', 'a[data-toggle="tab"], button[data-toggle="tab"], button[role="tab"], [data-tab-target]', function() {
                 setTimeout(updatePolicyNotice, 50);
             });
 

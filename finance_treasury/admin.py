@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -38,7 +39,7 @@ class ProfitabilityFilter(admin.SimpleListFilter):
 # ── Admins ────────────────────────────────────────────────────────────────────
 
 @admin.register(Payment)
-class PaymentAdmin(admin.ModelAdmin):
+class PaymentAdmin(ModelAdmin):
     list_display = (
         'date',
         'party_badge',
@@ -51,6 +52,7 @@ class PaymentAdmin(admin.ModelAdmin):
         'linked_doc',
     )
     list_filter = ('payment_type', 'payment_mode', 'collected_by', 'date')
+    list_select_related = ('party', 'booking', 'trip', 'contract_trip', 'statement')
     search_fields = (
         'party__name',
         'trip__trip_id',
@@ -132,7 +134,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
 
 @admin.register(VehicleLoan)
-class VehicleLoanAdmin(admin.ModelAdmin):
+class VehicleLoanAdmin(ModelAdmin):
     list_display = (
         'vehicle_badge',
         'financier_badge',
@@ -145,6 +147,7 @@ class VehicleLoanAdmin(admin.ModelAdmin):
         'is_active_badge',
     )
     list_filter = ('is_active', 'financier_name')
+    list_select_related = ('vehicle',)
     search_fields = ('vehicle__registration_number', 'loan_account_number', 'financier_name')
     autocomplete_fields = ['vehicle']
 
@@ -202,7 +205,7 @@ class VehicleLoanAdmin(admin.ModelAdmin):
 
 
 @admin.register(LedgerAdjustment)
-class LedgerAdjustmentAdmin(admin.ModelAdmin):
+class LedgerAdjustmentAdmin(ModelAdmin):
     list_display = (
         'date',
         'party_badge',
@@ -210,6 +213,7 @@ class LedgerAdjustmentAdmin(admin.ModelAdmin):
         'description',
     )
     list_filter = ('date', 'party')
+    list_select_related = ('party',)
     search_fields = ('party__name', 'description')
     autocomplete_fields = ['party']
     date_hierarchy = 'date'
@@ -237,7 +241,7 @@ class LedgerAdjustmentAdmin(admin.ModelAdmin):
 
 
 @admin.register(TripProfitReport)
-class TripProfitReportAdmin(admin.ModelAdmin):
+class TripProfitReportAdmin(ModelAdmin):
     list_display = (
         'trip_id',
         'party',

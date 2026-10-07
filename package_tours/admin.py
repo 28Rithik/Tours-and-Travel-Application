@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
@@ -26,14 +27,14 @@ from .models import (
 # Inlines
 # ==============================================================================
 
-class BoardingPointInline(admin.TabularInline):
+class BoardingPointInline(TabularInline):
     model = BaseBoardingPoint
     extra = 1
     fields = ('stop_order', 'stop_name', 'pickup_time', 'landmark', 'coordinator_phone')
     ordering = ('stop_order',)
 
 
-class HotelAllotmentInline(admin.TabularInline):
+class HotelAllotmentInline(TabularInline):
     model = BasePackageHotelAllotment
     extra = 0
     fields = ('hotel_name', 'room_category', 'check_in_date', 'check_out_date', 'rooms_blocked', 'rooms_occupied', 'cost_per_room_night', 'status')
@@ -43,19 +44,18 @@ import csv
 from django.http import HttpResponse
 
 
-class PassengerManifestInline(admin.TabularInline):
-    """Lightweight inline — shows only 10 rows to avoid page crash on large manifests."""
+class PassengerManifestInline(TabularInline):
+    """Lightweight inline — shows limited rows to avoid page crash on large manifests."""
     model = BaseTourPassengerManifest
     extra = 0
-    max_num = 0          # read-only: no new rows via inline
+    max_num = 10         # limit rows via inline
     can_delete = False
     show_change_link = True
     fields = ('passenger_name', 'category', 'gender', 'bus_assignment', 'seat_number', 'room_sharing_number', 'phone')
     readonly_fields = ('passenger_name', 'category', 'gender', 'bus_assignment', 'seat_number', 'room_sharing_number', 'phone')
 
     def get_queryset(self, request):
-        """Only show first 10 — link to full manifest list page for rest."""
-        return super().get_queryset(request).order_by('bus_assignment', 'seat_number')[:10]
+        return super().get_queryset(request).order_by('bus_assignment', 'seat_number')
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -359,7 +359,7 @@ def generate_whatsapp_message(modeladmin, request, queryset):
 # ==============================================================================
 
 @admin.register(CollegeIVProxy)
-class CollegeIVAdmin(admin.ModelAdmin):
+class CollegeIVAdmin(ModelAdmin):
     list_display = (
         'college_display', 'package_link', 'travel_dates_display',
         'headcount_badge', 'faculty_incharge_display',
@@ -557,7 +557,7 @@ class CollegeIVAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(TourDepartureBatchProxy)
-class TourDepartureBatchAdmin(admin.ModelAdmin):
+class TourDepartureBatchAdmin(ModelAdmin):
     list_display = (
         'package_display', 'departure_date_display', 'vehicle_badge',
         'driver_badge', 'seat_gauge', 'status_badge', 'quick_actions'
@@ -673,7 +673,7 @@ class TourDepartureBatchAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(BoardingPointProxy)
-class BoardingPointAdmin(admin.ModelAdmin):
+class BoardingPointAdmin(ModelAdmin):
     list_display = ('stop_order_badge', 'stop_name', 'departure_link', 'pickup_time_display', 'landmark', 'coordinator_phone')
     list_filter = ('departure__package', 'departure')
     search_fields = ('stop_name', 'landmark', 'coordinator_phone')
@@ -730,7 +730,7 @@ def auto_assign_bus_seat_room_manifest(modeladmin, request, queryset):
             )
 
 @admin.register(PassengerManifestProxy)
-class PassengerManifestAdmin(admin.ModelAdmin):
+class PassengerManifestAdmin(ModelAdmin):
     list_display = (
         'passenger_name', 'roll_number_display', 'category_badge', 'gender_badge',
         'bus_badge', 'seat_badge', 'room_badge', 'aadhaar_display', 'contact_display'
@@ -887,7 +887,7 @@ class PassengerManifestAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(HotelAllotmentProxy)
-class HotelAllotmentAdmin(admin.ModelAdmin):
+class HotelAllotmentAdmin(ModelAdmin):
     list_display = ('hotel_name', 'package_link', 'room_category_badge', 'date_range_display', 'occupancy_gauge', 'cost_display', 'status_badge')
     list_filter = ('room_category', 'status', 'package')
     search_fields = ('hotel_name', 'package__name', 'confirmation_voucher_no')
@@ -949,7 +949,7 @@ class HotelAllotmentAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(TourFeedbackProxy)
-class TourFeedbackProxyAdmin(admin.ModelAdmin):
+class TourFeedbackProxyAdmin(ModelAdmin):
     list_display = (
         'guest_name_display', 'package_link', 'trip_date',
         'star_rating_display', 'dimension_scores_display', 'nps_badge',
@@ -1041,7 +1041,7 @@ class TourFeedbackProxyAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(SeasonalRateProxy)
-class SeasonalRateProxyAdmin(admin.ModelAdmin):
+class SeasonalRateProxyAdmin(ModelAdmin):
     list_display = ('season_name', 'package_link', 'season_type_badge', 'date_range_display', 'surge_badge', 'override_prices_display', 'is_active')
     list_filter = ('season_type', 'is_active', 'package')
     search_fields = ('season_name', 'package__name')
@@ -1096,7 +1096,7 @@ class SeasonalRateProxyAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(PackageAddonProxy)
-class PackageAddonProxyAdmin(admin.ModelAdmin):
+class PackageAddonProxyAdmin(ModelAdmin):
     list_display = ('title', 'package_link', 'category_badge', 'pricing_unit', 'cost_price_display', 'selling_price_display', 'margin_badge', 'is_mandatory_inclusion', 'is_active')
     list_filter = ('category', 'pricing_unit', 'is_mandatory_inclusion', 'is_active', 'package')
     search_fields = ('title', 'package__name')
@@ -1134,7 +1134,7 @@ class PackageAddonProxyAdmin(admin.ModelAdmin):
 # ==============================================================================
 
 @admin.register(B2BMarginProxy)
-class B2BMarginProxyAdmin(admin.ModelAdmin):
+class B2BMarginProxyAdmin(ModelAdmin):
     list_display = ('tier_name_badge', 'package_link', 'commission_display', 'b2b_net_rates_display', 'is_active')
     list_filter = ('tier_name', 'is_active', 'package')
     search_fields = ('package__name',)

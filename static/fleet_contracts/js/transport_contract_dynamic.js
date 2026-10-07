@@ -145,6 +145,44 @@
         const $ = window.jQuery || window.$;
         if (!$) return;
 
+        function getStepPane(stepNum, fallbackId) {
+            const fieldsets = document.querySelectorAll('fieldset.module, fieldset');
+            for (let fs of fieldsets) {
+                const h2 = fs.querySelector('h2');
+                if (h2 && h2.textContent.toLowerCase().includes(`step ${stepNum}:`)) {
+                    return $(fs);
+                }
+            }
+            const byId = $(`#${fallbackId}`);
+            if (byId.length) return byId;
+            return $();
+        }
+
+        function prependToPane(pane, html) {
+            if (!pane || !pane.length) return;
+            const cb = pane.find('.card-body');
+            if (cb.length) {
+                cb.first().prepend(html);
+            } else {
+                const h2 = pane.find('h2');
+                if (h2.length) {
+                    h2.first().after(html);
+                } else {
+                    pane.prepend(html);
+                }
+            }
+        }
+
+        function appendToPane(pane, html) {
+            if (!pane || !pane.length) return;
+            const cb = pane.find('.card-body');
+            if (cb.length) {
+                cb.first().append(html);
+            } else {
+                pane.append(html);
+            }
+        }
+
         // 1. Universal Tab Switcher
         function activateTab(href) {
             if (!href || !href.startsWith('#')) return;
@@ -166,7 +204,7 @@
         });
 
         // 2. Inject Preset Bar into Step 1
-        const step1Pane = $('#step-1-classification-client-organization-tab');
+        const step1Pane = getStepPane(1, 'step-1-classification-client-organization-tab');
         if (step1Pane.length && !$('#tc-preset-bar').length) {
             const presetHtml = `
                 <div id="tc-preset-bar" class="tc-preset-wrapper">
@@ -188,7 +226,7 @@
                     <div id="tc-guidance-container"></div>
                 </div>
             `;
-            step1Pane.find('.card-body').first().prepend(presetHtml);
+            prependToPane(step1Pane, presetHtml);
         }
 
         // 3. Category Preset Click Handler
@@ -288,10 +326,9 @@
 
         // 4. Render Adaptive Vertical Specification Panel (Step 2)
         function renderVerticalSpecPanel(cat) {
-            const step2Pane = $('#step-2-operational-compliance-specifications-tab');
+            const step2Pane = getStepPane(2, 'step-2-operational-compliance-specifications-tab');
             if (!step2Pane.length) return;
 
-            const cardBody = step2Pane.find('.card-body').first();
             $('#tc-adaptive-spec-panel').remove();
 
             let specs = getSpecifications();
@@ -545,7 +582,7 @@
                 `;
             }
 
-            cardBody.prepend(panelHtml);
+            prependToPane(step2Pane, panelHtml);
         }
 
         // Handle changes in vertical specification inputs
@@ -610,7 +647,7 @@
                 formulaDesc = `${committed} Vehicles × 2,200 km/mo = ~${totalKm.toLocaleString('en-IN')} KM @ ₹${rate}/km`;
             }
 
-            const step5Pane = $('#step-5-billing-structure-commercial-rates-tab');
+            const step5Pane = getStepPane(5, 'step-5-billing-structure-commercial-rates-tab');
             let estimatorEl = $('#tc-commercial-estimator');
             if (!estimatorEl.length && step5Pane.length) {
                 estimatorEl = $(`
@@ -622,7 +659,7 @@
                         <div class="tc-estimator-val" id="tc-est-val">₹${Math.round(estMonthly).toLocaleString('en-IN')} / mo</div>
                     </div>
                 `);
-                step5Pane.find('.card-body').first().append(estimatorEl);
+                appendToPane(step5Pane, estimatorEl);
             } else if (estimatorEl.length) {
                 $('#tc-est-formula').text(formulaDesc);
                 $('#tc-est-val').text(`₹${Math.round(estMonthly).toLocaleString('en-IN')} / mo`);
@@ -637,14 +674,14 @@
             const basePrice = parseFloat($('#id_base_diesel_price').val()) || 92.50;
             const factor = parseFloat($('#id_fuel_revision_factor').val()) || 0.25;
 
-            const step6Pane = $('#step-6-fuel-escalation-clause-sla-caps-tab');
+            const step6Pane = getStepPane(6, 'step-6-fuel-escalation-clause-sla-caps-tab');
             let fuelEl = $('#tc-fuel-formula-box');
 
             if (!fuelEl.length && step6Pane.length) {
                 fuelEl = $(`
                     <div id="tc-fuel-formula-box" class="tc-fuel-card"></div>
                 `);
-                step6Pane.find('.card-body').first().append(fuelEl);
+                appendToPane(step6Pane, fuelEl);
             }
 
             if (fuelEl.length) {
@@ -765,9 +802,12 @@
             e.preventDefault();
             const target = $(this).data('target');
             activateTab(target);
-            $('html, body').animate({
-                scrollTop: $('#jazzy-tabs').offset().top - 80
-            }, 250);
+            const jazzyTabs = $('#jazzy-tabs');
+            if (jazzyTabs.length && jazzyTabs.offset()) {
+                $('html, body').animate({
+                    scrollTop: jazzyTabs.offset().top - 80
+                }, 250);
+            }
         });
 
         // Initialize on page ready

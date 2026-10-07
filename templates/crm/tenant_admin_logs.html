@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tenant Admin Activity Audit Log | TravelERP{% endblock %}
+{% block header_title %}Tenant Admin Area — System Activity Audit Log{% endblock %}
+
+{% block content %}
+<style>
+  .audit-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .audit-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .audit-card .title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 4px;
+  }
+  .audit-card .val {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .audit-card .sub {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  .audit-table-wrap {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .search-input {
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13.5px;
+    min-width: 280px;
+    outline: none;
+  }
+  .search-input:focus {
+    border-color: #0d5c58;
+    box-shadow: 0 0 0 3px rgba(13, 92, 88, 0.1);
+  }
+
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .audit-table th, .audit-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .audit-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    text-align: left;
+  }
+  .badge-add {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    display: inline-block;
+  }
+  .badge-change {
+    background: #e0f2fe;
+    color: #0369a1;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    display: inline-block;
+  }
+  .badge-delete {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    display: inline-block;
+  }
+</style>
+
+<div class="audit-container">
+  <div class="audit-metrics">
+    <div class="audit-card">
+      <div class="title">Total Recorded Operations</div>
+      <div class="val">{{ total_logs }}</div>
+      <div class="sub">Full system audit trail</div>
+    </div>
+    <div class="audit-card">
+      <div class="title">Active Tenant Context</div>
+      <div class="val" style="font-size: 18px; color: #0d5c58;">Sivagayathiri Travels</div>
+      <div class="sub">Tenant ID: TENANT-001 (HQ)</div>
+    </div>
+    <div class="audit-card">
+      <div class="title">Security &amp; Policy</div>
+      <div class="val" style="color: #15803d; font-size: 18px;">✅ Enforced</div>
+      <div class="sub">8+ Char Password &amp; Audit Logging</div>
+    </div>
+  </div>
+
+  <div class="audit-table-wrap">
+    <div class="header-actions">
+      <div>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">📜 Tenant Operations &amp; Security Log</h3>
+        <p style="margin: 4px 0 0; font-size: 12.5px; color: #64748b;">Chronological log of staff mutations across Inquiries, Bookings, Vouchers, Invoices, and Users.</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="logFilter" class="search-input" placeholder="🔍 Filter by user, action, or object..." onkeyup="filterAuditTable()">
+        <button onclick="location.reload()" class="btn btn-outline-secondary btn-sm" style="font-weight: 600; padding: 6px 14px;">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="audit-table" id="auditTable">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Staff User</th>
+            <th>Action</th>
+            <th>Entity Type</th>
+            <th>Object Reference</th>
+            <th>Change Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+            <tr>
+              <td style="white-space: nowrap; font-family: monospace; font-size: 12px; color: #64748b;">
+                {{ log.action_time|date:"Y-m-d H:i:s" }}
+              </td>
+              <td>
+                <strong style="color: #0f172a;">👤 {{ log.user.username }}</strong>
+                {% if log.user.get_full_name %}
+                  <div style="font-size: 11px; color: #64748b;">{{ log.user.get_full_name }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {% if log.action_flag == 1 %}
+                  <span class="badge-add">➕ ADDED</span>
+                {% elif log.action_flag == 2 %}
+                  <span class="badge-change">✏️ MODIFIED</span>
+                {% elif log.action_flag == 3 %}
+                  <span class="badge-delete">🗑️ DELETED</span>
+                {% else %}
+                  <span class="badge-change">ACTION</span>
+                {% endif %}
+              </td>
+              <td>
+                <span style="font-weight: 600; color: #334155;">{{ log.content_type.name|default:"General"|title }}</span>
+              </td>
+              <td>
+                <span class="font-mono text-xs text-slate-700 font-bold" data-copy-value="{{ log.object_repr }}" style="cursor: pointer;" title="Click to copy">
+                  {{ log.object_repr|truncatechars:45 }} 📋
+                </span>
+              </td>
+              <td style="color: #475569; font-size: 12.5px;">
+                {{ log.change_message|default:"—" }}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
+                No audit log records found.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+function filterAuditTable() {
+  const query = document.getElementById('logFilter').value.toLowerCase();
+  const rows = document.querySelectorAll('#auditTable tbody tr');
+  rows.forEach(r => {
+    const text = r.innerText.toLowerCase();
+    r.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Siva Gayathri Tours — Modern Unfold Dynamic Package Automation Deck -->
+<div id="sg-package-automation-deck" class="mb-6 flex flex-col gap-3">
+    <!-- Preset Toolbar -->
+    <div class="rounded-lg border border-slate-700 bg-slate-900/90 text-slate-100 p-3 shadow-lg flex flex-wrap items-center justify-between gap-3 backdrop-blur-sm">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">bolt</span> Presets:
+            </span>
+            <button type="button" onclick="applyPackagePreset('devotional')" id="btn-pre-devotional" class="px-2.5 py-1 text-xs font-semibold rounded bg-purple-700/80 hover:bg-purple-600 text-white flex items-center gap-1 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm">temple_hindu</span> Devotional
+            </button>
+            <button type="button" onclick="applyPackagePreset('college_iv')" id="btn-pre-iv" class="px-2.5 py-1 text-xs font-semibold rounded bg-amber-700/80 hover:bg-amber-600 text-white flex items-center gap-1 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm">school</span> College IV
+            </button>
+            <button type="button" onclick="applyPackagePreset('international')" id="btn-pre-intl" class="px-2.5 py-1 text-xs font-semibold rounded bg-sky-700/80 hover:bg-sky-600 text-white flex items-center gap-1 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm">flight</span> Intl Tour
+            </button>
+            <button type="button" onclick="applyPackagePreset('hill_station')" id="btn-pre-holiday" class="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-700/80 hover:bg-emerald-600 text-white flex items-center gap-1 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm">terrain</span> Hill Station
+            </button>
+            <button type="button" onclick="applyPackagePreset('local_tour')" id="btn-pre-local" class="px-2.5 py-1 text-xs font-semibold rounded bg-cyan-700/80 hover:bg-cyan-600 text-white flex items-center gap-1 transition-all shadow-sm">
+                <span class="material-symbols-outlined text-sm">directions_car</span> 1-Day Local
+            </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <div id="sg-live-snapshot" class="hidden sm:flex items-center gap-2 bg-slate-800/80 px-2.5 py-1 rounded border border-slate-700 text-xs">
+                <span id="snap-title" class="font-semibold text-slate-200 truncate max-w-[150px]">Tour Package</span>
+                <span id="snap-dur" class="text-sky-400 font-bold">--N / --D</span>
+                <span id="snap-rate" class="text-emerald-400 font-bold">₹0</span>
+            </div>
+            <button type="button" 
+                    hx-get="{% url 'packages:htmx_packages:proposal-preview' %}{% if object_id %}?package_id={{ object_id }}{% endif %}"
+                    hx-target="#sg-modal-container"
+                    hx-swap="innerHTML"
+                    class="px-2.5 py-1 text-xs font-semibold rounded bg-sky-600 hover:bg-sky-500 text-white flex items-center gap-1 transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-sm">visibility</span> Proposal
+            </button>
+            <button type="button" 
+                    hx-get="{% url 'packages:htmx_packages:whatsapp-briefing' %}{% if object_id %}?package_id={{ object_id }}{% endif %}"
+                    hx-target="#sg-modal-container"
+                    hx-swap="innerHTML"
+                    class="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1 transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-sm">chat</span> WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- Category Operational Intelligence Deck (HTMX Reactive) -->
+    <div id="category-intel-deck"
+         hx-get="{% url 'packages:htmx_packages:category-intel' %}{% if object_id %}?package_id={{ object_id }}{% endif %}"
+         hx-trigger="load, category-changed from:body"
+         hx-include="#id_category"
+         hx-target="#category-intel-deck"
+         hx-swap="innerHTML">
+    </div>
+
+    <!-- Live Operating Unit Economics & P&L Deck (HTMX Reactive) -->
+    <div id="unit-economics-deck"
+         hx-get="{% url 'packages:htmx_packages:unit-economics' %}{% if object_id %}?package_id={{ object_id }}{% endif %}"
+         hx-trigger="load, economics-changed from:body, input from:#id_price_with_food delay:150ms, input from:#id_price_without_food delay:150ms, input from:#id_min_pax delay:150ms, input from:#id_cost_hotel_per_pax delay:150ms, input from:#id_cost_coach_per_pax delay:150ms, input from:#id_cost_meals_per_pax delay:150ms, input from:#id_cost_activities_per_pax delay:150ms, input from:#id_cost_misc_per_pax delay:150ms"
+         hx-include="#id_price_with_food, #id_price_without_food, #id_min_pax, #id_base_price, #id_cost_hotel_per_pax, #id_cost_coach_per_pax, #id_cost_meals_per_pax, #id_cost_activities_per_pax, #id_cost_misc_per_pax"
+         hx-target="#unit-economics-deck"
+         hx-swap="innerHTML">
+    </div>
+</div>
+
+<!-- Modal Container for WhatsApp & Proposal Previews -->
+<div id="sg-modal-container"></div>
+
+{{ block.super }}
+
+<script>
+// Section Smooth Scrolling Helper for Quick Jumps
+function scrollToSection(target) {
+    var el = null;
+    if (target === 'step-1') {
+        el = document.querySelector('fieldset:nth-of-type(1)');
+    } else if (target === 'step-2') {
+        el = document.querySelector('.grp-pricing-dual, fieldset:nth-of-type(2)');
+    } else if (target === 'step-3') {
+        el = document.querySelector('.grp-transit-specs, fieldset:nth-of-type(3)');
+    } else if (target === 'step-4') {
+        el = document.querySelector('.grp-stay-experience, fieldset:nth-of-type(4)');
+    } else if (target === 'step-5') {
+        el = document.querySelector('fieldset:nth-of-type(5)');
+    } else {
+        el = document.querySelector('#' + target + '_set-group, .inline-group[id*="' + target + '"], fieldset:has(h2:contains("' + target + '"))');
+    }
+
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.classList.add('ring-2', 'ring-sky-500', 'transition-all');
+        setTimeout(function() {
+            el.classList.remove('ring-2', 'ring-sky-500');
+        }, 1500);
+    }
+}
+
+// 1-Click Inclusions/Exclusions Preset Applier
+function applyInclusionsPreset(inclusions, exclusions) {
+    var incEl = document.getElementById('id_inclusions');
+    var excEl = document.getElementById('id_exclusions');
+    if (incEl && inclusions) {
+        incEl.value = inclusions;
+        incEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (excEl && exclusions) {
+        excEl.value = exclusions;
+        excEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+// Modal Controllers
+function closeWhatsAppModal() {
+    var modal = document.getElementById('sg-whatsapp-modal-backdrop');
+    if (modal) modal.remove();
+}
+
+function closeProposalModal() {
+    var modal = document.getElementById('sg-proposal-modal-backdrop');
+    if (modal) modal.remove();
+}
+
+function switchWaTab(tab) {
+    document.querySelectorAll('.wa-content-box').forEach(function(box) { box.classList.add('hidden'); });
+    var target = document.getElementById('wa-box-' + tab);
+    if (target) target.classList.remove('hidden');
+
+    document.querySelectorAll('[id^="wa-tab-"]').forEach(function(btn) {
+        btn.classList.remove('bg-emerald-600', 'text-white');
+        btn.classList.add('bg-slate-800', 'text-slate-300');
+    });
+    var activeBtn = document.getElementById('wa-tab-' + tab);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-emerald-600', 'text-white');
+        activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+    }
+}
+
+function copyWaText(elementId) {
+    var copyText = document.getElementById(elementId);
+    if (copyText) {
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert('✨ WhatsApp briefing text copied to clipboard!');
+    }
+}
+
+function sendWhatsAppDirect(elementId) {
+    var textEl = document.getElementById(elementId);
+    if (textEl) {
+        var text = encodeURIComponent(textEl.value);
+        window.open('https://api.whatsapp.com/send?text=' + text, '_blank');
+    }
+}
+
+// 1-Click Category Preset Logic
+function applyPackagePreset(cat) {
+    var catSelect = document.getElementById('id_category');
+    var devCb = document.getElementById('id_is_devotional');
+    var intlCb = document.getElementById('id_is_international');
+    var daysInp = document.getElementById('id_duration_days');
+    var nightsInp = document.getElementById('id_duration_nights');
+
+    if (catSelect) {
+        catSelect.value = cat;
+        catSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    if (cat === 'devotional') {
+        if (devCb) devCb.checked = true;
+        if (intlCb) intlCb.checked = false;
+        var satvik = document.getElementById('id_satvik_pure_veg_meals');
+        var senior = document.getElementById('id_senior_citizen_friendly');
+        if (satvik) satvik.checked = true;
+        if (senior) senior.checked = true;
+    } else if (cat === 'international') {
+        if (intlCb) intlCb.checked = true;
+        if (devCb) devCb.checked = false;
+        var visa = document.getElementById('id_visa_required');
+        var flight = document.getElementById('id_flight_inclusive');
+        if (visa) visa.checked = true;
+        if (flight) flight.checked = true;
+    } else if (cat === 'local_tour') {
+        if (daysInp) daysInp.value = 1;
+        if (nightsInp) nightsInp.value = 0;
+        if (devCb) devCb.checked = false;
+        if (intlCb) intlCb.checked = false;
+    } else {
+        if (devCb) devCb.checked = false;
+        if (intlCb) intlCb.checked = false;
+    }
+
+    syncContextualFields();
+    document.body.dispatchEvent(new CustomEvent('category-changed'));
+    document.body.dispatchEvent(new CustomEvent('economics-changed'));
+}
+
+// Synchronize Devotional and International Fields / Inlines
+function syncContextualFields() {
+    var catSelect = document.getElementById('id_category');
+    var devCb = document.getElementById('id_is_devotional');
+    var intlCb = document.getElementById('id_is_international');
+
+    var cat = catSelect ? catSelect.value : '';
+    var isDev = (devCb && devCb.checked) || (cat === 'devotional');
+    var isIntl = (intlCb && intlCb.checked) || (cat === 'international');
+
+    // Devotional rows and inline
+    var devRows = document.querySelectorAll('.field-satvik_pure_veg_meals, .field-senior_citizen_friendly, .field-temple_dress_code, .field-temple_darshan_info');
+    var devInline = document.querySelector('#templedarshanslot_set-group, .inline-group[id*="templedarshanslot"]');
+
+    devRows.forEach(function(row) {
+        var p = row.closest('.form-row, [class*="field-"]') || row;
+        p.style.display = isDev ? '' : 'none';
+    });
+    if (devInline) {
+        devInline.style.display = isDev ? '' : 'none';
+    }
+
+    // International rows and inline
+    var intlRows = document.querySelectorAll('.field-destination_country, .field-currency_code, .field-visa_required, .field-passport_validity_months, .field-flight_inclusive, .field-visa_guidelines, .field-overseas_dmc_partner, .field-flight_details_note');
+    var intlInline = document.querySelector('#internationaldocumentchecklist_set-group, .inline-group[id*="internationaldocumentchecklist"]');
+
+    intlRows.forEach(function(row) {
+        var p = row.closest('.form-row, [class*="field-"]') || row;
+        p.style.display = isIntl ? '' : 'none';
+    });
+    if (intlInline) {
+        intlInline.style.display = isIntl ? '' : 'none';
+    }
+
+    // Live Snapshot update
+    var nameEl = document.getElementById('id_name');
+    var snapTitle = document.getElementById('snap-title');
+    var snapDur = document.getElementById('snap-dur');
+    var snapRate = document.getElementById('snap-rate');
+    var daysEl = document.getElementById('id_duration_days');
+    var nightsEl = document.getElementById('id_duration_nights');
+    var priceEl = document.getElementById('id_price_with_food') || document.getElementById('id_base_price');
+
+    if (snapTitle && nameEl) snapTitle.textContent = nameEl.value || 'Tour Package';
+    if (snapDur && daysEl && nightsEl) snapDur.textContent = (nightsEl.value || 0) + 'N / ' + (daysEl.value || 1) + 'D';
+    if (snapRate && priceEl) snapRate.textContent = '₹' + (parseFloat(priceEl.value) || 0).toLocaleString();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Watch Select2 and native change events
+    function watchField(id, eventName) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        var lastVal = el.value;
+        setInterval(function() {
+            var curVal = el.value;
+            if (curVal !== lastVal) {
+                lastVal = curVal;
+                syncContextualFields();
+                document.body.dispatchEvent(new CustomEvent(eventName));
+            }
+        }, 200);
+    }
+
+    watchField('id_category', 'category-changed');
+    watchField('id_is_devotional', 'category-changed');
+    watchField('id_is_international', 'category-changed');
+    watchField('id_price_with_food', 'economics-changed');
+    watchField('id_price_without_food', 'economics-changed');
+    watchField('id_min_pax', 'economics-changed');
+
+    // Run initial contextual synchronization
+    syncContextualFields();
+});
+</script>
+{% endblock %}

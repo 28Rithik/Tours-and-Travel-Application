@@ -8,6 +8,15 @@ from .views import (
     run_batch_payroll_view,
     driver_payslip_detail_view,
     api_payment_context,
+    export_gstr1_b2b_view,
+    export_itc_reconciliation_view,
+    api_dispatch_corporate_invoice_whatsapp,
+    admin_petty_cash_studio_view,
+    api_petty_cash_topup,
+    api_petty_cash_disburse,
+    api_petty_cash_audit_action,
+    api_petty_cash_stats,
+    driver_mobile_wallet_view,
 )
 
 urlpatterns = [
@@ -16,7 +25,19 @@ urlpatterns = [
     path('export/tally/expenses/', export_tally_expenses_view, name='export-tally-expenses'),
     path('export/zoho/sales/', export_zoho_sales_view, name='export-zoho-sales'),
     path('export/zoho/expenses/', export_zoho_expenses_view, name='export-zoho-expenses'),
+    path('export/gstr1-b2b/', export_gstr1_b2b_view, name='export-gstr1-b2b'),
+    path('export/itc-reconciliation/', export_itc_reconciliation_view, name='export-itc-reconciliation'),
     path('payroll/batch-run/', run_batch_payroll_view, name='run-batch-payroll'),
     path('payslips/<int:payslip_id>/', driver_payslip_detail_view, name='driver-payslip-detail'),
     path('api/payment-context/', api_payment_context, name='finance-api-payment-context'),
+    path('api/invoice/<int:invoice_id>/whatsapp/', api_dispatch_corporate_invoice_whatsapp, name='api-finance-invoice-whatsapp'),
+    # Phase 5: Petty Cash Float Register & Cash Wallet Studio
+    path('petty-cash/', admin_petty_cash_studio_view, name='petty-cash-studio'),
+    path('wallet/', driver_mobile_wallet_view, name='driver-wallet'),
+    path('api/petty-cash/topup/', api_petty_cash_topup, name='api-petty-cash-topup'),
+    path('api/petty-cash/disburse/', api_petty_cash_disburse, name='api-petty-cash-disburse'),
+    path('api/petty-cash/audit-action/<int:txn_id>/', api_petty_cash_audit_action, name='api-petty-cash-audit-action'),
+    path('api/petty-cash/stats/', api_petty_cash_stats, name='api-petty-cash-stats'),
 ]
+
+

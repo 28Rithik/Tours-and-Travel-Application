@@ -1,0 +1,45 @@
+<div id="vehicle-compliance-htmx-container" style="margin: 12px 0 16px; padding: 14px 18px; border-radius: 8px; background: {% if is_compliant %}rgba(16,185,129,0.12){% else %}rgba(239,68,68,0.12){% endif %}; border: 1px solid {% if is_compliant %}#10b981{% else %}#ef4444{% endif %}; color: #f8fafc; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 24px; color: {% if is_compliant %}#4ade80{% else %}#f87171{% endif %};">
+                {% if is_compliant %}verified_user{% else %}gpp_bad{% endif %}
+            </span>
+            <div>
+                <strong style="font-size: 14px; color: {% if is_compliant %}#4ade80{% else %}#f87171{% endif %};">
+                    {% if is_compliant %}
+                        ✅ 100% RTO &amp; Safety Compliant — Approved for Dispatch
+                    {% else %}
+                        ⛔ DISPATCH WARNING: Compliance / Maintenance Issues Detected!
+                    {% endif %}
+                </strong>
+                <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">
+                    Vehicle: <strong>{{ vehicle.registration_number }}</strong> ({{ vehicle.brand }} {{ vehicle.model }})
+                    &bull; Trip Date: <strong>{{ trip_date|date:"d-M-Y" }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <a href="/fleet/live/?search={{ vehicle.registration_number }}" target="_blank" style="padding: 5px 10px; border-radius: 6px; background: rgba(56,189,248,0.15); border: 1px solid #0284c7; color: #38bdf8; font-size: 11px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined" style="font-size: 13px;">satellite_alt</span> Track Live Radar
+            </a>
+        </div>
+    </div>
+
+    {% if not is_compliant %}
+    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(239,68,68,0.3); font-size: 12px; color: #fca5a5;">
+        <ul style="margin: 0; padding-left: 20px;">
+            {% for v in violations %}
+            <li style="margin-bottom: 3px;"><strong>• {{ v }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <div style="margin-top: 8px; font-size: 11px; color: #86efac; display: flex; flex-wrap: wrap; gap: 14px;">
+        <span>FC Expiry: {{ vehicle.fc_expiry|date:"d-M-Y"|default:"Lifetime / Exempt" }}</span>
+        <span>Insurance: {{ vehicle.insurance_expiry|date:"d-M-Y"|default:"Verified" }}</span>
+        <span>Permit: {{ vehicle.permit_expiry|date:"d-M-Y"|default:"Valid" }}</span>
+        <span>Open Defects: 0</span>
+    </div>
+    {% endif %}
+</div>

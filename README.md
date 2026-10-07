@@ -30,17 +30,36 @@ TravelERP is a single-user Django website for cab and travel operations. It repl
 - openpyxl 3.1.5
 - Django templates with responsive CSS
 
-## Project Layout
+## Project Layout & Documentation
+
+Detailed system documentation and architectural roadmaps are organized in the [`docs/`](docs/) directory:
+- [System Architecture & Capabilities](docs/PROJECT_DOCUMENTATION.md)
+- [Sivagayathiri Travel Platform Master Plan](docs/Sivagayathiri_Travel_Platform_Master_Plan.md)
 
 ```text
-travelerp/       Django settings, URLs, WSGI
-core/            Party, Driver, Vehicle, RateCard
-operations/      Booking, Trip, TripJourney, billing services
-finance/         Expenses, fuel, advances, settlements, payments, ledger
-statements/      Statement history, row building, PDF and Excel exports
-templates/       Shared and page templates
-static/          Application stylesheet
-media/           Uploaded receipts and documents
+travelerp/               Django core configuration, routing, and shared views
+core/                    Party, Driver, Vehicle registry, and RateCard pricing
+operations/              Trip dispatch, 7-milestone lifecycle, OSRM routing, Tara AI copilot
+finance/                 Expenses, corporate GST invoices, e-Way bills, petty cash, ledger
+finance_fleet/           Fleet CPK (Cost-Per-KM) optimization radar studio
+finance_payroll/         Driver & staff payroll processing
+payments_gateway/        Dynamic UPI QR generation, Razorpay/webhook simulation, GL engine
+crm/                     Interactive Kanban pipeline, inquiries, quotations, follow-ups
+integrations/            Email SES/SMTP studio, Meta Lead Ads webhook, Google Sheets sync
+fleet_commute/           Corporate employee transport (ETS), shift rosters, ESG metrics
+fleet_contracts/         Institutional contracts, vehicle requirements, SLA tracking
+maintenance/             Interactive 2D vehicle damage marker studio, service tickets
+packages/                Holiday tour packages, catalog management, itinerary days
+package_tours/           Group tour departures, college industrial visits (IVs), manifests
+customer_portal/         Public landing page, self-service package booking, live radar
+driver_portal/           Driver PWA mobile hub, handover inspection, offline wallet, SOS
+gis_stack/               Dockerized PostGIS, TileServer-GL, and OSRM routing machine
+docs/                    Project architecture guides and platform master plans
+templates/               Responsive Django HTML UI templates
+static/                  Application styles, JavaScript, and PWA assets
+media/                   Uploaded trip documents, odometer photos, and vaults
+tests/                   Unit, integration, and end-to-end regression suites
+scripts/                 Database seeding, spatial tools, and data import utilities
 ```
 
 ## Windows Setup

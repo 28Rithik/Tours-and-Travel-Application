@@ -1,0 +1,767 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}⚡ Fleet Profitability & Cost-Per-KM (CPK) Optimization Radar | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/finance_fleet/fuelrecord/" class="hover:text-primary-600 dark:hover:text-primary-400">Fleet Operations & Finance</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">⚡ CPK & Profitability Radar</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --cpk-bg: #090d16;
+    --cpk-card-bg: rgba(15, 23, 42, 0.88);
+    --cpk-border: rgba(51, 65, 85, 0.5);
+    --cpk-border-glow: rgba(56, 189, 248, 0.35);
+    --cpk-cyan: #06b6d4;
+    --cpk-emerald: #10b981;
+    --cpk-amber: #f59e0b;
+    --cpk-rose: #f43f5e;
+    --cpk-indigo: #6366f1;
+}
+
+.studio-container {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #e2e8f0;
+    background: radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+                var(--cpk-bg);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Header */
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--cpk-card-bg);
+    border: 1px solid var(--cpk-border);
+    border-radius: 16px;
+    padding: 1.25rem 1.75rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.header-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.badge-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.badge-diesel {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* 5 KPI Metrics */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+    background: var(--cpk-card-bg);
+    border: 1px solid var(--cpk-border);
+    border-radius: 14px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--cpk-border-glow);
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.02em;
+}
+
+.kpi-subtext {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.35rem;
+}
+
+/* Tabs */
+.tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--cpk-border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #94a3b8;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.tab-btn:hover {
+    color: #f8fafc;
+}
+.tab-btn.active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+}
+
+.tab-pane {
+    display: none;
+}
+.tab-pane.active {
+    display: block;
+}
+
+/* Cards & Layout */
+.desk-card {
+    background: var(--cpk-card-bg);
+    border: 1px solid var(--cpk-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.desk-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #f8fafc;
+}
+
+/* Tables */
+.studio-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.82rem;
+}
+.studio-table th {
+    padding: 0.75rem 0.85rem;
+    background: rgba(30, 41, 59, 0.5);
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: left;
+    border-bottom: 1px solid var(--cpk-border);
+    white-space: nowrap;
+}
+.studio-table td {
+    padding: 0.8rem 0.85rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+    color: #cbd5e1;
+    white-space: nowrap;
+}
+.studio-table tr:hover td {
+    background: rgba(30, 41, 59, 0.25);
+}
+
+/* Tier Badges */
+.tier-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+.tier-1 { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+.tier-2 { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+.tier-3 { background: rgba(249, 115, 22, 0.15); color: #fb923c; border-color: rgba(249, 115, 22, 0.3); }
+.tier-4 { background: rgba(244, 63, 94, 0.15); color: #f87171; border-color: rgba(244, 63, 94, 0.3); }
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1rem;
+}
+.form-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.form-control {
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    border: 1px solid var(--cpk-border);
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    font-size: 0.9rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.form-control:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* Simulator Output Box */
+.sim-output-box {
+    background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+.sim-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: #cbd5e1;
+}
+.sim-row.highlight {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #34d399;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+</style>
+
+<div class="studio-container">
+    <!-- Header -->
+    <div class="studio-header">
+        <div>
+            <div class="header-title">
+                <span>⚡</span> Real-Time Fleet Profitability & Cost-Per-KM (CPK) Optimization Radar
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
+                Live Diesel Indexing • FASTag Toll Tracking • Driver Crew Allowances • Maintenance Amortization vs Revenue
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.3); border: 1px solid var(--cpk-border); border-radius: 8px; padding: 4px 10px;">
+                <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">LIVE DIESEL:</span>
+                <input type="number" id="headerDieselPrice" value="{{ diesel_price }}" step="0.5" style="width: 70px; background: transparent; border: none; color: #fbbf24; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.95rem; outline: none;" onchange="updateDieselPrice(this.value)">
+                <span style="color: #94a3b8; font-size: 0.75rem;">₹/L</span>
+            </div>
+            <a href="/admin/finance_fleet/fuelrecord/" class="status-badge badge-active" style="text-decoration: none;">
+                ⛽ Fuel Logs
+            </a>
+            <a href="/admin/finance_fleet/fastagtolldeduction/" class="status-badge" style="background: rgba(255,255,255,0.08); color: #fff; text-decoration: none;">
+                🛣️ FASTag Logs
+            </a>
+        </div>
+    </div>
+
+    <!-- 5 Real-Time KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Fleet Average CPK</span>
+                <span style="color: #38bdf8;">📉</span>
+            </div>
+            <div class="kpi-value" style="color: #38bdf8;">₹{{ metrics.fleet_avg_cpk }}<span style="font-size: 1rem; color: #94a3b8;">/KM</span></div>
+            <div class="kpi-subtext">
+                Fuel: ₹{{ metrics.fleet_fuel_cpk }} | Toll: ₹{{ metrics.fleet_toll_cpk }} | Driver: ₹{{ metrics.fleet_driver_cpk }}
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Fleet Average RPK</span>
+                <span style="color: #34d399;">📈</span>
+            </div>
+            <div class="kpi-value" style="color: #34d399;">₹{{ metrics.fleet_avg_rpk }}<span style="font-size: 1rem; color: #94a3b8;">/KM</span></div>
+            <div class="kpi-subtext">
+                Billed Revenue: ₹{{ metrics.total_fleet_revenue|floatformat:0 }}
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Fleet Operating Margin</span>
+                <span style="color: #10b981;">💹</span>
+            </div>
+            <div class="kpi-value" style="color: #10b981;">{{ metrics.fleet_margin_pct }}%</div>
+            <div class="kpi-subtext">
+                Net Operating Profit: ₹{{ metrics.fleet_net_profit|floatformat:2 }}
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Fleet Distance & Fuel</span>
+                <span style="color: #fbbf24;">🚚</span>
+            </div>
+            <div class="kpi-value" style="color: #fbbf24;">{{ metrics.total_fleet_km|floatformat:0 }} <span style="font-size: 1rem; color: #94a3b8;">KM</span></div>
+            <div class="kpi-subtext">
+                {{ metrics.total_fuel_liters|floatformat:0 }} Liters Diesel Consumed
+            </div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="kpi-label">
+                <span>Fuel Theft & Loss Radar</span>
+                <span style="color: {% if metrics.theft_alert_count %}#f43f5e{% else %}#10b981{% endif %};">🚨</span>
+            </div>
+            <div class="kpi-value" style="color: {% if metrics.theft_alert_count %}#f43f5e{% else %}#10b981{% endif %};">
+                {{ metrics.theft_alert_count }} <span style="font-size: 0.9rem;">Alerts</span>
+            </div>
+            <div class="kpi-subtext">
+                {% if metrics.theft_alert_count %}₹{{ metrics.total_theft_loss|floatformat:0 }} excess fuel variance{% else %}All vehicles in normal mileage range{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <button type="button" class="tab-btn {% if current_tab == 'leaderboard' or not current_tab %}active{% endif %}" onclick="switchTab('leaderboard', this)">
+            📊 Vehicle CPK & Profitability Leaderboard ({{ leaderboard|length }})
+        </button>
+        <button type="button" class="tab-btn {% if current_tab == 'optimizer' %}active{% endif %}" onclick="switchTab('optimizer', this)">
+            🎛️ Interactive Live What-If Tariff Optimizer
+        </button>
+        <button type="button" class="tab-btn {% if current_tab == 'routes' %}active{% endif %}" onclick="switchTab('routes', this)">
+            🛣️ Route Benchmarks & Tariff Guidance
+        </button>
+        <button type="button" class="tab-btn {% if current_tab == 'anomalies' %}active{% endif %}" onclick="switchTab('anomalies', this)">
+            ⛽ Fuel Theft & Efficiency Radar ({{ anomalies|length }})
+        </button>
+    </div>
+
+    <!-- TAB 1: VEHICLE CPK & PROFITABILITY LEADERBOARD -->
+    <div id="tab-leaderboard" class="tab-pane {% if current_tab == 'leaderboard' or not current_tab %}active{% endif %}">
+        <div class="desk-card">
+            <!-- Filter Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <a href="?diesel_price={{ diesel_price }}" class="tier-pill" style="text-decoration: none; background: {% if not tier_filter %}rgba(255,255,255,0.2){% else %}rgba(255,255,255,0.05){% endif %}; color: #fff;">
+                        All ({{ metrics.vehicles_analyzed }})
+                    </a>
+                    <a href="?diesel_price={{ diesel_price }}&tier=tier_1_high" class="tier-pill tier-1" style="text-decoration: none;">
+                        🟢 Tier 1: High Profit ≥25% ({{ metrics.tier_counts.tier_1_high }})
+                    </a>
+                    <a href="?diesel_price={{ diesel_price }}&tier=tier_2_standard" class="tier-pill tier-2" style="text-decoration: none;">
+                        🟡 Tier 2: Standard 10-25% ({{ metrics.tier_counts.tier_2_standard }})
+                    </a>
+                    <a href="?diesel_price={{ diesel_price }}&tier=tier_3_low" class="tier-pill tier-3" style="text-decoration: none;">
+                        🟠 Tier 3: Low 0-10% ({{ metrics.tier_counts.tier_3_low }})
+                    </a>
+                    <a href="?diesel_price={{ diesel_price }}&tier=tier_4_loss" class="tier-pill tier-4" style="text-decoration: none;">
+                        🔴 Tier 4: Loss-Making ({{ metrics.tier_counts.tier_4_loss }})
+                    </a>
+                </div>
+
+                <form method="GET" style="display: flex; gap: 8px;">
+                    <input type="hidden" name="diesel_price" value="{{ diesel_price }}">
+                    {% if tier_filter %}<input type="hidden" name="tier" value="{{ tier_filter }}">{% endif %}
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Search vehicle or model..." class="form-control" style="width: 220px; padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                    <button type="submit" class="tier-pill" style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); cursor: pointer;">
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <!-- Leaderboard Table -->
+            <div style="overflow-x: auto;">
+                <table class="studio-table">
+                    <thead>
+                        <tr>
+                            <th>Vehicle</th>
+                            <th>Type</th>
+                            <th>Trips</th>
+                            <th>Total KM</th>
+                            <th>Revenue (₹)</th>
+                            <th>Fuel CPK</th>
+                            <th>Toll CPK</th>
+                            <th>Driver CPK</th>
+                            <th>Maint CPK</th>
+                            <th>Total CPK</th>
+                            <th>RPK</th>
+                            <th>Net Margin</th>
+                            <th>Margin %</th>
+                            <th>Status Tier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in leaderboard %}
+                        <tr>
+                            <td>
+                                <strong style="color: #f8fafc; font-family: 'JetBrains Mono', monospace;">{{ row.registration_number }}</strong>
+                                <div style="font-size: 10px; color: #94a3b8;">{{ row.model_name|truncatechars:20 }}</div>
+                            </td>
+                            <td>{{ row.vehicle_type }}</td>
+                            <td>{{ row.trip_count }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">{{ row.total_km|floatformat:0 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ row.billed_revenue|floatformat:0 }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; color: #fbbf24;">₹{{ row.fuel_cpk }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ row.toll_cpk }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ row.driver_cpk }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ row.maintenance_cpk }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #f87171;">₹{{ row.total_cpk }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #38bdf8;">₹{{ row.rpk }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: {% if row.net_margin_per_km >= 0 %}#34d399{% else %}#f87171{% endif %};">
+                                {% if row.net_margin_per_km >= 0 %}+{% endif %}₹{{ row.net_margin_per_km }}/km
+                            </td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: {% if row.margin_pct >= 25 %}#34d399{% elif row.margin_pct >= 10 %}#fbbf24{% elif row.margin_pct >= 0 %}#fb923c{% else %}#f87171{% endif %};">
+                                {{ row.margin_pct }}%
+                            </td>
+                            <td>
+                                <span class="tier-pill {% if row.tier == 'tier_1_high' %}tier-1{% elif row.tier == 'tier_2_standard' %}tier-2{% elif row.tier == 'tier_3_low' %}tier-3{% else %}tier-4{% endif %}">
+                                    {{ row.tier_label }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="14" style="text-align: center; color: #64748b; padding: 2rem;">No vehicles matching filter.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: INTERACTIVE LIVE WHAT-IF TARIFF OPTIMIZER -->
+    <div id="tab-optimizer" class="tab-pane {% if current_tab == 'optimizer' %}active{% endif %}">
+        <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 1.5rem;">
+            <!-- Input Sliders & Controls -->
+            <div class="desk-card">
+                <div class="desk-title">
+                    <span style="color: #38bdf8;">🎛️</span> Trip Parameters & Cost Simulator
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between;">
+                        <label class="form-label">Live Diesel Price (₹/L)</label>
+                        <span id="sliderDieselLabel" style="font-family: 'JetBrains Mono', monospace; color: #fbbf24; font-weight: 700;">₹92.50</span>
+                    </div>
+                    <input type="range" id="simDiesel" min="80" max="115" step="0.5" value="92.5" class="form-control" style="cursor: pointer;" oninput="onSimulatorInput()">
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between;">
+                        <label class="form-label">Trip Distance (KM)</label>
+                        <span id="sliderDistLabel" style="font-family: 'JetBrains Mono', monospace; color: #38bdf8; font-weight: 700;">350 KM</span>
+                    </div>
+                    <input type="range" id="simDistance" min="50" max="1200" step="10" value="350" class="form-control" style="cursor: pointer;" oninput="onSimulatorInput()">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="form-label">Vehicle Category</label>
+                        <select id="simCategory" class="form-control" onchange="onSimulatorInput()">
+                            <option value="sedan">Sedan (Dzire / Etios - 14 km/l)</option>
+                            <option value="innova" selected>Innova Crysta (SUV - 11 km/l)</option>
+                            <option value="traveller">Tempo Traveller 12/17S (8.5 km/l)</option>
+                            <option value="bus">Luxury Bus / Coach (4.5 km/l)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Profit Margin (%)</label>
+                        <select id="simTargetMargin" class="form-control" onchange="onSimulatorInput()">
+                            <option value="15.0">15% (Competitive / Corporate tender)</option>
+                            <option value="20.0">20% (Standard Commercial)</option>
+                            <option value="25.0" selected>25% (Target Operating Profit)</option>
+                            <option value="30.0">30% (High Premium / Peak Season)</option>
+                            <option value="35.0">35% (Outstation Hill Station)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label class="form-label">Trip Duration (Days)</label>
+                        <input type="number" id="simDays" value="1" min="1" max="14" class="form-control" oninput="onSimulatorInput()">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">FASTag Toll Override (₹, Optional)</label>
+                        <input type="number" id="simTollOverride" placeholder="Auto estimated" class="form-control" oninput="onSimulatorInput()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Calculation Box -->
+            <div class="desk-card sim-output-box">
+                <div class="desk-title">
+                    <span style="color: #34d399;">💡</span> Optimized Tariff & Break-Even Guidance
+                </div>
+
+                <div class="sim-row">
+                    <span>Projected Fuel Cost (<span id="outFuelLiters">31.8</span> L @ ₹<span id="outDieselPrice">92.50</span>):</span>
+                    <strong id="outFuelCost" style="font-family: 'JetBrains Mono', monospace; color: #fbbf24;">₹2,943.18</strong>
+                </div>
+                <div class="sim-row">
+                    <span>Projected Toll Cost:</span>
+                    <strong id="outTollCost" style="font-family: 'JetBrains Mono', monospace;">₹385.00</strong>
+                </div>
+                <div class="sim-row">
+                    <span>Driver Batta & Crew Allowances:</span>
+                    <strong id="outDriverCost" style="font-family: 'JetBrains Mono', monospace;">₹500.00</strong>
+                </div>
+                <div class="sim-row">
+                    <span>Maintenance & Tyre Wear Allowance:</span>
+                    <strong id="outMaintCost" style="font-family: 'JetBrains Mono', monospace;">₹630.00</strong>
+                </div>
+                <div class="sim-row">
+                    <span>Fixed Capital / Insurance Overheads:</span>
+                    <strong id="outFixedCost" style="font-family: 'JetBrains Mono', monospace;">₹297.50</strong>
+                </div>
+                
+                <div class="sim-row" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px;">
+                    <span style="font-weight: 700; color: #f87171;">Total Trip Operating Cost (Break-Even):</span>
+                    <strong id="outTotalCost" style="font-family: 'JetBrains Mono', monospace; color: #f87171; font-size: 1.05rem;">₹4,755.68</strong>
+                </div>
+                <div class="sim-row">
+                    <span>Operating Cost-Per-KM (CPK):</span>
+                    <strong id="outCpk" style="font-family: 'JetBrains Mono', monospace;">₹13.59/KM</strong>
+                </div>
+
+                <div class="sim-row highlight">
+                    <div>
+                        <span style="font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; display: block;">Recommended Minimum Quote</span>
+                        <span id="outQuote" style="font-family: 'JetBrains Mono', monospace;">₹6,340.00</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; display: block;">Target Profit</span>
+                        <span id="outProfit" style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;">+₹1,584.32</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">
+                    Rate-Per-KM Recommendation: <strong id="outRpk" style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">₹18.11/KM</strong><br>
+                    Guarantees a clean <strong id="outMarginPct" style="color: #34d399;">25.0%</strong> operating margin covering all variable and amortized vehicle wear.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: ROUTE BENCHMARKS & TARIFF GUIDANCE -->
+    <div id="tab-routes" class="tab-pane {% if current_tab == 'routes' %}active{% endif %}">
+        <div class="desk-card">
+            <div class="desk-title">
+                <span style="color: #818cf8;">🛣️</span> Core Highway Corridor Profitability Benchmarks (Innova Crysta Benchmark)
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="studio-table">
+                    <thead>
+                        <tr>
+                            <th>Corridor Route</th>
+                            <th>Distance</th>
+                            <th>Days</th>
+                            <th>Fuel (L)</th>
+                            <th>Fuel Cost</th>
+                            <th>Tolls</th>
+                            <th>Driver Batta</th>
+                            <th>Maint Allowance</th>
+                            <th>Total Route Cost</th>
+                            <th>Route CPK</th>
+                            <th>Recommended Quote</th>
+                            <th>Target Margin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in benchmarks %}
+                        <tr>
+                            <td><strong style="color: #f8fafc;">{{ r.route_name }}</strong></td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">{{ r.distance_km }} KM</td>
+                            <td>{{ r.days }} Day(s)</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">{{ r.fuel_liters }} L</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; color: #fbbf24;">₹{{ r.fuel_cost }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ r.toll_cost }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ r.driver_cost }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace;">₹{{ r.maintenance_cost }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #f87171;">₹{{ r.total_route_cost }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #38bdf8;">₹{{ r.route_cpk }}/km</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #34d399; font-size: 0.95rem;">₹{{ r.recommended_quote }}</td>
+                            <td style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;">+₹{{ r.projected_margin }} (25%)</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: FUEL THEFT & EFFICIENCY ANOMALY RADAR -->
+    <div id="tab-anomalies" class="tab-pane {% if current_tab == 'anomalies' %}active{% endif %}">
+        <div class="desk-card">
+            <div class="desk-title">
+                <span style="color: #f43f5e;">🚨</span> Fuel Theft & Mileage Degradation Anomaly Radar
+            </div>
+            <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.25rem;">
+                Flags fleet assets operating at &gt;15% below manufacturer baseline mileage, detecting fuel pilferage, injector failure, or driver idling.
+            </div>
+
+            {% if anomalies %}
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for a in anomalies %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.25); border-radius: 12px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <strong style="color: #fca5a5; font-family: 'JetBrains Mono', monospace; font-size: 1.05rem;">{{ a.registration_number }}</strong>
+                            <span style="font-size: 0.8rem; color: #94a3b8;">({{ a.model_name }})</span>
+                            <span class="tier-pill tier-4">Variance: {{ a.variance_pct }}%</span>
+                        </div>
+                        <div style="font-size: 0.82rem; color: #cbd5e1; margin-top: 4px;">
+                            Achieved Mileage: <strong style="color: #f87171;">{{ a.actual_mileage }} KM/L</strong> vs Expected Baseline: <strong>{{ a.expected_mileage }} KM/L</strong>
+                            &nbsp;|&nbsp; Assigned Driver: <strong>{{ a.assigned_driver }}</strong>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Excess Burn / Financial Loss:</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 800; color: #f87171;">
+                            -₹{{ a.financial_loss|floatformat:2 }} ({{ a.excess_liters }} L)
+                        </div>
+                        <a href="/admin/finance_fleet/fuelrecord/?vehicle__id__exact={{ a.vehicle_id }}" class="tier-pill" style="background: rgba(255,255,255,0.08); color: #fff; margin-top: 4px; text-decoration: none;">
+                            Inspect Fuel Logs ➔
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="padding: 2.5rem; text-align: center; color: #34d399; font-weight: 700;">
+                ✓ 100% of Fleet Assets Operating Within Expected Fuel Efficiency Tolerance!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function switchTab(tabId, el) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    el.classList.add('active');
+    const target = document.getElementById('tab-' + tabId);
+    if (target) target.classList.add('active');
+}
+
+function updateDieselPrice(newPrice) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('diesel_price', newPrice);
+    window.location.href = url.toString();
+}
+
+function onSimulatorInput() {
+    const diesel = parseFloat(document.getElementById('simDiesel').value);
+    const dist = parseInt(document.getElementById('simDistance').value);
+    const category = document.getElementById('simCategory').value;
+    const margin = parseFloat(document.getElementById('simTargetMargin').value);
+    const days = parseInt(document.getElementById('simDays').value) || 1;
+    const tollOverride = document.getElementById('simTollOverride').value;
+
+    document.getElementById('sliderDieselLabel').innerText = '₹' + diesel.toFixed(2);
+    document.getElementById('sliderDistLabel').innerText = dist + ' KM';
+
+    const params = new URLSearchParams({
+        diesel_price: diesel,
+        distance_km: dist,
+        vehicle_category: category,
+        target_margin_pct: margin,
+        days_count: days,
+    });
+    if (tollOverride) {
+        params.append('toll_override', tollOverride);
+    }
+
+    fetch('/api/finance/cpk-radar/optimize-tariff/?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outFuelLiters').innerText = data.fuel_liters.toFixed(1);
+                document.getElementById('outDieselPrice').innerText = data.diesel_price.toFixed(2);
+                document.getElementById('outFuelCost').innerText = '₹' + data.fuel_cost.toFixed(2);
+                document.getElementById('outTollCost').innerText = '₹' + data.toll_cost.toFixed(2);
+                document.getElementById('outDriverCost').innerText = '₹' + data.driver_cost.toFixed(2);
+                document.getElementById('outMaintCost').innerText = '₹' + data.maintenance_cost.toFixed(2);
+                document.getElementById('outFixedCost').innerText = '₹' + data.fixed_overhead.toFixed(2);
+                document.getElementById('outTotalCost').innerText = '₹' + data.total_trip_cost.toFixed(2);
+                document.getElementById('outCpk').innerText = '₹' + data.cpk.toFixed(2) + '/KM';
+                document.getElementById('outQuote').innerText = '₹' + data.recommended_quote.toFixed(2);
+                document.getElementById('outProfit').innerText = '+₹' + data.projected_profit.toFixed(2);
+                document.getElementById('outRpk').innerText = '₹' + data.recommended_rpk.toFixed(2) + '/KM';
+                document.getElementById('outMarginPct').innerText = data.target_margin_pct.toFixed(1) + '%';
+            }
+        });
+}
+
+// Initial calculation on load
+window.addEventListener('DOMContentLoaded', () => {
+    onSimulatorInput();
+});
+</script>
+{% endblock %}

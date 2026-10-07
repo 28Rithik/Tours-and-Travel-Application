@@ -1,0 +1,849 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🔌 Integrations & Communication Hub | {{ site_title|default:"TravelERP" }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <span>/</span>
+    <a href="/admin/integrations/" class="hover:text-primary-600 dark:hover:text-primary-400">Integrations & Automation</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">🔌 Integrations Hub</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --int-dark-bg: #090e17;
+    --int-panel-bg: rgba(17, 24, 39, 0.9);
+    --int-panel-border: rgba(51, 65, 85, 0.45);
+    --int-green: #25d366;
+    --int-green-glow: rgba(37, 211, 102, 0.35);
+    --int-meta-blue: #1877f2;
+    --int-meta-glow: rgba(24, 119, 242, 0.3);
+    --int-cyan: #38bdf8;
+    --int-sheets-green: #10b981;
+    --int-purple: #a855f7;
+    --int-amber: #f59e0b;
+}
+
+.integrations-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f1f5f9;
+    background: radial-gradient(circle at 10% 10%, rgba(24, 119, 242, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(37, 211, 102, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 50%),
+                var(--int-dark-bg);
+    min-height: calc(100vh - 80px);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+/* Studio Header */
+.hub-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.hub-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+}
+.hub-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+.hub-desc {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+.header-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.status-pill-glowing {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+.status-pill-glowing::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 8px #34d399;
+}
+.link-logs-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+.link-logs-badge:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+/* 4-Card KPI Toolbar Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.kpi-card {
+    background: var(--int-panel-bg);
+    border: 1px solid var(--int-panel-border);
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    transition: transform 0.15s, border-color 0.15s;
+}
+.kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(148, 163, 184, 0.4);
+}
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--kpi-glow, #38bdf8), transparent);
+}
+.kpi-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: var(--kpi-bg, rgba(56, 189, 248, 0.12));
+    color: var(--kpi-glow, #38bdf8);
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.kpi-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-weight: 700;
+}
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1.2;
+}
+
+/* Quick Action Command Deck */
+.command-deck {
+    background: var(--int-panel-bg);
+    border: 1px solid var(--int-panel-border);
+    border-radius: 14px;
+    padding: 0.85rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.command-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.command-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.btn-sim-meta {
+    background: linear-gradient(135deg, #1877f2 0%, #0d5bbd 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+    font-size: 0.84rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px rgba(24, 119, 242, 0.35);
+    transition: all 0.15s;
+}
+.btn-sim-meta:hover {
+    background: linear-gradient(135deg, #2582fb 0%, #1877f2 100%);
+    box-shadow: 0 6px 18px rgba(24, 119, 242, 0.5);
+    transform: translateY(-1px);
+}
+.btn-sync-sheets {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 700;
+    font-size: 0.84rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    transition: all 0.15s;
+}
+.btn-sync-sheets:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+    transform: translateY(-1px);
+}
+.btn-deck-outline {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.84rem;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: all 0.15s;
+}
+.btn-deck-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* 5-Card Integration Grid Matching User Reference */
+.integrations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.25rem;
+}
+.integration-card {
+    background: var(--int-panel-bg);
+    border: 1px solid var(--int-panel-border);
+    border-radius: 16px;
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+.integration-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 3px; height: 100%;
+    background: var(--card-accent, #38bdf8);
+    opacity: 0.7;
+    transition: width 0.2s;
+}
+.integration-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--card-accent, #38bdf8);
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 0 20px var(--card-glow, rgba(56, 189, 248, 0.15));
+}
+.integration-card:hover::before {
+    width: 5px;
+}
+
+.card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.1rem;
+}
+.app-brand-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--icon-bg, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--icon-border, rgba(255, 255, 255, 0.1));
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.card-arrow {
+    position: absolute;
+    top: 1.4rem;
+    right: 1.4rem;
+    color: #64748b;
+    font-size: 1.25rem;
+    font-weight: 700;
+    transition: transform 0.2s, color 0.2s;
+}
+.integration-card:hover .card-arrow {
+    color: var(--card-accent, #38bdf8);
+    transform: translateX(4px);
+}
+.card-title {
+    font-size: 1.12rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.35rem 0;
+    letter-spacing: -0.01em;
+}
+.card-desc {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.48;
+    margin: 0;
+}
+
+/* Partner Sleek Promo Box */
+.partner-promo-dark {
+    margin-top: 1rem;
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 10px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.78rem;
+    color: #e9d5ff;
+}
+.partner-promo-dark a {
+    color: #c084fc;
+    font-weight: 700;
+    text-decoration: underline;
+}
+.partner-links-dark {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.4rem;
+    font-size: 0.73rem;
+    color: #94a3b8;
+}
+.partner-links-dark a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+.partner-links-dark a:hover {
+    text-decoration: underline;
+}
+
+/* Card Footer */
+.card-footer {
+    margin-top: 1.25rem;
+    padding-top: 0.95rem;
+    border-top: 1px solid rgba(51, 65, 85, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.card-badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+}
+.card-badge-status.active {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+.card-badge-status.active::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 6px #34d399;
+}
+.card-badge-status.sim {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #fbbf24;
+}
+.card-badge-status.sim::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #fbbf24;
+}
+.card-footer-meta {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+/* Desk Card & Table for Ingestion Stream */
+.desk-card {
+    background: var(--int-panel-bg);
+    border: 1px solid var(--int-panel-border);
+    border-radius: 18px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+}
+.desk-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.desk-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.desk-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.desk-table th {
+    background: rgba(30, 41, 59, 0.7);
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--int-panel-border);
+}
+.desk-table th:first-child { border-top-left-radius: 8px; }
+.desk-table th:last-child { border-top-right-radius: 8px; }
+.desk-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.25);
+    color: #cbd5e1;
+    vertical-align: middle;
+}
+.desk-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+.inq-link-cyan {
+    color: #38bdf8;
+    font-weight: 700;
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+.inq-link-cyan:hover {
+    text-decoration: underline;
+    color: #7dd3fc;
+}
+</style>
+
+<div class="integrations-wrapper">
+    <!-- Header -->
+    <div class="hub-header">
+        <div class="header-left">
+            <div class="hub-icon-badge">🔌</div>
+            <div>
+                <h1 class="hub-title">Integrations & External Channels</h1>
+                <div class="hub-desc">Connect Meta Lead Ads, official WhatsApp Cloud APIs, Google Sheets auto-sync, and high-deliverability AWS SES/SMTP.</div>
+            </div>
+        </div>
+        <div class="header-badges">
+            <div class="status-pill-glowing">Ingestion Engine Active</div>
+            <a href="/admin/integrations/leadingestionlog/" class="link-logs-badge">
+                📑 View Raw Audit Logs ({{ recent_logs|length }})
+            </a>
+        </div>
+    </div>
+
+    <!-- 4-Card KPI Toolbar Grid -->
+    <div class="kpi-grid">
+        <div class="kpi-card" style="--kpi-bg: rgba(24, 119, 242, 0.15); --kpi-glow: #1877f2;">
+            <div class="kpi-icon">
+                <!-- Meta Logo SVG -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="kpi-label">Meta Ads Ingested</div>
+                <div class="kpi-value">{{ cfg.meta_leads_imported }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-bg: rgba(16, 185, 129, 0.15); --kpi-glow: #10b981;">
+            <div class="kpi-icon">
+                <!-- Google Sheets SVG -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm0-4H6v-2h6v2zm0-4H6V7h6v2zm6 8h-4v-2h4v2zm0-4h-4v-2h4v2zm0-4h-4V7h4v2z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="kpi-label">Google Sheets Synced</div>
+                <div class="kpi-value">{{ cfg.google_sheet_rows_imported }}</div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-bg: rgba(56, 189, 248, 0.15); --kpi-glow: #38bdf8;">
+            <div class="kpi-icon">
+                <!-- Email SES SVG -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="kpi-label">Emails Sent Today</div>
+                <div class="kpi-value">{{ cfg.emails_sent_today }} <span style="font-size: 0.9rem; color: #64748b; font-weight: 500;">/ {{ cfg.email_daily_limit }}</span></div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="--kpi-bg: rgba(37, 211, 102, 0.15); --kpi-glow: #25d366;">
+            <div class="kpi-icon">
+                <!-- WhatsApp SVG -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.586 1.761.948 2.791.948 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.767-5.768-5.767zm7.653 5.767c-.002 4.221-3.435 7.653-7.654 7.653-1.344 0-2.61-.351-3.714-.969l-4.316 1.132 1.152-4.208c-.682-1.152-1.042-2.479-1.043-3.837.002-4.221 3.435-7.654 7.654-7.654 4.218 0 7.652 3.433 7.654 7.654z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="kpi-label">Active WA Provider</div>
+                <div class="kpi-value" style="font-size: 1.15rem; font-family: 'Plus Jakarta Sans', sans-serif;">{{ cfg.get_whatsapp_vendor_display|truncatechars:16 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Action Command Deck -->
+    <div class="command-deck">
+        <div class="command-title">
+            <span>⚡ Omnichannel Controls & Shortcuts:</span>
+        </div>
+        <div class="command-actions">
+            <button type="button" class="btn-sim-meta" onclick="simulateMetaLead()" id="btn-simulate-meta">
+                <span>📱</span> Simulate Meta Lead Ad
+            </button>
+            <button type="button" class="btn-sync-sheets" onclick="syncGoogleSheetsNow()" id="btn-sync-sheets">
+                <span>📊</span> Sync Google Sheets Now
+            </button>
+            <a href="/admin/integrations/email/" class="btn-deck-outline">
+                <span>✉️</span> Email Studio
+            </a>
+            <a href="/admin/integrations/agent-dashboard/" class="btn-deck-outline">
+                <span>⚡</span> Agent Dashboard
+            </a>
+            <a href="/admin/integrations/approvals/" class="btn-deck-outline">
+                <span>🛡️</span> Approvals Queue
+            </a>
+        </div>
+    </div>
+
+    <!-- The 5 Integration Cards Matching Reference Layout -->
+    <div class="integrations-grid">
+        <!-- 1. Meta Lead Ads -->
+        <div class="integration-card" style="--card-accent: #1877f2; --card-glow: rgba(24, 119, 242, 0.2);" onclick="openMetaModal()">
+            <span class="card-arrow">›</span>
+            <div>
+                <div class="card-top">
+                    <div class="app-brand-icon" style="background: rgba(24, 119, 242, 0.15); border-color: rgba(24, 119, 242, 0.35); color: #1877f2;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1; padding-right: 1.5rem;">
+                        <h3 class="card-title">Meta Lead Ads</h3>
+                        <p class="card-desc">Connect Facebook & Instagram lead forms. New leads auto-import as inquiries with 24-hr duplicate suppression.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-badge-status active">
+                    Webhook Active
+                </span>
+                <span class="card-footer-meta">Form: {{ cfg.meta_form_id|default:"Default Form" }}</span>
+            </div>
+        </div>
+
+        <!-- 2. WhatsApp Business (Meta) -->
+        <div class="integration-card" style="--card-accent: #25d366; --card-glow: rgba(37, 211, 102, 0.2);" onclick="window.location.href='/admin/operations/whatsapp-bot/'">
+            <span class="card-arrow">›</span>
+            <div>
+                <div class="card-top">
+                    <div class="app-brand-icon" style="background: rgba(37, 211, 102, 0.15); border-color: rgba(37, 211, 102, 0.35); color: #25d366;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.969.586 1.761.948 2.791.948 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.767-5.768-5.767zm7.653 5.767c-.002 4.221-3.435 7.653-7.654 7.653-1.344 0-2.61-.351-3.714-.969l-4.316 1.132 1.152-4.208c-.682-1.152-1.042-2.479-1.043-3.837.002-4.221 3.435-7.654 7.654-7.654 4.218 0 7.652 3.433 7.654 7.654z"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1; padding-right: 1.5rem;">
+                        <h3 class="card-title">WhatsApp Business (Meta)</h3>
+                        <p class="card-desc">Connect your official WhatsApp Business number. Inbound messages auto-import as inquiries with 24/7 automated bot reply.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-badge-status active">
+                    Connected (Official API)
+                </span>
+                <span class="card-footer-meta">+91 94431 23456</span>
+            </div>
+        </div>
+
+        <!-- 3. Google Sheets -->
+        <div class="integration-card" style="--card-accent: #10b981; --card-glow: rgba(16, 185, 129, 0.2);" onclick="syncGoogleSheetsNow()">
+            <span class="card-arrow">›</span>
+            <div>
+                <div class="card-top">
+                    <div class="app-brand-icon" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #10b981;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm0-4H6v-2h6v2zm0-4H6V7h6v2zm6 8h-4v-2h4v2zm0-4h-4v-2h4v2zm0-4h-4V7h4v2z"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1; padding-right: 1.5rem;">
+                        <h3 class="card-title">Google Sheets</h3>
+                        <p class="card-desc">Link a Google Sheet — every new row imports as an inquiry automatically every 5 minutes with zero manual entry.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-badge-status active">
+                    5-Min Poller Active
+                </span>
+                <span class="card-footer-meta">Last: {{ cfg.google_sheet_last_synced|date:"H:i A"|default:"Just now" }}</span>
+            </div>
+        </div>
+
+        <!-- 4. WhatsApp Gateway -->
+        <div class="integration-card" style="--card-accent: #a855f7; --card-glow: rgba(168, 85, 247, 0.2);" onclick="window.location.href='/admin/operations/whatsapp-bot/'">
+            <span class="card-arrow">›</span>
+            <div>
+                <div class="card-top">
+                    <div class="app-brand-icon" style="background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.35); color: #c084fc;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1; padding-right: 1.5rem;">
+                        <h3 class="card-title">WhatsApp Gateway</h3>
+                        <p class="card-desc">Pick the vendor (AiSensy / WATI / MSG91) used to send broadcast campaigns and map templates.</p>
+                    </div>
+                </div>
+
+                <!-- Sleek Dark Partner Info -->
+                <div class="partner-promo-dark">
+                    <span>⚡ Enterprise Integration with our official messaging partners:</span>
+                    <div class="partner-links-dark">
+                        <div>MSG91: <a href="https://msg91.com/" target="_blank">https://msg91.com/</a></div>
+                        <div>AiSensy: <a href="https://aisensy.com" target="_blank">https://aisensy.com/</a></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-badge-status sim">
+                    Provider: {{ cfg.get_whatsapp_vendor_display }}
+                </span>
+                <span class="card-footer-meta" style="color: #c084fc;">Configure ↗</span>
+            </div>
+        </div>
+
+        <!-- 5. Email (SES/SMTP) -->
+        <a href="{% url 'integrations:email_studio' %}" class="integration-card" style="--card-accent: #0284c7; --card-glow: rgba(2, 132, 199, 0.2);" id="card-email-settings">
+            <span class="card-arrow">›</span>
+            <div>
+                <div class="card-top">
+                    <div class="app-brand-icon" style="background: rgba(2, 132, 199, 0.15); border-color: rgba(2, 132, 199, 0.35); color: #38bdf8;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1; padding-right: 1.5rem;">
+                        <h3 class="card-title">Email (SES/SMTP)</h3>
+                        <p class="card-desc">Configure the high-deliverability SMTP server used to send transactional emails, luxury itineraries, and quotations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="card-badge-status active">
+                    {{ cfg.smtp_host }} (Port {{ cfg.smtp_port }})
+                </span>
+                <span class="card-footer-meta" style="color: #38bdf8;">Open Studio ↗</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Realtime Ingestion Stream Desk -->
+    <div class="desk-card">
+        <div class="desk-header">
+            <h2 class="desk-title">
+                <span>📡</span> Realtime Omnichannel Ingestion Stream
+            </h2>
+            <div style="font-size: 0.8rem; color: #94a3b8;">
+                Showing recent webhooks captured across Meta, Google Sheets, & WhatsApp
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="desk-table">
+                <thead>
+                    <tr>
+                        <th>Channel Source</th>
+                        <th>Traveler / Lead Contact</th>
+                        <th>Destination</th>
+                        <th>Created CRM File</th>
+                        <th>Status</th>
+                        <th>Ingestion Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in recent_logs %}
+                    <tr>
+                        <td style="font-weight: 700; color: #ffffff;">
+                            {{ log.get_source_display }}
+                        </td>
+                        <td>
+                            <strong style="color: #ffffff;">{{ log.lead_name }}</strong><br>
+                            <small style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">{{ log.lead_phone }}</small>
+                        </td>
+                        <td>{{ log.destination|default:"Outstation Holiday" }}</td>
+                        <td>
+                            {% if log.created_inquiry %}
+                            <a href="/admin/crm/inquiry/{{ log.created_inquiry.id }}/change/" class="inq-link-cyan">
+                                #{{ log.created_inquiry.inquiry_number }}
+                            </a>
+                            {% else %}
+                            <span style="color: #64748b;">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if log.status == 'success' %}
+                            <span class="card-badge-status active">Ingested</span>
+                            {% elif log.status == 'duplicate' %}
+                            <span class="card-badge-status sim">Duplicate Skipped</span>
+                            {% else %}
+                            <span class="card-badge-status" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171;">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                            {{ log.received_at|date:"d-M H:i:s" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">
+                            No incoming lead webhooks captured yet. Click "Simulate Meta Lead Ad" above to test live ingestion!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Meta Simulator Script -->
+<script>
+async function simulateMetaLead() {
+    const btn = document.getElementById('btn-simulate-meta');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Ingesting Lead...';
+    try {
+        const res = await fetch('/api/integrations/meta/simulate/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: 'Kavitha Ramachandran',
+                phone: '98425' + Math.floor(10000 + Math.random() * 90000),
+                destination: '3D2N Ooty & Coonoor Tea Garden Holiday',
+                platform: 'instagram'
+            })
+        });
+        const data = await res.json();
+        alert(data.message || 'Meta Lead Ingested Successfully!');
+        window.location.reload();
+    } catch (e) {
+        alert('Simulation failed: ' + e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📱</span> Simulate Meta Lead Ad';
+    }
+}
+
+async function syncGoogleSheetsNow() {
+    const btn = document.getElementById('btn-sync-sheets');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Syncing Rows...';
+    try {
+        const res = await fetch('/api/integrations/google-sheets/sync/', { method: 'POST' });
+        const data = await res.json();
+        alert(`Google Sheets Synced! Imported: ${data.imported} new inquiries. Duplicates skipped: ${data.duplicates_skipped}`);
+        window.location.reload();
+    } catch (e) {
+        alert('Sync error: ' + e);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📊</span> Sync Google Sheets Now';
+    }
+}
+
+function openMetaModal() {
+    alert("Meta Lead Ads Webhook Live Endpoint:\nhttp://127.0.0.1:8000/api/integrations/meta/webhook/\n\nVerify Token: {{ cfg.meta_verify_token }}\n\nFacebook and Instagram lead ad payloads automatically convert into CRM Inquiries with 24-hr duplicate suppression.");
+}
+</script>
+{% endblock %}
