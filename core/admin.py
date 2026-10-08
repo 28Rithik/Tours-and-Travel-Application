@@ -1151,3 +1151,23 @@ class RateCardAdmin(ModelAdmin):
 		elif obj.effective_from > today:
 			return mark_safe('<span class="badge" style="background-color: #3b82f6; color: #fff; padding: 4px 8px;"><i class="fas fa-clock mr-1"></i>Upcoming</span>')
 		return mark_safe('<span class="badge" style="background-color: #10b981; color: #fff; padding: 4px 8px;"><i class="fas fa-check-circle mr-1"></i>Active</span>')
+
+
+from .models import StaffProfile
+
+@admin.register(StaffProfile)
+class StaffProfileAdmin(ModelAdmin):
+	list_display = ('employee_id', 'user_full_name', 'role_badge', 'branch', 'department', 'designation', 'phone', 'is_on_duty')
+	list_filter = ('role', 'branch', 'department', 'is_on_duty')
+	search_fields = ('employee_id', 'user__username', 'user__first_name', 'user__last_name', 'phone')
+
+	def user_full_name(self, obj):
+		return obj.display_name
+	user_full_name.short_description = "Staff Member"
+
+	def role_badge(self, obj):
+		return format_html(
+			'<span style="background:{}22; color:{}; padding:3px 8px; border-radius:6px; font-weight:700; font-size:11px; border:1px solid {}55;">{} {}</span>',
+			obj.role_badge_color, obj.role_badge_color, obj.role_badge_color, obj.role_icon, obj.get_role_display()
+		)
+	role_badge.short_description = "Role & Clearance"

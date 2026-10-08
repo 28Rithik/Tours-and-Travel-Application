@@ -90,7 +90,7 @@ from finance.views import (
     driver_mobile_wallet_view,
 )
 from driver_portal.views import pwa_manifest, pwa_service_worker
-from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report
+from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view
 from core.views import api_get_vehicle_types, api_vehicle_check_availability
 from payments_gateway.views import (
     admin_payment_studio_view,
@@ -185,6 +185,10 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
+    path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),
+    path('staff/roles-matrix/', staff_roles_matrix_view, name='staff-roles-matrix'),
+    path('roles/', staff_roles_matrix_view, name='roles-matrix-alias'),
+    path('staff/', staff_roles_matrix_view, name='staff-directory-alias'),
     path('dispatch/', booking_list, name='dispatch-console'),
     path('bookings/', booking_list, name='booking-list'),
     path('bookings/create/', booking_create, name='booking-create'),

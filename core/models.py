@@ -462,3 +462,74 @@ class RateCard(models.Model):
 	def __str__(self):
 		target = self.vehicle.registration_number if self.vehicle_id else self.vehicle_type
 		return f'{self.party} / {target} / {self.effective_from}'
+
+from django.contrib.auth.models import User
+
+
+class StaffProfile(models.Model):
+	ROLE_CHOICES = [
+		('admin', 'System Director / Super Admin'),
+		('manager', 'General / Branch Manager'),
+		('sales_executive', 'Senior Sales Executive & Tour Designer'),
+		('sales', 'Corporate Sales Representative'),
+		('operations', 'Fleet & Dispatch Operations Lead'),
+		('operation_account', 'Operations Accounts & Billing Officer'),
+		('driver', 'Senior Fleet Chauffeur'),
+		('customer_service', 'Guest Experience & Support Specialist'),
+	]
+
+	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
+	role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='sales_executive')
+	employee_id = models.CharField(max_length=30, unique=True, help_text="e.g. SGT-ADM-01")
+	branch = models.CharField(max_length=100, default='Chennai Central HQ')
+	department = models.CharField(max_length=100, default='Operations')
+	designation = models.CharField(max_length=100, blank=True)
+	phone = models.CharField(max_length=20, blank=True)
+	emergency_contact = models.CharField(max_length=20, blank=True)
+	approval_limit_inr = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Max discount or expense approval ceiling")
+	monthly_sales_target_inr = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	is_on_duty = models.BooleanField(default=True)
+	avatar_color = models.CharField(max_length=20, default='#0284c7')
+	linked_driver = models.ForeignKey('Driver', on_delete=models.SET_NULL, null=True, blank=True, related_name='staff_accounts')
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['employee_id']
+		verbose_name = 'Staff Profile'
+		verbose_name_plural = 'Staff Profiles'
+
+	def __str__(self):
+		return f"{self.employee_id} - {self.user.get_full_name() or self.user.username} ({self.get_role_display()})"
+
+	@property
+	def display_name(self):
+		return self.user.get_full_name() or self.user.username
+
+	@property
+	def role_badge_color(self):
+		colors = {
+			'admin': '#e11d48',
+			'manager': '#8b5cf6',
+			'sales_executive': '#10b981',
+			'sales': '#059669',
+			'operations': '#0284c7',
+			'operation_account': '#d97706',
+			'driver': '#f97316',
+			'customer_service': '#06b6d4',
+		}
+		return colors.get(self.role, '#64748b')
+
+	@property
+	def role_icon(self):
+		icons = {
+			'admin': '👑',
+			'manager': '🏢',
+			'sales_executive': '📑',
+			'sales': '💼',
+			'operations': '🚛',
+			'operation_account': '💰',
+			'driver': '👨‍✈️',
+			'customer_service': '🎧',
+		}
+		return icons.get(self.role, '👤')

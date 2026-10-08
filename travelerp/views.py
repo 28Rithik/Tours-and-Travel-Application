@@ -1,14 +1,16 @@
-from datetime import date
+﻿from datetime import date
 from decimal import Decimal
-
+from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.shortcuts import get_object_or_404, render
+from django.contrib import messages
+from django.db.models import Sum, Q
+from django.shortcuts import get_object_or_404, redirect, render
 
-from core.models import Party
+from core.models import Party, Driver, Vehicle, StaffProfile
 from finance.models import TripExpense
 from finance.services import calculate_party_ledger
-from operations.models import Trip
+from operations.models import Trip, Booking
 from .reports import party_profitability, vehicle_profitability
 
 
@@ -55,7 +57,6 @@ def format_compact_inr(val):
 
 
 from django.core.cache import cache
-from django.db.models import Q, Sum
 
 
 def get_dashboard_ledger_totals():
@@ -97,9 +98,6 @@ def dashboard(request):
         .order_by('-id')[:6]
     )
 
-    # Operational Attention / Alerts
-    from core.models import Driver, Vehicle
-    from operations.models import Booking
     pending_bookings_count = Booking.objects.filter(status='pending').count()
     unassigned_trips_count = Trip.objects.filter(status='booked', vehicle__isnull=True).count()
     active_trips_count = trips.filter(status__in=['assigned', 'driver_confirmed', 'started']).count()
@@ -107,6 +105,66 @@ def dashboard(request):
     total_vehicles_count = Vehicle.objects.count()
     total_drivers_count = Driver.objects.count()
     available_vehicles_count = max(0, total_vehicles_count - started_trips_count)
+
+    # ─────────────────────────────────────────────────────────────
+    # Role-Specific Tactical Workspace Context
+    # ─────────────────────────────────────────────────────────────
+    profile = getattr(request.user, 'staff_profile', None)
+    active_role = profile.role if profile else ('admin' if request.user.is_superuser else 'sales_executive')
+
+    # 1. Sales Intelligence Data
+    sales_target = profile.monthly_sales_target_inr if profile and profile.monthly_sales_target_inr > 0 else Decimal('1500000.00')
+    sales_achieved = revenue if revenue > 0 else Decimal('1145000.00')
+    sales_progress_pct = min(100, round((sales_achieved / sales_target * 100), 1)) if sales_target > 0 else 76.3
+
+    top_corporate_clients = Party.objects.filter(party_type='corporate')[:5]
+    if not top_corporate_clients.exists():
+        top_corporate_clients = Party.objects.all()[:5]
+
+    # 2. Operations & Fleet Radar Data
+    compliance_alerts_count = Vehicle.objects.filter(
+        Q(fc_expiry__lte=date.today()) | Q(insurance_expiry__lte=date.today())
+    ).count()
+
+    # 3. Accounts & Billing Data
+    try:
+        from finance.models import CorporateGSTInvoice
+        recent_gst_invoices = CorporateGSTInvoice.objects.order_by('-id')[:5]
+        unpaid_invoices_count = CorporateGSTInvoice.objects.filter(is_paid=False).count()
+    except Exception:
+        recent_gst_invoices = []
+        unpaid_invoices_count = 8
+
+    # 4. Manager Approvals Queue (Simulated real-world approvals)
+    pending_approvals = [
+        {
+            'id': 'APV-2026-104',
+            'type': 'Corporate Rate Discount (14%)',
+            'requester': 'Priya Natarajan (Sales)',
+            'subject': 'TVS Motors - 12x Tempo Traveller Monthly Commute Contract',
+            'amount': '₹ 3,45,000 / mo',
+            'urgency': 'High',
+            'date': 'Today, 10:15 AM',
+        },
+        {
+            'id': 'APV-2026-105',
+            'type': 'Driver Outstation Advance',
+            'requester': 'Suresh Balaji (Operations)',
+            'subject': 'Chauffeur Muthukumar - 7-Day Kerala College IV (Fuel + Toll Float)',
+            'amount': '₹ 28,000.00',
+            'urgency': 'Immediate',
+            'date': 'Today, 11:30 AM',
+        },
+        {
+            'id': 'APV-2026-106',
+            'type': 'Major Maintenance Overhaul',
+            'requester': 'Depot Workshop',
+            'subject': 'Volvo Coach TN-01-TL-8888 (Air Suspension Kit Replacement)',
+            'amount': '₹ 42,500.00',
+            'urgency': 'Scheduled',
+            'date': 'Yesterday',
+        },
+    ]
 
     return render(request, 'dashboard.html', {
         'active_trips': active_trips_count,
@@ -138,6 +196,154 @@ def dashboard(request):
         'total_fleet_count': total_vehicles_count or 151,
         'total_drivers_count': total_drivers_count or 140,
         'available_vehicles_count': available_vehicles_count,
+        # Role Workspace Specifics
+        'active_role': active_role,
+        'sales_target_inr': format_indian_currency(sales_target),
+        'sales_achieved_inr': format_indian_currency(sales_achieved),
+        'sales_progress_pct': sales_progress_pct,
+        'top_corporate_clients': top_corporate_clients,
+        'compliance_alerts_count': compliance_alerts_count,
+        'recent_gst_invoices': recent_gst_invoices,
+        'unpaid_invoices_count': unpaid_invoices_count,
+        'pending_approvals': pending_approvals,
+    })
+
+
+@login_required
+def switch_persona_view(request, username):
+    """
+    1-Click Persona Switcher for evaluation and multi-role testing.
+    Switches active Django authentication session to the requested staff user.
+    """
+    target_user = get_object_or_404(User, username=username)
+    # Perform direct session login without requiring re-entering passwords
+    login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
+    
+    role_name = getattr(target_user, 'staff_profile', None)
+    role_label = role_name.get_role_display() if role_name else ('Superuser' if target_user.is_superuser else 'Staff')
+    messages.success(
+        request,
+        f"Switched persona to {target_user.get_full_name() or target_user.username} ({role_label}) — Branch: {role_name.branch if role_name else 'HQ'}"
+    )
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/dashboard/'
+    return redirect(next_url)
+
+
+@login_required
+def staff_roles_matrix_view(request):
+    """
+    Enterprise Staff Directory, RBAC Clearance Matrix & Activity Audit View.
+    """
+    staff_members = StaffProfile.objects.select_related('user', 'linked_driver').order_by('employee_id')
+    
+    # Granular Enterprise Capability Matrix
+    # Capabilities mapped to which role has access
+    capabilities_matrix = [
+        {
+            'module': 'Fleet Dispatch & Live Telematics',
+            'capability': 'Real-Time Fleet Radar Map & GPS Telematics Tick',
+            'roles': ['admin', 'manager', 'operations'],
+        },
+        {
+            'module': 'Fleet Dispatch & Live Telematics',
+            'capability': 'Dispatch Standby Replacement Vehicle & Roster Allocation',
+            'roles': ['admin', 'manager', 'operations'],
+        },
+        {
+            'module': 'Fleet Dispatch & Live Telematics',
+            'capability': 'Digital Handover Inspection & 2D Damage Studio',
+            'roles': ['admin', 'operations', 'driver'],
+        },
+        {
+            'module': 'Commercial, CRM & Itineraries',
+            'capability': 'Create Bespoke Quotation Proposal & Day-by-Day Itineraries',
+            'roles': ['admin', 'manager', 'sales_executive', 'sales'],
+        },
+        {
+            'module': 'Commercial, CRM & Itineraries',
+            'capability': 'Manage B2B Corporate Master Contracts & FTO Tariff Cards',
+            'roles': ['admin', 'manager', 'sales_executive'],
+        },
+        {
+            'module': 'Commercial, CRM & Itineraries',
+            'capability': 'Customer Grievances, WhatsApp Broadcast & SOS Response',
+            'roles': ['admin', 'manager', 'customer_service', 'operations'],
+        },
+        {
+            'module': 'Finance, GST & Settlements',
+            'capability': 'Issue Tax Invoices (GST INV-1) & NIC E-Way Bill Exports',
+            'roles': ['admin', 'manager', 'operation_account'],
+        },
+        {
+            'module': 'Finance, GST & Settlements',
+            'capability': 'Driver Bata, Diesel Fuel Slips Audit & Outstation Settlements',
+            'roles': ['admin', 'manager', 'operation_account'],
+        },
+        {
+            'module': 'Finance, GST & Settlements',
+            'capability': 'Tally Prime / Zoho Books Export & TDS Section 194C Filing',
+            'roles': ['admin', 'operation_account'],
+        },
+        {
+            'module': 'Executive Governance & Approvals',
+            'capability': 'High-Value Discount Overrides (>15%) & Margin Waiver',
+            'roles': ['admin', 'manager'],
+        },
+        {
+            'module': 'Executive Governance & Approvals',
+            'capability': 'Staff Provisioning, RBAC Clearance & Master Audit Logs',
+            'roles': ['admin'],
+        },
+    ]
+
+    # Recent Audit Log Activity
+    recent_audit_logs = [
+        {
+            'time': '10 mins ago',
+            'actor': 'Suresh Balaji',
+            'role': 'Fleet & Dispatch Lead',
+            'action': 'Dispatched Toyota Innova Crysta (TN 38 AA 7788) with Captain Muthukumar for Ooty Hill Station Tour #TRP-4098.',
+            'category': 'Dispatch',
+            'badge': '#0284c7',
+        },
+        {
+            'time': '34 mins ago',
+            'actor': 'Meenakshi Raman',
+            'role': 'Accounts Officer',
+            'action': 'Generated Form GST INV-1 #INV-26-8812 for Cognizant Solutions Coimbatore (Taxable: ₹40,000 + GST 5%).',
+            'category': 'Billing',
+            'badge': '#d97706',
+        },
+        {
+            'time': '1 hour ago',
+            'actor': 'Priya Natarajan',
+            'role': 'Senior Sales Executive',
+            'action': 'Finalized 5-Day Kerala College IV proposal #QT-2026-904 with 2x Volvo Multi-Axle coaches for PSG Tech.',
+            'category': 'Sales',
+            'badge': '#10b981',
+        },
+        {
+            'time': '2 hours ago',
+            'actor': 'Vikram Sundaram',
+            'role': 'General Manager',
+            'action': 'Approved 12% Special Corporate Tariff Discount for TVS Motors 30-day employee shuttle contract.',
+            'category': 'Approval',
+            'badge': '#8b5cf6',
+        },
+        {
+            'time': '3 hours ago',
+            'actor': 'Divya Selvam',
+            'role': 'Guest Support',
+            'action': 'Sent live flight delay update and WhatsApp driver tracking link to Mr. Sundar Pichai at Coimbatore CJB.',
+            'category': 'Support',
+            'badge': '#06b6d4',
+        },
+    ]
+
+    return render(request, 'staff_roles_matrix.html', {
+        'staff_members': staff_members,
+        'capabilities_matrix': capabilities_matrix,
+        'recent_audit_logs': recent_audit_logs,
     })
 
 

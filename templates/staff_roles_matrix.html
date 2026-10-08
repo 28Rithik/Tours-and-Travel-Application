@@ -1,0 +1,656 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Enterprise Staff Directory & RBAC Matrix | Sivagayathiri Travels{% endblock %}
+{% block header_title %}Enterprise Governance & Staff Clearance{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Authentic Enterprise Staff & RBAC Matrix Styling
+   Designed for high information density, tactical legibility, and zero AI-slop aesthetics.
+   ───────────────────────────────────────────────────────────── */
+.rbac-container {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #f1f5f9;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.mono-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Header Strip */
+.rbac-header-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.rbac-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.rbac-gov-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.rbac-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.rbac-subtitle {
+  color: #94a3b8;
+  font-size: 0.86rem;
+  margin: 0;
+}
+
+.rbac-header-badges {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.header-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+/* Tab Switcher */
+.rbac-tabs-nav {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #1e293b;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.rbac-tab-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.65rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rbac-tab-btn:hover {
+  color: #f8fafc;
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.rbac-tab-btn.is-active {
+  color: #38bdf8;
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+/* Staff Directory Grid */
+.staff-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.15rem;
+  margin-bottom: 2.25rem;
+}
+
+.staff-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+.staff-card:hover {
+  border-color: #334155;
+  transform: translateY(-2px);
+}
+
+.staff-card-current {
+  border: 1.5px solid #38bdf8;
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}
+
+.staff-current-tag {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.staff-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  margin-bottom: 0.85rem;
+}
+
+.staff-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.staff-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.staff-empid {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+
+.staff-name {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.staff-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.staff-card-details {
+  background: #111e38;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.8rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.staff-detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.staff-detail-label {
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 1px;
+}
+
+.staff-detail-val {
+  color: #e2e8f0;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.staff-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-impersonate {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: #1e293b;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-impersonate:hover {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #fff;
+}
+
+.btn-impersonate.is-active-user {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  cursor: default;
+}
+
+/* Permissions Matrix Table */
+.matrix-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 2.25rem;
+}
+
+.matrix-card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.matrix-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 0.2rem;
+}
+
+.matrix-subtitle {
+  color: #64748b;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.matrix-table-wrap {
+  overflow-x: auto;
+}
+
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.matrix-table th {
+  background: #111e38;
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #1e293b;
+  white-space: nowrap;
+}
+
+.matrix-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(30, 41, 59, 0.7);
+  color: #cbd5e1;
+}
+
+.matrix-table tr:hover td {
+  background: rgba(30, 41, 59, 0.4);
+}
+
+.cap-badge-yes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-weight: 800;
+  font-size: 0.85rem;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.cap-badge-no {
+  color: #475569;
+  font-size: 0.9rem;
+  text-align: center;
+  display: inline-block;
+  width: 24px;
+}
+
+/* Activity Audit Feed */
+.audit-card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.audit-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.audit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: #111e38;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+}
+
+.audit-tag {
+  padding: 0.2rem 0.55rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.audit-body {
+  flex: 1;
+}
+
+.audit-actor {
+  font-weight: 700;
+  color: #f8fafc;
+  font-size: 0.85rem;
+}
+
+.audit-action {
+  color: #94a3b8;
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.audit-time {
+  font-size: 0.72rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+</style>
+
+<div class="rbac-container">
+  <!-- Header Card -->
+  <div class="rbac-header-card">
+    <div class="rbac-header-left">
+      <div class="rbac-gov-icon">🛡️</div>
+      <div>
+        <h1 class="rbac-title">Staff Directory &amp; RBAC Clearance Matrix</h1>
+        <p class="rbac-subtitle">Role-Based Access Control, Departmental Governance &amp; Multi-Persona Simulation Hub</p>
+      </div>
+    </div>
+    <div class="rbac-header-badges">
+      <div class="header-meta-pill">
+        <span>Active User:</span>
+        <strong style="color: {{ user_role_color }}">{{ user.get_full_name|default:user.username }}</strong>
+      </div>
+      <div class="header-meta-pill">
+        <span>Role:</span>
+        <strong style="color: {{ user_role_color }}">{{ user_role_label }}</strong>
+      </div>
+      <div class="header-meta-pill">
+        <span>Depot:</span>
+        <strong>{{ user_branch }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Switcher -->
+  <div class="rbac-tabs-nav">
+    <button class="rbac-tab-btn is-active" onclick="switchRbacTab('roster', this)">
+      <span>👥</span> Staff Directory ({{ staff_members.count }})
+    </button>
+    <button class="rbac-tab-btn" onclick="switchRbacTab('matrix', this)">
+      <span>🔐</span> Permissions Clearance Matrix
+    </button>
+    <button class="rbac-tab-btn" onclick="switchRbacTab('audit', this)">
+      <span>📜</span> Operational Audit Log
+    </button>
+  </div>
+
+  <!-- SECTION 1: Staff Directory Roster -->
+  <div id="tab-roster">
+    <div class="staff-cards-grid">
+      {% for member in staff_members %}
+      <div class="staff-card {% if member.user == user %}staff-card-current{% endif %}">
+        {% if member.user == user %}
+        <span class="staff-current-tag">Active Session</span>
+        {% endif %}
+        <div>
+          <div class="staff-card-header">
+            <div class="staff-avatar" style="background: {{ member.avatar_color }};">
+              {{ member.role_icon }}
+            </div>
+            <div class="staff-info">
+              <div class="staff-empid mono-val">{{ member.employee_id }}</div>
+              <h3 class="staff-name">{{ member.display_name }}</h3>
+              <span class="staff-role-badge" style="background: {{ member.role_badge_color }}22; color: {{ member.role_badge_color }}; border: 1px solid {{ member.role_badge_color }}55;">
+                {{ member.get_role_display }}
+              </span>
+            </div>
+          </div>
+
+          <div class="staff-card-details">
+            <div class="staff-detail-item">
+              <span class="staff-detail-label">Department</span>
+              <span class="staff-detail-val">{{ member.department }}</span>
+            </div>
+            <div class="staff-detail-item">
+              <span class="staff-detail-label">Base Depot</span>
+              <span class="staff-detail-val">{{ member.branch }}</span>
+            </div>
+            <div class="staff-detail-item">
+              <span class="staff-detail-label">Mobile Hotline</span>
+              <span class="staff-detail-val mono-val">{{ member.phone|default:"—" }}</span>
+            </div>
+            <div class="staff-detail-item">
+              <span class="staff-detail-label">Approval Ceiling</span>
+              <span class="staff-detail-val mono-val">
+                {% if member.approval_limit_inr > 0 %}₹ {{ member.approval_limit_inr|floatformat:0 }}{% else %}—{% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="staff-card-actions">
+          {% if member.user == user %}
+          <button class="btn-impersonate is-active-user" disabled>
+            <span>✓ Current Persona</span>
+          </button>
+          {% else %}
+          <a class="btn-impersonate" href="{% url 'auth-switch-persona' member.user.username %}?next={% url 'staff-roles-matrix' %}">
+            <span>⚡ Switch to this Persona</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- SECTION 2: Permissions Matrix -->
+  <div id="tab-matrix" style="display: none;">
+    <div class="matrix-card">
+      <div class="matrix-card-header">
+        <div>
+          <h2 class="matrix-title">Departmental Capability Clearance Matrix</h2>
+          <p class="matrix-subtitle">Defines exact access privileges and operational clearances granted to each organizational role</p>
+        </div>
+        <div style="font-size: 0.8rem; color: #94a3b8; display: flex; gap: 1rem;">
+          <span><strong style="color: #10b981;">✓</strong> Authorized</span>
+          <span><strong style="color: #475569;">—</strong> Restricted</span>
+        </div>
+      </div>
+
+      <div class="matrix-table-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th style="min-width: 170px;">Operational Module</th>
+              <th style="min-width: 280px;">System Capability</th>
+              <th style="text-align: center;">Director (Admin)</th>
+              <th style="text-align: center;">General Mgr</th>
+              <th style="text-align: center;">Sales Exec</th>
+              <th style="text-align: center;">Corp Sales</th>
+              <th style="text-align: center;">Fleet Ops</th>
+              <th style="text-align: center;">Accounts</th>
+              <th style="text-align: center;">Chauffeur</th>
+              <th style="text-align: center;">Support</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in capabilities_matrix %}
+            <tr>
+              <td><strong style="color: #94a3b8;">{{ item.module }}</strong></td>
+              <td><span style="color: #f1f5f9; font-weight: 600;">{{ item.capability }}</span></td>
+              <!-- Admin -->
+              <td style="text-align: center;">
+                {% if 'admin' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Manager -->
+              <td style="text-align: center;">
+                {% if 'manager' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Sales Executive -->
+              <td style="text-align: center;">
+                {% if 'sales_executive' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Corporate Sales -->
+              <td style="text-align: center;">
+                {% if 'sales' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Operations -->
+              <td style="text-align: center;">
+                {% if 'operations' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Accounts -->
+              <td style="text-align: center;">
+                {% if 'operation_account' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Driver -->
+              <td style="text-align: center;">
+                {% if 'driver' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- Customer Support -->
+              <td style="text-align: center;">
+                {% if 'customer_service' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Activity Audit Log -->
+  <div id="tab-audit" style="display: none;">
+    <div class="audit-card">
+      <div>
+        <h2 class="matrix-title">Multi-Department Operational Audit Trail</h2>
+        <p class="matrix-subtitle">Immutable chronological log of system actions taken by active staff personas</p>
+      </div>
+
+      <div class="audit-feed-list">
+        {% for log in recent_audit_logs %}
+        <div class="audit-item">
+          <span class="audit-tag" style="background: {{ log.badge }}22; color: {{ log.badge }}; border: 1px solid {{ log.badge }}55;">
+            {{ log.category }}
+          </span>
+          <div class="audit-body">
+            <div>
+              <span class="audit-actor">{{ log.actor }}</span>
+              <span style="color: #64748b; font-size: 0.75rem; margin-left: 6px;">({{ log.role }})</span>
+            </div>
+            <div class="audit-action">{{ log.action }}</div>
+          </div>
+          <div class="audit-time mono-val">{{ log.time }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchRbacTab(tabId, btn) {
+  document.getElementById('tab-roster').style.display = tabId === 'roster' ? 'block' : 'none';
+  document.getElementById('tab-matrix').style.display = tabId === 'matrix' ? 'block' : 'none';
+  document.getElementById('tab-audit').style.display = tabId === 'audit' ? 'block' : 'none';
+
+  document.querySelectorAll('.rbac-tab-btn').forEach(b => b.classList.remove('is-active'));
+  btn.classList.add('is-active');
+}
+</script>
+{% endblock %}

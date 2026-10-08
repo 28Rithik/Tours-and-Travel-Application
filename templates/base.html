@@ -101,6 +101,125 @@
       padding: 0.15rem 0.5rem;
       border-radius: 6px;
     }
+  
+    /* ── Persona Switcher Styles ── */
+    .persona-switch-wrap { position: relative; display: inline-flex; align-items: center; }
+    .btn-persona-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 0.3rem 0.65rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-persona-trigger:hover {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #fff;
+    }
+    .persona-dropdown-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 380px;
+      max-height: 480px;
+      overflow-y: auto;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      z-index: 10000;
+    }
+    .persona-dropdown-menu.open { display: block; }
+    .persona-dropdown-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #1e293b;
+      background: #111e38;
+    }
+    .persona-list {
+      display: flex;
+      flex-direction: column;
+    }
+    .persona-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.12s ease;
+    }
+    .persona-item:hover {
+      background: rgba(30, 41, 59, 0.7);
+    }
+    .persona-item.is-current {
+      background: rgba(2, 132, 199, 0.12);
+      border-left: 3px solid #38bdf8;
+    }
+    .persona-icon-box {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .persona-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .persona-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .persona-name {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .persona-empid {
+      font-size: 0.68rem;
+      color: #64748b;
+      font-family: monospace;
+    }
+    .persona-role-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+    .persona-focus {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .persona-active-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: #10b981;
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
   </style>
 </head>
 <body>
@@ -110,6 +229,7 @@
       <nav class="nav-list" aria-label="Main navigation">
         <!-- 1. Universal Operations Desk (All Staff) -->
         <p class="nav-section-title"><span>⚡</span> Operations Desk</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'staff-roles-matrix' or request.resolver_match.url_name == 'roles-matrix-alias' or request.resolver_match.url_name == 'staff-directory-alias' %}is-active{% endif %}" href="{% url 'staff-roles-matrix' %}">🛡️ Staff &amp; RBAC Matrix</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">🛰️ Control Room</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">📋 Dispatch Control</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'admin-whatsapp-bot-studio' %}">📱 Handover &amp; Bot Studio</a>
@@ -178,6 +298,43 @@
             <span class="role-pill-tag" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}55;">
               {{ user_role_label }}
             </span>
+          </div>
+
+          <!-- ⚡ Persona Switcher Popover -->
+          <div class="persona-switch-wrap">
+            <button type="button" class="btn-persona-trigger" onclick="togglePersonaDropdown(event)" title="Simulate / Switch Staff Persona">
+              <span>⚡ Switch Role</span>
+              <span style="font-size: 0.7rem; opacity: 0.7;">▾</span>
+            </button>
+            <div id="persona-dropdown" class="persona-dropdown-menu">
+              <div class="persona-dropdown-header">
+                <div>
+                  <div style="font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.05em;">Enterprise RBAC Switcher</div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: #f1f5f9;">Select Staff Persona to Simulate</div>
+                </div>
+                <a href="/staff/roles-matrix/" style="font-size: 0.72rem; color: #38bdf8; text-decoration: none; font-weight: 700;">View Matrix →</a>
+              </div>
+              <div class="persona-list">
+                {% for p in demo_personas %}
+                <a href="/auth/switch-persona/{{ p.username }}/?next={{ request.path }}" class="persona-item {% if user.username == p.username %}is-current{% endif %}">
+                  <div class="persona-icon-box" style="background: {{ p.badge_color }}22; color: {{ p.badge_color }}; border: 1px solid {{ p.badge_color }}44;">
+                    {{ p.icon }}
+                  </div>
+                  <div class="persona-info">
+                    <div class="persona-name-row">
+                      <span class="persona-name">{{ p.name }}</span>
+                      <span class="persona-empid">{{ p.empid }}</span>
+                    </div>
+                    <div class="persona-role-label" style="color: {{ p.badge_color }};">{{ p.role_label }}</div>
+                    <div class="persona-focus">{{ p.focus }}</div>
+                  </div>
+                  {% if user.username == p.username %}
+                  <span class="persona-active-badge">Active</span>
+                  {% endif %}
+                </a>
+                {% endfor %}
+              </div>
+            </div>
           </div>
 
           <!-- 🔔 Phase 6: Notification Bell -->
@@ -293,6 +450,17 @@
       if (list) list.innerHTML = '<div class="notif-empty">✅ All cleared!</div>';
     });
   }
+
+  
+  function togglePersonaDropdown(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('persona-dropdown');
+    if (menu) menu.classList.toggle('open');
+  }
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('persona-dropdown');
+    if (menu && !menu.contains(e.target)) menu.classList.remove('open');
+  });
 
   fetchNotifications();
   setInterval(fetchNotifications, 30000);
