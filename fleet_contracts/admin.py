@@ -412,7 +412,7 @@ class TransportContractAdmin(ModelAdmin):
                 obj.start_date.strftime('%d/%m/%y'), obj.end_date.strftime('%d/%m/%y'), total_days, remaining
             )
         return format_html(
-            '<span style="color: #f1f5f9;">{} → {}<br><small style="color: #94a3b8;">({} days, {} remaining)</small></span>',
+            '<span class="text-slate-800 dark:text-slate-100 font-medium">{} → {}<br><small class="text-xs text-slate-500 dark:text-slate-400">({} days, {} remaining)</small></span>',
             obj.start_date.strftime('%d/%m/%y'), obj.end_date.strftime('%d/%m/%y'), total_days, remaining
         )
 
@@ -794,7 +794,7 @@ class ContractFleetRosterAdmin(ModelAdmin):
         if obj.shift:
             dir_icon = '⬆️' if obj.shift.direction == 'pickup' else '⬇️'
             shift_str = f"<br><small style='color: #38bdf8;'>{dir_icon} {obj.shift.shift_name} ({obj.shift.timing.strftime('%I:%M %p')})</small>"
-        return format_html('<span style="color: #cbd5e1; font-size: 12px; font-weight: 500;">{}</span>{}', route_name, mark_safe(shift_str))
+        return format_html('<span class="text-xs font-medium text-slate-800 dark:text-slate-200">{}</span>{}', route_name, mark_safe(shift_str))
 
     @admin.display(description='Effective Period')
     def date_range_display(self, obj):
@@ -1407,14 +1407,14 @@ class ContractMonthlyInvoiceAdmin(ModelAdmin):
     @admin.display(description='Billing Month')
     def billing_month_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">{}</span>',
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">{}</span>',
             obj.billing_month.strftime('%B %Y')
         )
 
     @admin.display(description='Trips & KMs')
     def trips_and_km_display(self, obj):
         return format_html(
-            '<span style="color: #cbd5e1; font-size: 12px;">{} Trips<br><small style="color: #94a3b8;">{} KMs</small></span>',
+            '<span class="text-xs text-slate-700 dark:text-slate-300 font-medium">{} Trips<br><small class="text-xs text-slate-500 dark:text-slate-400">{} KMs</small></span>',
             obj.total_trips_completed, f"{obj.total_kms_run:,.0f}"
         )
 
@@ -1563,13 +1563,13 @@ class ContractTripLogAdmin(ModelAdmin):
 
     @admin.display(description='Headcount')
     def passenger_count_display(self, obj):
-        return format_html('<span style="color: #cbd5e1;">{} Pax</span>', obj.passenger_count)
+        return format_html('<span class="text-slate-700 dark:text-slate-300 font-medium">{} Pax</span>', obj.passenger_count)
 
     @admin.display(description='Odometer Run')
     def km_run_display(self, obj):
         if obj.opening_km is not None and obj.closing_km is not None:
             run = obj.closing_km - obj.opening_km
-            return format_html('<span style="color: #cbd5e1;">{} km</span>', run)
+            return format_html('<span class="text-slate-700 dark:text-slate-300 font-medium">{} km</span>', run)
         return mark_safe('<span style="color: #64748b;">—</span>')
 
 
@@ -1634,7 +1634,7 @@ class NightSafetyEscortLogAdmin(ModelAdmin):
     def timing_display(self, obj):
         t1 = obj.first_pickup_time.strftime('%I:%M %p') if obj.first_pickup_time else '20:00'
         t2 = obj.last_female_drop_time.strftime('%I:%M %p') if obj.last_female_drop_time else '05:30'
-        return format_html('<span style="color: #cbd5e1; font-size: 12px;">{} → {}</span>', t1, t2)
+        return format_html('<span class="text-xs text-slate-700 dark:text-slate-300 font-medium">{} → {}</span>', t1, t2)
 
     @admin.display(description='Safe-Drop Verification')
     def verification_status_badge(self, obj):
@@ -1705,7 +1705,7 @@ class CommuterManifestAdmin(ModelAdmin):
     @admin.display(description='Boarding Stop')
     def boarding_stop_display(self, obj):
         if obj.boarding_stop:
-            return format_html('<span style="color: #cbd5e1; font-size: 12px;">#{} {}</span>', obj.boarding_stop.stop_order, obj.boarding_stop.name)
+            return format_html('<span class="text-xs text-slate-700 dark:text-slate-300 font-medium">#{} {}</span>', obj.boarding_stop.stop_order, obj.boarding_stop.name)
         return mark_safe('<span style="color: #64748b;">—</span>')
 
     @admin.display(description='Night Escort Protocol')
@@ -1717,8 +1717,8 @@ class CommuterManifestAdmin(ModelAdmin):
     @admin.display(description='Emergency Contact')
     def contact_display(self, obj):
         phone = obj.phone or obj.emergency_contact_phone or '—'
-        dept = f"<br><small style='color: #94a3b8;'>{obj.department_or_grade}</small>" if obj.department_or_grade else ""
-        return format_html('<span style="color: #cbd5e1; font-size: 12px;"><i class="fas fa-phone mr-1"></i>{}</span>{}', phone, mark_safe(dept))
+        dept = f"<br><small class='text-xs text-slate-500 dark:text-slate-400'>{obj.department_or_grade}</small>" if obj.department_or_grade else ""
+        return format_html('<span class="text-xs text-slate-700 dark:text-slate-300 font-medium"><i class="fas fa-phone mr-1 text-emerald-600"></i>{}</span>{}', phone, mark_safe(dept))
 
 
 # ==============================================================================

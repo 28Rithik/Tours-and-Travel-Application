@@ -294,7 +294,7 @@ class PackageAdmin(ModelAdmin):
     @admin.display(description='Duration')
     def duration_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">{}N / {}D</span>',
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">{}N / {}D</span>',
             obj.duration_nights, obj.duration_days
         )
 
@@ -360,7 +360,7 @@ class PackageAdmin(ModelAdmin):
             '      <div style="color: {}; font-size: 16px; font-weight: 700;">₹{}</div>'
             '    </div>'
             '  </div>'
-            '  <div style="font-size: 11.5px; color: #cbd5e1; background: #0b1120; padding: 8px 12px; border-radius: 4px;">'
+            '  <div class="text-xs text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded">'
             '    <b>Cost Breakdown:</b> Hotel: ₹{} | Coach Transit: ₹{} | Meals: ₹{} | Activities & Safaris: ₹{} | Guide/Misc: ₹{}'
             '  </div>'
             '</div>',
@@ -385,8 +385,8 @@ class PackageAdmin(ModelAdmin):
         hotel_clean = (obj.hotel_star_category or 'Star Category Hotel & Resort').strip()[:35]
         sharing_clean = obj.get_room_sharing_type_display()[:15] if hasattr(obj, 'get_room_sharing_type_display') else 'Twin'
         return format_html(
-            '<span style="color: #cbd5e1; font-size: 11.5px;"><i class="fas fa-hotel mr-1 text-warning"></i>{}</span><br>'
-            '<small style="color: #94a3b8;">{} | {}</small>',
+            '<span class="text-xs text-slate-700 dark:text-slate-300"><i class="fas fa-hotel mr-1 text-amber-500"></i>{}</span><br>'
+            '<small class="text-xs text-slate-500 dark:text-slate-400">{} | {}</small>',
             hotel_clean, sharing_clean, obj.meal_plan or 'AP'
         )
 
@@ -479,13 +479,13 @@ class PackageVehicleTariffAdmin(ModelAdmin):
     @admin.display(description='Per Day Rate')
     def per_day_rate_display(self, obj):
         if obj.per_day_rate:
-            return format_html('<span style="color: #f1f5f9; font-weight: 600;">₹{} / day</span>', f"{obj.per_day_rate:,.0f}")
+            return format_html('<span class="font-semibold text-slate-900 dark:text-slate-100">₹{} / day</span>', f"{obj.per_day_rate:,.0f}")
         return mark_safe('<span style="color: #64748b;">—</span>')
 
     @admin.display(description='Included KMs')
     def included_km_display(self, obj):
         hours_str = f" ({obj.local_package_hours} hrs)" if obj.rate_type == 'local_1day' else ""
-        return format_html('<span style="color: #f1f5f9;">{} km{}</span>', f"{obj.included_km:,}", hours_str)
+        return format_html('<span class="text-slate-800 dark:text-slate-200 font-medium">{} km{}</span>', f"{obj.included_km:,}", hours_str)
 
     @admin.display(description='Extra KM Rate')
     def extra_km_rate_display(self, obj):
@@ -496,7 +496,7 @@ class PackageVehicleTariffAdmin(ModelAdmin):
     def bata_display(self, obj):
         double_driver = ' <span class="badge bg-warning text-dark">2 Drivers</span>' if obj.double_driver_included else ''
         return format_html(
-            '<span style="color: #cbd5e1;">₹{}/day</span>{}',
+            '<span class="text-slate-700 dark:text-slate-300 font-medium">₹{}/day</span>{}',
             f"{obj.driver_bata_per_day:,.0f}", mark_safe(double_driver)
         )
 
@@ -678,7 +678,7 @@ class PackageHotelAllotmentAdmin(ModelAdmin):
     @admin.display(description='Stay Period')
     def date_range_display(self, obj):
         return format_html(
-            '<span style="color: #cbd5e1; font-size: 12px;">{} → {} ({}N)</span>',
+            '<span class="text-xs text-slate-700 dark:text-slate-300">{} → {} ({}N)</span>',
             obj.check_in_date.strftime('%d/%m/%y'), obj.check_out_date.strftime('%d/%m/%y'), obj.nights_count
         )
 
@@ -687,15 +687,15 @@ class PackageHotelAllotmentAdmin(ModelAdmin):
         color = '#10b981' if obj.occupancy_rate >= 80 else ('#f59e0b' if obj.occupancy_rate >= 50 else '#38bdf8')
         return format_html(
             '<span style="color: {}; font-weight: 700; font-size: 13px;">{}/{} Rooms ({}%)</span><br>'
-            '<small style="color: #94a3b8;">{} Available</small>',
+            '<small style="color: #64748b;">{} Available</small>',
             color, obj.rooms_occupied, obj.rooms_blocked, f"{obj.occupancy_rate:.0f}", obj.rooms_available
         )
 
     @admin.display(description='Rate & Total Cost')
     def cost_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">₹{} / night</span><br>'
-            '<small style="color: #94a3b8;">Total: ₹{}</small>',
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">₹{} / night</span><br>'
+            '<small class="text-slate-500 dark:text-slate-400">Total: ₹{}</small>',
             f"{obj.cost_per_room_night:,.0f}", f"{obj.total_cost:,.0f}"
         )
 
@@ -840,7 +840,7 @@ class TourFeedbackLogAdmin(ModelAdmin):
     @admin.display(description='5D Quality Scores')
     def dimension_scores_display(self, obj):
         return format_html(
-            '<small style="color: #cbd5e1;">Coach: <b>{}★</b> | Hotel: <b>{}★</b> | Food: <b>{}★</b> | Route: <b>{}★</b></small>',
+            '<small class="text-xs text-slate-600 dark:text-slate-400">Coach: <b class="text-slate-900 dark:text-slate-100">{}★</b> | Hotel: <b class="text-slate-900 dark:text-slate-100">{}★</b> | Food: <b class="text-slate-900 dark:text-slate-100">{}★</b> | Route: <b class="text-slate-900 dark:text-slate-100">{}★</b></small>',
             obj.coach_driver_rating, obj.hotel_rating, obj.food_rating, obj.schedule_rating
         )
 

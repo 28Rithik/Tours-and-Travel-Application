@@ -544,28 +544,28 @@
   </div>
   {% endif %}
 
-  <!-- ⚡ Tactical Role-Specific Workspace Ribbon -->
-  <div class="role-workspace-ribbon" style="background: #0f172a; border: 1px solid #1e293b; border-left: 4px solid {{ user_role_color }}; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
+  <!-- ⚡ Tactical Role-Specific Workspace Ribbon (Crisp Light Mode First) -->
+  <div class="role-workspace-ribbon" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid {{ user_role_color }}; border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
       <div style="display: flex; align-items: center; gap: 0.75rem;">
         <span style="font-size: 1.5rem; line-height: 1;">{{ user_role_icon }}</span>
         <div>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <strong style="color: #f8fafc; font-size: 1.05rem;">{{ user_role_label }} Workspace</strong>
-            <span style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}55; font-size: 0.7rem; font-weight: 800; padding: 1px 7px; border-radius: 4px; text-transform: uppercase;">
+            <strong style="color: #0f172a; font-size: 1.05rem;">{{ user_role_label }} Workspace</strong>
+            <span style="background: {{ user_role_color }}15; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}40; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
               {{ user_employee_id|default:"SGT-ACTIVE" }}
             </span>
           </div>
-          <p style="margin: 2px 0 0; color: #94a3b8; font-size: 0.8rem;">
-            Branch Station: <strong style="color: #cbd5e1;">{{ user_branch }}</strong> &bull; Designation: <strong style="color: #cbd5e1;">{{ user_designation }}</strong>
+          <p style="margin: 2px 0 0; color: #64748b; font-size: 0.82rem;">
+            Branch Station: <strong style="color: #1e293b;">{{ user_branch }}</strong> &bull; Designation: <strong style="color: #1e293b;">{{ user_designation }}</strong>
           </p>
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href="{% url 'staff-roles-matrix' %}" style="display: inline-flex; align-items: center; gap: 0.35rem; background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'staff-roles-matrix' %}" style="display: inline-flex; align-items: center; gap: 0.35rem; background: #f8fafc; color: #0284c7; border: 1px solid #cbd5e1; padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-decoration: none; transition: all 0.15s;">
           <span>🛡️ RBAC Matrix</span>
         </a>
-        <button type="button" onclick="togglePersonaDropdown(event)" style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(56, 189, 248, 0.1); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+        <button type="button" onclick="togglePersonaDropdown(event)" style="display: inline-flex; align-items: center; gap: 0.35rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s;">
           <span>⚡ Switch Persona</span>
         </button>
       </div>
@@ -573,29 +573,29 @@
 
     {% if is_manager and not is_admin %}
     <!-- 🏢 General Manager Executive Approvals Queue -->
-    <div style="background: #111e38; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-        <span style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: #8b5cf6; letter-spacing: 0.05em;">
+        <span style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: #6d28d9; letter-spacing: 0.05em;">
           ⏳ Pending Executive Approvals Queue ({{ pending_approvals|length }})
         </span>
-        <span style="font-size: 0.74rem; color: #94a3b8;">High-Value Overrides &amp; Disciplinary Waivers</span>
+        <span style="font-size: 0.74rem; color: #64748b;">High-Value Overrides &amp; Disciplinary Waivers</span>
       </div>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
         {% for apv in pending_approvals %}
-        <div style="background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem 0.85rem; display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 0.7rem; font-family: monospace; color: #64748b;">{{ apv.id }}</span>
-              <span style="font-size: 0.65rem; font-weight: 800; background: rgba(239, 68, 68, 0.15); color: #f87171; padding: 1px 5px; border-radius: 3px;">{{ apv.urgency }}</span>
+              <span style="font-size: 0.7rem; font-family: monospace; color: #64748b; font-weight: 700;">{{ apv.id }}</span>
+              <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 1px 6px; border-radius: 4px; border: 1px solid #fecaca;">{{ apv.urgency }}</span>
             </div>
-            <strong style="font-size: 0.82rem; color: #f1f5f9; display: block;">{{ apv.type }}</strong>
-            <p style="font-size: 0.75rem; color: #94a3b8; margin: 3px 0 6px;">{{ apv.subject }}</p>
+            <strong style="font-size: 0.84rem; color: #0f172a; display: block;">{{ apv.type }}</strong>
+            <p style="font-size: 0.76rem; color: #475569; margin: 3px 0 6px;">{{ apv.subject }}</p>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; margin-top: 4px;">
-            <span style="font-size: 0.82rem; font-weight: 700; color: #34d399; font-family: monospace;">{{ apv.amount }}</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 6px; margin-top: 4px;">
+            <span style="font-size: 0.84rem; font-weight: 800; color: #059669; font-family: monospace;">{{ apv.amount }}</span>
             <div style="display: flex; gap: 4px;">
-              <button type="button" style="background: #059669; color: white; border: none; border-radius: 4px; padding: 2px 7px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">Approve</button>
-              <button type="button" style="background: #334155; color: #cbd5e1; border: none; border-radius: 4px; padding: 2px 7px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">Review</button>
+              <button type="button" style="background: #10b981; color: white; border: none; border-radius: 5px; padding: 3px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">Approve</button>
+              <button type="button" style="background: #e2e8f0; color: #334155; border: none; border-radius: 5px; padding: 3px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">Review</button>
             </div>
           </div>
         </div>
@@ -604,27 +604,27 @@
     </div>
     {% elif is_sales_executive or is_sales %}
     <!-- 📑 Sales Executive & Corporate Quotation Pipeline -->
-    <div style="background: #111e38; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #10b981; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #059669; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
           🎯 Monthly Sales Target Progress
         </span>
         <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-          <span style="color: #94a3b8;">Achieved: <strong style="color: #34d399;" class="mono-val">{{ sales_achieved_inr }}</strong></span>
-          <span style="color: #94a3b8;">Target: <strong style="color: #f1f5f9;" class="mono-val">{{ sales_target_inr }}</strong></span>
+          <span style="color: #64748b;">Achieved: <strong style="color: #059669;" class="mono-val">{{ sales_achieved_inr }}</strong></span>
+          <span style="color: #64748b;">Target: <strong style="color: #0f172a;" class="mono-val">{{ sales_target_inr }}</strong></span>
         </div>
-        <div style="height: 8px; background: #1e293b; border-radius: 99px; overflow: hidden;">
+        <div style="height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
           <div style="width: {{ sales_progress_pct }}%; height: 100%; background: #10b981; border-radius: 99px;"></div>
         </div>
         <div style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">{{ sales_progress_pct }}% of monthly booking volume completed</div>
       </div>
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #0284c7; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
           🏢 Priority B2B Corporate Accounts
         </span>
         <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
           {% for client in top_corporate_clients %}
-          <span style="background: #0f172a; border: 1px solid #1e293b; color: #cbd5e1; font-size: 0.74rem; font-weight: 600; padding: 3px 8px; border-radius: 4px;">
+          <span style="background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
             {{ client.name }}
           </span>
           {% empty %}
@@ -636,46 +636,46 @@
         <a href="{% url 'crm:quotation_create' %}" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: #059669; color: white; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
           <span>+ Create Custom Proposal</span>
         </a>
-        <a href="{% url 'crm:inquiry_pipeline' %}" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'crm:inquiry_pipeline' %}" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
           <span>🔎 Query Tracker 2.0</span>
         </a>
       </div>
     </div>
     {% elif is_operation_account %}
     <!-- 💰 Accounts & Billing Desk -->
-    <div style="background: #111e38; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #f59e0b; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #d97706; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
           🧾 Tax Invoicing &amp; Receivables
         </span>
-        <div style="font-size: 1.15rem; font-weight: 800; color: #f8fafc; font-family: monospace;">{{ receivables_inr }}</div>
-        <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 2px;">{{ unpaid_invoices_count }} pending B2B GST tax invoices awaiting payment</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; font-family: monospace;">{{ receivables_inr }}</div>
+        <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">{{ unpaid_invoices_count }} pending B2B GST tax invoices awaiting payment</div>
       </div>
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #f43f5e; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #dc2626; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
           💸 Driver Fuel &amp; Vendor Payables
         </span>
-        <div style="font-size: 1.15rem; font-weight: 800; color: #f8fafc; font-family: monospace;">{{ payables_inr }}</div>
-        <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 2px;">Driver Bata, Toll FASTag &amp; supplier settlements to clear</div>
+        <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; font-family: monospace;">{{ payables_inr }}</div>
+        <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">Driver Bata, Toll FASTag &amp; supplier settlements to clear</div>
       </div>
       <div style="display: flex; gap: 0.5rem; align-items: center;">
         <a href="{% url 'crm:invoice_console' %}" style="flex: 1; text-align: center; background: #d97706; color: white; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
           🧾 Invoices Console
         </a>
-        <a href="{% url 'generate-statement' %}" style="flex: 1; text-align: center; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'generate-statement' %}" style="flex: 1; text-align: center; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
           📑 Ledger Statement
         </a>
       </div>
     </div>
     {% elif is_driver %}
     <!-- 👨‍✈️ Field Chauffeur Tour Cockpit -->
-    <div style="background: #111e38; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #f97316; letter-spacing: 0.05em; display: block; margin-bottom: 3px;">
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #ea580c; letter-spacing: 0.05em; display: block; margin-bottom: 3px;">
           🚘 Current Assigned Chauffeur Duty
         </span>
-        <strong style="color: #f8fafc; font-size: 0.95rem;">Toyota Innova Crysta &bull; TN 38 AA 7788</strong>
-        <p style="margin: 2px 0 0; color: #94a3b8; font-size: 0.78rem;">Route: Coimbatore CJB &rarr; Ooty Club &bull; Guest: Mr. Sundar Pichai</p>
+        <strong style="color: #0f172a; font-size: 0.95rem;">Toyota Innova Crysta &bull; TN 38 AA 7788</strong>
+        <p style="margin: 2px 0 0; color: #64748b; font-size: 0.78rem;">Route: Coimbatore CJB &rarr; Ooty Club &bull; Guest: Mr. Sundar Pichai</p>
       </div>
       <div style="display: flex; gap: 0.6rem;">
         <a href="/trip/1/handover/" style="background: #0284c7; color: white; padding: 0.55rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
@@ -688,26 +688,26 @@
     </div>
     {% else %}
     <!-- 👑 Director / Fleet Operations Universal Control -->
-    <div style="background: #111e38; border: 1px solid #1e293b; border-radius: 8px; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
         <div>
           <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Available Vehicles</span>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #34d399; font-family: monospace;">{{ available_vehicles_count }} / {{ total_fleet_count }}</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #059669; font-family: monospace;">{{ available_vehicles_count }} / {{ total_fleet_count }}</div>
         </div>
         <div>
           <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Drivers Active</span>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #38bdf8; font-family: monospace;">{{ total_drivers_count }} Captains</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #0284c7; font-family: monospace;">{{ total_drivers_count }} Captains</div>
         </div>
         <div>
           <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Compliance Radar</span>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #fbbf24; font-family: monospace;">{{ compliance_alerts_count }} Alert{{ compliance_alerts_count|pluralize }}</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #d97706; font-family: monospace;">{{ compliance_alerts_count }} Alert{{ compliance_alerts_count|pluralize }}</div>
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem;">
         <a href="{% url 'fleet-live' %}" style="background: #0284c7; color: white; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
           🛰️ Open Fleet Radar
         </a>
-        <a href="{% url 'dispatch-console' %}" style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'dispatch-console' %}" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
           📋 Dispatch Console
         </a>
       </div>

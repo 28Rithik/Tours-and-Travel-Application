@@ -79,14 +79,14 @@ class CommuteRouteAdmin(ModelAdmin):
     @admin.display(description='Route Name')
     def name_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;"><i class="fas fa-route mr-1" style="color: #38bdf8;"></i>{}</span>',
+            '<span class="font-semibold text-slate-900 dark:text-slate-100"><i class="fas fa-route mr-1 text-sky-600 dark:text-sky-400"></i>{}</span>',
             obj.name
         )
 
     @admin.display(description='Contract')
     def contract_link(self, obj):
         return format_html(
-            '<a href="/admin/fleet_contracts/transportcontract/{}/change/" style="color: #93c5fd; text-decoration: none; font-weight: 500;">'
+            '<a href="/admin/fleet_contracts/transportcontract/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '<i class="fas fa-building mr-1"></i>{}'
             '</a>',
             obj.contract.id, obj.contract.name
@@ -96,7 +96,7 @@ class CommuteRouteAdmin(ModelAdmin):
     def path_display(self, obj):
         if obj.origin or obj.destination:
             return format_html(
-                '<span style="color: #cbd5e1; font-size: 12px;">{} <i class="fas fa-long-arrow-alt-right text-info mx-1"></i> {}</span>',
+                '<span class="text-xs text-slate-700 dark:text-slate-300">{} <i class="fas fa-long-arrow-alt-right text-sky-600 mx-1"></i> {}</span>',
                 obj.origin or 'Origin', obj.destination or 'Campus'
             )
         return mark_safe('<span style="color: #64748b;">—</span>')
@@ -186,12 +186,12 @@ class CommuteShiftAdmin(ModelAdmin):
     @admin.display(description='Shift Title')
     def shift_label(self, obj):
         name = obj.shift_name or f"Shift @ {obj.timing.strftime('%I:%M %p')}"
-        return format_html('<span style="font-weight: 600; color: #f1f5f9;">{}</span>', name)
+        return format_html('<span class="font-semibold text-slate-900 dark:text-slate-100">{}</span>', name)
 
     @admin.display(description='Route')
     def route_display(self, obj):
         return format_html(
-            '<span style="color: #93c5fd;">{}</span> <small style="color: #94a3b8;">({})</small>',
+            '<span class="text-sky-700 dark:text-sky-300 font-medium">{}</span> <small class="text-xs text-slate-500 dark:text-slate-400">({})</small>',
             obj.route.name, obj.route.contract.name
         )
 
@@ -299,7 +299,7 @@ class CommuterManifestAdmin(ModelAdmin):
     def boarding_stop_display(self, obj):
         if obj.boarding_stop:
             return format_html(
-                '<span style="color: #f1f5f9; font-size: 12px;"><i class="fas fa-map-pin text-warning mr-1"></i>{}</span>',
+                '<span class="text-xs text-slate-800 dark:text-slate-200"><i class="fas fa-map-pin text-amber-500 mr-1"></i>{}</span>',
                 obj.boarding_stop.name
             )
         return mark_safe('<span style="color: #64748b;">Not Set</span>')
@@ -308,8 +308,8 @@ class CommuterManifestAdmin(ModelAdmin):
     def emergency_contact_display(self, obj):
         if obj.emergency_contact_phone:
             return format_html(
-                '<span style="color: #cbd5e1; font-size: 12px;"><i class="fas fa-phone-alt text-success mr-1"></i>{}</span><br>'
-                '<small style="color: #94a3b8;">{}</small>',
+                '<span class="text-xs text-slate-700 dark:text-slate-300"><i class="fas fa-phone-alt text-emerald-600 mr-1"></i>{}</span><br>'
+                '<small class="text-xs text-slate-500 dark:text-slate-400">{}</small>',
                 obj.emergency_contact_phone, obj.emergency_contact_name or 'Emergency'
             )
         return mark_safe('<span style="color: #64748b;">—</span>')
@@ -380,8 +380,8 @@ class DailyTripLogAdmin(ModelAdmin):
         direction_icon = '⬆️' if obj.shift.direction == 'pickup' else '⬇️'
         time_str = obj.shift.timing.strftime('%I:%M %p')
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 500;">{} {}</span><br>'
-            '<small style="color: #94a3b8;"><i class="far fa-clock mr-1"></i>{}</small>',
+            '<span class="text-slate-800 dark:text-slate-100 font-medium">{} {}</span><br>'
+            '<small class="text-xs text-slate-500 dark:text-slate-400"><i class="far fa-clock mr-1"></i>{}</small>',
             direction_icon, obj.shift.route.name, time_str
         )
 
@@ -390,7 +390,7 @@ class DailyTripLogAdmin(ModelAdmin):
         if not obj.vehicle:
             return mark_safe('<span style="color: #f59e0b;">⚠️ Not Assigned</span>')
         reg_html = format_html(
-            '<a href="/admin/core/vehicle/{}/change/" style="color: #38bdf8; text-decoration: none; font-weight: 600;">'
+            '<a href="/admin/core/vehicle/{}/change/" class="text-sky-700 dark:text-sky-400 font-semibold hover:underline">'
             '<i class="fas fa-bus mr-1"></i>{}'
             '</a>',
             obj.vehicle.id, obj.vehicle.registration_number
@@ -408,7 +408,7 @@ class DailyTripLogAdmin(ModelAdmin):
         if not obj.driver:
             return mark_safe('<span style="color: #f59e0b;">⚠️ Not Assigned</span>')
         return format_html(
-            '<a href="/admin/core_crew/driver/{}/change/" style="color: #93c5fd; text-decoration: none;">'
+            '<a href="/admin/core_crew/driver/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '<i class="fas fa-user-tie mr-1"></i>{}'
             '</a>',
             obj.driver.id, obj.driver.name
@@ -419,7 +419,7 @@ class DailyTripLogAdmin(ModelAdmin):
         if obj.actual_departure_time:
             dep_str = obj.actual_departure_time.strftime('%I:%M %p')
             arr_str = obj.actual_arrival_time.strftime('%I:%M %p') if obj.actual_arrival_time else '—'
-            html = f'<span style="color: #cbd5e1; font-size: 12px;">{dep_str} → {arr_str}</span>'
+            html = f'<span class="text-xs text-slate-700 dark:text-slate-300">{dep_str} → {arr_str}</span>'
             if obj.delay_minutes > 0:
                 html += f'<br><span class="badge" style="background-color: #ef4444; color: #fff; font-size: 10px;">+{obj.delay_minutes}m Late</span>'
             return mark_safe(html)
@@ -518,7 +518,7 @@ class NightSafetyEscortAdmin(ModelAdmin):
         p_str = obj.first_pickup_time.strftime('%I:%M %p') if obj.first_pickup_time else '—'
         d_str = obj.last_female_drop_time.strftime('%I:%M %p') if obj.last_female_drop_time else '—'
         return format_html(
-            '<span style="color: #cbd5e1; font-size: 12px;"><i class="far fa-clock mr-1 text-info"></i>{} → {}</span>',
+            '<span class="text-xs text-slate-700 dark:text-slate-300"><i class="far fa-clock mr-1 text-sky-600"></i>{} → {}</span>',
             p_str, d_str
         )
 

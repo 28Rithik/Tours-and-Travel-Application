@@ -451,7 +451,7 @@ class DefectTicketAdmin(ModelAdmin):
         if len(obj.description) > 60:
             text += '…'
         return format_html(
-            '<span style="color:#cbd5e1;" title="{}">{}</span>',
+            '<span class="text-xs text-slate-700 dark:text-slate-300 font-medium" title="{}">{}</span>',
             obj.description, text
         )
 
@@ -833,7 +833,7 @@ class VehicleDamageInspectionAdmin(ModelAdmin):
                 '<span style="color:#ef4444; font-weight:700;">⚠️ {} total ({} NEW)</span>',
                 total, new_cnt
             )
-        return format_html('<span style="color:#cbd5e1;">{} pre-existing</span>', total)
+        return format_html('<span class="text-slate-600 dark:text-slate-300 font-medium">{} pre-existing</span>', total)
 
     @admin.display(description="Deposit Status", ordering='deposit_status')
     def deposit_status_badge(self, obj):

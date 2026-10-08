@@ -202,8 +202,8 @@ class CustomerAccountProxyAdmin(ModelAdmin):
     @admin.display(description='Portal User')
     def user_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">'
-            '<i class="fas fa-user-circle mr-1" style="color: #8b5cf6;"></i>{}'
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">'
+            '<i class="fas fa-user-circle mr-1 text-purple-600 dark:text-purple-400"></i>{}'
             '</span>',
             obj.user.username
         )
@@ -211,7 +211,7 @@ class CustomerAccountProxyAdmin(ModelAdmin):
     @admin.display(description='Linked Client')
     def client_link(self, obj):
         return format_html(
-            '<a href="/admin/core_partners/client/{}/change/" style="color: #93c5fd; text-decoration: none;">'
+            '<a href="/admin/core_partners/client/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '<i class="fas fa-building mr-1"></i>{}'
             '</a>',
             obj.client_record.id, obj.client_record.name
@@ -243,8 +243,8 @@ class CustomerDocumentProxyAdmin(ModelAdmin):
     @admin.display(description='Document')
     def title_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">'
-            '<i class="fas fa-file-alt mr-1" style="color: #38bdf8;"></i>{}'
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">'
+            '<i class="fas fa-file-alt mr-1 text-sky-600 dark:text-sky-400"></i>{}'
             '</span>',
             obj.title
         )
@@ -252,7 +252,7 @@ class CustomerDocumentProxyAdmin(ModelAdmin):
     @admin.display(description='Customer')
     def customer_link(self, obj):
         return format_html(
-            '<a href="/admin/core_partners/client/{}/change/" style="color: #93c5fd; text-decoration: none;">'
+            '<a href="/admin/core_partners/client/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '<i class="fas fa-user mr-1"></i>{}'
             '</a>',
             obj.customer.id, obj.customer.name

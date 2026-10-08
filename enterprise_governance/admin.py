@@ -50,8 +50,8 @@ class SupplierContractProxyAdmin(ModelAdmin):
     @admin.display(description='Contract Title')
     def title_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">'
-            '<i class="fas fa-file-contract mr-1" style="color: #38bdf8;"></i>{}'
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">'
+            '<i class="fas fa-file-contract mr-1 text-sky-600 dark:text-sky-400"></i>{}'
             '</span>',
             obj.title
         )
@@ -59,7 +59,7 @@ class SupplierContractProxyAdmin(ModelAdmin):
     @admin.display(description='Supplier')
     def supplier_link(self, obj):
         return format_html(
-            '<a href="/admin/core_partners/supplier/{}/change/" style="color: #93c5fd; text-decoration: none; font-weight: 500;">'
+            '<a href="/admin/core_partners/supplier/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '<i class="fas fa-truck-loading mr-1"></i>{}'
             '</a>',
             obj.supplier.id, obj.supplier.name
@@ -130,8 +130,8 @@ class CommissionRuleProxyAdmin(ModelAdmin):
     @admin.display(description='Agent / Partner')
     def agent_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">'
-            '<i class="fas fa-user-tie mr-1" style="color: #a855f7;"></i>{}'
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">'
+            '<i class="fas fa-user-tie mr-1 text-purple-600 dark:text-purple-400"></i>{}'
             '</span>',
             obj.agent_name
         )
@@ -205,10 +205,10 @@ class AuditLogEntryProxyAdmin(ModelAdmin):
     @admin.display(description='User')
     def user_display(self, obj):
         if not obj.user:
-            return mark_safe('<span style="color: #94a3b8;">System</span>')
+            return mark_safe('<span style="color: #64748b;">System</span>')
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 500;">'
-            '<i class="fas fa-user mr-1" style="color: #8b5cf6;"></i>{}'
+            '<span class="font-medium text-slate-900 dark:text-slate-100">'
+            '<i class="fas fa-user mr-1 text-purple-600 dark:text-purple-400"></i>{}'
             '</span>',
             obj.user.username
         )
@@ -216,20 +216,19 @@ class AuditLogEntryProxyAdmin(ModelAdmin):
     @admin.display(description='Target Object')
     def target_display(self, obj):
         return format_html(
-            '<span style="color: #93c5fd;">{}</span>'
-            ' <span style="color: #64748b;">#{}</span>',
+            '<span class="text-sky-700 dark:text-sky-300 font-medium">{}</span>'
+            ' <span class="text-slate-500">#{}</span>',
             obj.content_type, obj.object_id
         )
 
     @admin.display(description='Changes')
     def changes_preview(self, obj):
         if not obj.changes:
-            return mark_safe('<span style="color: #94a3b8;">—</span>')
+            return mark_safe('<span style="color: #64748b;">—</span>')
         try:
             preview = json.dumps(obj.changes)[:80]
             return format_html(
-                '<span style="color: #cbd5e1; font-size: 11px; font-family: monospace; '
-                'background: #0f172a; padding: 3px 6px; border-radius: 3px;">{}</span>',
+                '<span class="text-xs font-mono text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2 py-1 rounded">{}</span>',
                 preview
             )
         except Exception:

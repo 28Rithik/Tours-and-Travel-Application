@@ -116,7 +116,7 @@ class ClientAdmin(ModelAdmin):
 	@admin.display(description='Billing Cycle')
 	def billing_cycle_badge(self, obj):
 		return format_html(
-			'<span style="font-size: 12px; color: #f1f5f9; font-weight: 500;">{} <span style="color: #94a3b8;">({}d credit)</span></span>',
+			'<span class="text-xs font-medium text-slate-800 dark:text-slate-100">{} <span class="text-slate-500 dark:text-slate-400">({}d credit)</span></span>',
 			obj.get_billing_cycle_display(),
 			obj.credit_period_days
 		)
@@ -271,7 +271,7 @@ class SupplierAdmin(ModelAdmin):
 	@admin.display(description='Terms')
 	def billing_cycle_badge(self, obj):
 		return format_html(
-			'<span style="font-size: 12px; color: #f1f5f9; font-weight: 500;">{} <span style="color: #94a3b8;">({}d)</span></span>',
+			'<span class="text-xs font-medium text-slate-800 dark:text-slate-100">{} <span class="text-slate-500 dark:text-slate-400">({}d)</span></span>',
 			obj.get_billing_cycle_display(),
 			obj.credit_period_days
 		)
@@ -400,7 +400,7 @@ class VehicleTypeAdmin(ModelAdmin):
 		if obj.has_ac:
 			pills.append('<span class="badge" style="background-color: #0284c7; color: #fff; margin-right: 3px;">AC</span>')
 		else:
-			pills.append('<span class="badge" style="background-color: #475569; color: #cbd5e1; border: 1px solid #64748b; margin-right: 3px;">Non-AC</span>')
+			pills.append('<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; margin-right: 3px;">Non-AC</span>')
 
 		if obj.is_luxury:
 			pills.append('<span class="badge" style="background-color: #d97706; color: #fff; margin-right: 3px;">Luxury ⭐</span>')
@@ -534,7 +534,7 @@ class DriverAdmin(ModelAdmin):
 		elif obj.driver_type == 'supplier':
 			sup_name = obj.employer_party.name if obj.employer_party else "Supplier"
 			return format_html(
-				'<span class="badge" style="background-color: #8b5cf6; color: #fff; padding: 4px 8px; border-radius: 4px;"><i class="fas fa-truck-moving mr-1"></i>Supplier</span><br><small style="color: #cbd5e1; font-size: 11px;">{}</small>',
+				'<span class="badge" style="background-color: #8b5cf6; color: #fff; padding: 4px 8px; border-radius: 4px;"><i class="fas fa-truck-moving mr-1"></i>Supplier</span><br><small class="text-xs text-slate-500 dark:text-slate-400">{}</small>',
 				sup_name
 			)
 		return mark_safe('<span class="badge" style="background-color: #f59e0b; color: #fff; padding: 4px 8px; border-radius: 4px;"><i class="fas fa-clock mr-1"></i>Contract / Ad-hoc</span>')
@@ -679,7 +679,7 @@ class CleanerAdmin(ModelAdmin):
 	@admin.display(description='Employer / Supplier')
 	def employer_display(self, obj):
 		if obj.employer_party:
-			return format_html('<span style="color: #f1f5f9; font-weight: 500;">{}</span>', obj.employer_party.name)
+			return format_html('<span class="font-medium text-slate-900 dark:text-slate-100">{}</span>', obj.employer_party.name)
 		return mark_safe('<span class="badge badge-success" style="background-color: #10b981; color: #fff; padding: 3px 6px;">In-House Staff</span>')
 
 	@admin.display(description='Phone')
@@ -924,7 +924,7 @@ class VehicleAdmin(ModelAdmin):
 		elif obj.supplier_driver_name:
 			phone_sub = f" ({obj.supplier_driver_phone})" if obj.supplier_driver_phone else ""
 			return format_html(
-				'<span style="color: #f1f5f9;" title="Supplier-provided driver"><i class="fas fa-user mr-1" style="color: #94a3b8;"></i>{}{}</span>',
+				'<span class="text-slate-800 dark:text-slate-100" title="Supplier-provided driver"><i class="fas fa-user mr-1 text-slate-500 dark:text-slate-400"></i>{}{}</span>',
 				obj.supplier_driver_name, phone_sub
 			)
 		return mark_safe('<span style="color: #94a3b8; font-size: 11px;">—</span>')
@@ -1137,8 +1137,8 @@ class RateCardAdmin(ModelAdmin):
 		km_str = f"₹{obj.km_rate:,.2f}"
 		bata_str = f"₹{obj.driver_bata:,.0f}"
 		return format_html(
-			'<span style="font-size: 12px; color: #f1f5f9;">'
-			'<strong style="color: #38bdf8;">{}</strong>/day • <strong style="color: #38bdf8;">{}</strong>/km • Bata: <span style="color: #fb923c; font-weight: 600;">{}</span>'
+			'<span class="text-xs text-slate-800 dark:text-slate-200">'
+			'<strong class="text-sky-700 dark:text-sky-400">{}</strong>/day • <strong class="text-sky-700 dark:text-sky-400">{}</strong>/km • Bata: <span class="text-amber-700 dark:text-amber-400 font-semibold">{}</span>'
 			'</span>',
 			day_str, km_str, bata_str
 		)

@@ -233,15 +233,15 @@ class InquiryAdmin(ModelAdmin):
     def guest_display(self, obj):
         phone = f' | {obj.guest_phone}' if obj.guest_phone else ''
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">{}</span>'
-            '<br><small style="color: #94a3b8;">{}</small>',
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">{}</span>'
+            '<br><small class="text-xs text-slate-500 dark:text-slate-400">{}</small>',
             obj.guest_name, phone
         )
 
     @admin.display(description='Party / Client')
     def party_link(self, obj):
         return format_html(
-            '<a href="/admin/core_partners/client/{}/change/" style="color: #93c5fd; text-decoration: none; font-weight: 500;">'
+            '<a href="/admin/core_partners/client/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '<i class="fas fa-building mr-1"></i>{}'
             '</a>',
             obj.party.id, obj.party.name
@@ -267,9 +267,9 @@ class InquiryAdmin(ModelAdmin):
     @admin.display(description='Route')
     def route_display(self, obj):
         return format_html(
-            '<span style="color: #cbd5e1; font-size: 12px;">{}</span>'
-            ' <i class="fas fa-arrow-right" style="color: #38bdf8; font-size: 10px; margin: 0 4px;"></i> '
-            '<span style="color: #f8fafc; font-weight: 600; font-size: 12px;">{}</span>',
+            '<span class="text-xs text-slate-600 dark:text-slate-300">{}</span>'
+            ' <i class="fas fa-arrow-right text-sky-600 dark:text-sky-400 text-[10px] mx-1"></i> '
+            '<span class="text-xs font-semibold text-slate-900 dark:text-slate-100">{}</span>',
             obj.pickup_location[:24], obj.destination[:28]
         )
 
@@ -680,7 +680,7 @@ class CommunicationLogAdmin(ModelAdmin):
     @admin.display(description='Message Preview')
     def message_preview(self, obj):
         preview = obj.message_content[:85] + '...' if len(obj.message_content) > 85 else obj.message_content
-        return format_html('<span style="color: #cbd5e1; font-size: 12px;">{}</span>', preview)
+        return format_html('<span class="text-xs text-slate-600 dark:text-slate-300">{}</span>', preview)
 
     @admin.display(description='Status')
     def status_badge(self, obj):
@@ -867,8 +867,8 @@ class EmailCampaignProxyAdmin(ModelAdmin):
     @admin.display(description='Campaign Name')
     def name_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600;">'
-            '<i class="fas fa-paper-plane mr-1" style="color: #3b82f6;"></i>{}'
+            '<span class="font-semibold text-slate-900 dark:text-slate-100">'
+            '<i class="fas fa-paper-plane mr-1 text-sky-600 dark:text-sky-400"></i>{}'
             '</span>',
             obj.name
         )
@@ -876,7 +876,7 @@ class EmailCampaignProxyAdmin(ModelAdmin):
     @admin.display(description='Subject Line')
     def subject_display(self, obj):
         return format_html(
-            '<span style="color: #cbd5e1; font-size: 12px;">{}</span>',
+            '<span class="text-xs text-slate-600 dark:text-slate-300">{}</span>',
             obj.subject[:65] + '...' if len(obj.subject) > 65 else obj.subject
         )
 
@@ -957,8 +957,8 @@ class UpsellRecommendationProxyAdmin(ModelAdmin):
     @admin.display(description='Add-On Experience')
     def title_display(self, obj):
         return format_html(
-            '<span style="color: #f1f5f9; font-weight: 600; font-size: 13px;">'
-            '<i class="fas fa-gem mr-1" style="color: #a855f7;"></i>{}'
+            '<span class="font-semibold text-slate-900 dark:text-slate-100 text-[13px]">'
+            '<i class="fas fa-gem mr-1 text-purple-600 dark:text-purple-400"></i>{}'
             '</span>',
             obj.title
         )
@@ -987,7 +987,7 @@ class UpsellRecommendationProxyAdmin(ModelAdmin):
     @admin.display(description='Base Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #93c5fd; text-decoration: none; font-weight: 500;">'
+            '<a href="/admin/packages/package/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
             '{}'
             '</a>',
             obj.package.id, obj.package.name
@@ -1053,11 +1053,11 @@ class HotelMasterAdmin(ModelAdmin):
 
     @admin.display(description='Breakfast+Dinner (MAP)')
     def map_rate_display(self, obj):
-        return format_html('<span style="color: #cbd5e1;">₹{}</span>', f"{obj.map_rate:,.0f}" if obj.map_rate else "0")
+        return format_html('<span class="text-slate-700 dark:text-slate-300 font-medium">₹{}</span>', f"{obj.map_rate:,.0f}" if obj.map_rate else "0")
 
     @admin.display(description='All Meals (AP)')
     def ap_rate_display(self, obj):
-        return format_html('<span style="color: #cbd5e1;">₹{}</span>', f"{obj.ap_rate:,.0f}" if obj.ap_rate else "0")
+        return format_html('<span class="text-slate-700 dark:text-slate-300 font-medium">₹{}</span>', f"{obj.ap_rate:,.0f}" if obj.ap_rate else "0")
 
     @admin.display(description='Peak Surge')
     def peak_surge_display(self, obj):

@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Enterprise Staff Directory & RBAC Matrix | Sivagayathiri Travels{% endblock %}
@@ -12,11 +12,11 @@
 <style>
 /* ─────────────────────────────────────────────────────────────
    Authentic Enterprise Staff & RBAC Matrix Styling
-   Designed for high information density, tactical legibility, and zero AI-slop aesthetics.
+   Crisp Light Mode First, tactile legibility, and zero AI-slop aesthetics.
    ───────────────────────────────────────────────────────────── */
 .rbac-container {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #f1f5f9;
+  color: #0f172a;
   max-width: 1400px;
   margin: 0 auto;
   padding-bottom: 3rem;
@@ -29,8 +29,9 @@
 
 /* Header Strip */
 .rbac-header-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   border-radius: 14px;
   padding: 1.5rem 1.75rem;
   margin-bottom: 1.75rem;
@@ -51,8 +52,8 @@
   width: 52px;
   height: 52px;
   border-radius: 12px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid #334155;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -62,13 +63,13 @@
 .rbac-title {
   font-size: 1.45rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
   margin: 0 0 0.25rem;
   letter-spacing: -0.02em;
 }
 
 .rbac-subtitle {
-  color: #94a3b8;
+  color: #475569;
   font-size: 0.86rem;
   margin: 0;
 }
@@ -83,20 +84,20 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   padding: 0.35rem 0.75rem;
   border-radius: 8px;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #cbd5e1;
+  color: #334155;
 }
 
 /* Tab Switcher */
 .rbac-tabs-nav {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 2px solid #e2e8f0;
   margin-bottom: 1.5rem;
   padding-bottom: 0.25rem;
 }
@@ -104,7 +105,7 @@
 .rbac-tab-btn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 700;
@@ -118,14 +119,14 @@
 }
 
 .rbac-tab-btn:hover {
-  color: #f8fafc;
-  background: rgba(30, 41, 59, 0.6);
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .rbac-tab-btn.is-active {
-  color: #38bdf8;
-  background: rgba(2, 132, 199, 0.12);
-  border: 1px solid rgba(2, 132, 199, 0.3);
+  color: #0284c7;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
 }
 
 /* Staff Directory Grid */
@@ -137,34 +138,36 @@
 }
 
 .staff-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
   border-radius: 12px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   position: relative;
 }
 
 .staff-card:hover {
-  border-color: #334155;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   transform: translateY(-2px);
 }
 
 .staff-card-current {
-  border: 1.5px solid #38bdf8;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+  border: 2px solid #0284c7;
+  box-shadow: 0 0 20px rgba(2, 132, 199, 0.12);
 }
 
 .staff-current-tag {
   position: absolute;
   top: 10px;
   right: 12px;
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
   font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
@@ -209,7 +212,7 @@
 .staff-name {
   font-size: 1.02rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
   margin: 0 0 2px;
   white-space: nowrap;
   overflow: hidden;
@@ -227,8 +230,8 @@
 }
 
 .staff-card-details {
-  background: #111e38;
-  border: 1px solid #1e293b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 0.75rem 0.85rem;
   margin: 0.75rem 0 1rem;
@@ -252,8 +255,8 @@
 }
 
 .staff-detail-val {
-  color: #e2e8f0;
-  font-weight: 600;
+  color: #0f172a;
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -271,9 +274,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  background: #1e293b;
-  color: #f1f5f9;
-  border: 1px solid #334155;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
   padding: 0.55rem 0.85rem;
   border-radius: 8px;
   font-size: 0.82rem;
@@ -289,16 +292,17 @@
 }
 
 .btn-impersonate.is-active-user {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #34d399;
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
   cursor: default;
 }
 
 /* Permissions Matrix Table */
 .matrix-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   border-radius: 14px;
   overflow: hidden;
   margin-bottom: 2.25rem;
@@ -306,7 +310,8 @@
 
 .matrix-card-header {
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #1e293b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -317,7 +322,7 @@
 .matrix-title {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #0f172a;
   margin: 0 0 0.2rem;
 }
 
@@ -339,25 +344,25 @@
 }
 
 .matrix-table th {
-  background: #111e38;
-  color: #94a3b8;
-  font-weight: 700;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 800;
   font-size: 0.74rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 2px solid #cbd5e1;
   white-space: nowrap;
 }
 
 .matrix-table td {
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid rgba(30, 41, 59, 0.7);
-  color: #cbd5e1;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0f172a;
 }
 
 .matrix-table tr:hover td {
-  background: rgba(30, 41, 59, 0.4);
+  background: #f8fafc;
 }
 
 .cap-badge-yes {
@@ -367,15 +372,15 @@
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: #dcfce7;
+  color: #15803d;
   font-weight: 800;
   font-size: 0.85rem;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid #86efac;
 }
 
 .cap-badge-no {
-  color: #475569;
+  color: #cbd5e1;
   font-size: 0.9rem;
   text-align: center;
   display: inline-block;
@@ -384,8 +389,9 @@
 
 /* Activity Audit Feed */
 .audit-card {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
 }
@@ -402,8 +408,8 @@
   align-items: flex-start;
   gap: 1rem;
   padding: 0.85rem 1rem;
-  background: #111e38;
-  border: 1px solid #1e293b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
 }
 
@@ -423,12 +429,12 @@
 
 .audit-actor {
   font-weight: 700;
-  color: #f8fafc;
+  color: #0f172a;
   font-size: 0.85rem;
 }
 
 .audit-action {
-  color: #94a3b8;
+  color: #334155;
   font-size: 0.82rem;
   margin-top: 2px;
 }
@@ -547,9 +553,9 @@
           <h2 class="matrix-title">Departmental Capability Clearance Matrix</h2>
           <p class="matrix-subtitle">Defines exact access privileges and operational clearances granted to each organizational role</p>
         </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; display: flex; gap: 1rem;">
-          <span><strong style="color: #10b981;">✓</strong> Authorized</span>
-          <span><strong style="color: #475569;">—</strong> Restricted</span>
+        <div style="font-size: 0.8rem; color: #475569; display: flex; gap: 1rem;">
+          <span><strong style="color: #15803d;">✓</strong> Authorized</span>
+          <span><strong style="color: #94a3b8;">—</strong> Restricted</span>
         </div>
       </div>
 
@@ -572,8 +578,8 @@
           <tbody>
             {% for item in capabilities_matrix %}
             <tr>
-              <td><strong style="color: #94a3b8;">{{ item.module }}</strong></td>
-              <td><span style="color: #f1f5f9; font-weight: 600;">{{ item.capability }}</span></td>
+              <td><strong style="color: #475569;">{{ item.module }}</strong></td>
+              <td><span style="color: #0f172a; font-weight: 700;">{{ item.capability }}</span></td>
               <!-- Admin -->
               <td style="text-align: center;">
                 {% if 'admin' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
