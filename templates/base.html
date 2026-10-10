@@ -5,8 +5,80 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}TravelERP{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'app.css' %}">
+  <script>
+    /* Immediate Anti-FOUC Theme Detection (Matches Django Unfold) */
+    (function() {
+      try {
+        var raw = localStorage.getItem('_x_adminTheme');
+        var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
+        var isDark = t === 'dark';
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
   <style>
+    /* ── Topbar Actions & Theme Switcher Pill ── */
+    .topbar-actions-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .theme-switch-pill {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 9999px;
+      padding: 2px 3px;
+      gap: 2px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    html.dark .theme-switch-pill {
+      background: #1e293b;
+      border-color: #334155;
+    }
+    .theme-switch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      padding: 0;
+    }
+    .theme-switch-btn:hover {
+      color: #0f172a;
+      background: rgba(0, 0, 0, 0.05);
+    }
+    html.dark .theme-switch-btn:hover {
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .theme-switch-btn.active {
+      background: #ffffff;
+      color: #0284c7;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    }
+    html.dark .theme-switch-btn.active {
+      background: #0f172a;
+      color: #38bdf8;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
     /* ── Phase 6: Notification Bell ── */
     .notif-bell-wrap { position: relative; display: inline-flex; align-items: center; }
     #notif-bell-btn {
@@ -74,153 +146,280 @@
       padding-bottom: 0.25rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     }
-    .user-role-badge {
+    /* ── Unfold Unified Profile Avatar & Dropdown Pill ── */
+    .unfold-profile-menu-wrap { position: relative; display: inline-flex; align-items: center; }
+    .btn-profile-pill {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 9px;
       background: #ffffff;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      padding: 0.25rem 0.75rem;
+      border: 1px solid #cbd5e1;
       border-radius: 9999px;
-      font-size: 0.8rem;
+      padding: 4px 12px 4px 5px;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+      color: #0f172a;
     }
-    .role-icon {
-      font-size: 0.95rem;
+    .btn-profile-pill:hover {
+      border-color: #0284c7;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+      background: #f8fafc;
+    }
+    .profile-avatar-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
       line-height: 1;
     }
-    .role-name {
+    .profile-pill-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .profile-pill-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 700;
+      font-size: 0.82rem;
       color: #0f172a;
       letter-spacing: -0.01em;
-      font-size: 0.82rem;
+      white-space: nowrap;
     }
-    .role-pill-tag {
+    .profile-pill-tag {
       font-size: 0.65rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 0.15rem 0.5rem;
-      border-radius: 6px;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      border-radius: 5px;
+      white-space: nowrap;
     }
-  
-    /* ── Persona Switcher Styles (Crisp Light Mode) ── */
-    .persona-switch-wrap { position: relative; display: inline-flex; align-items: center; }
-    .btn-persona-trigger {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
-      padding: 0.35rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    .profile-pill-caret {
+      font-size: 0.72rem;
+      color: #64748b;
+      transition: transform 0.2s ease;
+      line-height: 1;
     }
-    .btn-persona-trigger:hover {
-      background: #0284c7;
-      border-color: #0284c7;
-      color: #ffffff;
-    }
-    .persona-dropdown-menu {
+    .profile-dropdown-menu {
       display: none;
       position: absolute;
-      top: calc(100% + 8px);
+      top: calc(100% + 10px);
       right: 0;
-      width: 380px;
-      max-height: 480px;
+      width: 370px;
+      max-height: 520px;
       overflow-y: auto;
       background: #ffffff;
       border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+      border-radius: 14px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
       z-index: 10000;
     }
-    .persona-dropdown-menu.open { display: block; }
-    .persona-dropdown-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 16px;
-      border-bottom: 1px solid #e2e8f0;
+    .profile-dropdown-menu.open { display: block; }
+    .profile-dropdown-card {
+      padding: 16px;
       background: #f8fafc;
-    }
-    .persona-list {
-      display: flex;
-      flex-direction: column;
-    }
-    .persona-item {
+      border-bottom: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 10px 16px;
-      border-bottom: 1px solid #f1f5f9;
+    }
+    .profile-card-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      flex-shrink: 0;
+    }
+    .profile-card-details { flex: 1; min-width: 0; }
+    .profile-card-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-card-email {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-card-role-chip {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 7px;
+      border-radius: 5px;
+    }
+    .profile-dropdown-links {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .profile-dropdown-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 8px;
       text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 700;
       color: #1e293b;
+      transition: background 0.12s ease, color 0.12s ease;
+    }
+    .profile-dropdown-link:hover {
+      background: #f1f5f9;
+      color: #0284c7;
+    }
+    .profile-link-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .profile-link-icon { font-size: 1rem; }
+    .profile-link-arrow {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      transition: transform 0.15s ease;
+    }
+    .profile-dropdown-link:hover .profile-link-arrow {
+      transform: translateX(2px);
+      color: #0284c7;
+    }
+    .profile-section-divider {
+      padding: 10px 16px 6px;
+      background: #ffffff;
+    }
+    .profile-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+    }
+    .profile-section-badge {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #0284c7;
+      background: rgba(2, 132, 199, 0.1);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .profile-persona-list {
+      display: flex;
+      flex-direction: column;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .profile-persona-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      text-decoration: none;
+      border-bottom: 1px solid #f1f5f9;
       transition: background 0.12s ease;
     }
-    .persona-item:hover {
-      background: #f8fafc;
-    }
-    .persona-item.is-current {
-      background: #f0f9ff;
+    .profile-persona-item:hover { background: #f8fafc; }
+    .profile-persona-item.is-current {
+      background: rgba(2, 132, 199, 0.08);
       border-left: 3px solid #0284c7;
     }
-    .persona-icon-box {
-      width: 34px;
-      height: 34px;
+    .profile-persona-icon {
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
+      font-size: 1rem;
       flex-shrink: 0;
     }
-    .persona-info {
-      flex: 1;
-      min-width: 0;
-    }
-    .persona-name-row {
+    .profile-persona-info { flex: 1; min-width: 0; }
+    .profile-persona-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      gap: 4px;
     }
-    .persona-name {
-      font-size: 0.84rem;
+    .profile-persona-name {
+      font-size: 0.82rem;
       font-weight: 700;
       color: #0f172a;
     }
-    .persona-empid {
-      font-size: 0.68rem;
+    .profile-persona-empid {
+      font-size: 0.65rem;
       color: #64748b;
       font-family: monospace;
     }
-    .persona-role-label {
-      font-size: 0.72rem;
+    .profile-persona-role {
+      font-size: 0.7rem;
       font-weight: 700;
-      margin-top: 1px;
     }
-    .persona-focus {
-      font-size: 0.72rem;
+    .profile-persona-focus {
+      font-size: 0.68rem;
       color: #64748b;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 1px;
     }
-    .persona-active-badge {
-      font-size: 0.65rem;
+    .profile-persona-active-badge {
+      font-size: 0.62rem;
       font-weight: 800;
       text-transform: uppercase;
       background: #10b981;
-      color: #fff;
+      color: #ffffff;
       padding: 1px 6px;
       border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .profile-dropdown-footer {
+      padding: 12px 14px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+    .profile-logout-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      color: #ef4444;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .profile-logout-btn:hover {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #ef4444;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
     }
 
   </style>
@@ -236,13 +435,14 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">🛰️ Control Room</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">📋 Dispatch Control</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'admin-whatsapp-bot-studio' %}">📱 Handover &amp; Bot Studio</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'admin-tara-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-tara-copilot-studio' %}" style="color: #a5b4fc; font-weight: 700;">🧠 TARA AI Copilot</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-tara-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-tara-copilot-studio' %}" style="color: #0284c7; font-weight: 700;">☸️ Rathasārathi AI Copilot</a>
 
         <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
         {% if is_fleet_manager or is_superuser %}
         <p class="nav-section-title"><span>🚛</span> Fleet &amp; Telematics</p>
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live Fleet Map</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">🚗 2D Vehicle Damage Studio</a>
+        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">🛞 2D Axle &amp; Tire Health Studio</a>
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance &amp; Maint.</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">📊 Fleet Analytics &amp; CPK</a>
         <a class="nav-link" href="{% url 'admin:core_vehicle_changelist' %}">🚗 Vehicle Assets</a>
@@ -291,55 +491,34 @@
     </aside>
     <div class="main-shell">
       <header class="topbar">
-        <div><span class="topbar-kicker">COIMBATORE, TAMIL NADU</span><strong>{% block header_title %}Control room{% endblock %}</strong></div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          {% if user.is_authenticated %}
-          <!-- RBAC User Role Badge -->
-          <div class="user-role-badge" title="Role Clearance: {{ user_role_label }}">
-            <span class="role-icon">{{ user_role_icon }}</span>
-            <span class="role-name">{{ user.first_name|default:user.username }}</span>
-            <span class="role-pill-tag" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}55;">
-              {{ user_role_label }}
+        <div class="topbar-breadcrumb-wrap">
+          {% block breadcrumbs %}
+          <nav class="topbar-breadcrumb" aria-label="Breadcrumb">
+            <span class="breadcrumb-station">
+              <span class="breadcrumb-station-dot"></span>
+              Coimbatore Depot
             </span>
-          </div>
+            <span class="breadcrumb-sep">/</span>
+            <h1 class="breadcrumb-current">{% block header_title %}Control room{% endblock %}</h1>
+          </nav>
+          {% endblock %}
+        </div>
 
-          <!-- ⚡ Persona Switcher Popover -->
-          <div class="persona-switch-wrap">
-            <button type="button" class="btn-persona-trigger" onclick="togglePersonaDropdown(event)" title="Simulate / Switch Staff Persona">
-              <span>⚡ Switch Role</span>
-              <span style="font-size: 0.7rem; opacity: 0.7;">▾</span>
+        <div class="topbar-actions-cluster">
+          <!-- ☀️/🌙/💻 Adaptive Theme Switcher (Syncs with Unfold Admin) -->
+          <div class="theme-switch-pill" id="theme-switch-pill" title="Toggle Theme (Light / Dark / System)">
+            <button type="button" class="theme-switch-btn" data-theme-val="light" onclick="setAppTheme('light')" title="Light Theme">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
             </button>
-            <div id="persona-dropdown" class="persona-dropdown-menu">
-              <div class="persona-dropdown-header">
-                <div>
-                  <div style="font-size: 0.7rem; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.05em;">Enterprise RBAC Switcher</div>
-                  <div style="font-size: 0.8rem; font-weight: 700; color: #f1f5f9;">Select Staff Persona to Simulate</div>
-                </div>
-                <a href="/staff/roles-matrix/" style="font-size: 0.72rem; color: #38bdf8; text-decoration: none; font-weight: 700;">View Matrix →</a>
-              </div>
-              <div class="persona-list">
-                {% for p in demo_personas %}
-                <a href="/auth/switch-persona/{{ p.username }}/?next={{ request.path }}" class="persona-item {% if user.username == p.username %}is-current{% endif %}">
-                  <div class="persona-icon-box" style="background: {{ p.badge_color }}22; color: {{ p.badge_color }}; border: 1px solid {{ p.badge_color }}44;">
-                    {{ p.icon }}
-                  </div>
-                  <div class="persona-info">
-                    <div class="persona-name-row">
-                      <span class="persona-name">{{ p.name }}</span>
-                      <span class="persona-empid">{{ p.empid }}</span>
-                    </div>
-                    <div class="persona-role-label" style="color: {{ p.badge_color }};">{{ p.role_label }}</div>
-                    <div class="persona-focus">{{ p.focus }}</div>
-                  </div>
-                  {% if user.username == p.username %}
-                  <span class="persona-active-badge">Active</span>
-                  {% endif %}
-                </a>
-                {% endfor %}
-              </div>
-            </div>
+            <button type="button" class="theme-switch-btn" data-theme-val="dark" onclick="setAppTheme('dark')" title="Dark Cockpit">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </button>
+            <button type="button" class="theme-switch-btn" data-theme-val="auto" onclick="setAppTheme('auto')" title="System Match">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+            </button>
           </div>
 
+          {% if user.is_authenticated %}
           <!-- 🔔 Phase 6: Notification Bell -->
           <div class="notif-bell-wrap" id="notif-bell-wrap">
             <button id="notif-bell-btn" title="Staff Notifications" onclick="toggleNotifDropdown(event)">
@@ -356,11 +535,141 @@
               </div>
             </div>
           </div>
+
+          <!-- 👑 Consolidated Unfold Profile & Persona Switcher Pill -->
+          <div class="unfold-profile-menu-wrap" id="unfold-profile-menu-wrap">
+            <button type="button" class="btn-profile-pill" onclick="toggleProfileDropdown(event)" aria-expanded="false" title="Staff Profile, Clearance & Switcher">
+              <span class="profile-avatar-badge" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}44;">
+                {{ user_role_icon }}
+              </span>
+              <div class="profile-pill-meta">
+                <span class="profile-pill-name">{{ user.first_name|default:user.username }}</span>
+                <span class="profile-pill-tag" style="background: {{ user_role_color }}18; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}44;">
+                  {{ user_role_label }}
+                </span>
+              </div>
+              <span class="profile-pill-caret">▾</span>
+            </button>
+
+            <div id="unfold-profile-dropdown" class="profile-dropdown-menu">
+              <!-- Active User Bio Header -->
+              <div class="profile-dropdown-card">
+                <div class="profile-card-avatar" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}44;">
+                  {{ user_role_icon }}
+                </div>
+                <div class="profile-card-details">
+                  <div class="profile-card-name">{{ user.get_full_name|default:user.username }}</div>
+                  <div class="profile-card-email">{{ user.email|default:"staff@sivagayathiri.in" }}</div>
+                  <div class="profile-card-role-chip" style="background: {{ user_role_color }}18; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}33;">
+                    Clearance: {{ user_role_label }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Desk Navigation Links -->
+              <div class="profile-dropdown-links">
+                <a href="{% url 'staff-roles-matrix' %}" class="profile-dropdown-link">
+                  <span class="profile-link-left">
+                    <span class="profile-link-icon">🛡️</span>
+                    <span>Staff &amp; RBAC Matrix</span>
+                  </span>
+                  <span class="profile-link-arrow">→</span>
+                </a>
+                {% if is_superuser %}
+                <a href="{% url 'admin:index' %}" class="profile-dropdown-link">
+                  <span class="profile-link-left">
+                    <span class="profile-link-icon">⚙️</span>
+                    <span>Unfold Admin Workspace</span>
+                  </span>
+                  <span class="profile-link-arrow">→</span>
+                </a>
+                {% endif %}
+              </div>
+
+              <!-- Staff Persona Simulation Header -->
+              <div class="profile-section-divider">
+                <div class="profile-section-title">
+                  <span>⚡ Switch Staff Persona</span>
+                  <span class="profile-section-badge">Live Simulation</span>
+                </div>
+              </div>
+
+              <!-- Scrollable Persona List -->
+              <div class="profile-persona-list">
+                {% for p in demo_personas %}
+                <a href="/auth/switch-persona/{{ p.username }}/?next={{ request.path }}" class="profile-persona-item {% if user.username == p.username %}is-current{% endif %}">
+                  <div class="profile-persona-icon" style="background: {{ p.badge_color }}20; color: {{ p.badge_color }}; border: 1px solid {{ p.badge_color }}44;">
+                    {{ p.icon }}
+                  </div>
+                  <div class="profile-persona-info">
+                    <div class="profile-persona-row">
+                      <span class="profile-persona-name">{{ p.name }}</span>
+                      <span class="profile-persona-empid">{{ p.empid }}</span>
+                    </div>
+                    <div class="profile-persona-role" style="color: {{ p.badge_color }};">{{ p.role_label }}</div>
+                    <div class="profile-persona-focus">{{ p.focus }}</div>
+                  </div>
+                  {% if user.username == p.username %}
+                  <span class="profile-persona-active-badge">Active</span>
+                  {% endif %}
+                </a>
+                {% endfor %}
+              </div>
+
+              <!-- Unified Sign Out Button in Dropdown -->
+              <div class="profile-dropdown-footer">
+                <form method="post" action="{% url 'logout' %}" style="margin: 0; width: 100%;">
+                  {% csrf_token %}
+                  <button type="submit" class="profile-logout-btn">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Sign Out of Session</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <a href="{% url 'login' %}" class="button button-quiet">Sign in</a>
           {% endif %}
-          <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="button button-quiet" type="submit">Sign out</button></form>
         </div>
       </header>
-      <main class="content">{% block content %}{% endblock %}</main>
+      <main class="content">
+        {% if messages %}
+        <div class="system-messages-container">
+          {% for message in messages %}
+          <div class="system-alert system-alert-{{ message.tags|default:'info' }}">
+            <span style="font-size: 1.25rem;">
+              {% if message.tags == 'error' %}⚠️{% elif message.tags == 'success' %}✅{% elif message.tags == 'warning' %}⚡{% else %}ℹ️{% endif %}
+            </span>
+            <div style="flex: 1;">{{ message }}</div>
+            <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0.6;" title="Dismiss">&times;</button>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if form and form.errors %}
+        <div class="form-validation-summary-card">
+          <div class="error-title">
+            <span>🛑</span>
+            <span>Form Validation Errors Detected</span>
+          </div>
+          <p class="error-subtitle">Please correct the following fields to proceed:</p>
+          <ul>
+            {% for field, error_list in form.errors.items %}
+              {% for err in error_list %}
+                <li>
+                  <span class="field-label">{% if field != '__all__' %}{{ field|cut:'_'|title }}{% else %}General Requirement{% endif %}:</span>
+                  <span>{{ err }}</span>
+                </li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
     </div>
   </div>
 
@@ -422,15 +731,35 @@
 
   function toggleNotifDropdown(e) {
     e.stopPropagation();
-    document.getElementById('notif-dropdown').classList.toggle('open');
+    const profileMenu = document.getElementById('unfold-profile-dropdown');
+    if (profileMenu) profileMenu.classList.remove('open');
+    const d = document.getElementById('notif-dropdown');
+    if (d) d.classList.toggle('open');
   }
 
-  document.addEventListener('click', () => {
-    const d = document.getElementById('notif-dropdown');
-    if (d) d.classList.remove('open');
+  function toggleProfileDropdown(e) {
+    if (e) e.stopPropagation();
+    const notifMenu = document.getElementById('notif-dropdown');
+    if (notifMenu) notifMenu.classList.remove('open');
+    const menu = document.getElementById('unfold-profile-dropdown');
+    if (menu) menu.classList.toggle('open');
+  }
+
+  function togglePersonaDropdown(e) {
+    toggleProfileDropdown(e);
+  }
+
+  document.addEventListener('click', (e) => {
+    const notifMenu = document.getElementById('notif-dropdown');
+    if (notifMenu && !notifMenu.contains(e.target)) notifMenu.classList.remove('open');
+    const profileMenu = document.getElementById('unfold-profile-dropdown');
+    if (profileMenu && !profileMenu.contains(e.target)) profileMenu.classList.remove('open');
   });
+
   const dd = document.getElementById('notif-dropdown');
   if (dd) dd.addEventListener('click', e => e.stopPropagation());
+  const pd = document.getElementById('unfold-profile-dropdown');
+  if (pd) pd.addEventListener('click', e => e.stopPropagation());
 
   function handleNotifClick(id, link) {
     fetch(NOTIF_MARK_URL, {
@@ -453,17 +782,6 @@
       if (list) list.innerHTML = '<div class="notif-empty">✅ All cleared!</div>';
     });
   }
-
-  
-  function togglePersonaDropdown(e) {
-    e.stopPropagation();
-    const menu = document.getElementById('persona-dropdown');
-    if (menu) menu.classList.toggle('open');
-  }
-  document.addEventListener('click', (e) => {
-    const menu = document.getElementById('persona-dropdown');
-    if (menu && !menu.contains(e.target)) menu.classList.remove('open');
-  });
 
   fetchNotifications();
   setInterval(fetchNotifications, 30000);
@@ -491,5 +809,52 @@
   });
   </script>
   {% endif %}
+
+  <!-- ============================================================
+       Global Theme Management — Synced with Unfold Admin (Universal)
+       ============================================================ -->
+  <script>
+  function getAppTheme() {
+    try {
+      var raw = localStorage.getItem('_x_adminTheme');
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return localStorage.getItem('theme') || 'auto';
+  }
+
+  function updateThemeUI(theme) {
+    var isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    document.querySelectorAll('.theme-switch-btn').forEach(function(btn) {
+      if (btn.getAttribute('data-theme-val') === theme) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  function setAppTheme(theme) {
+    try {
+      localStorage.setItem('_x_adminTheme', JSON.stringify(theme));
+    } catch(e) {}
+    localStorage.setItem('theme', theme);
+    updateThemeUI(theme);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    updateThemeUI(getAppTheme());
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+    if (getAppTheme() === 'auto') {
+      updateThemeUI('auto');
+    }
+  });
+  </script>
 </body>
 </html>

@@ -444,6 +444,94 @@
   color: #64748b;
   flex-shrink: 0;
 }
+
+/* ── Dark Mode Adaptation (Synced with Unfold) ── */
+html.dark .rbac-container {
+  color: var(--text-main);
+}
+html.dark .rbac-header-card,
+html.dark .staff-card,
+html.dark .matrix-card,
+html.dark .audit-card {
+  background: var(--surface-card);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+html.dark .rbac-gov-icon {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+}
+html.dark .rbac-title,
+html.dark .staff-name,
+html.dark .matrix-title,
+html.dark .audit-actor,
+html.dark .staff-detail-val {
+  color: var(--text-main);
+}
+html.dark .rbac-subtitle,
+html.dark .matrix-subtitle,
+html.dark .staff-empid,
+html.dark .staff-detail-label,
+html.dark .audit-action {
+  color: var(--text-muted);
+}
+html.dark .header-meta-pill {
+  background: var(--surface-subtle);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+html.dark .header-meta-pill strong {
+  color: var(--text-main);
+}
+html.dark .rbac-tabs-nav {
+  border-bottom-color: var(--border-color);
+}
+html.dark .rbac-tab-btn {
+  color: var(--text-muted);
+}
+html.dark .rbac-tab-btn:hover {
+  color: var(--text-main);
+  background: var(--surface-subtle);
+}
+html.dark .rbac-tab-btn.is-active {
+  color: var(--primary);
+  background: rgba(2, 132, 199, 0.15);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+html.dark .staff-card-details {
+  background: var(--surface-subtle);
+  border-color: var(--border-color);
+}
+html.dark .btn-impersonate {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+html.dark .btn-impersonate:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+html.dark .matrix-card-header {
+  background: var(--surface-subtle);
+  border-bottom-color: var(--border-color);
+}
+html.dark .matrix-table th {
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  border-bottom-color: var(--border-strong);
+}
+html.dark .matrix-table td {
+  border-bottom-color: var(--border-color);
+  color: var(--text-main);
+}
+html.dark .matrix-table tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+html.dark .audit-item {
+  background: var(--surface-subtle);
+  border-color: var(--border-color);
+}
 </style>
 
 <div class="rbac-container">

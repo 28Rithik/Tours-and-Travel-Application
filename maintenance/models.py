@@ -1,4 +1,6 @@
+from decimal import Decimal
 from django.db import models
+from django.utils import timezone
 from core.models import Vehicle
 
 class ComplianceDocument(models.Model):
@@ -60,6 +62,10 @@ class ComplianceDocument(models.Model):
 		ordering = ['expiry_date']
 		verbose_name = 'Compliance Document'
 		verbose_name_plural = 'Compliance Documents'
+		indexes = [
+			models.Index(fields=['vehicle', 'document_type', 'expiry_date'], name='idx_comp_veh_doc_exp'),
+			models.Index(fields=['expiry_date'], name='idx_comp_exp'),
+		]
 
 	def __str__(self):
 		return f"{self.get_document_type_display()} - {self.vehicle.registration_number}"
@@ -127,6 +133,10 @@ class ServiceRecord(models.Model):
 
 	class Meta:
 		ordering = ['-date']
+		indexes = [
+			models.Index(fields=['vehicle', 'status', 'date'], name='idx_srv_veh_status_date'),
+			models.Index(fields=['vehicle', 'date'], name='idx_srv_veh_date'),
+		]
 
 	def __str__(self):
 		return f"{self.vehicle.registration_number} - {self.get_service_type_display()} on {self.date}"
@@ -212,6 +222,18 @@ class VehicleAsset(models.Model):
 	vendor_name = models.CharField(max_length=255, blank=True)
 	warranty_expiry_date = models.DateField(null=True, blank=True)
 	warranty_expiry_km = models.PositiveIntegerField(null=True, blank=True)
+
+	# Phase 6: Tire & Asset Engineering Specifications
+	brand = models.CharField(max_length=100, blank=True, help_text="e.g. Apollo, MRF, Bridgestone, Michelin, Exide")
+	model_or_size = models.CharField(max_length=100, blank=True, help_text="e.g. 215/75 R15, 295/80 R22.5, 12V 100Ah")
+	dot_code = models.CharField(max_length=20, blank=True, help_text="DOT manufacture code e.g. 2423")
+	original_tread_depth_mm = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('12.00'), help_text="Brand new tread depth in mm")
+	current_tread_depth_mm = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('12.00'), help_text="Latest measured tread depth in mm")
+	psi_pressure = models.PositiveIntegerField(null=True, blank=True, help_text="Current cold inflation PSI")
+	retread_count = models.PositiveIntegerField(default=0, help_text="Number of retread cycles completed")
+	max_retread_cycles = models.PositiveIntegerField(default=2, help_text="Max retreadings allowed before scrap")
+	last_inspected_date = models.DateField(null=True, blank=True)
+	last_inspected_odometer = models.PositiveIntegerField(null=True, blank=True)
 	
 	def clean(self):
 		from django.core.exceptions import ValidationError
@@ -240,6 +262,73 @@ class VehicleAsset(models.Model):
 		if self.expected_life_km and self.current_run_km >= (self.expected_life_km * 0.9):
 			return True
 		return False
+
+	@property
+	def tread_wear_percent(self):
+		if not self.original_tread_depth_mm or self.original_tread_depth_mm <= 0:
+			return 0.0
+		worn = max(Decimal('0.00'), self.original_tread_depth_mm - (self.current_tread_depth_mm or self.original_tread_depth_mm))
+		pct = (worn / self.original_tread_depth_mm) * Decimal('100.0')
+		return float(round(pct, 1))
+
+	@property
+	def is_critical_tread(self):
+		if self.asset_type != 'tyre':
+			return False
+		return (self.current_tread_depth_mm or Decimal('12.00')) <= Decimal('2.50')
+
+	@property
+	def is_warning_tread(self):
+		if self.asset_type != 'tyre':
+			return False
+		td = self.current_tread_depth_mm or Decimal('12.00')
+		return Decimal('2.50') < td <= Decimal('4.00')
+
+	@property
+	def cost_per_km(self):
+		if not self.purchase_price or self.purchase_price <= 0:
+			return Decimal('0.00')
+		run = max(self.current_run_km, 1)
+		return (Decimal(str(self.purchase_price)) / Decimal(str(run))).quantize(Decimal('0.01'))
+
+	@property
+	def health_status(self):
+		if self.status != 'in_use':
+			return self.status
+		if self.is_critical_tread or self.needs_replacement:
+			return 'critical'
+		if self.is_warning_tread or (self.expected_life_km and self.current_run_km >= (self.expected_life_km * 0.75)):
+			return 'warning'
+		return 'good'
+
+
+class TireInspectionLog(models.Model):
+	ACTION_CHOICES = [
+		('none', 'Routine Inspection (No Action)'),
+		('pressure_adjusted', 'Cold Pressure Adjusted'),
+		('rotated', 'Position Rotated'),
+		('sent_retread', 'Sent for Retreading'),
+		('scrapped', 'Condemned & Scrapped'),
+	]
+
+	asset = models.ForeignKey(VehicleAsset, on_delete=models.CASCADE, related_name='inspections')
+	inspection_date = models.DateField(default=timezone.now)
+	odometer = models.PositiveIntegerField(help_text="Vehicle odometer at inspection")
+	tread_depth_mm = models.DecimalField(max_digits=5, decimal_places=2, help_text="Measured tread depth in mm")
+	psi_pressure = models.PositiveIntegerField(null=True, blank=True, help_text="Cold inflation pressure PSI")
+	inspector_name = models.CharField(max_length=100, blank=True)
+	has_irregular_wear = models.BooleanField(default=False, help_text="Check if feathering, camber, or cupping detected")
+	action_taken = models.CharField(max_length=30, choices=ACTION_CHOICES, default='none')
+	condition_notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-inspection_date', '-id']
+		verbose_name = 'Tire Inspection Log'
+		verbose_name_plural = 'Tire Inspection Logs'
+
+	def __str__(self):
+		return f"{self.asset.serial_number} - {self.tread_depth_mm}mm on {self.inspection_date}"
 
 
 class DefectTicket(models.Model):

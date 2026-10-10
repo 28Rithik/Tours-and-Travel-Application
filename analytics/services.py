@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import date, timedelta
 from django.utils import timezone
-from django.db.models import Sum, Count, Avg, Q
+from django.db.models import Sum, Count, Avg, Q, F
 
 from core.models import Driver, Vehicle
 from operations.models import Trip, TrafficFine, DriverBehaviorLog
@@ -177,95 +177,141 @@ def calculate_driver_scorecard(driver, start_date=None, end_date=None, period_ty
     return scorecard
 
 
-def calculate_vehicle_cpk(vehicle, start_date=None, end_date=None):
+def calculate_fleet_cpk_bulk(vehicles, start_date=None, end_date=None):
     """
-    Computes True Cost-Per-KM (CPK), Revenue-Per-KM (RPK), and Operating Margin.
+    Computes True Cost-Per-KM (CPK), Revenue-Per-KM (RPK), and Operating Margin
+    across multiple vehicles in bulk (single-query set aggregations).
     """
+    if not vehicles:
+        return []
+
+    vehicle_ids = [v.pk for v in vehicles]
+
+    # 1. Trips stats: Prefetch completed/billed/settled trips with related contracts & expenses once
     trips_qs = Trip.objects.filter(
-        vehicle=vehicle,
+        vehicle_id__in=vehicle_ids,
         status__in=['completed', 'billed', 'settled']
-    )
+    ).select_related('booking', 'bulk_contract_day__contract').prefetch_related('expenses', 'traffic_fines')
     if start_date:
         trips_qs = trips_qs.filter(start_date__gte=start_date)
     if end_date:
         trips_qs = trips_qs.filter(start_date__lte=end_date)
 
-    # 1. Total KMs Run
-    total_km = sum(t.total_km for t in trips_qs)
-    if total_km == 0:
-        total_km = vehicle.current_km or 0
+    trips_by_vehicle = {}
+    for t in trips_qs:
+        trips_by_vehicle.setdefault(t.vehicle_id, []).append(t)
 
-    # 2. Direct Operating Costs
-    fuel_records = FuelRecord.objects.filter(vehicle=vehicle)
-    if start_date: fuel_records = fuel_records.filter(date__gte=start_date)
-    if end_date: fuel_records = fuel_records.filter(date__lte=end_date)
-    fuel_cost = sum((r.amount for r in fuel_records), Decimal('0.0'))
+    # 2. Fuel records
+    fuel_qs = FuelRecord.objects.filter(vehicle_id__in=vehicle_ids)
+    if start_date: fuel_qs = fuel_qs.filter(date__gte=start_date)
+    if end_date: fuel_qs = fuel_qs.filter(date__lte=end_date)
+    fuel_by_vehicle = dict(
+        fuel_qs.values('vehicle_id').annotate(
+            total=Sum(F('fuel_quantity') * F('fuel_price'))
+        ).values_list('vehicle_id', 'total')
+    )
 
-    service_records = ServiceRecord.objects.filter(vehicle=vehicle, status='completed')
-    if start_date: service_records = service_records.filter(date__gte=start_date)
-    if end_date: service_records = service_records.filter(date__lte=end_date)
-    maintenance_cost = sum((s.total_cost for s in service_records), Decimal('0.0'))
+    # 3. Service records
+    service_qs = ServiceRecord.objects.filter(vehicle_id__in=vehicle_ids, status='completed')
+    if start_date: service_qs = service_qs.filter(date__gte=start_date)
+    if end_date: service_qs = service_qs.filter(date__lte=end_date)
+    service_by_vehicle = dict(
+        service_qs.values('vehicle_id').annotate(
+            total=Sum('total_cost')
+        ).values_list('vehicle_id', 'total')
+    )
 
-    toll_deductions = FastagTollDeduction.objects.filter(vehicle=vehicle)
-    if start_date: toll_deductions = toll_deductions.filter(date__date__gte=start_date)
-    if end_date: toll_deductions = toll_deductions.filter(date__date__lte=end_date)
-    toll_cost = sum((t.amount for t in toll_deductions), Decimal('0.0'))
+    # 4. FASTag Toll
+    toll_qs = FastagTollDeduction.objects.filter(vehicle_id__in=vehicle_ids)
+    if start_date: toll_qs = toll_qs.filter(date__date__gte=start_date)
+    if end_date: toll_qs = toll_qs.filter(date__date__lte=end_date)
+    toll_by_vehicle = dict(
+        toll_qs.values('vehicle_id').annotate(
+            total=Sum('amount')
+        ).values_list('vehicle_id', 'total')
+    )
 
-    driver_bata = sum((t.driver_bata * t.days_count for t in trips_qs if t.driver_bata and t.days_count), Decimal('0.0'))
+    # 5. Compliance documents (insurance)
+    compliance_by_vehicle = dict(
+        ComplianceDocument.objects.filter(
+            vehicle_id__in=vehicle_ids,
+            premium_amount__isnull=False
+        ).values('vehicle_id').annotate(
+            total=Sum('premium_amount')
+        ).values_list('vehicle_id', 'total')
+    )
 
-    # 3. Amortized Fixed Costs (Insurance + Tax + EMI)
-    compliance_docs = ComplianceDocument.objects.filter(vehicle=vehicle, premium_amount__isnull=False)
-    annual_insurance = sum((d.premium_amount for d in compliance_docs), Decimal('0.0'))
-    monthly_insurance = annual_insurance / Decimal('12.0')
+    cpk_list = []
+    for vehicle in vehicles:
+        trips = trips_by_vehicle.get(vehicle.pk, [])
+        total_km = sum(t.total_km for t in trips)
+        if total_km == 0:
+            total_km = vehicle.current_km or 0
 
-    monthly_emi = vehicle.emi_amount if hasattr(vehicle, 'emi_amount') and vehicle.emi_amount else Decimal('0.0')
+        fuel_cost = fuel_by_vehicle.get(vehicle.pk) or Decimal('0.0')
+        maintenance_cost = service_by_vehicle.get(vehicle.pk) or Decimal('0.0')
+        toll_cost = toll_by_vehicle.get(vehicle.pk) or Decimal('0.0')
+        driver_bata = sum((t.driver_bata * t.days_count for t in trips if t.driver_bata and t.days_count), Decimal('0.0'))
 
-    total_direct_costs = fuel_cost + maintenance_cost + toll_cost + driver_bata
-    total_all_costs = total_direct_costs + monthly_insurance + monthly_emi
+        annual_insurance = compliance_by_vehicle.get(vehicle.pk) or Decimal('0.0')
+        monthly_insurance = annual_insurance / Decimal('12.0')
+        monthly_emi = vehicle.emi_amount if hasattr(vehicle, 'emi_amount') and vehicle.emi_amount else Decimal('0.0')
 
-    # 4. Revenue
-    revenue = sum((t.total_amount for t in trips_qs), Decimal('0.0'))
+        total_direct_costs = fuel_cost + maintenance_cost + toll_cost + driver_bata
+        total_all_costs = total_direct_costs + monthly_insurance + monthly_emi
 
-    # 5. Per-KM Metrics
-    safe_km = Decimal(str(max(1, total_km)))
-    cpk = round(total_all_costs / safe_km, 2)
-    fuel_cpk = round(fuel_cost / safe_km, 2)
-    maintenance_cpk = round(maintenance_cost / safe_km, 2)
-    rpk = round(revenue / safe_km, 2)
-    margin_per_km = round(rpk - cpk, 2)
-    margin_pct = round((margin_per_km / rpk) * 100, 1) if rpk > 0 else Decimal('0.0')
+        revenue = sum((t.total_amount for t in trips), Decimal('0.0'))
 
-    return {
-        "vehicle": vehicle,
-        "registration_number": vehicle.registration_number,
-        "vehicle_type": vehicle.vehicle_type.name if vehicle.vehicle_type else "General",
-        "total_km": total_km,
-        "revenue": revenue,
-        "fuel_cost": fuel_cost,
-        "maintenance_cost": maintenance_cost,
-        "toll_cost": toll_cost,
-        "driver_bata": driver_bata,
-        "fixed_amortized": monthly_insurance + monthly_emi,
-        "total_cost": total_all_costs,
-        "cpk": cpk,
-        "fuel_cpk": fuel_cpk,
-        "maintenance_cpk": maintenance_cpk,
-        "rpk": rpk,
-        "margin_per_km": margin_per_km,
-        "margin_pct": margin_pct,
-    }
+        safe_km = Decimal(str(max(1, total_km)))
+        cpk = round(total_all_costs / safe_km, 2)
+        fuel_cpk = round(fuel_cost / safe_km, 2)
+        maintenance_cpk = round(maintenance_cost / safe_km, 2)
+        rpk = round(revenue / safe_km, 2)
+        margin_per_km = round(rpk - cpk, 2)
+        margin_pct = round((margin_per_km / rpk) * 100, 1) if rpk > 0 else Decimal('0.0')
+
+        cpk_list.append({
+            "vehicle": vehicle,
+            "registration_number": vehicle.registration_number,
+            "vehicle_type": vehicle.vehicle_type.name if vehicle.vehicle_type else "General",
+            "total_km": total_km,
+            "revenue": revenue,
+            "fuel_cost": fuel_cost,
+            "maintenance_cost": maintenance_cost,
+            "toll_cost": toll_cost,
+            "driver_bata": driver_bata,
+            "fixed_amortized": monthly_insurance + monthly_emi,
+            "total_cost": total_all_costs,
+            "cpk": cpk,
+            "fuel_cpk": fuel_cpk,
+            "maintenance_cpk": maintenance_cpk,
+            "rpk": rpk,
+            "margin_per_km": margin_per_km,
+            "margin_pct": margin_pct,
+        })
+
+    return cpk_list
+
+
+def calculate_vehicle_cpk(vehicle, start_date=None, end_date=None):
+    """
+    Computes True Cost-Per-KM (CPK), Revenue-Per-KM (RPK), and Operating Margin
+    for a single vehicle.
+    """
+    results = calculate_fleet_cpk_bulk([vehicle], start_date=start_date, end_date=end_date)
+    return results[0] if results else {}
 
 
 def get_fleet_utilization_breakdown():
     """
-    Computes real-time fleet utilization breakdown:
+    Computes real-time fleet utilization breakdown in bulk (4 set queries):
     - Active: On Trip
     - Standby: In Yard, Fit for Duty
     - Maintenance: In Workshop / Grounded
     - Idle: Available but no trips in last 5 days
     """
-    vehicles = Vehicle.objects.all()
-    total_count = vehicles.count()
+    vehicles = list(Vehicle.objects.all().select_related('vehicle_type'))
+    total_count = len(vehicles)
     if total_count == 0:
         return {
             "total_count": 0,
@@ -275,6 +321,33 @@ def get_fleet_utilization_breakdown():
 
     five_days_ago = timezone.now().date() - timedelta(days=5)
 
+    # Bulk Query 1: Active trips
+    active_trips_qs = Trip.objects.filter(
+        status__in=['assigned', 'started']
+    ).select_related('driver').order_by('-start_date')
+    active_trips_by_vehicle = {}
+    for t in active_trips_qs:
+        if t.vehicle_id not in active_trips_by_vehicle:
+            active_trips_by_vehicle[t.vehicle_id] = t
+
+    # Bulk Query 2: Open defect tickets
+    open_defect_vehicle_ids = set(
+        DefectTicket.objects.filter(status='open').values_list('vehicle_id', flat=True)
+    )
+
+    # Bulk Query 3: Failed pre-trip checklists in last 5 days
+    failed_inspection_vehicle_ids = set(
+        PreTripInspectionChecklist.objects.filter(
+            overall_status='failed',
+            created_at__date__gte=five_days_ago
+        ).values_list('vehicle_id', flat=True)
+    )
+
+    # Bulk Query 4: Recent trips in last 5 days
+    recent_trip_vehicle_ids = set(
+        Trip.objects.filter(start_date__gte=five_days_ago).values_list('vehicle_id', flat=True)
+    )
+
     active_count = 0
     standby_count = 0
     maintenance_count = 0
@@ -283,20 +356,15 @@ def get_fleet_utilization_breakdown():
     detailed_vehicles = []
 
     for v in vehicles:
-        # Check if on active trip
-        on_active_trip = Trip.objects.filter(
-            vehicle=v,
-            status__in=['assigned', 'started']
-        ).first()
+        on_active_trip = active_trips_by_vehicle.get(v.pk)
 
-        # Check maintenance condition
         in_maintenance = (
             v.status in ['in_shop', 'breakdown', 'maintenance'] or
-            DefectTicket.objects.filter(vehicle=v, status='open').exists() or
-            PreTripInspectionChecklist.objects.filter(vehicle=v, overall_status='failed').filter(created_at__date__gte=five_days_ago).exists()
+            (v.pk in open_defect_vehicle_ids) or
+            (v.pk in failed_inspection_vehicle_ids)
         )
 
-        recent_trip_exists = Trip.objects.filter(vehicle=v, start_date__gte=five_days_ago).exists()
+        recent_trip_exists = (v.pk in recent_trip_vehicle_ids)
 
         if on_active_trip:
             status_cat = "active"
@@ -327,7 +395,7 @@ def get_fleet_utilization_breakdown():
             "active_trip": on_active_trip,
         })
 
-    utilization_pct = round((active_count / total_count) * 100, 1)
+    utilization_pct = round((active_count / max(1, total_count)) * 100, 1)
 
     return {
         "total_count": total_count,
@@ -338,3 +406,186 @@ def get_fleet_utilization_breakdown():
         "utilization_pct": utilization_pct,
         "vehicles": detailed_vehicles,
     }
+
+
+def get_driver_scorecards_leaderboard(start_date=None, end_date=None, period_type='monthly', refresh=False):
+    """
+    Returns sorted driver scorecards leaderboard for all active drivers.
+    Uses existing persisted monthly snapshots (1 query) or computes missing ones in bulk.
+    """
+    now = timezone.now()
+    if not start_date:
+        start_date = now.date().replace(day=1)
+    if not end_date:
+        end_date = now.date()
+
+    active_drivers = list(Driver.objects.filter(status='active'))
+    if not active_drivers:
+        return []
+
+    active_driver_ids = [d.pk for d in active_drivers]
+
+    if not refresh:
+        existing = list(
+            DriverScorecard.objects.filter(
+                month=start_date,
+                period_type=period_type,
+                driver_id__in=active_driver_ids
+            ).select_related('driver').order_by('-overall_composite_score')
+        )
+        if len(existing) >= len(active_drivers) and len(existing) > 0:
+            return existing
+
+    # Bulk Compute across all active drivers:
+    # 1. Ops Trips
+    trips_stats = {
+        row['driver_id']: row for row in Trip.objects.filter(
+            driver_id__in=active_driver_ids,
+            start_date__gte=start_date,
+            start_date__lte=end_date
+        ).values('driver_id').annotate(
+            total_trips=Count('id'),
+            completed_trips=Count('id', filter=Q(status__in=['completed', 'billed', 'settled'])),
+            total_km=Sum(F('closing_km') - F('opening_km'), filter=Q(closing_km__gte=F('opening_km')))
+        )
+    }
+
+    # 2. Contract Trips
+    contract_stats = {
+        row['driver_id']: row for row in ContractTripLog.objects.filter(
+            driver_id__in=active_driver_ids,
+            date__gte=start_date,
+            date__lte=end_date
+        ).values('driver_id').annotate(
+            total_trips=Count('id'),
+            completed_trips=Count('id', filter=Q(status__in=['completed', 'delayed'])),
+            delayed_trips=Count('id', filter=Q(delay_minutes__gt=10)),
+            km_sum=Sum(F('closing_km') - F('opening_km'), filter=Q(closing_km__gte=F('opening_km')))
+        )
+    }
+
+    # 3. Driver behavior
+    behavior_stats = {
+        row['driver_id']: row for row in DriverBehaviorLog.objects.filter(
+            driver_id__in=active_driver_ids,
+            timestamp__date__gte=start_date,
+            timestamp__date__lte=end_date
+        ).values('driver_id').annotate(
+            overspeeding=Count('id', filter=Q(event_type='overspeeding')),
+            harsh_braking=Count('id', filter=Q(event_type='harsh_braking'))
+        )
+    }
+
+    # 4. Traffic fines
+    fine_stats = {
+        row['driver_id']: row for row in TrafficFine.objects.filter(
+            driver_id__in=active_driver_ids,
+            date_of_offence__date__gte=start_date,
+            date_of_offence__date__lte=end_date
+        ).values('driver_id').annotate(
+            fine_count=Count('id'),
+            fine_sum=Sum('fine_amount')
+        )
+    }
+
+    # 5. Fuel records
+    fuel_by_driver = dict(
+        FuelRecord.objects.filter(
+            trip__driver_id__in=active_driver_ids,
+            date__gte=start_date,
+            date__lte=end_date
+        ).values('trip__driver_id').annotate(
+            actual_litres=Sum('fuel_quantity')
+        ).values_list('trip__driver_id', 'actual_litres')
+    )
+
+    scorecard_objs = []
+    for driver in active_drivers:
+        d_id = driver.pk
+        t_stat = trips_stats.get(d_id, {})
+        c_stat = contract_stats.get(d_id, {})
+        b_stat = behavior_stats.get(d_id, {})
+        f_stat = fine_stats.get(d_id, {})
+
+        total_trips = t_stat.get('total_trips', 0) + c_stat.get('total_trips', 0)
+        completed_trips = t_stat.get('completed_trips', 0) + c_stat.get('completed_trips', 0)
+        total_kms = (t_stat.get('total_km') or 0) + (c_stat.get('km_sum') or 0)
+        delayed_trips = c_stat.get('delayed_trips', 0)
+        on_time_trips = max(0, total_trips - delayed_trips)
+
+        if total_trips > 0:
+            punctuality_pct = Decimal(str(max(0, 100.0 - (delayed_trips * 10.0))))
+        else:
+            punctuality_pct = Decimal("100.0")
+
+        overspeeding_count = b_stat.get('overspeeding', 0)
+        harsh_braking_count = b_stat.get('harsh_braking', 0)
+        traffic_fines_count = f_stat.get('fine_count', 0)
+        total_fine_amount = f_stat.get('fine_sum') or Decimal('0.0')
+
+        safety_deductions = (overspeeding_count * 10) + (harsh_braking_count * 5) + (traffic_fines_count * 15)
+        safety_score = Decimal(str(max(0, 100 - safety_deductions)))
+
+        avg_rating = Decimal("5.0")
+        customer_rating_score = Decimal("95.0")
+        feedback_count = 0
+
+        actual_fuel_litres = fuel_by_driver.get(d_id) or Decimal('0.0')
+        expected_fuel_litres = Decimal(str(round(total_kms / 10.0, 2))) if total_kms > 0 else actual_fuel_litres
+
+        if expected_fuel_litres > 0 and actual_fuel_litres > 0:
+            if actual_fuel_litres <= expected_fuel_litres:
+                fuel_efficiency_score = Decimal("100.0")
+            else:
+                excess_pct = ((actual_fuel_litres - expected_fuel_litres) / expected_fuel_litres) * Decimal("100.0")
+                deduction = excess_pct * Decimal("1.5")
+                fuel_efficiency_score = max(Decimal("0.0"), Decimal("100.0") - deduction)
+                fuel_efficiency_score = Decimal(str(round(fuel_efficiency_score, 2)))
+        else:
+            fuel_efficiency_score = Decimal("95.0")
+
+        composite = (
+            (punctuality_pct * Decimal("0.25")) +
+            (safety_score * Decimal("0.30")) +
+            (customer_rating_score * Decimal("0.25")) +
+            (fuel_efficiency_score * Decimal("0.20"))
+        )
+        composite = Decimal(str(round(composite, 2)))
+
+        if composite >= Decimal("95.0"): grade = "A+"
+        elif composite >= Decimal("85.0"): grade = "A"
+        elif composite >= Decimal("70.0"): grade = "B"
+        elif composite >= Decimal("55.0"): grade = "C"
+        else: grade = "D"
+
+        card, _ = DriverScorecard.objects.update_or_create(
+            driver=driver,
+            month=start_date,
+            period_type=period_type,
+            defaults={
+                "total_trips": total_trips,
+                "completed_trips": completed_trips,
+                "total_kms_driven": total_kms,
+                "on_time_trips": on_time_trips,
+                "delayed_trips": delayed_trips,
+                "punctuality_score": punctuality_pct,
+                "overspeeding_count": overspeeding_count,
+                "harsh_braking_count": harsh_braking_count,
+                "traffic_fines_count": traffic_fines_count,
+                "total_fine_amount": total_fine_amount,
+                "safety_score": safety_score,
+                "feedback_count": feedback_count,
+                "average_rating": avg_rating,
+                "customer_rating_score": customer_rating_score,
+                "expected_fuel_litres": expected_fuel_litres,
+                "actual_fuel_litres": actual_fuel_litres,
+                "fuel_efficiency_score": fuel_efficiency_score,
+                "overall_composite_score": composite,
+                "grade": grade,
+            }
+        )
+        scorecard_objs.append(card)
+
+    scorecard_objs.sort(key=lambda x: x.overall_composite_score, reverse=True)
+    return scorecard_objs
+

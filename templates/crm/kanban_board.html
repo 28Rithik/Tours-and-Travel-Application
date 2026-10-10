@@ -9,6 +9,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+
   <style>
     :root {
       --bg: #090d16;
@@ -25,6 +34,150 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
+
+    /* Light Mode Customizations */
+    html.light-mode, body.light-mode {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #059669;
+      --accent-glow: rgba(5, 150, 105, 0.2);
+      --danger: #dc2626;
+      --warning: #d97706;
+      --info: #0284c7;
+      --purple: #9333ea;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body.light-mode {
+      background: var(--bg);
+      color: var(--text);
+    }
+    body.light-mode .top-bar {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom-color: #e2e8f0;
+    }
+    body.light-mode .back-btn {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+    body.light-mode .back-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    body.light-mode .studio-title {
+      color: #0f172a;
+    }
+    body.light-mode .btn-outline {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+    body.light-mode .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    body.light-mode .view-toggle {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    body.light-mode .view-toggle-btn {
+      color: #475569;
+    }
+    body.light-mode .kpi-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .kpi-meta .kpi-num {
+      color: #0f172a;
+    }
+    body.light-mode .filter-bar {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    body.light-mode .filter-select,
+    body.light-mode .search-input {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    body.light-mode .kanban-col {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    body.light-mode .col-header {
+      background: #e2e8f0;
+      border-bottom-color: #cbd5e1;
+    }
+    body.light-mode .col-title {
+      color: #0f172a;
+    }
+    body.light-mode .col-count-badge {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+    }
+    body.light-mode .kanban-card {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .kanban-card:hover {
+      border-color: #94a3b8;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    }
+    body.light-mode .card-guest-name {
+      color: #0f172a;
+    }
+    body.light-mode .card-route-box {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    body.light-mode .card-circuit {
+      color: #0f172a;
+    }
+    body.light-mode .card-btn {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+    body.light-mode .card-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    body.light-mode .card-source-badge {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    body.light-mode .modal-box {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    body.light-mode .modal-box h3 {
+      color: #0f172a !important;
+    }
+    body.light-mode .form-input,
+    body.light-mode .form-select,
+    body.light-mode .form-textarea {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    body.light-mode #toast {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -608,6 +761,9 @@
     </div>
 
     <div class="action-group">
+      <button type="button" class="btn btn-outline" id="btnThemeToggle" title="Toggle Theme (Light / Dark)" style="padding: 9px 13px;">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
       <button type="button" class="btn btn-emerald" id="btnOpenNewLead">
         <i class="fa-solid fa-circle-plus"></i> + Log Inquiry
       </button>
@@ -1109,6 +1265,28 @@
         showToast(err.message, 'error');
       }
     };
+
+    // Theme Toggle Controller
+    function updateThemeUI() {
+      const isLight = document.documentElement.classList.contains('light-mode');
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+      }
+      if (isLight) {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+    document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      const newTheme = isLight ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('_x_adminTheme', newTheme);
+      updateThemeUI();
+    });
+    updateThemeUI();
   </script>
 </body>
 </html>

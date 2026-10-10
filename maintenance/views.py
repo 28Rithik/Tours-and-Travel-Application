@@ -267,3 +267,231 @@ def damage_inspection_print_certificate(request, inspection_id):
     return render(request, 'maintenance/damage_inspection_certificate.html', {'inspection': inspection})
 
 
+# ==============================================================================
+# PHASE 6: 2D AXLE & TIRE HEALTH STUDIO & FLEET PM ENGINE VIEWS
+# ==============================================================================
+
+@login_required
+def tire_studio_view(request):
+    """
+    Interactive 2D Axle & Tire Health Studio.
+    Provides visual blueprint of vehicle wheel assemblies (Sedan, SUV, Coach),
+    real-time tread wear progress gauges, 1-click rotation/retread actions,
+    and fleet PM health metrics.
+    """
+    from decimal import Decimal
+    from .models import VehicleAsset, ServiceReminder, DefectTicket, TireInspectionLog
+    from .pm_engine import evaluate_fleet_pm_triggers
+    from core.models import Vehicle
+
+    vehicle_id = request.GET.get('vehicle_id')
+    vehicles = Vehicle.objects.filter(status__in=['available', 'assigned', 'on_trip', 'maintenance']).order_by('registration_number')
+
+    selected_vehicle = None
+    if vehicle_id:
+        selected_vehicle = Vehicle.objects.filter(pk=vehicle_id).first()
+    if not selected_vehicle and vehicles.exists():
+        selected_vehicle = vehicles.first()
+
+    # Mounted tires on selected vehicle
+    mounted_tires = []
+    spare_tires = []
+    if selected_vehicle:
+        mounted_tires = VehicleAsset.objects.filter(
+            vehicle=selected_vehicle,
+            asset_type='tyre',
+            status='in_use'
+        ).order_by('position')
+
+        spare_tires = VehicleAsset.objects.filter(
+            vehicle=selected_vehicle,
+            asset_type='tyre',
+            status='spare'
+        )
+
+    # General fleet metrics
+    total_tires_monitored = VehicleAsset.objects.filter(asset_type='tyre').count()
+    critical_tires_count = VehicleAsset.objects.filter(
+        asset_type='tyre',
+        status='in_use',
+        current_tread_depth_mm__lte=Decimal('2.50')
+    ).count()
+    retreading_tires_count = VehicleAsset.objects.filter(
+        asset_type='tyre',
+        status='retreading'
+    ).count()
+    overdue_pm_count = DefectTicket.objects.filter(
+        status__in=['open', 'in_progress'],
+        reported_by__in=['Fleet PM Engine', 'Tire Safety Engine']
+    ).count()
+
+    # Recent inspections
+    recent_inspections = TireInspectionLog.objects.select_related('asset', 'asset__vehicle').order_by('-created_at')[:8]
+
+    context = {
+        'title': '2D Axle & Tire Health Studio',
+        'vehicles': vehicles,
+        'selected_vehicle': selected_vehicle,
+        'mounted_tires': mounted_tires,
+        'spare_tires': spare_tires,
+        'total_tires_monitored': total_tires_monitored,
+        'critical_tires_count': critical_tires_count,
+        'retreading_tires_count': retreading_tires_count,
+        'overdue_pm_count': overdue_pm_count,
+        'recent_inspections': recent_inspections,
+    }
+    return render(request, 'maintenance/tire_studio.html', context)
+
+
+@login_required
+def api_vehicle_tire_schematic(request, vehicle_id):
+    """
+    Returns JSON array of all mounted & spare tires for a given vehicle
+    formatted for the 2D visual chassis diagram.
+    """
+    from decimal import Decimal
+    from core.models import Vehicle
+    from .models import VehicleAsset
+
+    vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
+    tires = VehicleAsset.objects.filter(vehicle=vehicle, asset_type='tyre').order_by('position')
+
+    tires_data = []
+    for t in tires:
+        tires_data.append({
+            'id': t.id,
+            'serial_number': t.serial_number,
+            'brand': t.brand or "Standard",
+            'size': t.model_or_size or "",
+            'position': t.position,
+            'position_display': t.get_position_display(),
+            'status': t.status,
+            'status_display': t.get_status_display(),
+            'current_tread_depth_mm': float(t.current_tread_depth_mm or Decimal('12.00')),
+            'original_tread_depth_mm': float(t.original_tread_depth_mm or Decimal('12.00')),
+            'tread_wear_percent': t.tread_wear_percent,
+            'psi_pressure': t.psi_pressure,
+            'current_run_km': t.current_run_km,
+            'expected_life_km': t.expected_life_km or 40000,
+            'retread_count': t.retread_count,
+            'cost_per_km': float(t.cost_per_km),
+            'health_status': t.health_status,
+            'is_critical': t.is_critical_tread,
+            'is_warning': t.is_warning_tread,
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'vehicle': {
+            'id': vehicle.id,
+            'registration': vehicle.registration_number,
+            'brand_model': f"{vehicle.brand} {vehicle.model}".strip(),
+            'current_km': vehicle.current_km,
+        },
+        'tires': tires_data,
+        'total_tires': len(tires_data),
+    })
+
+
+@login_required
+def api_tire_inspect(request):
+    """POST endpoint to log physical tread & PSI inspection for a tyre."""
+    import json
+    from decimal import Decimal
+    from .pm_engine import log_tire_inspection
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        asset_id = int(data.get('asset_id'))
+        tread_mm = Decimal(str(data.get('tread_depth_mm', '10.00')))
+        psi = int(data.get('psi_pressure')) if data.get('psi_pressure') else None
+        odometer = int(data.get('odometer')) if data.get('odometer') else None
+        inspector = data.get('inspector_name', '').strip() or request.user.get_full_name() or request.user.username
+        notes = data.get('notes', '').strip()
+        action = data.get('action_taken', 'none')
+        irregular = bool(data.get('has_irregular_wear', False))
+
+        res = log_tire_inspection(
+            asset_id=asset_id,
+            tread_depth_mm=tread_mm,
+            psi_pressure=psi,
+            odometer=odometer,
+            inspector_name=inspector,
+            has_irregular_wear=irregular,
+            action_taken=action,
+            notes=notes
+        )
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def api_tire_rotate(request):
+    """POST endpoint to rotate tyre positions."""
+    import json
+    from .pm_engine import rotate_tire_asset
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        asset_id = int(data.get('asset_id'))
+        to_position = data.get('to_position')
+        notes = data.get('notes', '').strip()
+        odometer = int(data.get('odometer')) if data.get('odometer') else None
+
+        res = rotate_tire_asset(asset_id=asset_id, to_position=to_position, odometer=odometer, mechanic_notes=notes)
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def api_tire_retread(request):
+    """POST endpoint to send tyre for retread or return from retread."""
+    import json
+    from decimal import Decimal
+    from .pm_engine import send_tire_for_retread, return_tire_from_retread
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        action = data.get('action', 'send')
+        asset_id = int(data.get('asset_id'))
+
+        if action == 'send':
+            vendor = data.get('vendor_name', '').strip()
+            notes = data.get('notes', '').strip()
+            res = send_tire_for_retread(asset_id=asset_id, vendor_name=vendor, notes=notes)
+        elif action == 'return':
+            new_tread = Decimal(str(data.get('new_tread_depth_mm', '10.00')))
+            cost = Decimal(str(data.get('cost', '0.00')))
+            notes = data.get('notes', '').strip()
+            res = return_tire_from_retread(asset_id=asset_id, new_tread_depth_mm=new_tread, cost=cost, notes=notes)
+        else:
+            return JsonResponse({'status': 'error', 'message': f"Unknown action: {action}"}, status=400)
+
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def api_pm_engine_evaluate(request):
+    """POST endpoint to trigger fleet-wide preventative maintenance and tire safety evaluation."""
+    from .pm_engine import evaluate_fleet_pm_triggers
+
+    vehicle_id = request.POST.get('vehicle_id') or request.GET.get('vehicle_id')
+    v_id = int(vehicle_id) if vehicle_id else None
+
+    result = evaluate_fleet_pm_triggers(vehicle_id=v_id, create_tickets=True)
+    return JsonResponse(result)
+
+

@@ -43,7 +43,7 @@
   .health-score {
     font-size: 32px;
     font-weight: 800;
-    font-family: Georgia, serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
     color: #4ade80;
   }
   .health-label {
@@ -70,7 +70,7 @@
     display: flex;
     gap: 8px;
     margin-bottom: 22px;
-    border-bottom: 2px solid var(--line);
+    border-bottom: 2px solid var(--border-color, #e2e8f0);
     padding-bottom: 2px;
   }
   .tab-trigger {
@@ -78,18 +78,43 @@
     background: transparent;
     border: 0;
     border-bottom: 3px solid transparent;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
-    color: var(--muted);
+    color: var(--text-muted, #64748b);
     cursor: pointer;
     margin-bottom: -2px;
+    transition: all 0.15s ease;
+  }
+  .tab-trigger:hover {
+    color: var(--text-main, #0f172a);
   }
   .tab-trigger.active {
-    color: var(--teal);
-    border-bottom-color: var(--teal);
+    color: var(--primary, #0284c7);
+    border-bottom-color: var(--primary, #0284c7);
   }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
+
+  /* Dark mode overrides */
+  html.dark .tab-nav {
+    border-bottom-color: var(--border-color);
+  }
+  html.dark .tab-trigger {
+    color: var(--text-muted);
+  }
+  html.dark .tab-trigger:hover {
+    color: var(--text-main);
+  }
+  html.dark .tab-trigger.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+  html.dark .data-table tr[style*="#fff5f5"] {
+    background: rgba(239, 68, 68, 0.12) !important;
+  }
+  html.dark .data-table tr[style*="#fffaf0"] {
+    background: rgba(245, 158, 11, 0.12) !important;
+  }
 </style>
 
 <!-- Hero Section -->

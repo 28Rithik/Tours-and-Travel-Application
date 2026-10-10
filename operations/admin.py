@@ -343,7 +343,7 @@ class TripItineraryDayAdmin(ModelAdmin):
 
 	@admin.display(description="Day")
 	def day_number_badge(self, obj):
-		return format_html('<span style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 700;">Day {:02d}</span>', obj.day_number)
+		return format_html('<span style="background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 4px; font-weight: 700;">Day {}</span>', f"{obj.day_number:02d}")
 
 	@admin.display(description="Hotel Status")
 	def hotel_status_badge(self, obj):
@@ -394,11 +394,15 @@ class TripAdmin(ModelAdmin):
 
 	@admin.display(description="7-Milestone Tour Cockpit")
 	def lifecycle_portal_link(self, obj):
+		if not obj or not getattr(obj, 'pk', None):
+			return mark_safe('<span style="color: #94a3b8; font-size: 11px;">Available after saving trip</span>')
 		url = reverse('trip-lifecycle-portal', args=[obj.pk])
 		return format_html('<a href="{}" target="_blank" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; text-decoration: none;">🚀 Open 7-Milestone Tour Cockpit</a>', url)
 
 	@admin.display(description="Day-by-Day Itinerary Builder & Guest Portal")
 	def itinerary_builder_link(self, obj):
+		if not obj or not getattr(obj, 'pk', None):
+			return mark_safe('<span style="color: #94a3b8; font-size: 11px;">Available after saving trip</span>')
 		url = reverse('admin-trip-itinerary-builder', args=[obj.pk])
 		guest_url = obj.guest_itinerary_url
 		return format_html(

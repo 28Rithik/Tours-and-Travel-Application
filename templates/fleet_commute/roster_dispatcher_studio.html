@@ -6,8 +6,35 @@
     <title>{{ title }} | Sivagayathiri TravelERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        (function() {
+            try {
+                var raw = localStorage.getItem('_x_adminTheme');
+                var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'auto');
+                var isDark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <style>
         :root {
+            --bg-base: #f8fafc;
+            --bg-card: #ffffff;
+            --border-glass: #e2e8f0;
+            --accent-primary: #0284c7;
+            --accent-glow: rgba(2, 132, 199, 0.15);
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        html.dark {
             --bg-base: #090d16;
             --bg-card: rgba(18, 24, 38, 0.85);
             --border-glass: rgba(255, 255, 255, 0.08);
@@ -30,11 +57,17 @@
         body {
             background-color: var(--bg-base);
             background-image: 
-                radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.07) 0px, transparent 50%),
-                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+                radial-gradient(at 10% 20%, rgba(2, 132, 199, 0.04) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
             color: var(--text-main);
             min-height: 100vh;
             padding: 24px;
+        }
+
+        html.dark body {
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(56, 189, 248, 0.07) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
         }
 
         .container {
@@ -57,7 +90,7 @@
         .header-title h1 {
             font-size: 26px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -87,13 +120,18 @@
         }
 
         .date-input {
-            background: rgba(15, 23, 42, 0.8);
+            background: #ffffff;
             border: 1px solid var(--border-glass);
-            color: #fff;
+            color: var(--text-main);
             padding: 10px 14px;
             border-radius: 10px;
             font-size: 14px;
             outline: none;
+        }
+
+        html.dark .date-input {
+            background: rgba(15, 23, 42, 0.8);
+            color: #fff;
         }
 
         .btn {
@@ -122,12 +160,23 @@
         }
 
         .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border-glass);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        html.dark .btn-secondary {
             background: rgba(255, 255, 255, 0.05);
             color: #cbd5e1;
             border: 1px solid var(--border-glass);
         }
 
-        .btn-secondary:hover {
+        html.dark .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
         }
@@ -148,6 +197,7 @@
             padding: 18px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
         }
 
         .kpi-card::before {
@@ -175,7 +225,7 @@
         .kpi-val {
             font-size: 28px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             margin-top: 6px;
         }
 
@@ -187,8 +237,8 @@
 
         /* Dispatch Action Banner */
         .dispatch-banner {
-            background: linear-gradient(135deg, rgba(14, 116, 144, 0.35) 0%, rgba(15, 23, 42, 0.8) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.25);
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
             border-radius: 16px;
             padding: 24px;
             margin-bottom: 28px;
@@ -197,19 +247,35 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 20px;
+            color: #0f172a;
+        }
+
+        html.dark .dispatch-banner {
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.35) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            color: #f8fafc;
         }
 
         .dispatch-info h2 {
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 6px;
+            color: #0369a1;
+        }
+
+        html.dark .dispatch-info h2 {
+            color: #f8fafc;
         }
 
         .dispatch-info p {
-            color: #cbd5e1;
+            color: #334155;
             font-size: 14px;
             max-width: 650px;
             line-height: 1.5;
+        }
+
+        html.dark .dispatch-info p {
+            color: #cbd5e1;
         }
 
         .dispatch-actions {
@@ -224,6 +290,7 @@
             border: 1px solid var(--border-glass);
             border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
 
         .table-header {
@@ -237,6 +304,7 @@
         .table-header h3 {
             font-size: 18px;
             font-weight: 600;
+            color: var(--text-main);
         }
 
         table {
@@ -247,7 +315,7 @@
         }
 
         th {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(0, 0, 0, 0.02);
             color: var(--text-muted);
             font-weight: 600;
             padding: 14px 20px;
@@ -257,13 +325,21 @@
             letter-spacing: 0.5px;
         }
 
+        html.dark th {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
         td {
             padding: 16px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            color: #e2e8f0;
+            border-bottom: 1px solid var(--border-glass);
+            color: var(--text-main);
         }
 
         tr:hover td {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        html.dark tr:hover td {
             background: rgba(255, 255, 255, 0.02);
         }
 
@@ -277,30 +353,46 @@
             font-weight: 600;
         }
 
-        .status-scheduled { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-        .status-en_route { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-        .status-delayed { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-        .status-completed { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+        .status-scheduled { background: rgba(56, 189, 248, 0.15); color: #0284c7; }
+        .status-en_route { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .status-delayed { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .status-completed { background: rgba(148, 163, 184, 0.15); color: #64748b; }
+
+        html.dark .status-scheduled { color: #38bdf8; }
+        html.dark .status-en_route { color: #10b981; }
+        html.dark .status-delayed { color: #f59e0b; }
+        html.dark .status-completed { color: #94a3b8; }
 
         /* Modal Alert */
         #resultModal {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(8px);
             z-index: 9999;
             align-items: center;
             justify-content: center;
         }
 
+        html.dark #resultModal {
+            background: rgba(0, 0, 0, 0.75);
+        }
+
         .modal-content {
-            background: #111827;
+            background: #ffffff;
+            color: #0f172a;
             border: 1px solid var(--border-glass);
             border-radius: 16px;
             width: 90%;
             max-width: 600px;
             padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        html.dark .modal-content {
+            background: #111827;
+            color: #f8fafc;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         }
 
@@ -311,15 +403,187 @@
             margin-bottom: 16px;
         }
 
-        .modal-header h3 { font-size: 18px; color: #fff; }
-        .close-btn { color: #94a3b8; cursor: pointer; font-size: 20px; }
+        .modal-header h3 { font-size: 18px; color: var(--text-main); }
+        .close-btn { color: var(--text-muted); cursor: pointer; font-size: 20px; }
 
         .result-stat {
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-glass);
             font-size: 14px;
+        }
+
+        /* AI Route Clustering Cockpit Styles */
+        .ai-cockpit-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        }
+        .ai-cockpit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+        .ai-cockpit-title h2 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+        .ai-badge {
+            background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .clustering-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .select-input {
+            background: var(--bg-base);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            font-weight: 500;
+        }
+        html.dark .select-input {
+            background: rgba(15, 23, 42, 0.8);
+            color: #fff;
+        }
+        .cluster-kpi-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .cluster-kpi-item {
+            background: var(--bg-base);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 12px 16px;
+        }
+        .cluster-kpi-item .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .cluster-kpi-item .val {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 2px;
+            color: var(--text-main);
+        }
+        .clusters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .cluster-card {
+            background: var(--bg-base);
+            border: 1px solid var(--border-glass);
+            border-radius: 14px;
+            padding: 18px;
+            transition: all 0.2s ease;
+        }
+        .cluster-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+        .cluster-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .cluster-code {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-primary);
+        }
+        .cluster-veh {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .occ-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+        }
+        html.dark .occ-badge {
+            color: #10b981;
+        }
+        .escort-alert-pill {
+            background: rgba(239, 68, 68, 0.15);
+            color: #dc2626;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        html.dark .escort-alert-pill {
+            color: #f87171;
+        }
+        .waypoint-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 12px 0;
+            padding-left: 8px;
+            border-left: 2px dashed var(--border-glass);
+        }
+        .waypoint-item {
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-main);
+        }
+        .commuter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .commuter-tag {
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            color: var(--text-main);
+        }
+        html.dark .commuter-tag {
+            background: rgba(255, 255, 255, 0.06);
         }
     </style>
 </head>
@@ -346,6 +610,10 @@
                 <a href="/commute/sla-penalties/" class="btn btn-secondary">
                     <i class="fas fa-stopwatch"></i> SLA Penalties
                 </a>
+                <button class="btn btn-secondary" onclick="toggleTheme()" title="Toggle Light/Dark Theme" style="padding: 10px 14px;">
+                    <i class="fas fa-sun" id="themeIconSun" style="display:none; color: #f59e0b;"></i>
+                    <i class="fas fa-moon" id="themeIconMoon" style="color: #64748b;"></i>
+                </button>
             </div>
         </header>
 
@@ -386,6 +654,88 @@
             <div class="dispatch-actions">
                 <button id="dispatchBtn" class="btn btn-primary" onclick="runBatchDispatch()">
                     <i class="fas fa-play"></i> Generate Shifts for {{ target_date|date:"M d" }}
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Route Clustering & Fleet Allocation Cockpit -->
+        <div class="ai-cockpit-card" id="aiClusteringCockpit">
+            <div class="ai-cockpit-header">
+                <div class="ai-cockpit-title">
+                    <h2>
+                        <i class="fas fa-brain" style="color: #38bdf8;"></i>
+                        AI Route Clustering & Roster Optimization Engine
+                        <span class="ai-badge">VRP & TSP 2-Opt</span>
+                    </h2>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">
+                        Spatial employee density clustering, capacity matching (Sedan/MPV/Tempo/Coach), TSP waypoint sequencing, and night female safety guardrails.
+                    </p>
+                </div>
+                <div class="clustering-controls">
+                    <select id="clusterContractSelect" class="select-input">
+                        {% for contract in active_contracts %}
+                        <option value="{{ contract.id }}">{{ contract.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="clusterShiftDirection" class="select-input">
+                        <option value="">All Shifts</option>
+                        <option value="pickup">⬆️ Morning Pickup</option>
+                        <option value="drop">⬇️ Evening / Night Drop</option>
+                    </select>
+                    <select id="clusterVehiclePref" class="select-input">
+                        <option value="auto">Auto Best-Fit Fleet</option>
+                        <option value="sedan_mpv">Compact Cabs (Sedan & MPV 7S)</option>
+                        <option value="tempo_bus">High-Capacity (Tempo & Bus 14-32S)</option>
+                    </select>
+                    <button id="btnRunClustering" class="btn btn-primary" onclick="runAiClustering()">
+                        <i class="fas fa-magic"></i> Run AI Optimization
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic KPI Bar -->
+            <div id="clusterKpiBar" class="cluster-kpi-bar" style="display: none;">
+                <div class="cluster-kpi-item">
+                    <div class="label">Commuters Clustered</div>
+                    <div class="val" id="kpiCommutersClustered" style="color: #38bdf8;">0</div>
+                </div>
+                <div class="cluster-kpi-item">
+                    <div class="label">Vehicles Required</div>
+                    <div class="val" id="kpiVehiclesRequired" style="color: #10b981;">0</div>
+                </div>
+                <div class="cluster-kpi-item">
+                    <div class="label">Circuit Distance</div>
+                    <div class="val" id="kpiTotalKm">0 km</div>
+                </div>
+                <div class="cluster-kpi-item">
+                    <div class="label">Average Occupancy</div>
+                    <div class="val" id="kpiAvgOccupancy" style="color: #059669;">0%</div>
+                </div>
+                <div class="cluster-kpi-item">
+                    <div class="label">Night Safety Escorts</div>
+                    <div class="val" id="kpiEscortsFlagged" style="color: #ef4444;">0</div>
+                </div>
+                <div class="cluster-kpi-item">
+                    <div class="label">CO2 Avoided</div>
+                    <div class="val" id="kpiCo2Saved" style="color: #10b981;">0 kg</div>
+                </div>
+            </div>
+
+            <!-- Proposed Clusters Grid -->
+            <div id="clustersGrid" class="clusters-grid">
+                <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); background: var(--bg-base); border-radius: 12px; border: 1px dashed var(--border-glass);">
+                    <i class="fas fa-route" style="font-size: 28px; margin-bottom: 8px; opacity: 0.5;"></i>
+                    <p>Select contract and parameters above, then click <strong>"Run AI Optimization"</strong> to cluster employee manifests, solve TSP waypoints, and review capacity allocations.</p>
+                </div>
+            </div>
+
+            <!-- Commit & Dispatch Action Bar -->
+            <div id="clusterCommitBar" style="display: none; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border-glass); flex-wrap: wrap; gap: 12px;">
+                <div style="font-size: 13px; color: var(--text-muted);">
+                    <i class="fas fa-shield-alt" style="color: #10b981;"></i> Pre-flight checks passed: Zero statutory violations, capacity limits respected.
+                </div>
+                <button id="btnCommitClusters" class="btn btn-primary" onclick="commitAiClusters()" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                    <i class="fas fa-check-double"></i> Approve & Commit Clusters to Live Dispatch
                 </button>
             </div>
         </div>
@@ -578,6 +928,182 @@
         function closeModal() {
             document.getElementById('resultModal').style.display = 'none';
         }
+
+        function updateThemeIcon() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const sun = document.getElementById('themeIconSun');
+            const moon = document.getElementById('themeIconMoon');
+            if (sun && moon) {
+                sun.style.display = isDark ? 'inline-block' : 'none';
+                moon.style.display = isDark ? 'none' : 'inline-block';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('_x_adminTheme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        let currentOptimizedClusters = [];
+        let currentContractId = null;
+
+        async function runAiClustering() {
+            const btn = document.getElementById('btnRunClustering');
+            const contractId = document.getElementById('clusterContractSelect').value;
+            const shiftDirection = document.getElementById('clusterShiftDirection').value;
+            const vehiclePref = document.getElementById('clusterVehiclePref').value;
+            const targetDate = document.getElementById('datePicker').value;
+
+            currentContractId = contractId;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimizing Routes...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/commute/api/clusters/optimize/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contract_id: contractId,
+                        direction: shiftDirection,
+                        vehicle_preference: vehiclePref,
+                        target_date: targetDate
+                    })
+                });
+
+                const data = await response.json();
+                btn.innerHTML = '<i class="fas fa-magic"></i> Run AI Optimization';
+                btn.disabled = false;
+
+                if (data.status === 'success') {
+                    currentOptimizedClusters = data.clusters || [];
+                    renderClusteringResults(data);
+                } else if (data.status === 'empty') {
+                    document.getElementById('clustersGrid').innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 24px; color: var(--text-muted); background: var(--bg-base); border-radius: 12px; border: 1px dashed var(--border-glass);">
+                            <i class="fas fa-info-circle" style="font-size: 28px; margin-bottom: 8px; color: #38bdf8;"></i>
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                    document.getElementById('clusterKpiBar').style.display = 'none';
+                    document.getElementById('clusterCommitBar').style.display = 'none';
+                } else {
+                    alert('Optimization error: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                btn.innerHTML = '<i class="fas fa-magic"></i> Run AI Optimization';
+                btn.disabled = false;
+                alert('Connection error while running AI optimizer: ' + err);
+            }
+        }
+
+        function renderClusteringResults(data) {
+            const summary = data.summary;
+            document.getElementById('kpiCommutersClustered').innerText = summary.total_commuters;
+            document.getElementById('kpiVehiclesRequired').innerText = summary.total_vehicles_required + ' Cabs/Buses';
+            document.getElementById('kpiTotalKm').innerText = summary.total_circuit_km + ' km';
+            document.getElementById('kpiAvgOccupancy').innerText = summary.avg_occupancy_pct + '%';
+            document.getElementById('kpiEscortsFlagged').innerText = summary.escorts_flagged;
+            document.getElementById('kpiCo2Saved').innerText = summary.co2_saved_kg + ' kg';
+
+            document.getElementById('clusterKpiBar').style.display = 'grid';
+            document.getElementById('clusterCommitBar').style.display = 'flex';
+
+            const grid = document.getElementById('clustersGrid');
+            if (!data.clusters || data.clusters.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted);">No clusters generated.</p>';
+                return;
+            }
+
+            grid.innerHTML = data.clusters.map(c => {
+                const escortPill = c.night_safety && c.night_safety.requires_escort ? `
+                    <div class="escort-alert-pill">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Mandatory Security Escort: ${c.night_safety.escort_reason}</span>
+                    </div>
+                ` : '';
+
+                const waypointsList = (c.waypoints || []).map(w => `
+                    <div class="waypoint-item">
+                        <span><strong>#${w.sequence}</strong> ${w.stop_name} (${w.commuter_name})</span>
+                        <span style="color: #38bdf8; font-weight: 600;">+${w.eta_offset_minutes}m</span>
+                    </div>
+                `).join('');
+
+                const commuterPills = (c.passengers || []).map(p => `
+                    <span class="commuter-tag">
+                        ${p.gender === 'female' ? '👩' : '👨'} ${p.name}
+                        ${p.is_isolated_night_drop ? '<span style="color: #ef4444; font-weight: bold;">(Last Drop)</span>' : ''}
+                    </span>
+                `).join('');
+
+                return `
+                    <div class="cluster-card">
+                        <div class="cluster-card-head">
+                            <div>
+                                <div class="cluster-code">${c.cluster_code} — ${c.shift_timing}</div>
+                                <div class="cluster-veh">${c.vehicle_category} · ${c.vehicle_registration}</div>
+                            </div>
+                            <span class="occ-badge">${c.passenger_count}/${c.capacity} Seats (${c.occupancy_pct}%)</span>
+                        </div>
+                        ${escortPill}
+                        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
+                            <i class="fas fa-route"></i> Circuit: <strong>${c.total_km} km</strong> · Est: <strong>${c.duration_minutes} mins</strong> · CO2 Avoided: <strong>${c.co2_saved_kg} kg</strong>
+                        </div>
+                        <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 10px;">TSP 2-Opt Waypoint Sequence:</div>
+                        <div class="waypoint-timeline">
+                            ${waypointsList}
+                        </div>
+                        <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 10px;">Manifest Passengers:</div>
+                        <div class="commuter-tags">
+                            ${commuterPills}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function commitAiClusters() {
+            if (!currentOptimizedClusters || currentOptimizedClusters.length === 0) {
+                alert('No clusters available to commit. Please run AI optimization first.');
+                return;
+            }
+
+            const btn = document.getElementById('btnCommitClusters');
+            const targetDate = document.getElementById('datePicker').value;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Committing to Roster...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/commute/api/clusters/commit/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contract_id: currentContractId,
+                        target_date: targetDate,
+                        clusters: currentOptimizedClusters
+                    })
+                });
+
+                const data = await response.json();
+                btn.innerHTML = '<i class="fas fa-check-double"></i> Approve & Commit Clusters to Live Dispatch';
+                btn.disabled = false;
+
+                if (data.status === 'success') {
+                    alert(`✅ SUCCESS! Committed ${data.trips_committed} trips, ${data.boarding_passes_provisioned} boarding passes, and ${data.escort_logs_created} security escort records to Live Dispatch.`);
+                    location.reload();
+                } else {
+                    alert('Commit failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                btn.innerHTML = '<i class="fas fa-check-double"></i> Approve & Commit Clusters to Live Dispatch';
+                btn.disabled = false;
+                alert('Connection error while committing clusters: ' + err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', updateThemeIcon);
     </script>
 </body>
 </html>

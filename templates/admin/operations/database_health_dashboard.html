@@ -1,0 +1,592 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Database Health Dashboard — TravelERP{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block content %}
+<style>
+  /* ── Design System ──────────────────────────────────────── */
+  :root {
+    --dh-bg: #f8fafc;
+    --dh-surface: #ffffff;
+    --dh-surface-2: #f1f5f9;
+    --dh-border: #e2e8f0;
+    --dh-accent: #0284c7;
+    --dh-accent-glow: rgba(2, 132, 199, 0.2);
+    --dh-success: #10b981;
+    --dh-success-glow: rgba(16, 185, 129, 0.15);
+    --dh-warning: #f59e0b;
+    --dh-warning-glow: rgba(245, 158, 11, 0.15);
+    --dh-danger: #ef4444;
+    --dh-danger-glow: rgba(239, 68, 68, 0.15);
+    --dh-text: #0f172a;
+    --dh-text-muted: #64748b;
+    --dh-radius: 16px;
+    --dh-radius-sm: 10px;
+    --dh-glass: #ffffff;
+    --dh-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap');
+
+  .dh-wrapper {
+    font-family: var(--dh-font);
+    background: var(--dh-bg);
+    min-height: 100vh;
+    padding: 32px;
+    color: var(--dh-text);
+  }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  .dh-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .dh-header-left { display: flex; align-items: center; gap: 16px; }
+  .dh-header-icon {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, var(--dh-accent), #0284c7);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    color: #ffffff;
+    box-shadow: 0 8px 24px var(--dh-accent-glow);
+  }
+  .dh-header h1 {
+    font-size: 26px; font-weight: 800; margin: 0;
+    color: #0f172a;
+  }
+  .dh-header p { margin: 4px 0 0; color: var(--dh-text-muted); font-size: 14px; }
+
+  .dh-btn-refresh {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border: none; border-radius: var(--dh-radius-sm);
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px var(--dh-accent-glow);
+    font-family: var(--dh-font);
+  }
+  .dh-btn-refresh:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--dh-accent-glow); }
+  .dh-btn-refresh.loading .dh-btn-icon { animation: dh-spin 1s linear infinite; }
+  @keyframes dh-spin { to { transform: rotate(360deg); } }
+
+  /* ── Compliance Ring ────────────────────────────────────── */
+  .dh-ring-panel {
+    background: #ffffff;
+    border: 1px solid var(--dh-border);
+    border-radius: var(--dh-radius);
+    padding: 36px;
+    display: flex; align-items: center; justify-content: center; gap: 64px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+  }
+  .dh-ring-container { position: relative; width: 200px; height: 200px; }
+  .dh-ring-svg { width: 200px; height: 200px; transform: rotate(-90deg); }
+  .dh-ring-bg { fill: none; stroke: #e2e8f0; stroke-width: 12; }
+  .dh-ring-progress {
+    fill: none; stroke-width: 12; stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s;
+  }
+  .dh-ring-label {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .dh-ring-pct {
+    font-size: 48px; font-weight: 900; line-height: 1;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--dh-text);
+  }
+  .dh-ring-sub { font-size: 13px; color: var(--dh-text-muted); margin-top: 4px; font-weight: 700; }
+
+  .dh-stats-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  }
+  .dh-stat-card {
+    background: #f8fafc;
+    border: 1px solid var(--dh-border);
+    border-radius: var(--dh-radius-sm);
+    padding: 20px 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .dh-stat-card:hover { border-color: var(--dh-accent); transform: translateY(-2px); }
+  .dh-stat-value {
+    font-size: 32px; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: #0f172a;
+  }
+  .dh-stat-label { font-size: 12px; color: var(--dh-text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+
+  /* ── Entity Counters ────────────────────────────────────── */
+  .dh-counters {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 28px;
+  }
+  .dh-counter-chip {
+    background: #ffffff;
+    border: 1px solid var(--dh-border);
+    border-radius: var(--dh-radius-sm);
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  }
+  .dh-counter-chip:hover { border-color: var(--dh-accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(2, 132, 199, 0.12); }
+  .dh-counter-val {
+    font-size: 24px; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--dh-accent);
+  }
+  .dh-counter-name { font-size: 11px; color: var(--dh-text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+
+  /* ── Audit Category Panels ──────────────────────────────── */
+  .dh-categories { display: flex; flex-direction: column; gap: 16px; }
+  .dh-cat-panel {
+    background: #ffffff;
+    border: 1px solid var(--dh-border);
+    border-radius: var(--dh-radius);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  }
+  .dh-cat-panel:hover { border-color: rgba(2, 132, 199, 0.35); box-shadow: 0 6px 18px rgba(2, 132, 199, 0.08); }
+  .dh-cat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease;
+  }
+  .dh-cat-header:hover { background: #f8fafc; }
+  .dh-cat-header-left { display: flex; align-items: center; gap: 14px; }
+  .dh-cat-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .dh-cat-icon.pass { background: var(--dh-success-glow); }
+  .dh-cat-icon.fail { background: var(--dh-danger-glow); }
+  .dh-cat-title { font-weight: 700; font-size: 16px; }
+  .dh-cat-badge {
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .dh-cat-badge.pass { background: var(--dh-success-glow); color: var(--dh-success); }
+  .dh-cat-badge.fail { background: var(--dh-danger-glow); color: var(--dh-danger); }
+  .dh-cat-chevron {
+    font-size: 20px; color: var(--dh-text-muted);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .dh-cat-panel.open .dh-cat-chevron { transform: rotate(180deg); }
+  .dh-cat-body {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .dh-cat-panel.open .dh-cat-body { max-height: 2000px; }
+  .dh-checks-list { padding: 0 24px 20px; }
+  .dh-check-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .dh-check-row:last-child { border-bottom: none; }
+  .dh-check-status {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .dh-check-status.pass { background: var(--dh-success-glow); color: var(--dh-success); }
+  .dh-check-status.fail { background: var(--dh-danger-glow); color: var(--dh-danger); }
+  .dh-check-info { flex: 1; }
+  .dh-check-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .dh-check-detail { font-size: 13px; color: var(--dh-text-muted); margin-bottom: 2px; }
+  .dh-check-rule {
+    font-size: 12px; color: var(--dh-accent);
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.8;
+  }
+
+  /* ── Timestamp Footer ───────────────────────────────────── */
+  .dh-footer {
+    margin-top: 32px;
+    padding: 16px 24px;
+    background: var(--dh-glass);
+    border: 1px solid var(--dh-border);
+    border-radius: var(--dh-radius-sm);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 13px; color: var(--dh-text-muted);
+    flex-wrap: wrap; gap: 8px;
+  }
+  .dh-footer-live {
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .dh-live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--dh-success);
+    animation: dh-blink 2s ease-in-out infinite;
+  }
+  @keyframes dh-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── Loading Skeleton ───────────────────────────────────── */
+  .dh-skeleton {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 60vh; gap: 24px;
+  }
+  .dh-skeleton-spinner {
+    width: 64px; height: 64px;
+    border: 4px solid var(--dh-border);
+    border-top-color: var(--dh-accent);
+    border-radius: 50%;
+    animation: dh-spin 0.8s linear infinite;
+  }
+  .dh-skeleton-text { color: var(--dh-text-muted); font-size: 16px; font-weight: 500; }
+
+  /* ── Deep Mode Toggle ───────────────────────────────────── */
+  .dh-deep-toggle {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 18px;
+    background: var(--dh-surface-2);
+    border: 1px solid var(--dh-border);
+    border-radius: var(--dh-radius-sm);
+    font-size: 13px; color: var(--dh-text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .dh-deep-toggle:hover { border-color: var(--dh-accent); }
+  .dh-deep-toggle input[type="checkbox"] {
+    accent-color: var(--dh-accent);
+    width: 16px; height: 16px;
+  }
+
+  @media (max-width: 768px) {
+    .dh-wrapper { padding: 16px; }
+    .dh-ring-panel { flex-direction: column; gap: 24px; padding: 24px; }
+    .dh-stats-grid { grid-template-columns: 1fr; }
+    .dh-counters { grid-template-columns: repeat(3, 1fr); }
+    .dh-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+
+<div class="dh-wrapper" id="dhDashboard">
+  <!-- Loading State -->
+  <div class="dh-skeleton" id="dhLoading">
+    <div class="dh-skeleton-spinner"></div>
+    <div class="dh-skeleton-text">Running full database integrity audit…</div>
+  </div>
+
+  <!-- Dashboard Content (hidden until loaded) -->
+  <div id="dhContent" style="display:none;">
+
+    <!-- Header -->
+    <div class="dh-header">
+      <div class="dh-header-left">
+        <div class="dh-header-icon">🛡️</div>
+        <div>
+          <h1>Database Health Dashboard</h1>
+          <p>Real-time normalization, referential integrity & compliance audit</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <label class="dh-deep-toggle">
+          <input type="checkbox" id="dhDeepMode" checked>
+          Deep Scan Mode
+        </label>
+        <button class="dh-btn-refresh" id="dhSnapshotBtn" onclick="dhCreateSnapshot()" style="background: linear-gradient(135deg, #10b981, #059669); border: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+          <span class="dh-btn-icon">💾</span> Take DB Snapshot
+        </button>
+        <button class="dh-btn-refresh" id="dhMaintenanceBtn" onclick="dhRunMaintenanceBatch()" style="background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);">
+          <span class="dh-btn-icon">⚡</span> Run Nightly Batch Now
+        </button>
+        <button class="dh-btn-refresh" id="dhRefreshBtn" onclick="dhRunAudit()">
+          <span class="dh-btn-icon">↻</span> Re-Run Audit
+        </button>
+      </div>
+    </div>
+
+    <!-- Compliance Ring + Summary Stats -->
+    <div class="dh-ring-panel">
+      <div class="dh-ring-container">
+        <svg class="dh-ring-svg" viewBox="0 0 200 200">
+          <circle class="dh-ring-bg" cx="100" cy="100" r="88"/>
+          <circle class="dh-ring-progress" id="dhRingProgress" cx="100" cy="100" r="88"
+                  stroke-dasharray="553" stroke-dashoffset="553"/>
+        </svg>
+        <div class="dh-ring-label">
+          <div class="dh-ring-pct" id="dhRingPct">—</div>
+          <div class="dh-ring-sub">Compliance</div>
+        </div>
+      </div>
+      <div class="dh-stats-grid">
+        <div class="dh-stat-card">
+          <div class="dh-stat-value" id="dhTotalChecks">—</div>
+          <div class="dh-stat-label">Total Checks</div>
+        </div>
+        <div class="dh-stat-card">
+          <div class="dh-stat-value" id="dhPassedChecks" style="color:var(--dh-success);-webkit-text-fill-color:var(--dh-success);">—</div>
+          <div class="dh-stat-label">Passed</div>
+        </div>
+        <div class="dh-stat-card">
+          <div class="dh-stat-value" id="dhFailedChecks" style="color:var(--dh-danger);-webkit-text-fill-color:var(--dh-danger);">—</div>
+          <div class="dh-stat-label">Warnings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entity Counters -->
+    <div class="dh-counters" id="dhCounters"></div>
+
+    <!-- Audit Categories -->
+    <div class="dh-categories" id="dhCategories"></div>
+
+    <!-- Footer -->
+    <div class="dh-footer">
+      <div class="dh-footer-live">
+        <span class="dh-live-dot"></span>
+        <span>Last audit: <strong id="dhTimestamp">—</strong></span>
+      </div>
+      <div>
+        TravelERP Database Health Service v1.0 · Powered by
+        <span style="color:var(--dh-accent);">operations.database_health_service</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const CATEGORY_META = {
+    referential_integrity: { icon: '🔗', color: '#38bdf8' },
+    mathematical_constraints: { icon: '🧮', color: '#a78bfa' },
+    statutory_compliance: { icon: '📋', color: '#fbbf24' },
+    form_validation: { icon: '📝', color: '#34d399' },
+    cross_app_connectivity: { icon: '🌐', color: '#f472b6' },
+  };
+
+  const COUNTER_ICONS = {
+    parties: '👥', vehicles: '🚐', drivers: '🧑‍✈️', bookings: '📋',
+    trips: '🗺️', contracts: '📑', contract_trips: '📊',
+    trip_expenses: '💸', supplier_costs: '🏭', fuel_records: '⛽', payments: '💳',
+  };
+
+  window.dhCreateSnapshot = async function() {
+    const btn = document.getElementById('dhSnapshotBtn');
+    btn.disabled = true;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="dh-btn-icon">⏳</span> Backing up…';
+    try {
+      const res = await fetch('/api/database-health/snapshot/', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        const s = data.snapshot;
+        alert(`✅ Point-in-time Database Snapshot successfully created!\n\nFile: ${s.filename}\nSize: ${s.file_size_mb} MB (${s.file_size_bytes.toLocaleString()} bytes)\nChecksum: ${s.sha256_checksum.substring(0, 16)}...\nAudited Rows: ${Object.values(s.entity_counts).reduce((a,b)=>a+b,0).toLocaleString()}`);
+      } else {
+        alert('Snapshot error: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Snapshot failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldHtml;
+    }
+  };
+
+  window.dhRunMaintenanceBatch = async function() {
+    const btn = document.getElementById('dhMaintenanceBtn');
+    btn.disabled = true;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="dh-btn-icon">⏳</span> Running Batch…';
+    try {
+      const res = await fetch('/api/database-health/maintenance/', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'completed') {
+        const b = data.backup_job || {};
+        const w = data.compliance_watchdog || {};
+        alert(`⚡ Automated Maintenance Batch Completed!\n\n` +
+              `📦 Backup: ${b.status} (${b.latest_snapshot}, ${b.size_mb} MB)\n` +
+              `🛡️ Compliance Alerts: ${w.total_vehicle_alerts} Vehicles, ${w.total_driver_alerts} Drivers\n` +
+              `🚨 Critical Alerts Dispatched: ${w.critical_count} (Arattai Siren: ${w.arattai_dispatched ? 'Active' : 'None'})\n` +
+              `🔄 Snapshots Retained: ${b.total_snapshots_retained}`);
+      } else {
+        alert('Batch error: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Batch failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldHtml;
+    }
+  };
+
+  window.dhRunAudit = async function() {
+    const btn = document.getElementById('dhRefreshBtn');
+    const loading = document.getElementById('dhLoading');
+    const content = document.getElementById('dhContent');
+    const deepMode = document.getElementById('dhDeepMode').checked;
+
+    btn.classList.add('loading');
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+
+    try {
+      const url = '{% url "api-database-health-audit" %}' + (deepMode ? '?deep=1' : '');
+      const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      renderDashboard(data);
+    } catch (err) {
+      console.error('Audit failed:', err);
+      loading.innerHTML = `
+        <div style="color:var(--dh-danger);font-size:48px;">⚠️</div>
+        <div class="dh-skeleton-text" style="color:var(--dh-danger);">Audit failed: ${err.message}</div>
+        <button class="dh-btn-refresh" onclick="dhRunAudit()" style="margin-top:12px;">
+          <span class="dh-btn-icon">↻</span> Retry
+        </button>`;
+    } finally {
+      btn.classList.remove('loading');
+    }
+  };
+
+  function renderDashboard(data) {
+    const loading = document.getElementById('dhLoading');
+    const content = document.getElementById('dhContent');
+    loading.style.display = 'none';
+    content.style.display = 'block';
+
+    // Summary stats
+    const s = data.summary;
+    document.getElementById('dhTotalChecks').textContent = s.total_checks;
+    document.getElementById('dhPassedChecks').textContent = s.passed_checks;
+    document.getElementById('dhFailedChecks').textContent = s.failed_checks;
+    document.getElementById('dhTimestamp').textContent = data.timestamp;
+
+    // Compliance ring
+    const pct = s.compliance_pct;
+    const ring = document.getElementById('dhRingProgress');
+    const circumference = 2 * Math.PI * 88;
+    const offset = circumference - (pct / 100) * circumference;
+    ring.style.strokeDasharray = circumference;
+    
+    // Animate ring
+    setTimeout(() => {
+      ring.style.strokeDashoffset = offset;
+      ring.style.stroke = pct >= 95 ? 'var(--dh-success)' : pct >= 70 ? 'var(--dh-warning)' : 'var(--dh-danger)';
+    }, 100);
+
+    // Animate percentage number
+    const pctEl = document.getElementById('dhRingPct');
+    animateCounter(pctEl, pct, '%', 1500);
+    pctEl.style.color = pct >= 95 ? 'var(--dh-success)' : pct >= 70 ? 'var(--dh-warning)' : 'var(--dh-danger)';
+
+    // Entity counters
+    const countersEl = document.getElementById('dhCounters');
+    countersEl.innerHTML = '';
+    if (data.counts) {
+      for (const [key, val] of Object.entries(data.counts)) {
+        const label = key.replace(/_/g, ' ');
+        const icon = COUNTER_ICONS[key] || '📦';
+        countersEl.innerHTML += `
+          <div class="dh-counter-chip">
+            <div style="font-size:20px;margin-bottom:6px;">${icon}</div>
+            <div class="dh-counter-val">${Number(val).toLocaleString()}</div>
+            <div class="dh-counter-name">${label}</div>
+          </div>`;
+      }
+    }
+
+    // Audit categories
+    const catsEl = document.getElementById('dhCategories');
+    catsEl.innerHTML = '';
+    if (data.audits) {
+      for (const [catKey, cat] of Object.entries(data.audits)) {
+        const meta = CATEGORY_META[catKey] || { icon: '🔍', color: '#94a3b8' };
+        const passed = cat.passed;
+        const badgeClass = passed ? 'pass' : 'fail';
+        const statusIcon = passed ? '✓' : '✗';
+        const badgeText = passed ? 'ALL PASSED' : 'WARNINGS';
+
+        let checksHtml = '';
+        if (cat.checks && cat.checks.length) {
+          for (const chk of cat.checks) {
+            const chkClass = chk.passed ? 'pass' : 'fail';
+            const chkIcon = chk.passed ? '✓' : '✗';
+            checksHtml += `
+              <div class="dh-check-row">
+                <div class="dh-check-status ${chkClass}">${chkIcon}</div>
+                <div class="dh-check-info">
+                  <div class="dh-check-title">${escapeHtml(chk.title)}</div>
+                  <div class="dh-check-detail">${escapeHtml(chk.detail)}</div>
+                  <div class="dh-check-rule">${escapeHtml(chk.rule)}</div>
+                </div>
+              </div>`;
+          }
+        }
+
+        catsEl.innerHTML += `
+          <div class="dh-cat-panel${passed ? '' : ' open'}">
+            <div class="dh-cat-header" onclick="this.parentElement.classList.toggle('open')">
+              <div class="dh-cat-header-left">
+                <div class="dh-cat-icon ${badgeClass}" style="font-size:22px;">${meta.icon}</div>
+                <div class="dh-cat-title">${escapeHtml(cat.title || catKey)}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span class="dh-cat-badge ${badgeClass}">${badgeText}</span>
+                <span class="dh-cat-chevron">▼</span>
+              </div>
+            </div>
+            <div class="dh-cat-body">
+              <div class="dh-checks-list">${checksHtml}</div>
+            </div>
+          </div>`;
+      }
+    }
+  }
+
+  function animateCounter(el, target, suffix, duration) {
+    const start = 0;
+    const startTime = performance.now();
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(start + (target - start) * eased * 10) / 10;
+      el.textContent = current.toFixed(1) + (suffix || '');
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Auto-run on load
+  document.addEventListener('DOMContentLoaded', dhRunAudit);
+  if (document.readyState !== 'loading') dhRunAudit();
+
+})();
+</script>
+{% endblock %}

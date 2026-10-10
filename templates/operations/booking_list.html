@@ -806,10 +806,187 @@
   pointer-events: none;
   border-left: 4px solid #10b981;
 }
-.dcc-toast.show {
-  transform: translateY(0);
-  opacity: 1;
-  pointer-events: auto;
+/* Smart Auto-Match & Compliance Engine Styles */
+.dcc-smart-match-box {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+html.dark .dcc-smart-match-box {
+  background: rgba(6, 78, 59, 0.25);
+  border-color: rgba(5, 150, 105, 0.45);
+}
+.dcc-smart-match-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.1rem 0.5rem;
+  color: #0284c7;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+html.dark .dcc-smart-match-loading {
+  color: #38bdf8;
+}
+.dcc-spin {
+  display: inline-block;
+  animation: dccSpin 1.2s infinite linear;
+}
+@keyframes dccSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.dcc-smart-match-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.dcc-smart-score-badge {
+  background: #10b981;
+  color: #ffffff;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 0.76rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.02em;
+}
+.dcc-smart-match-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.dcc-smart-col-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+html.dark .dcc-smart-col-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+.dcc-smart-col-title {
+  font-size: 0.72rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+}
+html.dark .dcc-smart-col-title {
+  color: #94a3b8;
+}
+.dcc-smart-res-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+html.dark .dcc-smart-res-name {
+  color: #f8fafc;
+}
+.dcc-smart-res-meta {
+  font-size: 0.75rem;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+html.dark .dcc-smart-res-meta {
+  color: #cbd5e1;
+}
+.dcc-smart-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+  width: fit-content;
+}
+.dcc-smart-pill.success { background: #dcfce7; color: #15803d; }
+.dcc-smart-pill.warning { background: #fef3c7; color: #b45309; }
+.dcc-smart-pill.danger { background: #fee2e2; color: #b91c1c; }
+.dcc-smart-pill.info { background: #e0f2fe; color: #0369a1; }
+html.dark .dcc-smart-pill.success { background: #14532d; color: #86efac; }
+html.dark .dcc-smart-pill.warning { background: #78350f; color: #fde68a; }
+html.dark .dcc-smart-pill.danger { background: #7f1d1d; color: #fca5a5; }
+html.dark .dcc-smart-pill.info { background: #0c4a6e; color: #7dd3fc; }
+
+.dcc-smart-apply-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+.dcc-smart-apply-btn:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+}
+
+.dcc-compliance-alert-box {
+  display: none;
+  background: #fef2f2;
+  border: 1px solid #f87171;
+  border-radius: 10px;
+  padding: 0.85rem 1.15rem;
+  margin-bottom: 1.15rem;
+}
+html.dark .dcc-compliance-alert-box {
+  background: rgba(127, 29, 29, 0.25);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+.dcc-compliance-alert-title {
+  color: #b91c1c;
+  font-weight: 700;
+  font-size: 0.84rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+html.dark .dcc-compliance-alert-title {
+  color: #f87171;
+}
+.dcc-compliance-alert-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.78rem;
+  color: #991b1b;
+}
+html.dark .dcc-compliance-alert-list {
+  color: #fca5a5;
+}
+
+.pulse-success {
+  animation: dccPulseSuccess 1s ease;
+}
+@keyframes dccPulseSuccess {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); border-color: #10b981; }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); border-color: #10b981; }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 </style>
 
@@ -1257,6 +1434,66 @@
           </div>
         </div>
 
+        <!-- SMART AUTO-MATCH RECOMMENDATION PANEL -->
+        <div id="smartMatchContainer" class="dcc-smart-match-box">
+          <div id="smartMatchLoading" class="dcc-smart-match-loading">
+            <span class="dcc-spin">⚡</span> Analyzing GPS Proximity, Safety Compliance &amp; Driver Rest...
+          </div>
+          <div id="smartMatchContent" style="display: none;">
+            <div class="dcc-smart-match-header">
+              <span style="font-weight: 700; font-size: 0.84rem; color: #047857;">
+                <span>🌟</span> Smart Auto-Match Recommendation
+              </span>
+              <span id="smartMatchScore" class="dcc-smart-score-badge">98/100 • Optimal Match</span>
+            </div>
+            
+            <div class="dcc-smart-match-grid">
+              <!-- Recommended Vehicle Card -->
+              <div class="dcc-smart-col-card">
+                <div class="dcc-smart-col-title">Optimal Vehicle</div>
+                <div id="smartRecVehTitle" class="dcc-smart-res-name">Vehicle Reg</div>
+                <div class="dcc-smart-res-meta">
+                  <span id="smartRecVehDist">📍 3.2 km away</span>
+                  <div id="smartRecVehFlags" style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                    <span class="dcc-smart-pill success">🟢 All Docs Valid</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Recommended Driver Card -->
+              <div class="dcc-smart-col-card">
+                <div class="dcc-smart-col-title">Assigned Chauffeur</div>
+                <div id="smartRecDriverName" class="dcc-smart-res-name">Driver Name</div>
+                <div class="dcc-smart-res-meta">
+                  <span id="smartRecDriverRest">🟢 Rest: 14h</span>
+                  <div id="smartRecDriverFlags" style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                    <span class="dcc-smart-pill success">🟢 License Valid</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" id="btnApplySmartMatch" class="dcc-smart-apply-btn" onclick="applySmartMatch()">
+              <span>⚡</span> 1-Click Apply Optimal Pair
+            </button>
+          </div>
+        </div>
+
+        <!-- COMPLIANCE WARNING & MANAGER OVERRIDE ALERT (Shown if violations detected) -->
+        <div id="complianceAlertBox" class="dcc-compliance-alert-box">
+          <div class="dcc-compliance-alert-title">
+            <span>🚨</span> Regulatory Safety Compliance Violation
+          </div>
+          <ul id="complianceViolationsList" class="dcc-compliance-alert-list">
+          </ul>
+          <label class="dcc-checkbox-wrap" style="background: #ffffff; border-color: #f87171; margin-top: 0.65rem; margin-bottom: 0;">
+            <input type="checkbox" id="complianceOverrideCheck" name="compliance_override" value="1">
+            <span class="dcc-checkbox-text" style="color: #b91c1c; font-weight: 700;">
+              ⚠️ Authorize Dispatch under Manager Compliance Override (Logged to Audit)
+            </span>
+          </label>
+        </div>
+
         <!-- Vehicle Selection -->
         <div class="dcc-form-group">
           <label class="dcc-form-label" for="assignVehicleSelect">Select Fleet Vehicle</label>
@@ -1340,6 +1577,110 @@ function showToast(message, isError = false) {
   }, 4500);
 }
 
+let currentSmartRecommendations = null;
+
+async function loadSmartRecommendations(tripId) {
+  const loadingEl = document.getElementById('smartMatchLoading');
+  const contentEl = document.getElementById('smartMatchContent');
+  const alertBox = document.getElementById('complianceAlertBox');
+  const overrideCheck = document.getElementById('complianceOverrideCheck');
+  const btnApply = document.getElementById('btnApplySmartMatch');
+
+  if (alertBox) alertBox.style.display = 'none';
+  if (overrideCheck) overrideCheck.checked = false;
+  if (loadingEl) loadingEl.style.display = 'flex';
+  if (contentEl) contentEl.style.display = 'none';
+  if (btnApply) {
+    btnApply.innerHTML = '<span>⚡</span> 1-Click Apply Optimal Pair';
+    btnApply.disabled = false;
+  }
+
+  currentSmartRecommendations = null;
+
+  try {
+    const res = await fetch(`/api/trips/${tripId}/dispatch-recommendations/`);
+    const data = await res.json();
+    if (data.status === 'success' && data.top_pairs && data.top_pairs.length > 0) {
+      currentSmartRecommendations = data;
+      const top = data.top_pairs[0];
+
+      // Score
+      document.getElementById('smartMatchScore').textContent = `${top.composite_score}/100 • ${top.match_label}`;
+
+      // Vehicle
+      document.getElementById('smartRecVehTitle').textContent = `${top.vehicle.registration_number} • ${top.vehicle.brand_model}`;
+      document.getElementById('smartRecVehDist').textContent = `📍 ${top.vehicle.distance_label}`;
+
+      const vehFlagsEl = document.getElementById('smartRecVehFlags');
+      vehFlagsEl.innerHTML = '';
+      if (top.vehicle.compliance_flags && top.vehicle.compliance_flags.length > 0) {
+        top.vehicle.compliance_flags.forEach(f => {
+          const pill = document.createElement('span');
+          pill.className = `dcc-smart-pill ${f.type || 'info'}`;
+          pill.textContent = f.label;
+          vehFlagsEl.appendChild(pill);
+        });
+      } else {
+        vehFlagsEl.innerHTML = '<span class="dcc-smart-pill success">🟢 All Docs Valid</span>';
+      }
+
+      // Driver
+      document.getElementById('smartRecDriverName').textContent = top.driver.name;
+      document.getElementById('smartRecDriverRest').textContent = `🟢 Rest: ${top.driver.rest_label}`;
+
+      const driverFlagsEl = document.getElementById('smartRecDriverFlags');
+      driverFlagsEl.innerHTML = '';
+      if (top.driver.compliance_flags && top.driver.compliance_flags.length > 0) {
+        top.driver.compliance_flags.forEach(f => {
+          const pill = document.createElement('span');
+          pill.className = `dcc-smart-pill ${f.type || 'info'}`;
+          pill.textContent = f.label;
+          driverFlagsEl.appendChild(pill);
+        });
+      } else {
+        driverFlagsEl.innerHTML = '<span class="dcc-smart-pill success">🟢 License Valid</span>';
+      }
+
+      loadingEl.style.display = 'none';
+      contentEl.style.display = 'block';
+    } else {
+      loadingEl.innerHTML = '<span style="color:#64748b;">ℹ️ No qualified candidate vehicles/drivers found for this date.</span>';
+    }
+  } catch (err) {
+    console.error('Error fetching smart recommendations:', err);
+    if (loadingEl) {
+      loadingEl.innerHTML = '<span style="color:#64748b;">Manual allocation active.</span>';
+    }
+  }
+}
+
+function applySmartMatch() {
+  if (!currentSmartRecommendations || !currentSmartRecommendations.top_pairs || currentSmartRecommendations.top_pairs.length === 0) return;
+  const top = currentSmartRecommendations.top_pairs[0];
+  const vehSelect = document.getElementById('assignVehicleSelect');
+  const driverSelect = document.getElementById('assignDriverSelect');
+  const btnApply = document.getElementById('btnApplySmartMatch');
+
+  if (top.vehicle && vehSelect) {
+    vehSelect.value = top.vehicle.id;
+    vehSelect.classList.remove('pulse-success');
+    void vehSelect.offsetWidth;
+    vehSelect.classList.add('pulse-success');
+  }
+
+  if (top.driver && driverSelect) {
+    driverSelect.value = top.driver.id;
+    driverSelect.classList.remove('pulse-success');
+    void driverSelect.offsetWidth;
+    driverSelect.classList.add('pulse-success');
+  }
+
+  if (btnApply) {
+    btnApply.innerHTML = '<span>✅</span> Optimal Allocation Selected!';
+  }
+  showToast(`Applied Top Match: ${top.vehicle.registration_number} + ${top.driver.name}`);
+}
+
 function openQuickAssign(tripId, tripRef, guestName, route, schedule, currentVehId, currentDriverId) {
   currentActiveTripId = tripId;
   const modal = document.getElementById('quickAssignModal');
@@ -1361,6 +1702,9 @@ function openQuickAssign(tripId, tripRef, guestName, route, schedule, currentVeh
 
   form.action = `/trips/${tripId}/quick-assign/`;
   modal.classList.add('open');
+
+  // Load live Smart Recommendations
+  loadSmartRecommendations(tripId);
 }
 
 function closeQuickAssign() {
@@ -1405,10 +1749,27 @@ async function handleQuickAssignSubmit(e) {
     if (data.status === 'success') {
       showToast(data.message || 'Trip allocated & dispatched successfully!');
       closeQuickAssign();
-      // Reload page to reflect full table & badge states or update dynamically
       setTimeout(() => {
         window.location.reload();
       }, 900);
+    } else if (data.status === 'compliance_blocked') {
+      // Reveal the compliance warning alert box with manager override!
+      const alertBox = document.getElementById('complianceAlertBox');
+      const listEl = document.getElementById('complianceViolationsList');
+      if (listEl) {
+        listEl.innerHTML = '';
+        (data.violations || [data.message]).forEach(v => {
+          const li = document.createElement('li');
+          li.textContent = v;
+          listEl.appendChild(li);
+        });
+      }
+      if (alertBox) {
+        alertBox.style.display = 'block';
+      }
+      showToast('🚨 Safety Compliance Alert: Review violations before dispatching.', true);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>⚠️</span> Re-Submit with Override';
     } else {
       showToast(data.message || 'Error assigning trip', true);
       submitBtn.disabled = false;
@@ -1416,7 +1777,6 @@ async function handleQuickAssignSubmit(e) {
     }
   } catch (err) {
     console.error('Fast-Allocation Error:', err);
-    // Fallback: regular submit
     form.submit();
   }
 }

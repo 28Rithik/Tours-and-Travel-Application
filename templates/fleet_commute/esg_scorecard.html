@@ -81,14 +81,63 @@
     border-radius: 4px;
     transition: width 0.5s ease-in-out;
 }
+
+/* Light Mode Overrides */
+html:not(.dark) .esg-container {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .esg-container h1 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .esg-container p {
+    color: #64748b !important;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .glass-panel {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .glass-panel h3 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .table-custom th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .table-custom td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+html:not(.dark) .table-custom td strong {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .progress-bar {
+    background: #e2e8f0 !important;
+}
 </style>
 
 <div class="esg-container">
     <div style="margin-bottom: 24px;">
-        <h1 style="font-size: 26px; font-weight: 800; margin: 0; color: #fff; display: flex; align-items: center; gap: 10px;">
+        <h1 style="font-size: 26px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px;">
             🌿 ESG Carbon Sustainability & Driver Behavior Scorecard
         </h1>
-        <p style="color: #94a3b8; font-size: 13px; margin: 4px 0 0;">
+        <p style="color: #64748b; font-size: 13px; margin: 4px 0 0;">
             Real-time Greenhouse Gas Reduction Metrics &bull; Group Commute Carbon Offsets &bull; 0–100 Telematics Driver Safety Index
         </p>
     </div>
@@ -96,34 +145,34 @@
     <!-- Carbon Footprint Metrics -->
     <div class="kpi-grid">
         <div class="kpi-card">
-            <div style="font-size: 12px; color: #94a3b8;">🌱 Carbon Avoided (Group Commute)</div>
+            <div style="font-size: 12px; color: #64748b;">🌱 Carbon Avoided (Group Commute)</div>
             <div class="kpi-val" style="color: #10b981;">{{ esg.total_co2_saved_kg }} <span style="font-size: 16px;">kg CO₂</span></div>
-            <div style="font-size: 11px; color: #34d399; margin-top: 4px;">{{ esg.net_carbon_avoidance_pct }}% lower vs individual vehicles</div>
+            <div style="font-size: 11px; color: #059669; margin-top: 4px;">{{ esg.net_carbon_avoidance_pct }}% lower vs individual vehicles</div>
         </div>
         <div class="kpi-card">
-            <div style="font-size: 12px; color: #94a3b8;">🚗 Actual Fleet CO₂ Footprint</div>
-            <div class="kpi-val" style="color: #38bdf8;">{{ esg.total_co2_emitted_kg }} <span style="font-size: 16px;">kg CO₂</span></div>
-            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Commercial transit efficiency</div>
+            <div style="font-size: 12px; color: #64748b;">🚗 Actual Fleet CO₂ Footprint</div>
+            <div class="kpi-val" style="color: #0284c7;">{{ esg.total_co2_emitted_kg }} <span style="font-size: 16px;">kg CO₂</span></div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Commercial transit efficiency</div>
         </div>
         <div class="kpi-card">
-            <div style="font-size: 12px; color: #94a3b8;">🌳 Tree Sequestration Equivalent</div>
-            <div class="kpi-val" style="color: #a7f3d0;">{{ esg.trees_equivalent_saved }} <span style="font-size: 16px;">Trees</span></div>
-            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Annual absorption offset</div>
+            <div style="font-size: 12px; color: #64748b;">🌳 Tree Sequestration Equivalent</div>
+            <div class="kpi-val" style="color: #059669;">{{ esg.trees_equivalent_saved }} <span style="font-size: 16px;">Trees</span></div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Annual absorption offset</div>
         </div>
         <div class="kpi-card">
-            <div style="font-size: 12px; color: #94a3b8;">⚡ Green Fleet Efficiency Score</div>
-            <div class="kpi-val" style="color: #f59e0b;">{{ esg.green_fleet_score }} <span style="font-size: 16px;">/ 100</span></div>
-            <div style="font-size: 11px; color: #fcd34d; margin-top: 4px;">High passenger occupancy bonus</div>
+            <div style="font-size: 12px; color: #64748b;">⚡ Green Fleet Efficiency Score</div>
+            <div class="kpi-val" style="color: #d97706;">{{ esg.green_fleet_score }} <span style="font-size: 16px;">/ 100</span></div>
+            <div style="font-size: 11px; color: #b45309; margin-top: 4px;">High passenger occupancy bonus</div>
         </div>
     </div>
 
     <!-- Driver Safety Scorecard Leaderboard -->
     <div class="glass-panel">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #fff;">
+            <h3 style="font-size: 18px; font-weight: 700; margin: 0;">
                 🏆 0–100 Telematics Driver Safety Index Leaderboard
             </h3>
-            <span style="font-size: 12px; color: #94a3b8;">Scored via Live GPS Telematics & Gyroscope Sensors</span>
+            <span style="font-size: 12px; color: #64748b;">Scored via Live GPS Telematics & Gyroscope Sensors</span>
         </div>
 
         <div style="overflow-x: auto;">
@@ -143,8 +192,8 @@
                     {% for s in scorecards %}
                     <tr>
                         <td>
-                            <strong style="color: #fff; font-size: 14px;">{{ s.driver_name }}</strong>
-                            <div style="font-size: 11px; color: #94a3b8;">{{ s.assigned_vehicle }} &bull; {{ s.phone }}</div>
+                            <strong style="font-size: 14px;">{{ s.driver_name }}</strong>
+                            <div style="font-size: 11px; color: #64748b;">{{ s.assigned_vehicle }} &bull; {{ s.phone }}</div>
                         </td>
                         <td style="width: 200px;">
                             <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono'; font-weight: 700; color: {{ s.badge_color }};">

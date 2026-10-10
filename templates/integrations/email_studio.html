@@ -277,6 +277,80 @@
     box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5);
     transform: translateY(-1px);
 }
+
+/* ── Light Mode (html:not(.dark)) Overrides ────────────────────────────── */
+html:not(.dark) {
+    --email-dark-bg: #f8fafc;
+    --email-panel-bg: #ffffff;
+    --email-panel-border: #e2e8f0;
+}
+
+html:not(.dark) .email-studio-wrapper {
+    color: #0f172a;
+    background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
+                #f8fafc;
+}
+
+html:not(.dark) .btn-back-circle {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+html:not(.dark) .btn-back-circle:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+html:not(.dark) .studio-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .studio-desc {
+    color: #64748b;
+}
+
+html:not(.dark) .service-banner {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .banner-title-text {
+    color: #0f172a;
+}
+
+html:not(.dark) .banner-subtext {
+    color: #64748b;
+}
+
+html:not(.dark) .desk-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .card-section-header {
+    color: #0f172a;
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .form-label {
+    color: #475569;
+}
+
+html:not(.dark) .form-control-dark {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+html:not(.dark) .form-control-dark:focus {
+    background: #f8fafc;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
 </style>
 
 <div class="email-studio-wrapper">

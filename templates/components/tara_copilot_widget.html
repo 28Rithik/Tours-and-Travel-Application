@@ -12,14 +12,14 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
-  /* Floating Launch Button */
+  /* Floating Launch Button - Royal Charioteer Theme */
   #tara-trigger-btn {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(139, 92, 246, 0.4);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #d97706 100%);
+    border: 2px solid rgba(245, 158, 11, 0.5);
+    box-shadow: 0 8px 30px rgba(2, 132, 199, 0.45), 0 0 16px rgba(217, 119, 6, 0.35);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -30,12 +30,12 @@
   }
   #tara-trigger-btn:hover {
     transform: scale(1.08) translateY(-2px);
-    box-shadow: 0 12px 35px rgba(99, 102, 241, 0.65), 0 0 15px rgba(217, 70, 239, 0.5);
+    box-shadow: 0 12px 35px rgba(2, 132, 199, 0.6), 0 0 20px rgba(245, 158, 11, 0.5);
   }
   @keyframes taraPulse {
-    0% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 0 0 0 rgba(139, 92, 246, 0.4); }
-    70% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 0 0 12px rgba(139, 92, 246, 0); }
-    100% { box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4), 0 0 0 0 rgba(139, 92, 246, 0); }
+    0% { box-shadow: 0 8px 25px rgba(2, 132, 199, 0.4), 0 0 0 0 rgba(217, 119, 6, 0.4); }
+    70% { box-shadow: 0 8px 25px rgba(2, 132, 199, 0.4), 0 0 0 14px rgba(217, 119, 6, 0); }
+    100% { box-shadow: 0 8px 25px rgba(2, 132, 199, 0.4), 0 0 0 0 rgba(217, 119, 6, 0); }
   }
 
   /* Badge Counter */
@@ -54,11 +54,11 @@
     align-items: center;
     justify-content: center;
     padding: 0 5px;
-    border: 2px solid #0f172a;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
   }
 
-  /* Slide-Out Chat Panel */
+  /* Slide-Out Chat Panel (Clean Light Mode with Dark Mode Support) */
   #tara-panel {
     position: fixed;
     bottom: 96px;
@@ -67,38 +67,47 @@
     max-width: calc(100vw - 36px);
     height: 640px;
     max-height: calc(100vh - 120px);
-    background: rgba(15, 23, 42, 0.94);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: 20px;
-    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 30px rgba(99, 102, 241, 0.2);
+    box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22);
     display: none;
     flex-direction: column;
     overflow: hidden;
     z-index: 99999;
+    color: #0f172a;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  html.dark #tara-panel {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
   }
 
   /* Panel Header */
   .tara-header {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
     padding: 14px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
+  html.dark .tara-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
   .tara-avatar {
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #6366f1 0%, #d946ef 100%);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #d97706 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 20px;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
   }
   .tara-title-wrap {
     margin-left: 12px;
@@ -107,10 +116,13 @@
   .tara-title {
     font-size: 15px;
     font-weight: 700;
-    color: #f8fafc;
+    color: #0f172a;
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+  html.dark .tara-title {
+    color: #f8fafc;
   }
   .tara-status-pill {
     font-size: 10px;
@@ -120,12 +132,12 @@
     padding: 2px 7px;
     border-radius: 12px;
     background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    color: #059669;
     border: 1px solid rgba(16, 185, 129, 0.3);
   }
   .tara-subtitle {
     font-size: 11px;
-    color: #94a3b8;
+    color: #64748b;
     margin-top: 2px;
   }
   .tara-header-actions {
@@ -134,9 +146,9 @@
     gap: 6px;
   }
   .tara-icon-btn {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #cbd5e1;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
     width: 32px;
     height: 32px;
     border-radius: 8px;
@@ -154,31 +166,45 @@
   /* Quick Prompt Pills */
   .tara-quick-pills {
     padding: 10px 14px;
-    background: rgba(15, 23, 42, 0.6);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
   }
+  html.dark .tara-quick-pills {
+    background: rgba(15, 23, 42, 0.6);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
   .tara-quick-pills::-webkit-scrollbar { display: none; }
   .tara-pill {
     white-space: nowrap;
-    background: rgba(99, 102, 241, 0.12);
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    color: #c7d2fe;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
     font-size: 11px;
-    font-weight: 500;
-    padding: 5px 11px;
+    font-weight: 600;
+    padding: 5px 12px;
     border-radius: 14px;
     cursor: pointer;
     transition: all 0.2s;
   }
   .tara-pill:hover {
-    background: rgba(99, 102, 241, 0.28);
-    color: #ffffff;
-    border-color: rgba(99, 102, 241, 0.5);
+    background: #f0f9ff;
+    color: #0284c7;
+    border-color: #0284c7;
     transform: translateY(-1px);
+  }
+  html.dark .tara-pill {
+    background: rgba(2, 132, 199, 0.15);
+    border-color: rgba(2, 132, 199, 0.3);
+    color: #bae6fd;
+  }
+  html.dark .tara-pill:hover {
+    background: rgba(2, 132, 199, 0.3);
+    color: #ffffff;
+    border-color: #38bdf8;
   }
 
   /* Message Stream */
@@ -189,9 +215,13 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    background: #ffffff;
+  }
+  html.dark #tara-messages {
+    background: transparent;
   }
   #tara-messages::-webkit-scrollbar { width: 6px; }
-  #tara-messages::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+  #tara-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
   /* Chat Bubbles */
   .tara-msg {
@@ -207,32 +237,40 @@
 
   .tara-msg-user {
     align-self: flex-end;
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
     color: #ffffff;
     padding: 10px 14px;
     border-radius: 16px 16px 4px 16px;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
   }
 
   .tara-msg-ai {
     align-self: flex-start;
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
     padding: 14px 16px;
     border-radius: 16px 16px 16px 4px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  html.dark .tara-msg-ai {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
   }
   .tara-msg-ai h3 {
     margin: 0 0 8px 0;
     font-size: 14px;
-    color: #f8fafc;
+    color: #0f172a;
     font-weight: 700;
+  }
+  html.dark .tara-msg-ai h3 {
+    color: #f8fafc;
   }
   .tara-msg-ai h4 {
     margin: 10px 0 4px 0;
     font-size: 12px;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -244,15 +282,16 @@
     margin-bottom: 4px;
   }
   .tara-msg-ai code {
-    background: rgba(0, 0, 0, 0.3);
+    background: #f1f5f9;
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 12px;
-    color: #38bdf8;
+    color: #0284c7;
     font-family: monospace;
+    border: 1px solid #e2e8f0;
   }
   .tara-msg-ai a {
-    color: #818cf8;
+    color: #0284c7;
     text-decoration: underline;
   }
 
@@ -264,22 +303,31 @@
     margin: 10px 0;
   }
   .tara-kpi-card {
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 10px;
     padding: 10px 12px;
     display: flex;
     align-items: center;
     gap: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  html.dark .tara-kpi-card {
+    background: rgba(15, 23, 42, 0.65);
+    border-color: rgba(255, 255, 255, 0.08);
   }
   .tara-kpi-val {
     font-size: 18px;
     font-weight: 700;
     line-height: 1.1;
+    color: #0f172a;
+  }
+  html.dark .tara-kpi-val {
+    color: #f8fafc;
   }
   .tara-kpi-lbl {
     font-size: 10px;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.4px;
   }
@@ -291,7 +339,7 @@
     gap: 6px;
     margin-top: 12px;
     padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid #e2e8f0;
   }
   .tara-action-btn {
     padding: 6px 12px;
@@ -313,41 +361,50 @@
     box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
   }
   .tara-action-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    color: #cbd5e1;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
   }
   .tara-action-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
+    background: #e2e8f0;
+    color: #0f172a;
   }
 
   /* Input Box */
   .tara-footer {
     padding: 12px 14px;
-    background: rgba(15, 23, 42, 0.95);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
     display: flex;
     gap: 8px;
     align-items: center;
   }
+  html.dark .tara-footer {
+    background: rgba(15, 23, 42, 0.95);
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
   #tara-input {
     flex: 1;
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: 12px;
     padding: 10px 14px;
-    color: #f8fafc;
+    color: #0f172a;
     font-size: 13px;
     outline: none;
     transition: border 0.2s;
   }
+  html.dark #tara-input {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #f8fafc;
+  }
   #tara-input:focus {
-    border-color: #818cf8;
-    box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.25);
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
   }
   #tara-send-btn {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #d97706 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -377,11 +434,11 @@
   }
 </style>
 
-<!-- TARA AI HTML Markup -->
+<!-- Rathasārathi AI HTML Markup -->
 <div id="tara-copilot-container">
-  <!-- Trigger Button -->
-  <button id="tara-trigger-btn" onclick="toggleTaraPanel()" title="Ask TARA AI • Operations Brain">
-    <span style="font-size: 26px;">🧠</span>
+  <!-- Trigger Button: Royal Charioteer Theme -->
+  <button id="tara-trigger-btn" onclick="toggleTaraPanel()" title="Ask Rathasārathi AI • Operations Charioteer">
+    <span style="font-size: 26px;">☸️</span>
     <span id="tara-badge">...</span>
   </button>
 
@@ -390,13 +447,13 @@
     <!-- Header -->
     <div class="tara-header">
       <div style="display: flex; align-items: center;">
-        <div class="tara-avatar">✨</div>
+        <div class="tara-avatar">☸️</div>
         <div class="tara-title-wrap">
           <div class="tara-title">
-            <span>TARA AI</span>
+            <span>Rathasārathi AI</span>
             <span class="tara-status-pill" id="tara-engine-tag">Online</span>
           </div>
-          <div class="tara-subtitle">Sivagayathiri Operations Brain • Groq / LLaMA 3.3</div>
+          <div class="tara-subtitle">Sivagayathiri Operations Charioteer • Groq / LLaMA 3.3</div>
         </div>
       </div>
       <div class="tara-header-actions">
@@ -420,9 +477,9 @@
     <div id="tara-messages">
       <!-- Initial AI Welcome -->
       <div class="tara-msg tara-msg-ai">
-        <h3>👋 Welcome to TARA AI Operations Brain</h3>
-        <p style="margin: 4px 0 10px 0; color: #cbd5e1;">
-          I'm connected to your live Django ORM database and telemetry pipeline. Ask me anything about today's active tours, expiring compliance documents, driver behavior anomalies, or revenue collections!
+        <h3>👋 Welcome to Rathasārathi AI Operations Brain</h3>
+        <p style="margin: 4px 0 10px 0; color: #475569; line-height: 1.5;">
+          I am your enterprise operations charioteer for Sivagayathiri Travels &amp; Tours. Connected directly to live telemetry, driver scorecards, and fleet reservations. Ask me anything to steer your operations!
         </p>
         <div class="tara-cards-grid" id="tara-intro-cards">
           <!-- Dynamically populated via quick stats -->
@@ -431,13 +488,13 @@
     </div>
 
     <!-- Typing Indicator -->
-    <div id="tara-typing" style="display: none; padding: 8px 16px; font-size: 11px; color: #a5b4fc; font-style: italic;">
-      ⚡ TARA is querying live fleet telemetry &amp; database...
+    <div id="tara-typing" style="display: none; padding: 8px 16px; font-size: 11px; color: #0284c7; font-style: italic;">
+      ⚡ Rathasārathi is analyzing live fleet telemetry &amp; operations data...
     </div>
 
     <!-- Input Footer -->
     <div class="tara-footer">
-      <input type="text" id="tara-input" placeholder="Ask TARA anything about your fleet or tours..." onkeydown="handleTaraInputKey(event)" />
+      <input type="text" id="tara-input" placeholder="Ask Rathasārathi anything about your fleet or tours..." onkeydown="handleTaraInputKey(event)" />
       <button id="tara-send-btn" onclick="sendTaraMessage()" title="Send Query">➤</button>
     </div>
 
@@ -445,7 +502,7 @@
     <div id="tara-key-modal">
       <div style="font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 6px;">⚡ Groq API Key Configuration</div>
       <p style="font-size: 12px; color: #94a3b8; margin-bottom: 16px; line-height: 1.4;">
-        TARA uses high-speed Groq inference (<code>llama-3.3-70b-versatile</code>). Paste your Groq API key below to activate ultra-low latency LLM reasoning. (If key is empty, TARA operates automatically via local semantic tools).
+        Rathasārathi uses ultra high-speed Groq inference (<code>llama-3.3-70b-versatile</code>). Paste your Groq API key below to activate sub-second LLM reasoning. (If key is empty, Rathasārathi operates automatically via local semantic tools).
       </p>
       <input type="password" id="tara-groq-key-input" placeholder="gsk_..." style="width: 100%; box-sizing: border-box; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px 12px; color: white; font-size: 13px; margin-bottom: 12px;" />
       <div id="tara-key-feedback" style="font-size: 12px; margin-bottom: 14px; min-height: 16px;"></div>

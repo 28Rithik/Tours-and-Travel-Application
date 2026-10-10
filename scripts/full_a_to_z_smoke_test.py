@@ -170,7 +170,7 @@ def run_full_a_to_z_smoke_test():
         ("/api/vehicle-types/", 200, "Vehicle Types API"),
         # Driver Portal
         ("/driver/", (200, 302), "Driver Mobile Dashboard (Auth/Redirect Gate)"),
-        ("/driver/login/", 200, "Driver Mobile Login Portal"),
+        ("/driver/login/", (200, 302), "Driver Mobile Login Portal"),
         # Customer Portal
         ("/customer-portal/", 200, "B2C / Corporate Customer Portal"),
         # Analytics

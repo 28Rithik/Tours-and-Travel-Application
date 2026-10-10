@@ -8,8 +8,8 @@ from operations.models import Trip
 class TripExpense(models.Model):
 	EXPENSE_TYPES = [('toll', 'Toll'), ('permit', 'Permit'), ('parking', 'Parking'), ('epass', 'E-Pass'), ('border_tax', 'Border tax'), ('driver_food', 'Driver food'), ('hotel', 'Hotel'), ('water', 'Water bottles'), ('snacks', 'Snacks'), ('repair', 'Repair'), ('other', 'Other')]
 	PAID_BY = [('company', 'Company'), ('driver', 'Driver'), ('customer', 'Customer')]
-	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='expenses', null=True, blank=True)
-	contract_trip = models.ForeignKey('fleet_contracts.ContractTripLog', on_delete=models.CASCADE, related_name='expenses', null=True, blank=True)
+	trip = models.ForeignKey(Trip, on_delete=models.PROTECT, related_name='expenses', null=True, blank=True)
+	contract_trip = models.ForeignKey('fleet_contracts.ContractTripLog', on_delete=models.PROTECT, related_name='expenses', null=True, blank=True)
 	expense_type = models.CharField(max_length=20, choices=EXPENSE_TYPES)
 	amount = models.DecimalField(max_digits=10, decimal_places=2)
 	date = models.DateField()
@@ -17,6 +17,14 @@ class TripExpense(models.Model):
 	receipt = models.FileField(upload_to='receipts/', blank=True)
 	paid_by = models.CharField(max_length=20, choices=PAID_BY, default='company')
 	billable_to_customer = models.BooleanField(default=True)
+
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(amount__gte=0),
+				name='trip_expense_amount_non_negative'
+			),
+		]
 
 	def clean(self):
 		from django.core.exceptions import ValidationError
@@ -27,8 +35,8 @@ class TripExpense(models.Model):
 
 
 class SupplierTripCost(models.Model):
-	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='supplier_costs', null=True, blank=True)
-	contract_trip = models.ForeignKey('fleet_contracts.ContractTripLog', on_delete=models.CASCADE, related_name='supplier_costs', null=True, blank=True)
+	trip = models.ForeignKey(Trip, on_delete=models.PROTECT, related_name='supplier_costs', null=True, blank=True)
+	contract_trip = models.ForeignKey('fleet_contracts.ContractTripLog', on_delete=models.PROTECT, related_name='supplier_costs', null=True, blank=True)
 	supplier = models.ForeignKey(Party, on_delete=models.PROTECT, related_name='supplier_trip_costs')
 	vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name='supplier_costs')
 	date = models.DateField()
@@ -55,6 +63,14 @@ class SupplierTripCost(models.Model):
 
 	def __str__(self):
 		return f'{self.trip} - {self.supplier} - {self.amount}'
+
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(amount__gte=0),
+				name='supplier_trip_cost_amount_non_negative'
+			),
+		]
 
 
 class FuelRecord(models.Model):
@@ -113,6 +129,23 @@ class FuelRecord(models.Model):
 		if is_new and self.petro_account:
 			self.petro_account.balance -= self.amount
 			self.petro_account.save(update_fields=['balance'])
+
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(fuel_quantity__gte=0) & models.Q(fuel_price__gte=0),
+				name='fuel_record_qty_price_non_negative'
+			),
+			models.CheckConstraint(
+				check=models.Q(closing_km__isnull=True) | models.Q(opening_km__isnull=True) | models.Q(closing_km__gte=models.F('opening_km')),
+				name='fuel_record_closing_km_gte_opening_km'
+			),
+		]
+		indexes = [
+			models.Index(fields=['vehicle', 'date'], name='idx_fuel_vehicle_date'),
+			models.Index(fields=['trip', 'date'], name='idx_fuel_trip_date'),
+			models.Index(fields=['date'], name='idx_fuel_date'),
+		]
 
 class CorporatePetroAccount(models.Model):
 	account_name = models.CharField(max_length=255, help_text="e.g. HPCL DriveTrack")
@@ -400,12 +433,31 @@ class Payment(models.Model):
 			self.booking.status = 'confirmed'
 			self.booking.save(update_fields=['status'])
 
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(amount__gt=0),
+				name='payment_amount_positive'
+			),
+		]
+		indexes = [
+			models.Index(fields=['party', 'payment_type'], name='idx_pmt_party_type'),
+			models.Index(fields=['booking', 'payment_type'], name='idx_pmt_booking_type'),
+			models.Index(fields=['trip', 'payment_type'], name='idx_pmt_trip_type'),
+			models.Index(fields=['date', 'payment_type'], name='idx_pmt_date_type'),
+		]
+
 
 class LedgerAdjustment(models.Model):
 	party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name='ledger_adjustments')
 	date = models.DateField()
 	amount = models.DecimalField(max_digits=12, decimal_places=2)
 	description = models.CharField(max_length=255)
+
+	class Meta:
+		indexes = [
+			models.Index(fields=['party', 'date'], name='idx_ladj_party_date'),
+		]
 
 class CorporateFastagAccount(models.Model):
 	account_name = models.CharField(max_length=255, help_text="e.g. ICICI Corporate Master Wallet")
@@ -667,26 +719,28 @@ class CorporateGSTInvoice(models.Model):
 		"""Computes CGST, SGST, IGST based on place of supply alignment."""
 		supp_state = (self.supplier_state_code or "33").strip()
 		recip_state = (self.recipient_state_code or "33").strip()
+		rate = Decimal(str(self.gst_rate_percent if self.gst_rate_percent is not None else '5.00'))
+		tax_val = Decimal(str(self.taxable_value if self.taxable_value is not None else '0.00'))
 
 		if supp_state == recip_state:
 			self.supply_type = 'intra_state'
-			self.cgst_rate = self.gst_rate_percent / Decimal('2.00')
-			self.sgst_rate = self.gst_rate_percent / Decimal('2.00')
+			self.cgst_rate = rate / Decimal('2.00')
+			self.sgst_rate = rate / Decimal('2.00')
 			self.igst_rate = Decimal('0.00')
-			self.cgst_amount = (self.taxable_value * self.cgst_rate) / Decimal('100.00')
-			self.sgst_amount = (self.taxable_value * self.sgst_rate) / Decimal('100.00')
+			self.cgst_amount = (tax_val * self.cgst_rate) / Decimal('100.00')
+			self.sgst_amount = (tax_val * self.sgst_rate) / Decimal('100.00')
 			self.igst_amount = Decimal('0.00')
 		else:
 			self.supply_type = 'inter_state'
 			self.cgst_rate = Decimal('0.00')
 			self.sgst_rate = Decimal('0.00')
-			self.igst_rate = self.gst_rate_percent
+			self.igst_rate = rate
 			self.cgst_amount = Decimal('0.00')
 			self.sgst_amount = Decimal('0.00')
-			self.igst_amount = (self.taxable_value * self.igst_rate) / Decimal('100.00')
+			self.igst_amount = (tax_val * self.igst_rate) / Decimal('100.00')
 
 		self.total_tax = self.cgst_amount + self.sgst_amount + self.igst_amount + (self.cess_amount or Decimal('0.00'))
-		unrounded = self.taxable_value + self.total_tax
+		unrounded = tax_val + self.total_tax
 		rounded = unrounded.quantize(Decimal('1'), rounding='ROUND_HALF_UP')
 		self.round_off = rounded - unrounded
 		self.total_invoice_value = rounded
@@ -906,6 +960,116 @@ class PettyCashTransaction(models.Model):
 		self.account.recalculate_balance()
 		if self.balance_after != self.account.current_balance:
 			PettyCashTransaction.objects.filter(pk=self.pk).update(balance_after=self.account.current_balance)
+
+
+# ==============================================================================
+# Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Digital Twin
+# ==============================================================================
+
+class BankStatementUpload(models.Model):
+	BANK_CHOICES = [
+		('generic', 'Generic CSV Bank Feed'),
+		('sbi', 'State Bank of India (SBI)'),
+		('hdfc', 'HDFC Bank'),
+		('icici', 'ICICI Bank'),
+		('axis', 'Axis Bank'),
+		('canara', 'Canara Bank'),
+		('kotak', 'Kotak Mahindra Bank'),
+	]
+	STATUS_CHOICES = [
+		('uploaded', '📥 Uploaded / Pending Parse'),
+		('analyzed', '🔍 Auto-Matched & Reviewed'),
+		('partially_reconciled', '⚡ Partially Reconciled'),
+		('reconciled', '✅ Fully Reconciled'),
+		('archived', '📦 Archived'),
+	]
+
+	bank_name = models.CharField(max_length=50, choices=BANK_CHOICES, default='generic')
+	filename = models.CharField(max_length=255, blank=True)
+	statement_file = models.FileField(upload_to='bank_statements/', null=True, blank=True)
+	account_number = models.CharField(max_length=50, blank=True, help_text="Company Bank Account or Virtual IBAN")
+	uploaded_at = models.DateTimeField(auto_now_add=True)
+	uploaded_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_bank_statements')
+	
+	total_transactions = models.PositiveIntegerField(default=0)
+	auto_matched_count = models.PositiveIntegerField(default=0)
+	reconciled_count = models.PositiveIntegerField(default=0)
+	
+	total_deposits = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Total credit inflows in ₹")
+	total_withdrawals = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Total debit outflows in ₹")
+	reconciled_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Total amount reconciled in ₹")
+	
+	status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='uploaded')
+	notes = models.TextField(blank=True)
+
+	class Meta:
+		ordering = ['-uploaded_at']
+		verbose_name = 'Bank Statement Upload'
+		verbose_name_plural = 'Bank Statement Uploads'
+
+	def __str__(self):
+		return f"{self.get_bank_name_display()} Statement ({self.uploaded_at.strftime('%d-%b-%Y')}) - {self.reconciled_count}/{self.total_transactions} Reconciled"
+
+	def update_summary_metrics(self):
+		"""Recalculate summary metrics from entries."""
+		from django.db.models import Sum, Count, Q
+		entries = self.entries.all()
+		self.total_transactions = entries.count()
+		self.auto_matched_count = entries.filter(Q(match_confidence__gte=75) & ~Q(status='reconciled')).count()
+		self.reconciled_count = entries.filter(status='reconciled').count()
+		self.total_deposits = entries.aggregate(s=Sum('deposit_amount'))['s'] or Decimal('0.00')
+		self.total_withdrawals = entries.aggregate(s=Sum('withdrawal_amount'))['s'] or Decimal('0.00')
+		self.reconciled_amount = entries.filter(status='reconciled').aggregate(s=Sum('deposit_amount'))['s'] or Decimal('0.00')
+
+		if self.total_transactions > 0 and self.reconciled_count == self.total_transactions:
+			self.status = 'reconciled'
+		elif self.reconciled_count > 0:
+			self.status = 'partially_reconciled'
+		elif self.auto_matched_count > 0:
+			self.status = 'analyzed'
+		self.save(update_fields=['total_transactions', 'auto_matched_count', 'reconciled_count', 'total_deposits', 'total_withdrawals', 'reconciled_amount', 'status'])
+
+
+class BankStatementEntry(models.Model):
+	STATUS_CHOICES = [
+		('unmatched', '⏳ Unmatched / Pending Review'),
+		('matched', '🎯 Confirmed Match Ready'),
+		('reconciled', '✅ Reconciled & Posted'),
+		('ignored', '🚫 Ignored / Internal Transfer'),
+	]
+
+	upload = models.ForeignKey(BankStatementUpload, on_delete=models.CASCADE, related_name='entries')
+	transaction_date = models.DateField(db_index=True)
+	value_date = models.DateField(null=True, blank=True)
+	narration = models.TextField(help_text="Raw bank transaction narration string")
+	reference_or_utr = models.CharField(max_length=100, blank=True, db_index=True, help_text="Extracted 12-digit UTR, IMPS, or UPI Ref No")
+	
+	withdrawal_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Debit / Outflow ₹")
+	deposit_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Credit / Inflow ₹")
+	balance = models.DecimalField(max_digits=14, decimal_places=2, default=0, help_text="Running bank balance ₹")
+	
+	# Matched ERP Entities
+	matched_party = models.ForeignKey(Party, on_delete=models.SET_NULL, null=True, blank=True, related_name='reconciled_bank_entries')
+	matched_booking = models.ForeignKey('operations.Booking', on_delete=models.SET_NULL, null=True, blank=True, related_name='reconciled_bank_entries')
+	matched_invoice = models.ForeignKey('finance.CorporateGSTInvoice', on_delete=models.SET_NULL, null=True, blank=True, related_name='reconciled_bank_entries')
+	matched_payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True, blank=True, related_name='reconciled_statement_entry')
+	
+	match_confidence = models.PositiveIntegerField(default=0, help_text="Confidence Score 0-100")
+	match_reason = models.CharField(max_length=255, blank=True, help_text="Rule that matched e.g. Exact 12-digit UTR, Amount + Customer Name")
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='unmatched')
+	
+	reconciled_at = models.DateTimeField(null=True, blank=True)
+	reconciled_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='reconciled_bank_entries')
+	audit_notes = models.CharField(max_length=255, blank=True)
+
+	class Meta:
+		ordering = ['-transaction_date', '-id']
+		verbose_name = 'Bank Statement Entry'
+		verbose_name_plural = 'Bank Statement Entries'
+
+	def __str__(self):
+		return f"{self.transaction_date} | +₹{self.deposit_amount} | UTR: {self.reference_or_utr or 'N/A'} ({self.get_status_display()})"
+
 
 
 

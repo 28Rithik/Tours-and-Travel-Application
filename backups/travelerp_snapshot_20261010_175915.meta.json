@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-10-10T17:59:15.090544",
+  "filename": "travelerp_snapshot_20261010_175915.sqlite3",
+  "file_size_bytes": 4096,
+  "file_size_mb": 0.0,
+  "sha256_checksum": "a2e9200b15954b25f4738e1321678c8832ac9eaf30ee5f33b7780af53706fe89",
+  "database_engine": "django.db.backends.sqlite3",
+  "entity_counts": {
+    "parties": 0,
+    "vehicles": 0,
+    "drivers": 0,
+    "bookings": 0,
+    "trips": 0,
+    "payments": 0,
+    "trip_expenses": 0
+  },
+  "status": "VERIFIED_OK"
+}

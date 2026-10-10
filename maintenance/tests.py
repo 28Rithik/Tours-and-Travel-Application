@@ -1,12 +1,13 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from datetime import date
-from core.models import Vehicle
+from core.models import Vehicle, VehicleType
 from maintenance.models import PartInventory, ServiceRecord, SparePart
 
 class MaintenanceHardeningTests(TestCase):
     def setUp(self):
-        self.vehicle = Vehicle.objects.create(registration_number='TN01-1111', vehicle_type='Sedan')
+        vtype, _ = VehicleType.objects.get_or_create(name='Sedan')
+        self.vehicle = Vehicle.objects.create(registration_number='TN01-1111', vehicle_type=vtype)
         self.inventory = PartInventory.objects.create(part_name='Brake Pad', current_stock=2, default_unit_price=100)
         self.service = ServiceRecord.objects.create(
             vehicle=self.vehicle, date=date(2025, 1, 1),

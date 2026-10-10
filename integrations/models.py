@@ -75,6 +75,13 @@ class IntegrationSettings(models.Model):
     whatsapp_active = models.BooleanField(default=True, verbose_name="WhatsApp Gateway Active")
     whatsapp_messages_sent = models.PositiveIntegerField(default=0)
 
+    # 5. Zoho Arattai App (Made-in-India Business Messaging Platform)
+    arattai_active = models.BooleanField(default=True, verbose_name="Arattai Business Gateway Active")
+    arattai_bot_token = models.CharField(max_length=255, blank=True, help_text="Zoho Arattai Bot Token or API Key")
+    arattai_business_id = models.CharField(max_length=100, blank=True, help_text="Arattai Business Account ID")
+    arattai_webhook_secret = models.CharField(max_length=100, default='arattai_siva_travelerp_verify_2026')
+    arattai_messages_sent = models.PositiveIntegerField(default=0)
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -82,7 +89,7 @@ class IntegrationSettings(models.Model):
         verbose_name_plural = 'Integration & Channel Settings'
 
     def __str__(self):
-        return f"Sivagayathiri Omnichannel Integration Hub (SMTP: {self.smtp_host} | WA: {self.get_whatsapp_vendor_display()})"
+        return f"Sivagayathiri Omnichannel Integration Hub (SMTP: {self.smtp_host} | WA: {self.get_whatsapp_vendor_display()} | Arattai: {'Active' if self.arattai_active else 'Disabled'})"
 
     @classmethod
     def get_settings(cls):
@@ -189,3 +196,42 @@ class ApprovalRequest(models.Model):
             next_idx = (last_app.id + 1) if last_app else 1
             self.approval_number = f"APP-{year}-{next_idx:04d}"
         super().save(*args, **kwargs)
+
+
+class ArattaiMessageLog(models.Model):
+    """
+    Audit log for all outbound transactional messages and inbound conversational
+    interactions processed via the Zoho Arattai Business Messaging Platform.
+    """
+    DIRECTION_CHOICES = [
+        ('outbound', '📤 Outbound (TravelERP -> Arattai User)'),
+        ('inbound', '📥 Inbound (Arattai User -> Rathasārathi Bot)'),
+    ]
+    MESSAGE_TYPES = [
+        ('booking_confirmed', '📋 Booking Confirmation Voucher'),
+        ('driver_assigned', '🚗 Chauffeur & Vehicle Allocation'),
+        ('pickup_pin', '🔐 Guest Pickup Verification PIN'),
+        ('trip_completed', '🏁 Trip Completion & Invoice'),
+        ('emergency_sos', '🚨 Fleet Emergency / SOS Alert'),
+        ('chat_query', '💬 Conversational Chat Query'),
+    ]
+
+    direction = models.CharField(max_length=15, choices=DIRECTION_CHOICES, default='outbound')
+    message_type = models.CharField(max_length=30, choices=MESSAGE_TYPES, default='booking_confirmed')
+    phone_number = models.CharField(max_length=30, db_index=True)
+    sender_name = models.CharField(max_length=150, blank=True)
+    message_text = models.TextField()
+    external_message_id = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, default='sent', help_text="e.g. sent, delivered, failed, received")
+    response_text = models.TextField(blank=True, help_text="AI or system reply sent back to user")
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Arattai Message Log'
+        verbose_name_plural = 'Arattai Message Logs'
+
+    def __str__(self):
+        return f"[{self.get_direction_display()}] {self.phone_number} - {self.get_message_type_display()} ({self.created_at.strftime('%d-%b %H:%M')})"
+

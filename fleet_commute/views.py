@@ -655,3 +655,129 @@ def api_driver_pre_shift_safety_gate(request):
             'failure_reasons': failure_reasons,
             'trip_status': 'delayed'
         }, status=400)
+
+
+# ==============================================================================
+# Phase 10: AI Route Clustering & Multi-Vehicle Roster Optimization APIs
+# ==============================================================================
+@csrf_exempt
+@login_required
+def api_optimize_commute_clusters(request):
+    """
+    POST API: Runs spatial employee clustering, fleet capacity matching,
+    TSP 2-opt waypoint sequencing, and night safety guardrail evaluation.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required.'}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    contract_id = data.get('contract_id') or request.GET.get('contract_id')
+    shift_id = data.get('shift_id') or request.GET.get('shift_id')
+    date_str = data.get('date') or data.get('target_date') or request.GET.get('date')
+    max_minutes = int(data.get('max_commute_minutes', 60))
+    vehicle_preference = data.get('vehicle_preference', 'auto')
+
+    if not contract_id:
+        contract = TransportContract.objects.filter(status='active').first()
+        if not contract:
+            return JsonResponse({'status': 'error', 'message': 'No active transport contracts found.'}, status=404)
+        contract_id = contract.id
+
+    import datetime
+    target_date = timezone.now().date()
+    if date_str:
+        try:
+            target_date = datetime.datetime.strptime(str(date_str), '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+
+    from fleet_commute.clustering_engine import CommuteRouteClusteringEngine
+
+    result = CommuteRouteClusteringEngine.cluster_manifest(
+        contract_id=int(contract_id),
+        shift_id=int(shift_id) if shift_id else None,
+        target_date=target_date,
+        max_commute_minutes=max_minutes,
+        vehicle_preference=vehicle_preference
+    )
+
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@login_required
+def api_commit_commute_clusters(request):
+    """
+    POST API: Commits approved AI clusters into live ContractTripLog,
+    CommuterBoardingPass (with dynamic 4-digit OTPs), and NightSafetyEscortLog records.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required.'}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Invalid JSON payload: {e}'}, status=400)
+    else:
+        data = request.POST
+
+    contract_id = data.get('contract_id')
+    clusters = data.get('clusters', [])
+    date_str = data.get('date') or data.get('target_date')
+    shift_id = data.get('shift_id')
+
+    if not contract_id:
+        return JsonResponse({'status': 'error', 'message': 'contract_id is required.'}, status=400)
+    if not clusters:
+        return JsonResponse({'status': 'error', 'message': 'clusters list is required.'}, status=400)
+
+    import datetime
+    target_date = timezone.now().date()
+    if date_str:
+        try:
+            target_date = datetime.datetime.strptime(str(date_str), '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+
+    from fleet_commute.clustering_engine import CommuteRouteClusteringEngine
+
+    result = CommuteRouteClusteringEngine.commit_clusters_to_roster(
+        contract_id=int(contract_id),
+        clusters_data=clusters,
+        target_date=target_date,
+        shift_id=int(shift_id) if shift_id else None
+    )
+
+    return JsonResponse(result)
+
+
+@login_required
+def api_commute_cluster_stats(request):
+    """
+    GET API: Real-time corporate commute optimization and fleet utilization statistics.
+    """
+    from fleet_contracts.models import ContractTripLog, CommuterManifest, TransportContract
+    today = timezone.now().date()
+
+    active_contracts_count = TransportContract.objects.filter(status='active').count()
+    total_commuters = CommuterManifest.objects.filter(is_active=True).count()
+    clustered_trips_today = ContractTripLog.objects.filter(date=today).exclude(cluster_code='').count()
+
+    return JsonResponse({
+        'status': 'success',
+        'active_contracts_count': active_contracts_count,
+        'total_registered_commuters': total_commuters,
+        'clustered_trips_today': clustered_trips_today,
+        'fleet_optimization_active': True,
+        'timestamp': timezone.now().isoformat()
+    })

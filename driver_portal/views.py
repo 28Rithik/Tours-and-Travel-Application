@@ -17,17 +17,33 @@ from .models import DriverPortalAccount
 
 
 def get_current_driver(request):
-    if not request.user.is_authenticated:
-        return None
-    # Check linked DriverPortalAccount
-    if hasattr(request.user, 'driver_portal_account'):
-        return request.user.driver_portal_account.driver
-    # Check session
+    # 1. Direct query param token for SMS/WhatsApp links or QR code scans
+    token = request.GET.get('token')
+    if token:
+        trip = Trip.objects.filter(tracking_token=token).first()
+        if trip and trip.driver:
+            request.session['driver_id'] = trip.driver.pk
+            return trip.driver
+    # 2. Check session driver_id
     driver_id = request.session.get('driver_id')
     if driver_id:
-        return Driver.objects.filter(pk=driver_id).first()
-    # Check driver by user username or email
-    return Driver.objects.filter(phone=request.user.username).first()
+        driver = Driver.objects.filter(pk=driver_id).first()
+        if driver:
+            return driver
+    # 3. Check authenticated user
+    if request.user.is_authenticated:
+        if hasattr(request.user, 'driver_portal_account'):
+            return request.user.driver_portal_account.driver
+        # Check driver by user username or email
+        driver = Driver.objects.filter(phone=request.user.username).first()
+        if driver:
+            return driver
+        # Fallback if admin/staff is previewing driver portal
+        if request.user.is_staff or request.user.is_superuser:
+            first_driver = Driver.objects.filter(status='active').first() or Driver.objects.first()
+            if first_driver:
+                return first_driver
+    return None
 
 
 def driver_login_required(view_func):
@@ -213,10 +229,31 @@ def driver_inspection(request):
 @driver_login_required
 def driver_trip_detail(request, trip_id):
     driver = request.driver
-    trip = get_object_or_404(Trip, pk=trip_id, driver=driver)
+    if request.user.is_staff or request.user.is_superuser:
+        trip = get_object_or_404(Trip.objects.select_related('vehicle', 'driver', 'booking', 'party'), pk=trip_id)
+    else:
+        trip = get_object_or_404(Trip.objects.select_related('vehicle', 'driver', 'booking', 'party'), pk=trip_id, driver=driver)
+
+    if not trip.pickup_pin:
+        import random
+        trip.pickup_pin = f"{random.randint(1000, 9999)}"
+        trip.save(update_fields=['pickup_pin'])
+
+    milestone_events = trip.milestone_events.all().order_by('timestamp', 'milestone_index')
+    expenses = trip.expenses.all().order_by('-date')
+    commute_passes = trip.commute_passes.select_related('commuter', 'boarded_stop').order_by('is_boarded', 'commuter__name')
+
     return render(request, 'driver_portal/trip_detail.html', {
         'trip': trip,
         'driver': driver,
+        'milestone_events': milestone_events,
+        'expenses': expenses,
+        'commute_passes': commute_passes,
+        'milestone_index': trip.milestone_index,
+        'progress_percent': trip.milestone_progress_percent,
+        'total_expenses': trip.total_expenses,
+        'pickup_pin': trip.pickup_pin,
+        'is_pin_verified': trip.is_pin_verified,
     })
 
 

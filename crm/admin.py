@@ -223,7 +223,7 @@ class InquiryAdmin(ModelAdmin):
     @admin.display(description='Inquiry #')
     def inquiry_number_display(self, obj):
         return format_html(
-            '<span style="color: #38bdf8; font-weight: 700; font-size: 13px;">'
+            '<span style="color: #0284c7; font-weight: 700; font-size: 13px; white-space: nowrap;">'
             '<i class="fas fa-hashtag mr-1"></i>{}'
             '</span>',
             obj.inquiry_number
@@ -233,15 +233,15 @@ class InquiryAdmin(ModelAdmin):
     def guest_display(self, obj):
         phone = f' | {obj.guest_phone}' if obj.guest_phone else ''
         return format_html(
-            '<span class="font-semibold text-slate-900 dark:text-slate-100">{}</span>'
-            '<br><small class="text-xs text-slate-500 dark:text-slate-400">{}</small>',
+            '<span class="font-semibold text-slate-900 dark:text-slate-100" style="color: #0f172a;">{}</span>'
+            '<br><small class="text-xs text-slate-600 dark:text-slate-400" style="color: #475569; font-weight: 500;">{}</small>',
             obj.guest_name, phone
         )
 
     @admin.display(description='Party / Client')
     def party_link(self, obj):
         return format_html(
-            '<a href="/admin/core_partners/client/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline">'
+            '<a href="/admin/core_partners/client/{}/change/" class="text-sky-700 dark:text-sky-400 font-medium hover:underline" style="color: #0369a1; font-weight: 600;">'
             '<i class="fas fa-building mr-1"></i>{}'
             '</a>',
             obj.party.id, obj.party.name
@@ -250,15 +250,15 @@ class InquiryAdmin(ModelAdmin):
     @admin.display(description='Journey')
     def journey_badge(self, obj):
         styles = {
-            'local': ('#10b981', 'fas fa-city', 'Local'),
-            'outstation': ('#3b82f6', 'fas fa-road', 'Outstation'),
-            'airport': ('#8b5cf6', 'fas fa-plane', 'Airport'),
-            'round_trip': ('#f59e0b', 'fas fa-sync-alt', 'Round Trip'),
-            'one_way': ('#64748b', 'fas fa-arrow-right', 'One Way'),
+            'local': ('#059669', 'fas fa-city', 'Local'),
+            'outstation': ('#2563eb', 'fas fa-road', 'Outstation'),
+            'airport': ('#7c3aed', 'fas fa-plane', 'Airport'),
+            'round_trip': ('#d97706', 'fas fa-sync-alt', 'Round Trip'),
+            'one_way': ('#475569', 'fas fa-arrow-right', 'One Way'),
         }
-        color, icon, label = styles.get(obj.journey_type, ('#64748b', 'fas fa-car', obj.journey_type))
+        color, icon, label = styles.get(obj.journey_type, ('#475569', 'fas fa-car', obj.journey_type))
         return format_html(
-            '<span class="badge" style="background-color: {}; color: #fff; padding: 4px 8px; font-size: 11px;">'
+            '<span class="badge" style="background-color: {}; color: #fff; padding: 4px 8px; font-size: 11px; white-space: nowrap;">'
             '<i class="{} mr-1"></i>{}'
             '</span>',
             color, icon, label
@@ -267,9 +267,9 @@ class InquiryAdmin(ModelAdmin):
     @admin.display(description='Route')
     def route_display(self, obj):
         return format_html(
-            '<span class="text-xs text-slate-600 dark:text-slate-300">{}</span>'
-            ' <i class="fas fa-arrow-right text-sky-600 dark:text-sky-400 text-[10px] mx-1"></i> '
-            '<span class="text-xs font-semibold text-slate-900 dark:text-slate-100">{}</span>',
+            '<span class="text-xs text-slate-700 dark:text-slate-300" style="color: #334155; font-weight: 500;">{}</span>'
+            ' <i class="fas fa-arrow-right text-sky-600 dark:text-sky-400 text-[10px] mx-1" style="color: #0284c7;"></i> '
+            '<span class="text-xs font-bold text-slate-900 dark:text-slate-100" style="color: #0f172a;">{}</span>',
             obj.pickup_location[:24], obj.destination[:28]
         )
 
@@ -279,8 +279,8 @@ class InquiryAdmin(ModelAdmin):
             return mark_safe('<span style="color: #64748b;">—</span>')
         cap = f"({obj.vehicle_type.seating_capacity} seats)" if hasattr(obj.vehicle_type, 'seating_capacity') and obj.vehicle_type.seating_capacity else ""
         return format_html(
-            '<span style="color: #e2e8f0; font-size: 11.5px; font-weight: 500;">'
-            '<i class="fas fa-bus mr-1" style="color: #38bdf8;"></i>{} <small style="color: #94a3b8;">{}</small>'
+            '<span style="color: #0f172a; font-size: 11.5px; font-weight: 600; white-space: nowrap;">'
+            '<i class="fas fa-bus mr-1" style="color: #0284c7;"></i>{} <small style="color: #475569; font-weight: 500;">{}</small>'
             '</span>',
             obj.vehicle_type.name, cap
         )
@@ -289,36 +289,36 @@ class InquiryAdmin(ModelAdmin):
     def priority_badge(self, obj):
         styles = {
             'low': ('#64748b', 'Low'),
-            'medium': ('#3b82f6', 'Medium'),
-            'high': ('#f59e0b', 'High'),
-            'urgent': ('#ef4444', '🔥 Urgent / VIP'),
+            'medium': ('#2563eb', 'Medium'),
+            'high': ('#d97706', 'High'),
+            'urgent': ('#dc2626', '🔥 Urgent / VIP'),
         }
         color, label = styles.get(obj.priority, ('#64748b', obj.priority))
         return format_html(
-            '<span class="badge" style="background-color: {}; color: #fff; padding: 3px 8px; font-size: 11px; font-weight: 600;">{}</span>',
+            '<span class="badge" style="background-color: {}; color: #fff; padding: 3px 8px; font-size: 11px; font-weight: 600; white-space: nowrap;">{}</span>',
             color, label
         )
 
     @admin.display(description='Response TAT')
     def tat_countdown_badge(self, obj):
         if obj.status in ['won', 'lost', 'quoted']:
-            return mark_safe('<span style="color: #10b981; font-size: 11px;"><i class="fas fa-check-circle mr-1"></i>Completed</span>')
+            return mark_safe('<span style="color: #15803d; font-size: 11px; font-weight: 600; white-space: nowrap;"><i class="fas fa-check-circle mr-1"></i>Completed</span>')
         rem = obj.tat_remaining_hours
         if rem is None:
             return mark_safe('<span style="color: #64748b;">—</span>')
         if rem <= 0:
-            return format_html('<span class="badge" style="background-color: #ef4444; color: #fff; padding: 3px 6px; font-size: 10px; font-weight: 700;">🚨 SLA Breached ({}h)</span>', f"{abs(rem):.1f}")
+            return format_html('<span class="badge" style="background-color: #dc2626; color: #fff; padding: 3px 6px; font-size: 10px; font-weight: 700; white-space: nowrap;">🚨 SLA Breached ({}h)</span>', f"{abs(rem):.1f}")
         elif rem <= 4:
-            return format_html('<span class="badge" style="background-color: #f59e0b; color: #fff; padding: 3px 6px; font-size: 10px; font-weight: 700;">⏱️ {}h left</span>', f"{rem:.1f}")
+            return format_html('<span class="badge" style="background-color: #d97706; color: #fff; padding: 3px 6px; font-size: 10px; font-weight: 700; white-space: nowrap;">⏱️ {}h left</span>', f"{rem:.1f}")
         else:
-            return format_html('<span style="color: #94a3b8; font-size: 11px;">⏱️ {}h left</span>', f"{rem:.1f}")
+            return format_html('<span style="color: #334155; font-size: 11px; font-weight: 600; white-space: nowrap;">⏱️ {}h left</span>', f"{rem:.1f}")
 
     @admin.display(description='Quoted Price')
     def quoted_price_display(self, obj):
         if not obj.quoted_price:
-            return mark_safe('<span class="badge" style="background-color: #1e293b; color: #f59e0b; padding: 3px 6px; font-size: 11px;">Not Quoted</span>')
+            return mark_safe('<span class="badge" style="background-color: #f1f5f9; color: #b45309; border: 1px solid #fde68a; padding: 3px 6px; font-size: 11px; font-weight: 600; white-space: nowrap;">Not Quoted</span>')
         return format_html(
-            '<span style="color: #10b981; font-weight: 700; font-size: 13px;">₹{}</span>',
+            '<span style="color: #059669; font-weight: 700; font-size: 13px; white-space: nowrap;">₹{}</span>',
             f"{obj.quoted_price:,.0f}"
         )
 
@@ -389,13 +389,13 @@ class InquiryAdmin(ModelAdmin):
         em_opt = '✅ Opted-in' if pref and pref.email_opt_in else '❌ Opted-out'
 
         return format_html(
-            '<div style="background: #1e293b; border-left: 4px solid #38bdf8; padding: 12px 16px; border-radius: 6px; margin-top: 6px;">'
-            '<div style="font-weight: 700; color: #f8fafc; margin-bottom: 6px;"><i class="fas fa-id-badge mr-1" style="color: #38bdf8;"></i> Client Preferences: {}</div>'
-            '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 12px; color: #cbd5e1;">'
-            '<div><strong>Preferred Vehicle:</strong> <span style="color: #93c5fd;">{}</span></div>'
-            '<div><strong>Catering Standard:</strong> <span style="color: #fef08a;">{}</span></div>'
-            '<div><strong>WhatsApp Consent:</strong> {}</div>'
-            '<div><strong>Email Consent:</strong> {}</div>'
+            '<div class="client-snapshot-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-left: 4px solid #0284c7; padding: 14px 18px; border-radius: 8px; margin-top: 6px;">'
+            '<div style="font-weight: 700; color: #0f172a; font-size: 13.5px; margin-bottom: 8px;"><i class="fas fa-id-badge mr-1.5" style="color: #0284c7;"></i> Client Preferences: {}</div>'
+            '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 12px; color: #334155;">'
+            '<div><strong style="color: #0f172a;">Preferred Vehicle:</strong> <span style="color: #0284c7; font-weight: 600;">{}</span></div>'
+            '<div><strong style="color: #0f172a;">Catering Standard:</strong> <span style="color: #b45309; font-weight: 600;">{}</span></div>'
+            '<div><strong style="color: #0f172a;">WhatsApp Consent:</strong> {}</div>'
+            '<div><strong style="color: #0f172a;">Email Consent:</strong> {}</div>'
             '</div>'
             '</div>',
             obj.party.name, vt_name, diet, wa_opt, em_opt
@@ -404,32 +404,32 @@ class InquiryAdmin(ModelAdmin):
     @admin.display(description='Recent Communication History')
     def client_comm_history(self, obj):
         if not obj.party:
-            return mark_safe('<span style="color: #94a3b8;">No client history.</span>')
+            return mark_safe('<span style="color: #64748b;">No client history.</span>')
         logs = CommunicationLog.objects.filter(client=obj.party).order_by('-sent_at')[:6]
         if not logs.exists():
-            return mark_safe('<span style="color: #94a3b8;">No communications logged yet for this client.</span>')
+            return mark_safe('<span style="color: #64748b;">No communications logged yet for this client.</span>')
         
         rows = []
         for l in logs:
-            badge_color = '#25D366' if l.comm_type == 'whatsapp' else '#3b82f6'
+            badge_color = '#15803d' if l.comm_type == 'whatsapp' else '#0284c7'
             icon = 'fab fa-whatsapp' if l.comm_type == 'whatsapp' else 'fas fa-envelope'
             sent_str = l.sent_at.strftime('%d/%m/%Y %H:%M') if l.sent_at else '—'
             msg_snippet = escape(l.message_content[:90] + ('...' if len(l.message_content) > 90 else ''))
             rows.append(
-                f'<tr style="border-bottom: 1px solid #334155; font-size: 12px;">'
-                f'<td style="padding: 6px 10px;"><span class="badge" style="background-color: {badge_color}; color: #fff;"><i class="{icon} mr-1"></i>{l.comm_type.title()}</span></td>'
-                f'<td style="padding: 6px 10px; color: #94a3b8;">{sent_str}</td>'
-                f'<td style="padding: 6px 10px; color: #cbd5e1;">{msg_snippet}</td>'
-                f'<td style="padding: 6px 10px;"><span class="badge" style="background: #10b981; color: #fff;">{l.status}</span></td>'
+                f'<tr style="border-bottom: 1px solid #e2e8f0; font-size: 12px;">'
+                f'<td style="padding: 8px 12px;"><span class="badge" style="background-color: {badge_color}; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 600;"><i class="{icon} mr-1"></i>{l.comm_type.title()}</span></td>'
+                f'<td style="padding: 8px 12px; color: #334155; font-weight: 500;">{sent_str}</td>'
+                f'<td style="padding: 8px 12px; color: #0f172a;">{msg_snippet}</td>'
+                f'<td style="padding: 8px 12px;"><span class="badge" style="background: #10b981; color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: 600;">{l.status}</span></td>'
                 f'</tr>'
             )
         table_html = (
-            '<table style="width: 100%; border-collapse: collapse; background: #0f172a; border-radius: 6px; overflow: hidden;">'
-            '<thead><tr style="background: #1e293b; color: #94a3b8; font-size: 11px; text-transform: uppercase;">'
-            '<th style="padding: 6px 10px; text-align: left;">Channel</th>'
-            '<th style="padding: 6px 10px; text-align: left;">Date</th>'
-            '<th style="padding: 6px 10px; text-align: left;">Message Preview</th>'
-            '<th style="padding: 6px 10px; text-align: left;">Status</th>'
+            '<table style="width: 100%; border-collapse: collapse; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">'
+            '<thead><tr style="background: #f1f5f9; color: #0f172a; font-size: 11px; text-transform: uppercase; font-weight: 700; border-bottom: 2px solid #cbd5e1;">'
+            '<th style="padding: 8px 12px; text-align: left;">Channel</th>'
+            '<th style="padding: 8px 12px; text-align: left;">Date</th>'
+            '<th style="padding: 8px 12px; text-align: left;">Message Preview</th>'
+            '<th style="padding: 8px 12px; text-align: left;">Status</th>'
             '</tr></thead><tbody>' + ''.join(rows) + '</tbody></table>'
         )
         return mark_safe(table_html)
@@ -1008,8 +1008,8 @@ class UpsellRecommendationProxyAdmin(ModelAdmin):
     @admin.display(description='Recommended Add-On Ideas')
     def quick_preset_suggestions(self, obj):
         return mark_safe(
-            '<div style="background: #0f172a; padding: 12px; border-radius: 6px; font-size: 12px; color: #94a3b8; border: 1px dashed #334155;">'
-            '<strong style="color: #f8fafc;">💎 Popular High-Margin Add-On Ideas:</strong><br>'
+            '<div style="background: #f8fafc; padding: 14px; border-radius: 8px; font-size: 12px; color: #334155; border: 1px dashed #cbd5e1; margin-top: 6px;">'
+            '<strong style="color: #0f172a; font-size: 13px;">💎 Popular High-Margin Add-On Ideas:</strong><br>'
             '• <code>🔥 Campfire &amp; DJ Music Night Setup (₹4,500)</code> - For College IV &amp; Hill Station resorts.<br>'
             '• <code>🛕 VIP Temple Darshan &amp; Special Archana Pass (₹1,800)</code> - For Pilgrimage circuits.<br>'
             '• <code>⛵ Luxury Private Alleppey Houseboat Upgrade (₹8,500)</code> - For Kerala vacations.<br>'
@@ -1034,34 +1034,34 @@ class HotelMasterAdmin(ModelAdmin):
     @admin.display(description='Category')
     def star_category_badge(self, obj):
         colors = {
-            '5_star': '#eab308',
-            '4_star': '#38bdf8',
-            '3_star': '#10b981',
-            'resort': '#ec4899',
-            'heritage': '#a855f7',
+            '5_star': '#d97706',
+            '4_star': '#0284c7',
+            '3_star': '#059669',
+            'resort': '#db2777',
+            'heritage': '#7c3aed',
             'budget': '#64748b'
         }
         color = colors.get(obj.star_category, '#64748b')
         return format_html(
-            '<span class="badge" style="background-color: {}; color: #fff; padding: 3px 7px; font-size: 11px;">{}</span>',
+            '<span class="badge" style="background-color: {}; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 11px; white-space: nowrap; display: inline-flex; align-items: center;">{}</span>',
             color, obj.get_star_category_display()
         )
 
     @admin.display(description='Bed & Breakfast (CP)')
     def cp_rate_display(self, obj):
-        return format_html('<b style="color: #10b981;">₹{}</b>', f"{obj.cp_rate:,.0f}" if obj.cp_rate else "0")
+        return format_html('<b style="color: #059669; font-weight: 700; font-size: 13px; white-space: nowrap;">₹{}</b>', f"{obj.cp_rate:,.0f}" if obj.cp_rate else "0")
 
     @admin.display(description='Breakfast+Dinner (MAP)')
     def map_rate_display(self, obj):
-        return format_html('<span class="text-slate-700 dark:text-slate-300 font-medium">₹{}</span>', f"{obj.map_rate:,.0f}" if obj.map_rate else "0")
+        return format_html('<b style="color: #0f172a; font-weight: 600; font-size: 13px; white-space: nowrap;">₹{}</b>', f"{obj.map_rate:,.0f}" if obj.map_rate else "0")
 
     @admin.display(description='All Meals (AP)')
     def ap_rate_display(self, obj):
-        return format_html('<span class="text-slate-700 dark:text-slate-300 font-medium">₹{}</span>', f"{obj.ap_rate:,.0f}" if obj.ap_rate else "0")
+        return format_html('<b style="color: #0f172a; font-weight: 600; font-size: 13px; white-space: nowrap;">₹{}</b>', f"{obj.ap_rate:,.0f}" if obj.ap_rate else "0")
 
     @admin.display(description='Peak Surge')
     def peak_surge_display(self, obj):
-        return format_html('<span style="color: #f59e0b;">+{}%</span>', obj.peak_surge_percent)
+        return format_html('<span style="color: #d97706; font-weight: 700; font-size: 12px; white-space: nowrap;">+{}%</span>', obj.peak_surge_percent)
 
 
 @admin.register(MonumentEntranceMaster)
@@ -1072,15 +1072,15 @@ class MonumentEntranceMasterAdmin(ModelAdmin):
 
     @admin.display(description='Domestic (Adult/Child)')
     def domestic_rates_display(self, obj):
-        return format_html('<b style="color: #10b981;">₹{}</b> / ₹{}', f"{obj.domestic_adult_rate:,.0f}", f"{obj.domestic_child_rate:,.0f}")
+        return format_html('<b style="color: #059669; font-weight: 700; white-space: nowrap;">₹{}</b> / <span style="color: #0f172a; font-weight: 600;">₹{}</span>', f"{obj.domestic_adult_rate:,.0f}", f"{obj.domestic_child_rate:,.0f}")
 
     @admin.display(description='Foreigner (Adult/Child)')
     def foreigner_rates_display(self, obj):
-        return format_html('<span style="color: #38bdf8;">₹{}</span> / ₹{}', f"{obj.foreigner_adult_rate:,.0f}", f"{obj.foreigner_child_rate:,.0f}")
+        return format_html('<b style="color: #0284c7; font-weight: 700; white-space: nowrap;">₹{}</b> / <span style="color: #0f172a; font-weight: 600;">₹{}</span>', f"{obj.foreigner_adult_rate:,.0f}", f"{obj.foreigner_child_rate:,.0f}")
 
     @admin.display(description='Camera Fee')
     def camera_fee_display(self, obj):
-        return f"₹{obj.camera_fee:,.0f}" if obj.camera_fee else "Free"
+        return format_html('<span style="color: #334155; font-weight: 500; white-space: nowrap;">₹{}</span>', f"{obj.camera_fee:,.0f}") if obj.camera_fee else mark_safe('<span style="color: #059669; font-weight: 600;">Free</span>')
 
 
 @admin.register(ActivityMaster)
@@ -1092,17 +1092,17 @@ class ActivityMasterAdmin(ModelAdmin):
     @admin.display(description='Pricing Type')
     def pricing_type_badge(self, obj):
         return format_html(
-            '<span class="badge" style="background-color: #1e293b; color: #38bdf8; padding: 3px 6px; font-size: 11px;">{}</span>',
+            '<span class="badge" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 11px; white-space: nowrap;">{}</span>',
             obj.get_pricing_type_display()
         )
 
     @admin.display(description='Rate')
     def rate_display(self, obj):
-        return format_html('<b style="color: #10b981;">₹{}</b>', f"{obj.standard_rate:,.0f}")
+        return format_html('<b style="color: #059669; font-weight: 700; font-size: 13px; white-space: nowrap;">₹{}</b>', f"{obj.standard_rate:,.0f}")
 
     @admin.display(description='Duration')
     def duration_display(self, obj):
-        return f"{obj.duration_minutes} mins"
+        return format_html('<span style="color: #334155; font-weight: 500; white-space: nowrap;">{} mins</span>', obj.duration_minutes)
 
 
 @admin.register(GuideChargeMaster)
@@ -1114,17 +1114,17 @@ class GuideChargeMasterAdmin(ModelAdmin):
     @admin.display(description='Language')
     def language_badge(self, obj):
         return format_html(
-            '<span class="badge" style="background-color: #3b82f6; color: #fff; padding: 3px 7px; font-size: 11px;">{}</span>',
+            '<span class="badge" style="background-color: #2563eb; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 11px; white-space: nowrap; display: inline-flex; align-items: center;">{}</span>',
             obj.get_language_display()
         )
 
     @admin.display(description='Half Day')
     def half_day_display(self, obj):
-        return format_html('<span>₹{}</span>', f"{obj.half_day_rate:,.0f}")
+        return format_html('<span style="color: #0f172a; font-weight: 600; font-size: 13px; white-space: nowrap;">₹{}</span>', f"{obj.half_day_rate:,.0f}")
 
     @admin.display(description='Full Day')
     def full_day_display(self, obj):
-        return format_html('<b style="color: #10b981;">₹{}</b>', f"{obj.full_day_rate:,.0f}")
+        return format_html('<b style="color: #059669; font-weight: 700; font-size: 13px; white-space: nowrap;">₹{}</b>', f"{obj.full_day_rate:,.0f}")
 
 
 # ==============================================================================
@@ -1205,39 +1205,39 @@ class QuotationAdmin(ModelAdmin):
     @admin.display(description='Version')
     def version_badge(self, obj):
         return format_html(
-            '<span class="badge" style="background-color: #475569; color: #fff; padding: 2px 6px; font-size: 11px;">v{}</span>',
+            '<span class="badge" style="background-color: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; white-space: nowrap;">v{}</span>',
             obj.version
         )
 
     @admin.display(description='Duration')
     def duration_display(self, obj):
-        return f"{obj.duration_nights}N / {obj.duration_days}D"
+        return format_html('<span style="color: #0f172a; font-weight: 500; white-space: nowrap;">{}N / {}D</span>', obj.duration_nights, obj.duration_days)
 
     @admin.display(description='Net Cost')
     def net_cost_display(self, obj):
-        return format_html('<span style="color: #94a3b8;">₹{}</span>', f"{obj.net_cost:,.0f}")
+        return format_html('<span style="color: #334155; font-weight: 600; white-space: nowrap;">₹{}</span>', f"{obj.net_cost:,.0f}")
 
     @admin.display(description='Markup')
     def markup_display(self, obj):
-        return format_html('<span style="color: #38bdf8;">+{}%</span> (₹{})', obj.markup_percent, f"{obj.markup_amount:,.0f}")
+        return format_html('<span style="color: #0284c7; font-weight: 600; white-space: nowrap;">+{}%</span> <small style="color: #475569; font-weight: 500;">(₹{})</small>', obj.markup_percent, f"{obj.markup_amount:,.0f}")
 
     @admin.display(description='Quoted Price')
     def total_quoted_price_display(self, obj):
-        return format_html('<b style="color: #10b981; font-size: 13px;">₹{}</b>', f"{obj.total_quoted_price:,.0f}")
+        return format_html('<b style="color: #059669; font-size: 13px; font-weight: 700; white-space: nowrap;">₹{}</b>', f"{obj.total_quoted_price:,.0f}")
 
     @admin.display(description='Status')
     def status_badge(self, obj):
         colors = {
             'draft': '#64748b',
-            'sent': '#3b82f6',
-            'negotiating': '#f59e0b',
-            'accepted': '#10b981',
-            'rejected': '#ef4444',
-            'converted': '#8b5cf6',
+            'sent': '#2563eb',
+            'negotiating': '#d97706',
+            'accepted': '#059669',
+            'rejected': '#dc2626',
+            'converted': '#7c3aed',
         }
         color = colors.get(obj.status, '#64748b')
         return format_html(
-            '<span class="badge" style="background-color: {}; color: #fff; padding: 4px 8px; font-size: 11px; font-weight: 600;">{}</span>',
+            '<span class="badge" style="background-color: {}; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center;">{}</span>',
             color, obj.get_status_display()
         )
 
@@ -1245,10 +1245,10 @@ class QuotationAdmin(ModelAdmin):
     def booking_link(self, obj):
         if obj.booking:
             return format_html(
-                '<a href="/admin/operations/booking/{}/change/" style="color: #38bdf8; font-weight: 600;">{}</a>',
+                '<a href="/admin/operations/booking/{}/change/" style="color: #0284c7; font-weight: 600; white-space: nowrap;">{}</a>',
                 obj.booking.id, obj.booking.booking_number
             )
-        return mark_safe('<span style="color: #64748b;">Not Converted</span>')
+        return mark_safe('<span style="color: #64748b; font-size: 12px;">Not Converted</span>')
 
     @admin.display(description='Actions')
     def actions_display(self, obj):
@@ -1514,37 +1514,41 @@ class SupplierServiceVoucherAdmin(ModelAdmin):
 
     @admin.display(description='Type')
     def voucher_type_badge(self, obj):
-        return obj.get_voucher_type_display()
+        return format_html('<span style="color: #0f172a; font-weight: 600; font-size: 12.5px;">{}</span>', obj.get_voucher_type_display())
 
     @admin.display(description='Supplier')
     def supplier_name(self, obj):
-        return obj.supplier.party.name
+        return format_html('<span style="color: #0f172a; font-weight: 600;">{}</span>', obj.supplier.party.name)
+
+    @admin.display(description='Guest Name')
+    def guest_name_display(self, obj):
+        return format_html('<span style="color: #0f172a; font-weight: 600;">{}</span>', obj.guest_name)
 
     @admin.display(description='Service Window')
     def dates_display(self, obj):
-        return f"{obj.service_date_start} to {obj.service_date_end} ({obj.duration_nights}N)"
+        return format_html('<span style="color: #334155; font-size: 12px; font-weight: 500; white-space: nowrap;">{} to {} <b style="color: #0284c7;">({}N)</b></span>', obj.service_date_start, obj.service_date_end, obj.duration_nights)
 
     @admin.display(description='Payable to Supplier')
     def settlement_display(self, obj):
-        return format_html('<b style="color: #0f766e;">₹{}</b>', f"{obj.total_payable_to_supplier:,.2f}")
+        return format_html('<b style="color: #059669; font-weight: 700; font-size: 13px; white-space: nowrap;">₹{}</b>', f"{obj.total_payable_to_supplier:,.2f}")
 
     @admin.display(description='Status')
     def status_badge(self, obj):
         colors = {
             'draft': '#64748b',
-            'issued': '#f59e0b',
-            'confirmed': '#10b981',
-            'amended': '#8b5cf6',
-            'cancelled': '#ef4444',
+            'issued': '#d97706',
+            'confirmed': '#059669',
+            'amended': '#7c3aed',
+            'cancelled': '#dc2626',
         }
         color = colors.get(obj.status, '#64748b')
-        return format_html('<span class="badge" style="background: {}; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: 600;">{}</span>', color, obj.get_status_display())
+        return format_html('<span class="badge" style="background: {}; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 11px; white-space: nowrap; display: inline-flex; align-items: center;">{}</span>', color, obj.get_status_display())
 
     @admin.display(description='Actions')
     def actions_display(self, obj):
         return format_html(
-            '<a href="/crm/vouchers/{}/" target="_blank" class="button" style="padding: 3px 8px; font-size: 11px; background: #0284c7; color: #fff; border-radius: 4px; text-decoration: none;">'
-            '📄 View Voucher</a>',
+            '<a href="/crm/vouchers/{}/" target="_blank" class="button" style="padding: 4px 10px; font-size: 11px; font-weight: 600; background: #0284c7; color: #fff; border-radius: 5px; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;">'
+            '<i class="fas fa-file-alt mr-1"></i>View Voucher</a>',
             obj.id
         )
 
@@ -1675,20 +1679,45 @@ class SupplierPaymentRequisitionAdmin(ModelAdmin):
 
 @admin.register(DmcInvoice)
 class DmcInvoiceAdmin(ModelAdmin):
-    list_display = ('invoice_number', 'invoice_type_badge', 'billing_name', 'taxable_amount', 'total_tax_amount', 'total_invoice_amount', 'balance_due', 'status_badge', 'invoice_date')
+    list_display = ('invoice_number_display', 'invoice_type_badge', 'billing_name_display', 'taxable_amount_display', 'total_tax_amount_display', 'total_invoice_amount_display', 'balance_due_display', 'status_badge', 'invoice_date')
     list_filter = ('invoice_type', 'status', 'tax_regime', 'invoice_date')
     search_fields = ('invoice_number', 'billing_name', 'client_gstin', 'client_pan', 'party__name')
     date_hierarchy = 'invoice_date'
 
+    @admin.display(description='Invoice #')
+    def invoice_number_display(self, obj):
+        return format_html('<span style="color: #0284c7; font-weight: 700; font-size: 13px; white-space: nowrap;">{}</span>', obj.invoice_number)
+
+    @admin.display(description='Billing Name')
+    def billing_name_display(self, obj):
+        return format_html('<span style="color: #0f172a; font-weight: 600;">{}</span>', obj.billing_name)
+
+    @admin.display(description='Taxable Amount')
+    def taxable_amount_display(self, obj):
+        return format_html('<span style="color: #334155; font-weight: 500; white-space: nowrap;">₹{}</span>', f"{(obj.taxable_amount or 0):,.2f}")
+
+    @admin.display(description='Tax')
+    def total_tax_amount_display(self, obj):
+        return format_html('<span style="color: #64748b; font-weight: 500; white-space: nowrap;">₹{}</span>', f"{(obj.total_tax_amount or 0):,.2f}")
+
+    @admin.display(description='Total Amount')
+    def total_invoice_amount_display(self, obj):
+        return format_html('<b style="color: #0f172a; font-weight: 700; white-space: nowrap;">₹{}</b>', f"{(obj.total_invoice_amount or 0):,.2f}")
+
+    @admin.display(description='Balance Due')
+    def balance_due_display(self, obj):
+        color = '#dc2626' if obj.balance_due > 0 else '#059669'
+        return format_html('<b style="color: {}; font-weight: 700; white-space: nowrap;">₹{}</b>', color, f"{(obj.balance_due or 0):,.2f}")
+
     @admin.display(description='Type')
     def invoice_type_badge(self, obj):
-        colors = {'proforma': '#8b5cf6', 'tax_invoice': '#0d9488'}
-        return format_html('<span class="badge" style="background:{}; color:#fff; padding:2px 6px; border-radius:4px;">{}</span>', colors.get(obj.invoice_type, '#64748b'), obj.get_invoice_type_display())
+        colors = {'proforma': '#7c3aed', 'tax_invoice': '#0f766e'}
+        return format_html('<span class="badge" style="background:{}; color:#fff; padding:4px 10px; border-radius:6px; font-weight: 600; font-size: 11px; white-space: nowrap; display: inline-flex; align-items: center;">{}</span>', colors.get(obj.invoice_type, '#64748b'), obj.get_invoice_type_display())
 
     @admin.display(description='Status')
     def status_badge(self, obj):
-        colors = {'draft': '#64748b', 'issued': '#0284c7', 'paid': '#10b981', 'partially_paid': '#f59e0b', 'cancelled': '#ef4444'}
-        return format_html('<span class="badge" style="background:{}; color:#fff; padding:2px 6px; border-radius:4px;">{}</span>', colors.get(obj.status, '#64748b'), obj.get_status_display())
+        colors = {'draft': '#64748b', 'issued': '#0284c7', 'paid': '#059669', 'partially_paid': '#d97706', 'cancelled': '#dc2626'}
+        return format_html('<span class="badge" style="background:{}; color:#fff; padding:4px 10px; border-radius:6px; font-weight: 600; font-size: 11px; white-space: nowrap; display: inline-flex; align-items: center;">{}</span>', colors.get(obj.status, '#64748b'), obj.get_status_display())
 
 
 # ==========================================================================

@@ -9,6 +9,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+
   <style>
     :root {
       --bg: #0b111e;
@@ -24,6 +33,130 @@
       --danger: #ef4444;
       --glass-blur: blur(14px);
     }
+
+    /* Light Mode Customizations */
+    html.light-mode, body.light-mode {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --accent: #059669;
+      --accent-glow: rgba(5, 150, 105, 0.2);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --warning: #d97706;
+      --danger: #dc2626;
+    }
+
+    body.light-mode {
+      background: var(--bg);
+      color: var(--text);
+    }
+    body.light-mode .guest-header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom-color: #e2e8f0;
+    }
+    body.light-mode .head-btn {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+    body.light-mode .head-btn:hover {
+      background: #e2e8f0;
+    }
+    body.light-mode .hero-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .tour-title {
+      color: #0f172a;
+    }
+    body.light-mode .tour-category-badge {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #4f46e5;
+    }
+    body.light-mode .date-meta-item {
+      color: #334155;
+    }
+    body.light-mode .driver-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .driver-name {
+      color: #0f172a;
+    }
+    body.light-mode .day-tab-btn {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #475569;
+    }
+    body.light-mode .day-tab-btn:hover {
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+    body.light-mode .day-tab-btn.active {
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      color: #ffffff;
+      border-color: transparent;
+    }
+    body.light-mode .schedule-header {
+      background: #ffffff;
+      border-color: #e2e8f0;
+    }
+    body.light-mode .schedule-title {
+      color: #0f172a;
+    }
+    body.light-mode .route-segment-badge {
+      background: #e0f2fe;
+      border-color: #bae6fd;
+      color: #0369a1;
+    }
+    body.light-mode .timeline-deck {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .timeline-item::before {
+      background: #e2e8f0;
+    }
+    body.light-mode .timeline-icon {
+      background: #ffffff;
+    }
+    body.light-mode .stop-header {
+      color: #0f172a;
+    }
+    body.light-mode .stop-desc {
+      color: #334155;
+    }
+    body.light-mode .spot-pill {
+      background: #fdf2f8;
+      border-color: #fbcfe8;
+      color: #db2777;
+    }
+    body.light-mode .hotel-voucher-card {
+      background: #f8fafc;
+      border-color: #bae6fd;
+    }
+    body.light-mode .hotel-name-h {
+      color: #0f172a;
+    }
+    body.light-mode .meal-badge {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+    body.light-mode .bottom-dock {
+      background: rgba(255, 255, 255, 0.95);
+      border-top-color: #e2e8f0;
+    }
+    body.light-mode .dock-phone {
+      color: #0f172a;
+    }
+
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -657,6 +790,9 @@
     </div>
 
     <div class="header-actions">
+      <button type="button" class="head-btn" id="guestThemeToggleBtn" title="Toggle Light/Dark Mode">
+        <i class="fa-solid fa-sun" id="guestThemeIcon"></i>
+      </button>
       <button type="button" class="head-btn" onclick="window.print()">
         <i class="fa-solid fa-print"></i> Print
       </button>
@@ -839,6 +975,11 @@
                 {% if day.night_stay_location %}
                   <span><i class="fa-solid fa-location-dot"></i> {{ day.night_stay_location }}</span>
                 {% endif %}
+                {% if day.linked_voucher %}
+                  <a href="{% url 'suppliers:hotel-voucher-print' day.linked_voucher.id %}" target="_blank" style="color: #38bdf8; font-weight: 700; text-decoration: none; margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; background: rgba(56, 189, 248, 0.12); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                    <i class="fa-solid fa-file-invoice"></i> View Hotel Voucher &rarr;
+                  </a>
+                {% endif %}
               </div>
             </div>
 
@@ -906,6 +1047,28 @@
         alert('Itinerary link copied to clipboard!');
       }
     }
+
+    // Theme Toggle Controller
+    function updateGuestThemeUI() {
+      const isLight = document.documentElement.classList.contains('light-mode');
+      const icon = document.getElementById('guestThemeIcon');
+      if (icon) {
+        icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+      }
+      if (isLight) {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+    document.getElementById('guestThemeToggleBtn')?.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      const newTheme = isLight ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('_x_adminTheme', newTheme);
+      updateGuestThemeUI();
+    });
+    updateGuestThemeUI();
   </script>
 </body>
 </html>

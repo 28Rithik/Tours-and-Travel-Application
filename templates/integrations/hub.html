@@ -20,10 +20,59 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+/* Adaptive Color Design System: Light Mode default, Dark Cockpit when html.dark */
 :root {
-    --int-dark-bg: #090e17;
+    --int-bg: #f8fafc;
+    --int-panel-bg: #ffffff;
+    --int-panel-border: #e2e8f0;
+    --int-text-main: #0f172a;
+    --int-text-muted: #475569;
+    --int-text-sub: #64748b;
+    --int-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    --int-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --int-deck-btn-bg: #f1f5f9;
+    --int-deck-btn-border: #cbd5e1;
+    --int-deck-btn-text: #334155;
+    --int-icon-bg: #f8fafc;
+    --int-icon-border: #e2e8f0;
+    --int-promo-bg: #f5f3ff;
+    --int-promo-border: #ddd6fe;
+    --int-promo-text: #581c87;
+    --int-promo-link: #7c3aed;
+    --int-table-th: #f8fafc;
+    --int-table-border: #e2e8f0;
+    --int-table-tr-hover: #f8fafc;
+    --int-green: #10b981;
+    --int-green-glow: rgba(16, 185, 129, 0.2);
+    --int-meta-blue: #1877f2;
+    --int-meta-glow: rgba(24, 119, 242, 0.2);
+    --int-cyan: #0284c7;
+    --int-sheets-green: #059669;
+    --int-purple: #7c3aed;
+    --int-amber: #d97706;
+}
+
+html.dark {
+    --int-bg: #090e17;
     --int-panel-bg: rgba(17, 24, 39, 0.9);
     --int-panel-border: rgba(51, 65, 85, 0.45);
+    --int-text-main: #ffffff;
+    --int-text-muted: #94a3b8;
+    --int-text-sub: #64748b;
+    --int-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --int-card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    --int-deck-btn-bg: rgba(255, 255, 255, 0.05);
+    --int-deck-btn-border: rgba(255, 255, 255, 0.12);
+    --int-deck-btn-text: #e2e8f0;
+    --int-icon-bg: rgba(255, 255, 255, 0.05);
+    --int-icon-border: rgba(255, 255, 255, 0.1);
+    --int-promo-bg: rgba(168, 85, 247, 0.08);
+    --int-promo-border: rgba(168, 85, 247, 0.25);
+    --int-promo-text: #e9d5ff;
+    --int-promo-link: #c084fc;
+    --int-table-th: rgba(30, 41, 59, 0.7);
+    --int-table-border: rgba(51, 65, 85, 0.25);
+    --int-table-tr-hover: rgba(255, 255, 255, 0.02);
     --int-green: #25d366;
     --int-green-glow: rgba(37, 211, 102, 0.35);
     --int-meta-blue: #1877f2;
@@ -36,14 +85,19 @@
 
 .integrations-wrapper {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #f1f5f9;
-    background: radial-gradient(circle at 10% 10%, rgba(24, 119, 242, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 90% 90%, rgba(37, 211, 102, 0.07) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.04) 0%, transparent 50%),
-                var(--int-dark-bg);
+    color: var(--int-text-main);
+    background: radial-gradient(circle at 10% 10%, rgba(24, 119, 242, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(37, 211, 102, 0.04) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(56, 189, 248, 0.03) 0%, transparent 50%),
+                var(--int-bg);
     min-height: calc(100vh - 80px);
     padding: 1.5rem;
     box-sizing: border-box;
+    border-radius: 1rem;
+    border: 1px solid var(--int-panel-border);
+    margin: 0.5rem 0;
+    box-shadow: var(--int-shadow);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Studio Header */
@@ -66,21 +120,21 @@
     border-radius: 12px;
     background: rgba(56, 189, 248, 0.12);
     border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #38bdf8;
+    color: var(--int-cyan);
     display: grid;
     place-items: center;
     font-size: 22px;
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
 }
 .hub-title {
     font-size: 1.55rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--int-text-main);
     margin: 0;
     letter-spacing: -0.02em;
 }
 .hub-desc {
-    color: #94a3b8;
+    color: var(--int-text-muted);
     font-size: 0.85rem;
     margin-top: 0.25rem;
 }
@@ -98,23 +152,27 @@
     font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.4px;
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.12);
     border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #059669;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+html.dark .status-pill-glowing {
+    background: rgba(16, 185, 129, 0.15);
     color: #34d399;
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
 }
 .status-pill-glowing::before {
     content: "";
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #34d399;
-    box-shadow: 0 0 8px #34d399;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
 }
 .link-logs-badge {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #cbd5e1;
+    background: var(--int-deck-btn-bg);
+    border: 1px solid var(--int-deck-btn-border);
+    color: var(--int-deck-btn-text);
     text-decoration: none;
     padding: 6px 12px;
     border-radius: 999px;
@@ -123,6 +181,10 @@
     transition: all 0.15s;
 }
 .link-logs-badge:hover {
+    background: #e2e8f0;
+    color: var(--int-text-main);
+}
+html.dark .link-logs-badge:hover {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
 }
@@ -142,7 +204,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--int-card-shadow);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(12px);
@@ -174,14 +236,14 @@
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #94a3b8;
+    color: var(--int-text-muted);
     font-weight: 700;
 }
 .kpi-value {
     font-family: 'JetBrains Mono', monospace;
     font-size: 1.5rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--int-text-main);
     line-height: 1.2;
 }
 
@@ -197,12 +259,12 @@
     margin-bottom: 2rem;
     gap: 1rem;
     flex-wrap: wrap;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--int-card-shadow);
 }
 .command-title {
     font-size: 0.85rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--int-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: flex;
@@ -227,12 +289,12 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    box-shadow: 0 4px 14px rgba(24, 119, 242, 0.35);
+    box-shadow: 0 4px 14px rgba(24, 119, 242, 0.25);
     transition: all 0.15s;
 }
 .btn-sim-meta:hover {
     background: linear-gradient(135deg, #2582fb 0%, #1877f2 100%);
-    box-shadow: 0 6px 18px rgba(24, 119, 242, 0.5);
+    box-shadow: 0 6px 18px rgba(24, 119, 242, 0.4);
     transform: translateY(-1px);
 }
 .btn-sync-sheets {
@@ -247,18 +309,18 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
     transition: all 0.15s;
 }
 .btn-sync-sheets:hover {
     background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
     transform: translateY(-1px);
 }
 .btn-deck-outline {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #e2e8f0;
+    background: var(--int-deck-btn-bg);
+    border: 1px solid var(--int-deck-btn-border);
+    color: var(--int-deck-btn-text);
     font-weight: 600;
     font-size: 0.84rem;
     padding: 0.55rem 1rem;
@@ -270,6 +332,10 @@
     transition: all 0.15s;
 }
 .btn-deck-outline:hover {
+    background: #e2e8f0;
+    color: var(--int-text-main);
+}
+html.dark .btn-deck-outline:hover {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.25);
     color: #ffffff;
@@ -290,7 +356,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--int-card-shadow);
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(12px);
@@ -310,7 +376,7 @@
 .integration-card:hover {
     transform: translateY(-3px);
     border-color: var(--card-accent, #38bdf8);
-    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 0 20px var(--card-glow, rgba(56, 189, 248, 0.15));
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 0 15px var(--card-glow, rgba(56, 189, 248, 0.15));
 }
 .integration-card:hover::before {
     width: 5px;
@@ -325,18 +391,18 @@
     width: 52px;
     height: 52px;
     border-radius: 14px;
-    background: var(--icon-bg, rgba(255, 255, 255, 0.05));
-    border: 1px solid var(--icon-border, rgba(255, 255, 255, 0.1));
+    background: var(--icon-bg, var(--int-icon-bg));
+    border: 1px solid var(--icon-border, var(--int-icon-border));
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 .card-arrow {
     position: absolute;
     top: 1.4rem;
     right: 1.4rem;
-    color: #64748b;
+    color: var(--int-text-sub);
     font-size: 1.25rem;
     font-weight: 700;
     transition: transform 0.2s, color 0.2s;
@@ -348,13 +414,13 @@
 .card-title {
     font-size: 1.12rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--int-text-main);
     margin: 0 0 0.35rem 0;
     letter-spacing: -0.01em;
 }
 .card-desc {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--int-text-muted);
     line-height: 1.48;
     margin: 0;
 }
@@ -362,15 +428,15 @@
 /* Partner Sleek Promo Box */
 .partner-promo-dark {
     margin-top: 1rem;
-    background: rgba(168, 85, 247, 0.08);
-    border: 1px solid rgba(168, 85, 247, 0.25);
+    background: var(--int-promo-bg);
+    border: 1px solid var(--int-promo-border);
     border-radius: 10px;
     padding: 0.65rem 0.85rem;
     font-size: 0.78rem;
-    color: #e9d5ff;
+    color: var(--int-promo-text);
 }
 .partner-promo-dark a {
-    color: #c084fc;
+    color: var(--int-promo-link);
     font-weight: 700;
     text-decoration: underline;
 }
@@ -379,10 +445,10 @@
     gap: 1rem;
     margin-top: 0.4rem;
     font-size: 0.73rem;
-    color: #94a3b8;
+    color: var(--int-text-muted);
 }
 .partner-links-dark a {
-    color: #38bdf8;
+    color: var(--int-cyan);
     text-decoration: none;
 }
 .partner-links-dark a:hover {
@@ -393,7 +459,7 @@
 .card-footer {
     margin-top: 1.25rem;
     padding-top: 0.95rem;
-    border-top: 1px solid rgba(51, 65, 85, 0.35);
+    border-top: 1px solid var(--int-panel-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -408,30 +474,38 @@
     border-radius: 999px;
 }
 .card-badge-status.active {
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.12);
     border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #059669;
+}
+html.dark .card-badge-status.active {
+    background: rgba(16, 185, 129, 0.15);
     color: #34d399;
 }
 .card-badge-status.active::before {
     content: "";
     width: 6px; height: 6px; border-radius: 50%;
-    background: #34d399;
-    box-shadow: 0 0 6px #34d399;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
 }
 .card-badge-status.sim {
-    background: rgba(245, 158, 11, 0.15);
+    background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.35);
+    color: #d97706;
+}
+html.dark .card-badge-status.sim {
+    background: rgba(245, 158, 11, 0.15);
     color: #fbbf24;
 }
 .card-badge-status.sim::before {
     content: "";
     width: 6px; height: 6px; border-radius: 50%;
-    background: #fbbf24;
+    background: #f59e0b;
 }
 .card-footer-meta {
     font-size: 0.76rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--int-text-muted);
 }
 
 /* Desk Card & Table for Ingestion Stream */
@@ -440,7 +514,7 @@
     border: 1px solid var(--int-panel-border);
     border-radius: 18px;
     padding: 1.25rem 1.5rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--int-card-shadow);
     backdrop-filter: blur(12px);
 }
 .desk-header {
@@ -454,7 +528,7 @@
 .desk-title {
     font-size: 1.1rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--int-text-main);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -467,8 +541,8 @@
     font-size: 13px;
 }
 .desk-table th {
-    background: rgba(30, 41, 59, 0.7);
-    color: #94a3b8;
+    background: var(--int-table-th);
+    color: var(--int-text-muted);
     font-weight: 700;
     font-size: 11px;
     text-transform: uppercase;
@@ -480,15 +554,15 @@
 .desk-table th:last-child { border-top-right-radius: 8px; }
 .desk-table td {
     padding: 12px 14px;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.25);
-    color: #cbd5e1;
+    border-bottom: 1px solid var(--int-panel-border);
+    color: var(--int-text-main);
     vertical-align: middle;
 }
 .desk-table tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--int-table-tr-hover);
 }
 .inq-link-cyan {
-    color: #38bdf8;
+    color: var(--int-cyan);
     font-weight: 700;
     text-decoration: none;
     font-family: 'JetBrains Mono', monospace;
@@ -496,7 +570,6 @@
 }
 .inq-link-cyan:hover {
     text-decoration: underline;
-    color: #7dd3fc;
 }
 </style>
 
@@ -735,8 +808,8 @@
             <h2 class="desk-title">
                 <span>📡</span> Realtime Omnichannel Ingestion Stream
             </h2>
-            <div style="font-size: 0.8rem; color: #94a3b8;">
-                Showing recent webhooks captured across Meta, Google Sheets, & WhatsApp
+            <div style="font-size: 0.8rem; color: var(--int-text-muted);">
+                Showing recent webhooks captured across Meta, Google Sheets, &amp; WhatsApp
             </div>
         </div>
         <div style="overflow-x: auto;">
@@ -754,39 +827,59 @@
                 <tbody>
                     {% for log in recent_logs %}
                     <tr>
-                        <td style="font-weight: 700; color: #ffffff;">
-                            {{ log.get_source_display }}
+                        <td>
+                            {% if log.source == 'meta' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800">
+                                📱 Meta Lead Ads
+                            </span>
+                            {% elif log.source == 'whatsapp' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">
+                                💬 WhatsApp
+                            </span>
+                            {% elif log.source == 'google_sheets' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800">
+                                📊 Google Sheets
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800">
+                                🌐 {{ log.get_source_display }}
+                            </span>
+                            {% endif %}
                         </td>
                         <td>
-                            <strong style="color: #ffffff;">{{ log.lead_name }}</strong><br>
-                            <small style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">{{ log.lead_phone }}</small>
+                            <strong style="color: var(--int-text-main); font-weight: 700; font-size: 0.9rem;">{{ log.lead_name }}</strong><br>
+                            <span style="color: var(--int-text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;">📞 {{ log.lead_phone }}</span>
                         </td>
-                        <td>{{ log.destination|default:"Outstation Holiday" }}</td>
+                        <td>
+                            <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+                                📍 {{ log.destination|default:"Outstation Holiday" }}
+                            </span>
+                        </td>
                         <td>
                             {% if log.created_inquiry %}
-                            <a href="/admin/crm/inquiry/{{ log.created_inquiry.id }}/change/" class="inq-link-cyan">
-                                #{{ log.created_inquiry.inquiry_number }}
+                            <a href="/admin/crm/inquiry/{{ log.created_inquiry.id }}/change/" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-sky-50 text-sky-700 border border-sky-300 hover:bg-sky-100 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800 transition">
+                                📁 #{{ log.created_inquiry.inquiry_number }}
                             </a>
                             {% else %}
-                            <span style="color: #64748b;">N/A</span>
+                            <span style="color: var(--int-text-sub); font-size: 0.8rem;">—</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if log.status == 'success' %}
-                            <span class="card-badge-status active">Ingested</span>
+                            <span class="card-badge-status active">✓ Ingested</span>
                             {% elif log.status == 'duplicate' %}
-                            <span class="card-badge-status sim">Duplicate Skipped</span>
+                            <span class="card-badge-status sim">⚠ Duplicate Skipped</span>
                             {% else %}
-                            <span class="card-badge-status" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171;">Failed</span>
+                            <span class="card-badge-status" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #dc2626;">✗ Failed</span>
                             {% endif %}
                         </td>
-                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                        <td style="color: var(--int-text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
                             {{ log.received_at|date:"d-M H:i:s" }}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: #64748b;">
+                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--int-text-sub);">
                             No incoming lead webhooks captured yet. Click "Simulate Meta Lead Ad" above to test live ingestion!
                         </td>
                     </tr>

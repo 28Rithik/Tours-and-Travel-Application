@@ -192,6 +192,51 @@
     border-color: rgba(239, 68, 68, 0.6);
     color: #f87171;
 }
+
+/* Light Mode Overrides */
+html:not(.dark) .safety-container {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .safety-container h1 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .safety-container p {
+    color: #64748b !important;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .glass-panel {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .glass-panel h3 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .table-custom th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .table-custom td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+html:not(.dark) .table-custom td strong {
+    color: #0f172a !important;
+}
 </style>
 
 <div class="safety-container">
@@ -234,9 +279,9 @@
     <div class="workspace-grid">
         <!-- Commuter Roster & Buddy Matching -->
         <div class="glass-panel">
-            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #e2e8f0; display: flex; justify-content: space-between;">
+            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px; display: flex; justify-content: space-between;">
                 <span>📋 Night Shift Commuters & Guardrails Roster</span>
-                <a href="{% url 'fleet_commute:bulk_roster_import' %}" style="font-size: 12px; color: #38bdf8; text-decoration: none;">+ Bulk CSV Importer &rarr;</a>
+                <a href="{% url 'fleet_commute:bulk_roster_import' %}" style="font-size: 12px; color: #0284c7; text-decoration: none;">+ Bulk CSV Importer &rarr;</a>
             </h3>
 
             <div style="overflow-x: auto;">
@@ -255,8 +300,8 @@
                         {% for bp in passes %}
                         <tr id="row-{{ bp.id }}">
                             <td>
-                                <strong style="color: #fff;">{{ bp.commuter.name }}</strong>
-                                <div style="font-size: 11px; color: #94a3b8;">{{ bp.commuter.commuter_id }} &bull; {{ bp.commuter.get_gender_display }}</div>
+                                <strong>{{ bp.commuter.name }}</strong>
+                                <div style="font-size: 11px; color: #64748b;">{{ bp.commuter.commuter_id }} &bull; {{ bp.commuter.get_gender_display }}</div>
                             </td>
                             <td>
                                 <div>{{ bp.commuter.boarding_stop.name|default:"Depot / Campus Hub" }}</div>
@@ -266,14 +311,14 @@
                                 {% if bp.is_isolated_night_drop %}
                                     <span class="badge-night">⚠️ Isolated Last Drop</span>
                                 {% else %}
-                                    <span style="color: #10b981; font-size: 11px; font-weight: 600;">🛡️ Escorted</span>
+                                    <span style="color: #059669; font-size: 11px; font-weight: 600;">🛡️ Escorted</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if bp.commute_buddy %}
                                     <span class="badge-buddy">👥 {{ bp.commute_buddy.commuter.name }}</span>
                                 {% elif bp.suggested_buddy %}
-                                    <span style="font-size: 11px; color: #f59e0b;">Pair: {{ bp.suggested_buddy.commuter.name }}</span>
+                                    <span style="font-size: 11px; color: #d97706;">Pair: {{ bp.suggested_buddy.commuter.name }}</span>
                                 {% else %}
                                     <span style="color: #64748b; font-size: 11px;">None</span>
                                 {% endif %}
@@ -289,7 +334,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" style="text-align: center; color: #94a3b8; padding: 24px;">
+                            <td colspan="6" style="text-align: center; color: #64748b; padding: 24px;">
                                 No active night commuters scheduled for today. Use Bulk Importer to load rosters.
                             </td>
                         </tr>
@@ -301,7 +346,7 @@
 
         <!-- Phone IVR Simulator -->
         <div class="glass-panel">
-            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px; color: #e2e8f0;">
+            <h3 style="font-size: 16px; font-weight: 700; margin: 0 0 16px;">
                 📱 Telecom Outbound IVR Webhook Simulator
             </h3>
 

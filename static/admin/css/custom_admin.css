@@ -1,13 +1,463 @@
 /* ==========================================================================
-   Travel ERP — High-Contrast Dual-Theme Stylesheet (Light Mode First)
-   Ensures 100% crystal-clear visibility, WCAG AA compliance & sharp contrast
-   for staff who operate in Light Mode 90%+ of the time, while preserving
-   proper dark theme behavior under html.dark.
+   Travel ERP — ULTIMATE High-Contrast Stylesheet (WCAG AAA Compliant)
+   ──────────────────────────────────────────────────────────────────────────
+   Comprehensive styling for Django Unfold Admin & Travel ERP.
+   Guarantees 100% crisp visibility across ALL modules, tables, cards & forms.
    ========================================================================== */
 
-/* ──────────────────────────────────────────────────────────────────────────
-   1. SELECT2 DROPDOWNS & NATIVE INPUT CONTROLS (LIGHT MODE)
-   ────────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   §1  DARK COMMAND HERO BANNERS (PROTECTION FIRST)
+   ──────────────────────────────────────────────────────────────────────────
+   Command hero banners (TARA AI, Radar, UPI Studio, CRM Pipeline Studio)
+   are deliberately dark/indigo gradients. Their text and buttons MUST always
+   be crisp white and silver, never contaminated by light-mode dark text.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Helper macro for all dark hero containers */
+.admin-dark-hero,
+[style*="background: #1e293b"],
+[style*="background:#1e293b"],
+[style*="background: #0f172a"],
+[style*="background:#0f172a"],
+[style*="background: linear-gradient(135deg, #0f172a"],
+[style*="background: linear-gradient(135deg, #1e293b"],
+[style*="background:linear-gradient(135deg,#0f172a"],
+[style*="background:linear-gradient(135deg,#1e293b"] {
+    color: #ffffff !important;
+}
+
+.admin-dark-hero strong,
+.admin-dark-hero h1,
+.admin-dark-hero h2,
+.admin-dark-hero h3,
+.admin-dark-hero h4,
+[style*="background: #1e293b"] strong,
+[style*="background:#1e293b"] strong,
+[style*="background: #0f172a"] strong,
+[style*="background:#0f172a"] strong {
+    color: #ffffff !important;
+}
+
+.admin-dark-hero [style*="color: #cbd5e1"],
+.admin-dark-hero [style*="color:#cbd5e1"],
+.admin-dark-hero [style*="color: #94a3b8"],
+.admin-dark-hero [style*="color:#94a3b8"],
+.admin-dark-hero [style*="color: #e2e8f0"],
+.admin-dark-hero [style*="color:#e2e8f0"],
+.admin-dark-hero div[style*="font-size: 13px"],
+.admin-dark-hero div[style*="font-size: 12px"],
+[style*="background: #1e293b"] [style*="color: #94a3b8"],
+[style*="background:#1e293b"] [style*="color: #94a3b8"],
+[style*="background: #0f172a"] [style*="color: #94a3b8"],
+[style*="background:#0f172a"] [style*="color: #94a3b8"] {
+    color: #e2e8f0 !important; /* Bright silver readable on dark navy */
+}
+
+.admin-dark-hero a[style*="rgba(255"],
+.admin-dark-hero button[style*="rgba(255"] {
+    background: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: #ffffff !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §2  TARGETED INLINE COLOR OVERRIDES (LIGHT MODE)
+   ──────────────────────────────────────────────────────────────────────────
+   Overrides dark-mode hardcoded hex colors inside tables, detail forms,
+   and cards without bleeding into dark hero banners.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 2A. Near-white text → Deep Slate 900 ── */
+html:not(.dark) #result_list [style*="color: #f1f5f9"],
+html:not(.dark) #result_list [style*="color:#f1f5f9"],
+html:not(.dark) #result_list [style*="color: #f8fafc"],
+html:not(.dark) #result_list [style*="color:#f8fafc"],
+html:not(.dark) .result-list [style*="color: #f8fafc"],
+html:not(.dark) .result-list [style*="color:#f8fafc"],
+html:not(.dark) #changelist table [style*="color: #f8fafc"],
+html:not(.dark) td [style*="color: #f1f5f9"],
+html:not(.dark) td [style*="color:#f1f5f9"],
+html:not(.dark) td [style*="color: #f8fafc"],
+html:not(.dark) td [style*="color:#f8fafc"],
+html:not(.dark) th [style*="color: #f8fafc"],
+html:not(.dark) th [style*="color:#f8fafc"],
+html:not(.dark) .field-box [style*="color: #f8fafc"],
+html:not(.dark) .form-row [style*="color: #f8fafc"] {
+    color: #0f172a !important;
+}
+
+/* ── 2B. Very light gray text → Slate 800 ── */
+html:not(.dark) td [style*="color: #e2e8f0"],
+html:not(.dark) td [style*="color:#e2e8f0"],
+html:not(.dark) th [style*="color: #e2e8f0"] {
+    color: #1e293b !important;
+}
+
+/* ── 2C. Light gray subtitle text → Slate 700 ── */
+html:not(.dark) td [style*="color: #cbd5e1"],
+html:not(.dark) td [style*="color:#cbd5e1"],
+html:not(.dark) th [style*="color: #cbd5e1"] {
+    color: #334155 !important;
+}
+
+/* ── 2D. Muted metadata text → Slate 600/700 ── */
+html:not(.dark) td [style*="color: #94a3b8"],
+html:not(.dark) td [style*="color:#94a3b8"],
+html:not(.dark) td [style*="color: #64748b"],
+html:not(.dark) td [style*="color:#64748b"] {
+    color: #475569 !important;
+}
+
+/* ── 2E. Pastel blue text → Rich Royal Blue ── */
+html:not(.dark) td [style*="color: #93c5fd"],
+html:not(.dark) td [style*="color:#93c5fd"] {
+    color: #1d4ed8 !important;
+}
+
+/* ── 2F. Sky blue text → Deep Sky Blue ── */
+html:not(.dark) td [style*="color: #38bdf8"],
+html:not(.dark) td [style*="color:#38bdf8"] {
+    color: #0284c7 !important;
+}
+
+/* ── 2G. Pale yellow/amber text → Warm Amber 700 ── */
+html:not(.dark) td [style*="color: #fef08a"],
+html:not(.dark) td [style*="color: #fde047"],
+html:not(.dark) td [style*="color: #fbbf24"] {
+    color: #b45309 !important;
+}
+
+/* ── 2H. Pale green text → Forest Green ── */
+html:not(.dark) td [style*="color: #4ade80"],
+html:not(.dark) td [style*="color: #86efac"] {
+    color: #15803d !important;
+}
+
+/* ── 2I. Pale red text → Deep Crimson ── */
+html:not(.dark) td [style*="color: #f87171"] {
+    color: #dc2626 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §3  DJANGO UNFOLD DATA TABLES & CHANGELISTS (LIGHT MODE)
+   ──────────────────────────────────────────────────────────────────────────
+   Covers #result_list, .result-list, and all standard Django admin changelists.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#result_list,
+.result-list,
+#changelist table {
+    width: 100% !important;
+}
+
+/* Ensure table cells are ALWAYS proper table cells, never turned into inline flex */
+#result_list th,
+#result_list td,
+.result-list th,
+.result-list td,
+#changelist table th,
+#changelist table td {
+    display: table-cell !important;
+    vertical-align: middle !important;
+}
+
+/* Checkbox Column Width */
+#result_list th.action-checkbox-column,
+#result_list td.action-checkbox {
+    width: 44px !important;
+    max-width: 44px !important;
+    padding-left: 14px !important;
+    padding-right: 8px !important;
+}
+
+/* Status / Active Column Alignment */
+#result_list th.column-is_active,
+#result_list td.field-is_active {
+    text-align: center !important;
+    width: 90px !important;
+    white-space: nowrap !important;
+}
+
+#result_list td.field-is_active > div,
+#result_list td.field-is_active > span {
+    display: inline-flex !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+}
+
+/* Discrete Metadata & Currency Columns Clean Spacing */
+#result_list th.column-duration_display,
+#result_list td.field-duration_display,
+#result_list th.column-base_price_display,
+#result_list td.field-base_price_display,
+#result_list th.column-commission_display,
+#result_list td.field-commission_display,
+#result_list th.column-b2b_net_rates_display,
+#result_list td.field-b2b_net_rates_display,
+#result_list th.column-date,
+#result_list td.field-date,
+#result_list th.column-amount_display,
+#result_list td.field-amount_display,
+#result_list th.column-allocated_display,
+#result_list td.field-allocated_display,
+#result_list th.column-remaining_badge,
+#result_list td.field-remaining_badge {
+    white-space: nowrap !important;
+}
+
+/* Table Headers */
+html:not(.dark) #result_list thead th,
+html:not(.dark) .result-list thead th,
+html:not(.dark) #changelist table thead th,
+html:not(.dark) .card-body table thead th,
+html:not(.dark) table.table thead th,
+html:not(.dark) .results table thead th {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    border-top: none !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    padding: 10px 14px !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
+
+html:not(.dark) #result_list thead th a,
+html:not(.dark) .result-list thead th a,
+html:not(.dark) #changelist table thead th a {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+html:not(.dark) #result_list thead th a:hover,
+html:not(.dark) .result-list thead th a:hover,
+html:not(.dark) #changelist table thead th a:hover {
+    color: #0284c7 !important;
+    text-decoration: underline !important;
+}
+
+/* Table Body Cells */
+html:not(.dark) #result_list tbody td,
+html:not(.dark) #result_list tbody th,
+html:not(.dark) .result-list tbody td,
+html:not(.dark) .result-list tbody th,
+html:not(.dark) #changelist table tbody td,
+html:not(.dark) #changelist table tbody th,
+html:not(.dark) .card-body table tbody td,
+html:not(.dark) .results table tbody td {
+    color: #0f172a !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    vertical-align: middle !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-top: none !important;
+}
+
+/* Subtle Alternating Rows */
+html:not(.dark) #result_list tbody tr:nth-of-type(odd),
+html:not(.dark) .result-list tbody tr:nth-of-type(odd),
+html:not(.dark) #changelist table tbody tr:nth-of-type(odd) {
+    background-color: #ffffff !important;
+}
+
+html:not(.dark) #result_list tbody tr:nth-of-type(even),
+html:not(.dark) .result-list tbody tr:nth-of-type(even),
+html:not(.dark) #changelist table tbody tr:nth-of-type(even) {
+    background-color: #f8fafc !important;
+}
+
+html:not(.dark) #result_list tbody tr:hover,
+html:not(.dark) .result-list tbody tr:hover,
+html:not(.dark) #changelist table tbody tr:hover {
+    background-color: #f0fdf4 !important;
+}
+
+/* Table Cell Links */
+html:not(.dark) #result_list tbody td a:not(.btn):not(.badge):not(.button),
+html:not(.dark) #result_list tbody th a:not(.btn):not(.badge):not(.button),
+html:not(.dark) .result-list tbody td a:not(.btn):not(.badge):not(.button),
+html:not(.dark) .result-list tbody th a:not(.btn):not(.badge):not(.button),
+html:not(.dark) #changelist table tbody td a:not(.btn):not(.badge):not(.button),
+html:not(.dark) #changelist table tbody th a:not(.btn):not(.badge):not(.button) {
+    color: #0284c7 !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+
+html:not(.dark) #result_list tbody td a:not(.btn):not(.badge):not(.button):hover,
+html:not(.dark) #result_list tbody th a:not(.btn):not(.badge):not(.button):hover,
+html:not(.dark) .result-list tbody td a:not(.btn):not(.badge):not(.button):hover,
+html:not(.dark) #changelist table tbody td a:not(.btn):not(.badge):not(.button):hover {
+    color: #0369a1 !important;
+    text-decoration: underline !important;
+}
+
+/* Action Buttons inside Table Cells */
+td a.button,
+td a[class*="button"],
+td a[style*="background: #0284c7"],
+td a[style*="background:#0284c7"] {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 4px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    border-radius: 5px !important;
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+td a.button:hover,
+td a[class*="button"]:hover {
+    background-color: #0369a1 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §4  UNIVERSAL BADGE SYSTEM (NOWRAP, NO OVERLAP, CRISP CONTRAST)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Strictly target badge elements, NEVER table cells (th or td) */
+.badge:not(td):not(th),
+span.badge,
+a.badge,
+div.badge,
+td > span[class*="badge"],
+td > a[class*="badge"],
+th > span[class*="badge"],
+th > a[class*="badge"] {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    line-height: 1.35 !important;
+    padding: 3px 9px !important;
+    border-radius: 5px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* Badges with hardcoded dark backgrounds → High-contrast light badges */
+html:not(.dark) span.badge[style*="background-color: #1e293b"],
+html:not(.dark) span.badge[style*="background-color:#1e293b"],
+html:not(.dark) a.badge[style*="background-color: #1e293b"],
+html:not(.dark) a.badge[style*="background-color:#1e293b"],
+html:not(.dark) .badge:not(td):not(th)[style*="background-color: #1e293b"],
+html:not(.dark) .badge:not(td):not(th)[style*="background-color:#1e293b"],
+html:not(.dark) .badge:not(td):not(th)[style*="background: #1e293b"],
+html:not(.dark) .badge:not(td):not(th)[style*="background:#1e293b"] {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+}
+
+html:not(.dark) span.badge[style*="background-color: #334155"],
+html:not(.dark) span.badge[style*="background-color:#334155"],
+html:not(.dark) a.badge[style*="background-color: #334155"],
+html:not(.dark) a.badge[style*="background-color:#334155"],
+html:not(.dark) .badge:not(td):not(th)[style*="background-color: #334155"],
+html:not(.dark) .badge:not(td):not(th)[style*="background-color:#334155"],
+html:not(.dark) .badge:not(td):not(th)[style*="background: #334155"],
+html:not(.dark) .badge:not(td):not(th)[style*="background:#334155"] {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html:not(.dark) span.badge[style*="background-color: #475569"],
+html:not(.dark) span.badge[style*="background-color:#475569"],
+html:not(.dark) a.badge[style*="background-color: #475569"],
+html:not(.dark) a.badge[style*="background-color:#475569"],
+html:not(.dark) .badge:not(td):not(th)[style*="background-color: #475569"],
+html:not(.dark) .badge:not(td):not(th)[style*="background-color:#475569"] {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §5  DETAIL VIEWS, CHANGE FORMS & FORM CONTROLS (LIGHT MODE)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Form inputs */
+html:not(.dark) input[type="text"],
+html:not(.dark) input[type="password"],
+html:not(.dark) input[type="email"],
+html:not(.dark) input[type="url"],
+html:not(.dark) input[type="number"],
+html:not(.dark) input[type="date"],
+html:not(.dark) input[type="time"],
+html:not(.dark) select,
+html:not(.dark) textarea {
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+}
+
+html:not(.dark) input:focus,
+html:not(.dark) select:focus,
+html:not(.dark) textarea:focus {
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2) !important;
+}
+
+/* Field labels and section headers */
+html:not(.dark) label,
+html:not(.dark) .form-row label,
+html:not(.dark) .field-box label,
+html:not(.dark) fieldset label {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
+html:not(.dark) fieldset h2,
+html:not(.dark) .module h2,
+html:not(.dark) .module caption {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+html:not(.dark) .help,
+html:not(.dark) .helptext,
+html:not(.dark) p.help {
+    color: #475569 !important;
+    font-size: 12px !important;
+}
+
+/* Client preferences card & detail snapshot cards */
+html:not(.dark) .client-snapshot-card,
+html:not(.dark) [style*="border-left: 4px solid #38bdf8"],
+html:not(.dark) [style*="border-left: 4px solid #0284c7"] {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-left: 4px solid #0284c7 !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .client-snapshot-card *,
+html:not(.dark) [style*="border-left: 4px solid #38bdf8"] strong,
+html:not(.dark) [style*="border-left: 4px solid #0284c7"] strong {
+    color: #0f172a !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §6  SELECT2 DROPDOWNS & AUTOCOMPLETE (LIGHT MODE)
+   ══════════════════════════════════════════════════════════════════════════ */
+
 html:not(.dark) .select2-container--default .select2-selection--single,
 html:not(.dark) .select2-container--default .select2-selection--multiple {
     background-color: #ffffff !important;
@@ -22,10 +472,6 @@ html:not(.dark) .select2-container--default .select2-selection--single .select2-
 html:not(.dark) .select2-container--default .select2-selection--multiple .select2-selection__rendered {
     color: #0f172a !important;
     font-weight: 500 !important;
-}
-
-html:not(.dark) .select2-container--default .select2-selection--single .select2-selection__arrow {
-    top: 6px !important;
 }
 
 html:not(.dark) .select2-dropdown {
@@ -55,460 +501,55 @@ html:not(.dark) .select2-results__option--highlighted[aria-selected] {
     font-weight: 600 !important;
 }
 
-html:not(.dark) select option {
-    color: #0f172a !important;
-    background-color: #ffffff !important;
-}
 
-/* ──────────────────────────────────────────────────────────────────────────
-   2. DJANGO ADMIN CHANGELISTS & DATA TABLES (LIGHT MODE)
-   Fixes the washed-out / invisible text on white background across all tabs!
-   ────────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   §7  DARK THEME PRESERVATION (ONLY WHEN html.dark)
+   ══════════════════════════════════════════════════════════════════════════ */
 
-/* Table Header in Light Mode: Crisp, soft slate header with clear border */
-html:not(.dark) #changelist table thead th,
-html:not(.dark) .card-body table thead th,
-html:not(.dark) table.table thead th,
-html:not(.dark) .table thead th,
-html:not(.dark) .results table thead th {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.04em !important;
-    text-transform: uppercase !important;
-    border-top: none !important;
-    border-bottom: 2px solid #cbd5e1 !important;
-    padding: 11px 14px !important;
-    vertical-align: middle !important;
-}
-
-/* Header Sort Links */
-html:not(.dark) #changelist table thead th a,
-html:not(.dark) .card-body table thead th a,
-html:not(.dark) table.table thead th a,
-html:not(.dark) .table thead th a,
-html:not(.dark) .results table thead th a {
-    color: #1e293b !important;
-    text-decoration: none !important;
-    font-weight: 700 !important;
-}
-
-html:not(.dark) #changelist table thead th a:hover,
-html:not(.dark) .card-body table thead th a:hover,
-html:not(.dark) table.table thead th a:hover,
-html:not(.dark) .table thead th a:hover {
-    color: #0284c7 !important;
-    text-decoration: underline !important;
-}
-
-/* Table Body Cells: DEEP HIGH-CONTRAST SLATE TEXT (100% VISIBLE) */
-html:not(.dark) #changelist table tbody td,
-html:not(.dark) .card-body table tbody td,
-html:not(.dark) table.table tbody td,
-html:not(.dark) .table tbody td,
-html:not(.dark) .results table tbody td,
-html:not(.dark) #changelist table tbody th {
-    color: #0f172a !important; /* Crisp, rich dark slate */
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    vertical-align: middle !important;
-    padding: 11px 14px !important;
-    border-top: 1px solid #f1f5f9 !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-}
-
-/* Subtle Alternating Rows in Light Mode */
-html:not(.dark) #changelist table tbody tr:nth-of-type(odd),
-html:not(.dark) table.table tbody tr:nth-of-type(odd),
-html:not(.dark) .table tbody tr:nth-of-type(odd),
-html:not(.dark) .results table tbody tr:nth-of-type(odd) {
-    background-color: #ffffff !important;
-}
-
-html:not(.dark) #changelist table tbody tr:nth-of-type(even),
-html:not(.dark) table.table tbody tr:nth-of-type(even),
-html:not(.dark) .table tbody tr:nth-of-type(even),
-html:not(.dark) .results table tbody tr:nth-of-type(even) {
-    background-color: #f8fafc !important;
-}
-
-html:not(.dark) #changelist table tbody tr:hover,
-html:not(.dark) table.table tbody tr:hover,
-html:not(.dark) .table tbody tr:hover,
-html:not(.dark) .results table tbody tr:hover {
-    background-color: #f0fdf4 !important; /* Gentle highlight on hover */
-}
-
-/* Clickable Table Links: Deep Royal Sky Blue (WCAG AA Contrast > 6.5:1) */
-html:not(.dark) #changelist table tbody td a:not(.btn):not(.badge),
-html:not(.dark) table.table tbody td a:not(.btn):not(.badge),
-html:not(.dark) .table tbody td a:not(.btn):not(.badge),
-html:not(.dark) .results table tbody td a:not(.btn):not(.badge),
-html:not(.dark) #changelist table tbody th a:not(.btn):not(.badge) {
-    color: #0369a1 !important; /* Deep readable blue */
-    font-weight: 700 !important;
-    text-decoration: none !important;
-}
-
-html:not(.dark) #changelist table tbody td a:not(.btn):not(.badge):hover,
-html:not(.dark) table.table tbody td a:not(.btn):not(.badge):hover,
-html:not(.dark) .table tbody td a:not(.btn):not(.badge):hover,
-html:not(.dark) .results table tbody td a:not(.btn):not(.badge):hover,
-html:not(.dark) #changelist table tbody th a:not(.btn):not(.badge):hover {
-    color: #0284c7 !important;
-    text-decoration: underline !important;
-}
-
-/* Secondary / Muted Text in Light Mode */
-html:not(.dark) .text-muted,
-html:not(.dark) small.text-muted,
-html:not(.dark) span.text-muted,
-html:not(.dark) .text-gray-400,
-html:not(.dark) .text-gray-500,
-html:not(.dark) .text-slate-400,
-html:not(.dark) .text-slate-500 {
-    color: #475569 !important; /* Slate-600 — perfectly readable on white */
-}
-
-/* Numeric Values, Dates and Currency Fields in Tables */
-html:not(.dark) #changelist table tbody td.nowrap,
-html:not(.dark) .results table tbody td.nowrap {
-    color: #0f172a !important;
-    font-weight: 600 !important;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   2.1. HARDCODED INLINE COLOR OVERRIDES (LIGHT MODE)
-   Protects against Python format_html strings with hardcoded dark-mode hex colors
-   (#f1f5f9, #cbd5e1, #f8fafc, #e2e8f0, #94a3b8, #93c5fd) rendering on white rows.
-   ────────────────────────────────────────────────────────────────────────── */
-html:not(.dark) #changelist table tbody td [style*="f1f5f9"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="f1f5f9"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody td [style*="f8fafc"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="f8fafc"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody td [style*="e2e8f0"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="e2e8f0"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody td [style*="f1f5f9"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody th [style*="f1f5f9"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody td [style*="f8fafc"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody th [style*="f8fafc"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color: #f1f5f9"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color:#f1f5f9"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color: #f8fafc"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color:#f8fafc"]:not(.badge):not([class*="badge"]) {
-    color: #0f172a !important; /* Deep, crystal-clear Slate 900 */
-}
-
-html:not(.dark) #changelist table tbody td [style*="cbd5e1"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="cbd5e1"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody td [style*="cbd5e1"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody th [style*="cbd5e1"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color: #cbd5e1"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color:#cbd5e1"]:not(.badge):not([class*="badge"]) {
-    color: #334155 !important; /* Rich Slate 700 for subtitles/descriptions */
-}
-
-html:not(.dark) #changelist table tbody td [style*="94a3b8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="94a3b8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody td [style*="94a3b8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody th [style*="94a3b8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color: #94a3b8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist [style*="color:#94a3b8"]:not(.badge):not([class*="badge"]) {
-    color: #475569 !important; /* Slate 600 for metadata/timestamps */
-}
-
-html:not(.dark) #changelist table tbody td [style*="93c5fd"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="93c5fd"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody td [style*="38bdf8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) #changelist table tbody th [style*="38bdf8"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody td [style*="93c5fd"]:not(.badge):not([class*="badge"]),
-html:not(.dark) .results table tbody th [style*="93c5fd"]:not(.badge):not([class*="badge"]) {
-    color: #0369a1 !important; /* High contrast Royal Sky Blue */
-}
-
-/* Ensure Unfold's subtle text in light mode is always legible */
-html:not(.dark) .text-font-subtle-light,
-html:not(.dark) .text-font-default-light {
-    color: #1e293b !important;
-}
-
-html:not(.dark) [class*="text-base-500"],
-html:not(.dark) [class*="text-base-600"],
-html:not(.dark) [class*="text-base-700"] {
-    color: #334155 !important;
-}
-
-/* Embedded preview cards with dark backgrounds converted to clean crisp cards */
-html:not(.dark) #changelist [style*="background: #0f172a"],
-html:not(.dark) #changelist [style*="background:#0f172a"],
-html:not(.dark) #changelist [style*="background: #1e293b"],
-html:not(.dark) #changelist [style*="background:#1e293b"],
-html:not(.dark) #changelist [style*="background: #111e38"],
-html:not(.dark) #changelist [style*="background:#111e38"],
-html:not(.dark) #change-form [style*="background: #0f172a"],
-html:not(.dark) #change-form [style*="background:#0f172a"],
-html:not(.dark) #change-form [style*="background: #1e293b"],
-html:not(.dark) #change-form [style*="background:#1e293b"],
-html:not(.dark) #change-form [style*="background: #111e38"],
-html:not(.dark) #change-form [style*="background:#111e38"] {
-    background: #f8fafc !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
-}
-
-html:not(.dark) #changelist [style*="background: #0f172a"] *,
-html:not(.dark) #changelist [style*="background: #1e293b"] *,
-html:not(.dark) #change-form [style*="background: #0f172a"] *,
-html:not(.dark) #change-form [style*="background: #1e293b"] * {
-    color: #0f172a !important;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   3. VEHICLE STATUS TOGGLE SWITCH & BADGES (LIGHT & DARK COMPLIANT)
-   ────────────────────────────────────────────────────────────────────────── */
-.vehicle-toggle-wrapper {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 8px;
-    vertical-align: middle;
-}
-
-.vehicle-switch {
-    position: relative;
-    display: inline-block;
-    width: 38px;
-    height: 20px;
-    margin: 0 !important;
-    vertical-align: middle;
-    cursor: pointer;
-}
-
-.vehicle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    margin: 0;
-    padding: 0;
-}
-
-.vehicle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #94a3b8; /* Slate gray when inactive */
-    transition: all 0.25s ease-in-out;
-    border-radius: 20px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.vehicle-slider:before {
-    position: absolute;
-    content: "";
-    height: 14px;
-    width: 14px;
-    left: 2px;
-    bottom: 2px;
-    background-color: #ffffff;
-    transition: all 0.25s ease-in-out;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.vehicle-switch input:checked + .vehicle-slider {
-    background-color: #10b981; /* Emerald green when Available */
-    border-color: #059669;
-    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-}
-
-.vehicle-switch input:checked + .vehicle-slider:before {
-    transform: translateX(18px);
-}
-
-.vehicle-switch input:disabled + .vehicle-slider {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.vehicle-status-label {
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.3px;
-    user-select: none;
-    white-space: nowrap;
-}
-
-html:not(.dark) .vehicle-status-label {
-    color: #1e293b !important;
-}
-
-.vehicle-badge-trip {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    padding: 4px 10px !important;
-    border-radius: 12px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-}
-
-.vehicle-badge-maintenance {
-    background: #d97706 !important;
-    color: #ffffff !important;
-    padding: 4px 10px !important;
-    border-radius: 12px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   4. SYSTEM BADGES IN LIGHT MODE
-   ────────────────────────────────────────────────────────────────────────── */
-html:not(.dark) .badge {
-    font-weight: 700 !important;
-    border-radius: 6px !important;
-    padding: 3px 8px !important;
-}
-
-html:not(.dark) .badge.badge-secondary {
-    background-color: #f1f5f9 !important;
-    color: #334155 !important;
-    border: 1px solid #cbd5e1 !important;
-}
-
-html:not(.dark) .badge.badge-dark {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-}
-
-html:not(.dark) .badge.badge-info {
-    background-color: #e0f2fe !important;
-    color: #0369a1 !important;
-    border: 1px solid #bae6fd !important;
-}
-
-html:not(.dark) .badge.badge-primary {
-    background-color: #dbeafe !important;
-    color: #1d4ed8 !important;
-    border: 1px solid #bfdbfe !important;
-}
-
-html:not(.dark) .badge.badge-success {
-    background-color: #dcfce7 !important;
-    color: #15803d !important;
-    border: 1px solid #bbf7d0 !important;
-}
-
-html:not(.dark) .badge.badge-warning {
-    background-color: #fef3c7 !important;
-    color: #b45309 !important;
-    border: 1px solid #fde68a !important;
-}
-
-html:not(.dark) .badge.badge-danger {
-    background-color: #fee2e2 !important;
-    color: #b91c1c !important;
-    border: 1px solid #fecaca !important;
-}
-
-/* ──────────────────────────────────────────────────────────────────────────
-   5. DARK MODE OVERRIDES (ONLY TRIGGERED WHEN html HAS .dark CLASS)
-   ────────────────────────────────────────────────────────────────────────── */
-html.dark .select2-container--default .select2-selection--single,
-html.dark .select2-container--default .select2-selection--multiple {
-    background-color: #1e293b !important;
-    border: 1px solid #334155 !important;
-    color: #f8fafc !important;
-}
-
-html.dark .select2-container--default .select2-selection--single .select2-selection__rendered,
-html.dark .select2-container--default .select2-selection--multiple .select2-selection__rendered {
-    color: #f8fafc !important;
-}
-
-html.dark .select2-dropdown {
-    background-color: #1e293b !important;
-    border: 1px solid #334155 !important;
-}
-
-html.dark .select2-search--dropdown .select2-search__field {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-    border: 1px solid #334155 !important;
-}
-
-html.dark .select2-results__option {
-    color: #f8fafc !important;
-}
-
-html.dark .select2-results__option--highlighted[aria-selected] {
-    background-color: #0284c7 !important;
-    color: #ffffff !important;
-}
-
-html.dark #changelist table thead th,
-html.dark .card-body table thead th,
-html.dark table.table thead th,
-html.dark .table thead th,
-html.dark .results table thead th {
+html.dark #result_list thead th,
+html.dark .result-list thead th,
+html.dark #changelist table thead th {
     background-color: #1e293b !important;
     color: #f8fafc !important;
     border-bottom: 2px solid #3b82f6 !important;
 }
 
-html.dark #changelist table thead th a,
-html.dark .card-body table thead th a,
-html.dark table.table thead th a,
-html.dark .table thead th a {
-    color: #93c5fd !important;
-}
-
+html.dark #result_list tbody td,
+html.dark #result_list tbody th,
+html.dark .result-list tbody td,
+html.dark .result-list tbody th,
 html.dark #changelist table tbody td,
-html.dark .card-body table tbody td,
-html.dark table.table tbody td,
-html.dark .table tbody td,
-html.dark .results table tbody td,
 html.dark #changelist table tbody th {
     color: #f1f5f9 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-bottom: none !important;
 }
 
-html.dark #changelist table tbody tr:nth-of-type(odd),
-html.dark table.table tbody tr:nth-of-type(odd) {
+html.dark #result_list tbody tr:nth-of-type(odd),
+html.dark .result-list tbody tr:nth-of-type(odd) {
     background-color: rgba(255, 255, 255, 0.02) !important;
 }
 
-html.dark #changelist table tbody tr:nth-of-type(even),
-html.dark table.table tbody tr:nth-of-type(even) {
+html.dark #result_list tbody tr:nth-of-type(even),
+html.dark .result-list tbody tr:nth-of-type(even) {
     background-color: rgba(0, 0, 0, 0.2) !important;
 }
 
-html.dark #changelist table tbody tr:hover,
-html.dark table.table tbody tr:hover {
+html.dark #result_list tbody tr:hover,
+html.dark .result-list tbody tr:hover {
     background-color: rgba(59, 130, 246, 0.15) !important;
 }
 
-html.dark #changelist table tbody td a:not(.btn):not(.badge),
-html.dark table.table tbody td a:not(.btn):not(.badge) {
+html.dark #result_list tbody td a:not(.btn):not(.badge),
+html.dark .result-list tbody td a:not(.btn):not(.badge) {
     color: #38bdf8 !important;
 }
 
-html.dark .text-muted {
-    color: #94a3b8 !important;
-}
 
-/* ──────────────────────────────────────────────────────────────────────────
-   6. RESPONSIVE CONTAINER & TABLE SCROLLING
-   ────────────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   §8  RESPONSIVE CONTAINER & TABLE SCROLLING
+   ══════════════════════════════════════════════════════════════════════════ */
+
 html, body {
     max-width: 100% !important;
 }
@@ -542,3 +583,531 @@ textarea {
 .select2-container {
     width: 100% !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §9  CUSTOM TABLE BADGES & PILLS (HIGH CONTRAST IN BOTH THEMES)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Position Pill in Vehicle Asset table */
+html:not(.dark) .badge-position-pill,
+html:not(.dark) td.field-position_display span {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+}
+html.dark .badge-position-pill,
+html.dark td.field-position_display span {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+    font-weight: 700 !important;
+}
+
+/* Ticket # Pill in Defect Ticket table */
+html:not(.dark) .badge-ticket-pill,
+html:not(.dark) td.field-ticket_id_display span {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    font-weight: 700 !important;
+}
+html.dark .badge-ticket-pill,
+html.dark td.field-ticket_id_display span {
+    background-color: rgba(12, 74, 110, 0.5) !important;
+    color: #7dd3fc !important;
+    border: 1px solid #0369a1 !important;
+    font-weight: 700 !important;
+}
+
+/* Event ID Pill in Payment Webhook Event Proxy table */
+html:not(.dark) .badge-event-pill,
+html:not(.dark) td.field-event_id_display span {
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 700 !important;
+}
+html.dark .badge-event-pill,
+html.dark td.field-event_id_display span {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    font-weight: 700 !important;
+}
+
+/* §10 High-Contrast Currency & Column Badges for Finance, Payroll, & Gateway */
+/* Fix any legacy text-white inside table cells in light mode */
+html:not(.dark) table td strong.text-white,
+html:not(.dark) table td span.text-white,
+html:not(.dark) table td .text-white {
+    color: #0f172a !important;
+}
+
+/* Gross Monthly Pay Column in Driver Salary Profile */
+html:not(.dark) td.field-gross_monthly_display span,
+html:not(.dark) td.field-gross_monthly_display strong {
+    background-color: #ecfdf5 !important;
+    color: #065f46 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+html.dark td.field-gross_monthly_display span,
+html.dark td.field-gross_monthly_display strong {
+    background-color: rgba(6, 78, 59, 0.4) !important;
+    color: #6ee7b7 !important;
+    border: 1px solid #047857 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* FASTag Toll Amount Column */
+html:not(.dark) td.field-amount_display span,
+html:not(.dark) td.field-amount_display strong {
+    background-color: #fff1f2 !important;
+    color: #9f1239 !important;
+    border: 1px solid #fecdd3 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+html.dark td.field-amount_display span,
+html.dark td.field-amount_display strong {
+    background-color: rgba(136, 19, 55, 0.4) !important;
+    color: #fda4af !important;
+    border: 1px solid #be123c !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* Fuel Total Cost Column */
+html:not(.dark) td.field-total_cost_display span,
+html:not(.dark) td.field-total_cost_display strong {
+    background-color: #fffbeb !important;
+    color: #92400e !important;
+    border: 1px solid #fde68a !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+html.dark td.field-total_cost_display span,
+html.dark td.field-total_cost_display strong {
+    background-color: rgba(120, 53, 15, 0.4) !important;
+    color: #fcd34d !important;
+    border: 1px solid #b45309 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* Gateway Transaction ID Column */
+html:not(.dark) td.field-transaction_id_display span,
+html:not(.dark) td.field-transaction_id span {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    font-family: monospace !important;
+}
+html.dark td.field-transaction_id_display span,
+html.dark td.field-transaction_id span {
+    background-color: rgba(12, 74, 110, 0.4) !important;
+    color: #7dd3fc !important;
+    border: 1px solid #0284c7 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    font-family: monospace !important;
+}
+
+/* Gateway Gross Amount Column */
+html:not(.dark) td.field-gross_amount_display span {
+    background-color: #ecfdf5 !important;
+    color: #065f46 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    font-family: monospace !important;
+}
+html.dark td.field-gross_amount_display span {
+    background-color: rgba(6, 78, 59, 0.4) !important;
+    color: #6ee7b7 !important;
+    border: 1px solid #047857 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    font-family: monospace !important;
+}
+
+/* Vehicle Asset Position Column */
+html:not(.dark) td.field-position_display span,
+html:not(.dark) .badge-position-pill {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #7dd3fc !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+}
+html.dark td.field-position_display span,
+html.dark .badge-position-pill {
+    background-color: rgba(12, 74, 110, 0.45) !important;
+    color: #7dd3fc !important;
+    border: 1px solid #0284c7 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+}
+
+/* Defect Ticket # Column */
+html:not(.dark) td.field-ticket_id_display span,
+html:not(.dark) .badge-ticket-pill {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #7dd3fc !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+html.dark td.field-ticket_id_display span,
+html.dark .badge-ticket-pill {
+    background-color: rgba(12, 74, 110, 0.45) !important;
+    color: #7dd3fc !important;
+    border: 1px solid #0284c7 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+
+/* Webhook Proxy Event ID Column */
+html:not(.dark) td.field-event_id_display span,
+html:not(.dark) .badge-event-pill {
+    background-color: #f5f3ff !important;
+    color: #6d28d9 !important;
+    border: 1px solid #ddd6fe !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+html.dark td.field-event_id_display span,
+html.dark .badge-event-pill {
+    background-color: rgba(109, 40, 217, 0.3) !important;
+    color: #c4b5fd !important;
+    border: 1px solid #7c3aed !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+
+/* Vehicle Damage Inspection Columns */
+html:not(.dark) td.field-inspection_number_display span,
+html:not(.dark) .badge-insp-num {
+    background-color: #f0f9ff !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+html.dark td.field-inspection_number_display span,
+html.dark .badge-insp-num {
+    background-color: rgba(12, 74, 110, 0.4) !important;
+    color: #7dd3fc !important;
+    border: 1px solid #0284c7 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+
+html:not(.dark) td.field-deposit_display span {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+html.dark td.field-deposit_display span {
+    background-color: rgba(120, 53, 15, 0.4) !important;
+    color: #fcd34d !important;
+    border: 1px solid #b45309 !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+
+html:not(.dark) td.field-deductions_display span {
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    font-family: monospace !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §10  PHASE 1-3 UNIVERSAL LIGHT THEME FOUNDATION & FORM CONTROLS
+   ──────────────────────────────────────────────────────────────────────────
+   Guarantees 100% WCAG AAA contrast for all Django Unfold change-forms,
+   Select2 widgets, inlines, filters, changelist badges & dialogs.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 10A. Global Canvas & Card Containers ── */
+html:not(.dark) body {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .card,
+html:not(.dark) .module,
+html:not(.dark) .unfold-card,
+html:not(.dark) .app-container {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+/* ── 10B. Universal Form Inputs & Controls ── */
+html:not(.dark) input[type="text"],
+html:not(.dark) input[type="password"],
+html:not(.dark) input[type="email"],
+html:not(.dark) input[type="url"],
+html:not(.dark) input[type="number"],
+html:not(.dark) input[type="date"],
+html:not(.dark) input[type="time"],
+html:not(.dark) input[type="datetime-local"],
+html:not(.dark) input[type="search"],
+html:not(.dark) select,
+html:not(.dark) textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1 !important;
+}
+
+html:not(.dark) input:focus,
+html:not(.dark) select:focus,
+html:not(.dark) textarea:focus {
+    background-color: #ffffff !important;
+    border-color: #0284c7 !important;
+    color: #0f172a !important;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18) !important;
+    outline: none !important;
+}
+
+/* Checkboxes and Radios */
+html:not(.dark) input[type="checkbox"],
+html:not(.dark) input[type="radio"] {
+    border-color: #94a3b8 !important;
+    background-color: #ffffff !important;
+}
+html:not(.dark) input[type="checkbox"]:checked,
+html:not(.dark) input[type="radio"]:checked {
+    background-color: #0284c7 !important;
+    border-color: #0284c7 !important;
+}
+
+/* Field labels & Help texts */
+html:not(.dark) .form-row label,
+html:not(.dark) .field-box label,
+html:not(.dark) fieldset label,
+html:not(.dark) .aligned label {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+}
+
+html:not(.dark) .help,
+html:not(.dark) .helptext,
+html:not(.dark) p.help {
+    color: #475569 !important;
+    font-size: 12px !important;
+    margin-top: 4px !important;
+}
+
+/* Error lists */
+html:not(.dark) .errorlist {
+    background-color: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    color: #dc2626 !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+}
+
+/* ── 10C. Select2 Autocomplete Dropdowns ── */
+html:not(.dark) .select2-container--default .select2-selection--single,
+html:not(.dark) .select2-container--default .select2-selection--multiple {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    color: #0f172a !important;
+    min-height: 38px !important;
+}
+
+html:not(.dark) .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+    line-height: 36px !important;
+}
+
+html:not(.dark) .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: #e0f2fe !important;
+    border: 1px solid #bae6fd !important;
+    color: #0369a1 !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    border-radius: 4px !important;
+    padding: 2px 8px !important;
+}
+
+html:not(.dark) .select2-dropdown {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+    border-radius: 8px !important;
+    z-index: 99999 !important;
+}
+
+html:not(.dark) .select2-search--dropdown .select2-search__field {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+}
+
+html:not(.dark) .select2-results__option {
+    color: #1e293b !important;
+    font-weight: 500 !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+}
+
+html:not(.dark) .select2-results__option--highlighted[aria-selected] {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    font-weight: 700 !important;
+}
+
+/* ── 10D. Tabular & Stacked Inlines ── */
+html:not(.dark) .inline-group {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    margin-bottom: 20px !important;
+}
+
+html:not(.dark) .inline-group .tabular thead th {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #cbd5e1 !important;
+    padding: 8px 12px !important;
+}
+
+html:not(.dark) .inline-group .tabular tbody td {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    vertical-align: middle !important;
+}
+
+html:not(.dark) .add-row a {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0284c7 !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+    text-decoration: none !important;
+}
+html:not(.dark) .add-row a:hover {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+}
+
+/* ── 10E. Unfold Filter Panel, Actions & Pagination ── */
+html:not(.dark) #changelist-filter,
+html:not(.dark) .unfold-filter {
+    background-color: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) #changelist-filter h2,
+html:not(.dark) #changelist-filter h3 {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+}
+
+html:not(.dark) #changelist-filter a {
+    color: #475569 !important;
+}
+html:not(.dark) #changelist-filter li.selected a {
+    color: #0284c7 !important;
+    font-weight: 700 !important;
+}
+
+html:not(.dark) .paginator {
+    background-color: #ffffff !important;
+    border-top: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+}
+
+html:not(.dark) .paginator a {
+    color: #0284c7 !important;
+    font-weight: 700 !important;
+}
+
+/* ── 10F. Tire Studio & Vehicle Asset Specific Badges ── */
+html:not(.dark) .tread-gauge-container {
+    background-color: #e2e8f0 !important;
+}
+html:not(.dark) .badge-retread-virgin {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #bbf7d0 !important;
+}
+html:not(.dark) .badge-retread-cycle {
+    background-color: #fef3c7 !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+}
+html:not(.dark) .badge-retread-max {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5 !important;
+}
+
+
+
+

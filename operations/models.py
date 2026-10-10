@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.db import models
 from django.utils import timezone
+from django.core.serializers.json import DjangoJSONEncoder
 from core.models import Cleaner, Party, Driver, Vehicle, Client
 
 
@@ -50,6 +51,23 @@ class Booking(models.Model):
 	hotel_confirmation_status = models.CharField(max_length=20, choices=HOTEL_CONFIRMATION_CHOICES, default='pending')
 	hotel_paid_by = models.CharField(max_length=20, choices=HOTEL_PAID_BY_CHOICES, default='company')
 	notes = models.TextField(blank=True)
+
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(drop_date__isnull=True) | models.Q(pickup_date__isnull=True) | models.Q(drop_date__gte=models.F('pickup_date')),
+				name='booking_drop_date_gte_pickup_date'
+			),
+			models.CheckConstraint(
+				check=models.Q(quoted_price__isnull=True) | models.Q(quoted_price__gte=0),
+				name='booking_quoted_price_non_negative'
+			),
+		]
+		indexes = [
+			models.Index(fields=['status', 'pickup_date'], name='idx_bk_status_pickup'),
+			models.Index(fields=['party', 'booking_date'], name='idx_bk_party_date'),
+			models.Index(fields=['booking_date'], name='idx_bk_date'),
+		]
 
 	def __str__(self):
 		return self.booking_number
@@ -138,6 +156,7 @@ class Trip(models.Model):
 	fixed_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	days_count = models.PositiveIntegerField(default=1)
 	driver_bata = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	driver_bata_breakdown = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder, help_text="Detailed itemization of driver allowances: base bata, night halt, early morning, overtime, outstation")
 	commission = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	partner_handover_notes = models.TextField(blank=True)
 	notes = models.TextField(blank=True)
@@ -186,6 +205,10 @@ class Trip(models.Model):
 	expenses_photo_at = models.DateTimeField(null=True, blank=True)
 	car_drop_at = models.DateTimeField(null=True, blank=True)
 	driver_handover_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp of latest handover action")
+	customer_signature_data = models.TextField(blank=True, help_text="Base64 DataURL PNG of customer digital signature")
+	customer_signature_at = models.DateTimeField(null=True, blank=True, help_text="Timestamp when customer signed on driver's mobile device")
+	guest_rating = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Customer satisfaction rating 1 to 5 stars")
+	guest_feedback = models.TextField(blank=True, help_text="Customer satisfaction feedback remarks")
 
 	@property
 	def milestone_index(self):
@@ -433,12 +456,16 @@ class Trip(models.Model):
 	def total_expenses(self):
 		if not self.pk:
 			return Decimal('0')
+		if hasattr(self, '_prefetched_objects_cache') and 'expenses' in self._prefetched_objects_cache:
+			return sum((expense.amount for expense in self.expenses.all() if expense.billable_to_customer), Decimal('0'))
 		return sum((expense.amount for expense in self.expenses.filter(billable_to_customer=True)), Decimal('0'))
 
 	@property
 	def customer_billable_fines(self):
 		if not self.pk:
 			return Decimal('0')
+		if hasattr(self, '_prefetched_objects_cache') and 'traffic_fines' in self._prefetched_objects_cache:
+			return sum((fine.fine_amount for fine in self.traffic_fines.all() if fine.financial_responsibility == 'customer' and fine.paid_by in ['company', 'unpaid']), Decimal('0'))
 		return sum((fine.fine_amount for fine in self.traffic_fines.filter(financial_responsibility='customer', paid_by__in=['company', 'unpaid'])), Decimal('0'))
 
 	@property
@@ -463,6 +490,8 @@ class Trip(models.Model):
 
 	@property
 	def company_paid_expenses(self):
+		if hasattr(self, '_prefetched_objects_cache') and 'expenses' in self._prefetched_objects_cache:
+			return sum((expense.amount for expense in self.expenses.all() if expense.paid_by in ['company', 'driver']), Decimal('0'))
 		return sum((expense.amount for expense in self.expenses.filter(paid_by__in=['company', 'driver'])), Decimal('0'))
 
 	@property
@@ -735,6 +764,22 @@ class Trip(models.Model):
 				if update_needed:
 					settlement.save(update_fields=['total_days', 'batta'])
 
+	def calculate_auto_bata(self, save=False):
+		"""
+		Calculate and itemize multi-component driver allowance (base bata, night halt,
+		early morning, overtime, outstation) using operations.driver_bata_engine.
+		"""
+		from operations.driver_bata_engine import calculate_trip_driver_bata
+		res = calculate_trip_driver_bata(self)
+		self.driver_bata = res['total_bata']
+		self.driver_bata_breakdown = {
+			k: float(v) if isinstance(v, Decimal) else v
+			for k, v in res.items()
+		}
+		if save and self.pk:
+			self.save(update_fields=['driver_bata', 'driver_bata_breakdown'])
+		return res
+
 	@property
 	def pickup_location(self):
 		if self.booking:
@@ -752,6 +797,41 @@ class Trip(models.Model):
 		if self.opening_km is not None and self.closing_km is not None:
 			return max(0, self.closing_km - self.opening_km)
 		return 0
+
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(end_date__isnull=True) | models.Q(start_date__isnull=True) | models.Q(end_date__gte=models.F('start_date')),
+				name='trip_end_date_gte_start_date'
+			),
+			models.CheckConstraint(
+				check=models.Q(closing_km__isnull=True) | models.Q(opening_km__isnull=True) | models.Q(closing_km__gte=models.F('opening_km')),
+				name='trip_closing_km_gte_opening_km'
+			),
+			models.CheckConstraint(
+				check=models.Q(day_rate__gte=0),
+				name='trip_day_rate_non_negative'
+			),
+			models.CheckConstraint(
+				check=models.Q(km_rate__gte=0),
+				name='trip_km_rate_non_negative'
+			),
+			models.CheckConstraint(
+				check=models.Q(fixed_amount__gte=0),
+				name='trip_fixed_amount_non_negative'
+			),
+			models.CheckConstraint(
+				check=models.Q(driver_bata__gte=0),
+				name='trip_driver_bata_non_negative'
+			),
+		]
+		indexes = [
+			models.Index(fields=['status', 'start_date'], name='idx_trip_status_start'),
+			models.Index(fields=['vehicle', 'status'], name='idx_trip_vehicle_status'),
+			models.Index(fields=['driver', 'status'], name='idx_trip_driver_status'),
+			models.Index(fields=['party', 'status'], name='idx_trip_party_status'),
+			models.Index(fields=['start_date', 'end_date'], name='idx_trip_date_range'),
+		]
 
 
 class TripHotel(models.Model):
@@ -831,6 +911,13 @@ class TrafficFine(models.Model):
 
 	def __str__(self):
 		return f"Challan {self.challan_number} for {self.vehicle}"
+
+	class Meta:
+		ordering = ['-date_of_offence']
+		indexes = [
+			models.Index(fields=['vehicle', 'date_of_offence'], name='idx_tf_veh_date'),
+			models.Index(fields=['driver', 'date_of_offence'], name='idx_tf_drv_date'),
+		]
 
 
 class TripJourney(models.Model):
@@ -968,6 +1055,9 @@ class EmergencyIncidentAlert(models.Model):
 		('medical', 'Medical Emergency'),
 		('sos_panic', 'Women Safety SOS / Panic Trigger'),
 		('fuel_exhaustion', 'Out of Fuel / DEF'),
+		('geofence_breach', 'Geofence Boundary Breach'),
+		('corridor_deviation', 'Route Corridor Deviation'),
+		('overspeed_violation', 'Severe Over-Speeding Violation'),
 		('other', 'Other Incident'),
 	]
 	SEVERITY_LEVELS = [
@@ -1085,6 +1175,10 @@ class DriverBehaviorLog(models.Model):
 		ordering = ['-timestamp']
 		verbose_name = "Driver Behavior Event"
 		verbose_name_plural = "Driver Behavior Events"
+		indexes = [
+			models.Index(fields=['driver', 'timestamp'], name='idx_drv_beh_driver_time'),
+			models.Index(fields=['vehicle', 'timestamp'], name='idx_drv_beh_veh_time'),
+		]
 
 	def __str__(self):
 		return f"{self.get_event_type_display()} - {self.vehicle.registration_number} ({self.recorded_speed_kmh} km/h)"
@@ -1140,6 +1234,7 @@ class WhatsAppBotMessage(models.Model):
 		('sos_trigger', 'Emergency SOS Alert'),
 		('trip_status', 'Trip Status / Live Track'),
 		('payment_upi', 'UPI Payment Link / QR'),
+		('geofence_breach_alert', 'Geofence Breach & Safety Alarm'),
 		('general_query', 'General Bot Chat / Fallback'),
 	]
 
@@ -1284,6 +1379,36 @@ class TripItineraryDay(models.Model):
 	@property
 	def formatted_day_label(self):
 		return f"Day {self.day_number:02d}"
+
+	@property
+	def linked_voucher(self):
+		"""Find matching HotelConfirmationVoucher for this day if one exists."""
+		if not self.trip_id:
+			return None
+		try:
+			from suppliers.models import HotelConfirmationVoucher
+			if self.hotel_voucher_number:
+				v = HotelConfirmationVoucher.objects.filter(trip=self.trip, voucher_number=self.hotel_voucher_number.strip()).first()
+				if v:
+					return v
+			if self.date:
+				v = HotelConfirmationVoucher.objects.filter(
+					trip=self.trip,
+					check_in_date__lte=self.date,
+					check_out_date__gte=self.date
+				).first()
+				if v:
+					return v
+			if self.hotel_name:
+				v = HotelConfirmationVoucher.objects.filter(
+					trip=self.trip,
+					hotel_name__icontains=self.hotel_name.strip()
+				).first()
+				if v:
+					return v
+		except Exception:
+			pass
+		return None
 
 
 

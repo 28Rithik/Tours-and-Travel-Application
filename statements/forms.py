@@ -46,6 +46,11 @@ class StatementForm(forms.Form):
             if cleaned.get('transport_contract'):
                 cleaned['party'] = cleaned['transport_contract'].customer
 
-        if cleaned.get('from_date') and cleaned.get('to_date') and cleaned['from_date'] > cleaned['to_date']:
-            raise forms.ValidationError('The start date must be before the end date.')
+        if cleaned.get('from_date') and cleaned.get('to_date'):
+            if cleaned['from_date'] > cleaned['to_date']:
+                self.add_error('to_date', 'The statement end date must be on or after the start date.')
+            else:
+                delta = (cleaned['to_date'] - cleaned['from_date']).days
+                if delta > 366:
+                    self.add_error('to_date', 'Statement date range cannot exceed 366 days (1 year) per export request.')
         return cleaned

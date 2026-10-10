@@ -20,11 +20,64 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+/* Adaptive Color Design System: Light Mode default, Dark Cockpit when html.dark */
 :root {
-    --studio-bg: #0b1120;
-    --studio-card-bg: rgba(17, 24, 39, 0.85);
+    --studio-bg: #f8fafc;
+    --studio-card-bg: #ffffff;
+    --studio-panel-sub-bg: #f8fafc;
+    --studio-border: #e2e8f0;
+    --studio-border-subtle: #f1f5f9;
+    --studio-border-glow: rgba(2, 132, 199, 0.2);
+    --studio-text-main: #0f172a;
+    --studio-text-muted: #475569;
+    --studio-text-sub: #64748b;
+    --studio-input-bg: #ffffff;
+    --studio-input-border: #cbd5e1;
+    --studio-input-text: #0f172a;
+    --studio-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    --studio-qr-bg: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.06) 0%, #ffffff 80%);
+    --studio-th-bg: #f8fafc;
+    --studio-tr-hover: #f1f5f9;
+    --studio-tab-hover: #f1f5f9;
+    --studio-tab-active-bg: #e0f2fe;
+    --studio-tab-active-border: #7dd3fc;
+    --studio-tab-active-color: #0369a1;
+    --studio-btn-sec-bg: #f1f5f9;
+    --studio-btn-sec-border: #cbd5e1;
+    --studio-btn-sec-text: #334155;
+    --studio-btn-sec-hover: #e2e8f0;
+    --studio-cyan: #0284c7;
+    --studio-emerald: #059669;
+    --studio-amber: #d97706;
+    --studio-purple: #7c3aed;
+    --studio-indigo: #4f46e5;
+}
+
+html.dark {
+    --studio-bg: #090d16;
+    --studio-card-bg: rgba(15, 23, 42, 0.85);
+    --studio-panel-sub-bg: rgba(30, 41, 59, 0.6);
     --studio-border: rgba(51, 65, 85, 0.5);
+    --studio-border-subtle: rgba(51, 65, 85, 0.3);
     --studio-border-glow: rgba(56, 189, 248, 0.3);
+    --studio-text-main: #ffffff;
+    --studio-text-muted: #94a3b8;
+    --studio-text-sub: #64748b;
+    --studio-input-bg: rgba(30, 41, 59, 0.8);
+    --studio-input-border: rgba(51, 65, 85, 0.8);
+    --studio-input-text: #ffffff;
+    --studio-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    --studio-qr-bg: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.95) 75%);
+    --studio-th-bg: rgba(30, 41, 59, 0.6);
+    --studio-tr-hover: rgba(30, 41, 59, 0.4);
+    --studio-tab-hover: rgba(30, 41, 59, 0.6);
+    --studio-tab-active-bg: rgba(14, 165, 233, 0.15);
+    --studio-tab-active-border: rgba(56, 189, 248, 0.4);
+    --studio-tab-active-color: #38bdf8;
+    --studio-btn-sec-bg: rgba(30, 41, 59, 0.8);
+    --studio-btn-sec-border: rgba(71, 85, 105, 0.8);
+    --studio-btn-sec-text: #cbd5e1;
+    --studio-btn-sec-hover: rgba(51, 65, 85, 0.8);
     --studio-cyan: #06b6d4;
     --studio-emerald: #10b981;
     --studio-amber: #f59e0b;
@@ -34,13 +87,18 @@
 
 .studio-container {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #e2e8f0;
-    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.08) 0%, transparent 45%),
-                #090d16;
+    color: var(--studio-text-main);
+    background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(99, 102, 241, 0.05) 0%, transparent 45%),
+                var(--studio-bg);
     min-height: calc(100vh - 80px);
     padding: 1.25rem;
     box-sizing: border-box;
+    border-radius: 1rem;
+    border: 1px solid var(--studio-border);
+    margin: 0.5rem 0;
+    box-shadow: var(--studio-shadow);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 /* Header Bar */
@@ -50,13 +108,13 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--studio-card-bg);
     backdrop-filter: blur(16px);
     border: 1px solid var(--studio-border);
     border-radius: 1rem;
     padding: 1rem 1.5rem;
     margin-bottom: 1.25rem;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--studio-shadow);
 }
 
 .studio-title-box {
@@ -74,8 +132,12 @@
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.05em;
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(16, 185, 129, 0.12);
     border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #059669;
+}
+html.dark .live-pulse-badge {
+    background: rgba(16, 185, 129, 0.15);
     color: #34d399;
 }
 
@@ -97,7 +159,7 @@
 .studio-h1 {
     font-size: 1.4rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--studio-text-main);
     margin: 0;
     letter-spacing: -0.02em;
     display: flex;
@@ -107,7 +169,7 @@
 
 .studio-subtitle {
     font-size: 0.8rem;
-    color: #94a3b8;
+    color: var(--studio-text-muted);
     margin-top: 0.2rem;
 }
 
@@ -120,7 +182,7 @@
 }
 
 .kpi-card {
-    background: rgba(15, 23, 42, 0.75);
+    background: var(--studio-card-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--studio-border);
     border-radius: 0.875rem;
@@ -128,6 +190,7 @@
     transition: all 0.25s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--studio-shadow);
 }
 
 .kpi-card:hover {
@@ -156,7 +219,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #94a3b8;
+    color: var(--studio-text-muted);
     margin-bottom: 0.35rem;
     display: flex;
     justify-content: space-between;
@@ -167,13 +230,13 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 1.45rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--studio-text-main);
     letter-spacing: -0.02em;
 }
 
 .kpi-sub {
     font-size: 0.7rem;
-    color: #64748b;
+    color: var(--studio-text-sub);
     margin-top: 0.25rem;
 }
 
@@ -190,13 +253,13 @@
 .tab-btn {
     background: transparent;
     border: 1px solid transparent;
-    color: #94a3b8;
+    color: var(--studio-text-muted);
     padding: 0.6rem 1.2rem;
     border-radius: 0.625rem;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
@@ -204,14 +267,14 @@
 }
 
 .tab-btn:hover {
-    color: #ffffff;
-    background: rgba(30, 41, 59, 0.6);
+    color: var(--studio-text-main);
+    background: var(--studio-tab-hover);
 }
 
 .tab-btn.active {
-    background: rgba(14, 165, 233, 0.15);
-    border-color: rgba(56, 189, 248, 0.4);
-    color: #38bdf8;
+    background: var(--studio-tab-active-bg);
+    border-color: var(--studio-tab-active-border);
+    color: var(--studio-tab-active-color);
     box-shadow: 0 4px 12px rgba(14, 165, 233, 0.1);
 }
 
@@ -244,23 +307,23 @@
 
 /* Panels */
 .studio-panel {
-    background: rgba(15, 23, 42, 0.85);
+    background: var(--studio-card-bg);
     backdrop-filter: blur(14px);
     border: 1px solid var(--studio-border);
     border-radius: 1rem;
     padding: 1.25rem;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--studio-shadow);
 }
 
 .panel-title {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--studio-text-main);
     margin-bottom: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+    border-bottom: 1px solid var(--studio-border);
     padding-bottom: 0.75rem;
 }
 
@@ -274,17 +337,17 @@
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: #94a3b8;
+    color: var(--studio-text-muted);
     margin-bottom: 0.35rem;
 }
 
 .form-input, .form-select {
     width: 100%;
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(51, 65, 85, 0.8);
+    background: var(--studio-input-bg);
+    border: 1px solid var(--studio-input-border);
     border-radius: 0.5rem;
     padding: 0.6rem 0.85rem;
-    color: #ffffff;
+    color: var(--studio-input-text);
     font-size: 0.875rem;
     transition: all 0.2s ease;
     box-sizing: border-box;
@@ -292,18 +355,18 @@
 
 .form-input:focus, .form-select:focus {
     outline: none;
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
 }
 
 /* QR Showcase Box */
 .qr-terminal-card {
-    background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.15) 0%, rgba(15, 23, 42, 0.95) 75%);
-    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: var(--studio-qr-bg);
+    border: 1px solid var(--studio-border);
     border-radius: 1.25rem;
     padding: 1.5rem;
     text-align: center;
-    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: var(--studio-shadow);
     position: relative;
 }
 
@@ -312,10 +375,11 @@
     padding: 1rem;
     border-radius: 1rem;
     display: inline-block;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     margin: 1rem auto;
     position: relative;
     max-width: 260px;
+    border: 1px solid #e2e8f0;
 }
 
 .qr-frame svg {
@@ -329,7 +393,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 1.75rem;
     font-weight: 800;
-    color: #38bdf8;
+    color: var(--studio-cyan);
     margin: 0.5rem 0;
 }
 
@@ -337,13 +401,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(71, 85, 105, 0.6);
+    background: var(--studio-tab-hover);
+    border: 1px solid var(--studio-border);
     padding: 0.25rem 0.6rem;
     border-radius: 0.375rem;
     font-size: 0.75rem;
     font-family: 'JetBrains Mono', monospace;
-    color: #cbd5e1;
+    color: var(--studio-text-muted);
 }
 
 /* Deep link buttons */
@@ -368,14 +432,15 @@
     border: 1px solid transparent;
 }
 
-.intent-btn.gpay { background: #ffffff; color: #1e293b; }
+.intent-btn.gpay { background: #f8fafc; color: #1e293b; border: 1px solid #cbd5e1; }
+html.dark .intent-btn.gpay { background: #ffffff; color: #1e293b; }
 .intent-btn.phonepe { background: #5f259f; color: #ffffff; }
 .intent-btn.paytm { background: #00b9f5; color: #ffffff; }
 .intent-btn.generic { background: #0ea5e9; color: #ffffff; }
 
 .intent-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Action Buttons */
@@ -402,9 +467,9 @@
 }
 
 .btn-secondary {
-    background: rgba(30, 41, 59, 0.8);
-    border: 1px solid rgba(71, 85, 105, 0.8);
-    color: #cbd5e1;
+    background: var(--studio-btn-sec-bg);
+    border: 1px solid var(--studio-btn-sec-border);
+    color: var(--studio-btn-sec-text);
     border-radius: 0.5rem;
     padding: 0.65rem 1.25rem;
     font-size: 0.875rem;
@@ -415,11 +480,12 @@
     justify-content: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .btn-secondary:hover {
-    background: rgba(51, 65, 85, 0.8);
-    color: #ffffff;
+    background: var(--studio-btn-sec-hover);
+    color: var(--studio-text-main);
 }
 
 .btn-success {
@@ -453,8 +519,8 @@
 }
 
 .studio-table th {
-    background: rgba(30, 41, 59, 0.6);
-    color: #94a3b8;
+    background: var(--studio-th-bg);
+    color: var(--studio-text-muted);
     text-transform: uppercase;
     font-size: 0.7rem;
     font-weight: 700;
@@ -466,12 +532,12 @@
 
 .studio-table td {
     padding: 0.75rem 0.85rem;
-    border-bottom: 1px solid rgba(51, 65, 85, 0.3);
-    color: #cbd5e1;
+    border-bottom: 1px solid var(--studio-border-subtle);
+    color: var(--studio-text-main);
 }
 
 .studio-table tr:hover td {
-    background: rgba(30, 41, 59, 0.4);
+    background: var(--studio-tr-hover);
 }
 
 .font-mono {
@@ -489,10 +555,17 @@
     letter-spacing: 0.02em;
 }
 
-.badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-.badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-.badge-info { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
-.badge-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+.badge-success { background: rgba(16, 185, 129, 0.12); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
+html.dark .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+
+.badge-warning { background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+html.dark .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+.badge-info { background: rgba(14, 165, 233, 0.12); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.3); }
+html.dark .badge-info { background: rgba(14, 165, 233, 0.15); color: #38bdf8; }
+
+.badge-purple { background: rgba(139, 92, 246, 0.12); color: #7c3aed; border: 1px solid rgba(139, 92, 246, 0.3); }
+html.dark .badge-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; }
 
 /* Execution Log Box */
 .terminal-box {
@@ -813,13 +886,29 @@ Click "Dispatch Webhook" to execute the live Double-Entry accounting pipeline.
                     <tbody id="glTableBody">
                         {% for je in recent_journals %}
                         <tr>
-                            <td class="font-mono" style="font-weight: 700; color: #38bdf8;">{{ je.entry_number }}</td>
+                            <td>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+                                    {{ je.entry_number }}
+                                </span>
+                            </td>
                             <td>{{ je.date }}</td>
                             <td><span class="badge badge-info">{{ je.get_entry_type_display }}</span></td>
-                            <td class="font-mono text-xs">{{ je.reference_id|default:"-" }}</td>
+                            <td class="font-mono text-xs">
+                                {% if je.reference_id %}
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">{{ je.reference_id }}</span>
+                                {% else %}<span class="text-slate-400">—</span>{% endif %}
+                            </td>
                             <td style="max-width: 250px; font-size: 0.75rem;">{{ je.narration }}</td>
-                            <td class="font-mono" style="font-weight: 700; color: #34d399;">₹{{ je.total_debit|floatformat:2 }}</td>
-                            <td class="font-mono" style="font-weight: 700; color: #38bdf8;">₹{{ je.total_credit|floatformat:2 }}</td>
+                            <td>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                    ₹{{ je.total_debit|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
+                                    ₹{{ je.total_credit|floatformat:2 }}
+                                </span>
+                            </td>
                             <td>
                                 {% if je.is_balanced %}
                                 <span class="badge badge-success">✓ BALANCED</span>
@@ -871,30 +960,90 @@ Click "Dispatch Webhook" to execute the live Double-Entry accounting pipeline.
                     <tbody id="txnTableBody">
                         {% for txn in recent_txns %}
                         <tr>
-                            <td class="font-mono" style="font-weight: 700; color: #ffffff;">{{ txn.transaction_id }}</td>
-                            <td><span class="badge badge-purple">{{ txn.get_provider_display }}</span></td>
-                            <td class="font-mono" style="font-weight: 700; color: #f8fafc;">₹{{ txn.gross_amount|floatformat:2 }}</td>
-                            <td class="font-mono text-xs" style="color: #f59e0b;">₹{{ txn.fee_amount|floatformat:2 }}</td>
-                            <td class="font-mono text-xs" style="color: #34d399;">₹{{ txn.net_amount|floatformat:2 }}</td>
-                            <td class="font-mono text-xs">{{ txn.gateway_payment_id|default:"-" }}</td>
                             <td>
-                                {% if txn.booking %}
-                                <a href="/admin/operations/booking/{{ txn.booking.id }}/change/" class="text-primary-400 hover:underline">{{ txn.booking.booking_number }}</a>
-                                {% else %}-{% endif %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+                                    {{ txn.transaction_id }}
+                                </span>
                             </td>
                             <td>
-                                <span class="badge badge-success">{{ txn.get_status_display }}</span>
+                                {% if txn.provider == 'razorpay' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800">
+                                    🔷 Razorpay
+                                </span>
+                                {% elif txn.provider == 'cashfree' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">
+                                    🟢 Cashfree
+                                </span>
+                                {% elif txn.provider == 'direct_upi' %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800">
+                                    ⚡ Direct UPI
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
+                                    {{ txn.get_provider_display }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                    ₹{{ txn.gross_amount|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="font-mono text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800/50">
+                                    ₹{{ txn.fee_amount|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/50">
+                                    ₹{{ txn.net_amount|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if txn.gateway_payment_id %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    {{ txn.gateway_payment_id }}
+                                </span>
+                                {% else %}
+                                <span class="text-slate-400 text-xs">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if txn.booking %}
+                                <a href="/admin/operations/booking/{{ txn.booking.id }}/change/" class="inline-flex items-center gap-1 font-semibold text-xs text-sky-600 dark:text-sky-400 hover:underline">
+                                    🎫 {{ txn.booking.booking_number }}
+                                </a>
+                                {% else %}
+                                <span class="text-slate-400 text-xs">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if txn.status == 'captured' %}
+                                <span class="badge badge-success">✓ Captured</span>
+                                {% elif txn.status == 'failed' %}
+                                <span class="badge" style="background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3);">✗ Failed</span>
+                                {% elif txn.status == 'refunded' %}
+                                <span class="badge badge-purple">↺ Refunded</span>
+                                {% else %}
+                                <span class="badge badge-warning">⏳ {{ txn.get_status_display }}</span>
+                                {% endif %}
                             </td>
                             <td>
                                 {% if txn.journal_entry %}
-                                <a href="/admin/finance/journalentry/{{ txn.journal_entry.id }}/change/" class="badge badge-info font-mono">{{ txn.journal_entry.entry_number }}</a>
-                                {% else %}-{% endif %}
+                                <a href="/admin/finance/journalentry/{{ txn.journal_entry.id }}/change/" class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800 hover:underline">
+                                    📖 {{ txn.journal_entry.entry_number }}
+                                </a>
+                                {% else %}
+                                <span class="text-slate-400 text-xs">—</span>
+                                {% endif %}
                             </td>
-                            <td style="font-size: 0.72rem; color: #64748b;">{{ txn.created_at|date:"d M Y, H:i" }}</td>
+                            <td style="font-size: 0.75rem; color: var(--studio-text-muted); font-family: 'JetBrains Mono', monospace;">
+                                {{ txn.created_at|date:"d M Y, H:i" }}
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="10" style="text-align: center; color: #64748b; padding: 2rem;">No gateway transactions recorded yet.</td>
+                            <td colspan="10" style="text-align: center; color: var(--studio-text-sub); padding: 2.5rem;">No gateway transactions recorded yet.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -917,20 +1066,20 @@ Click "Dispatch Webhook" to execute the live Double-Entry accounting pipeline.
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
                 {% for cfg in configs %}
-                <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid var(--studio-border); border-radius: 0.75rem; padding: 1rem;">
+                <div style="background: var(--studio-panel-sub-bg); border: 1px solid var(--studio-border); border-radius: 0.75rem; padding: 1rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <strong style="color: #ffffff; font-size: 0.95rem;">{{ cfg.name }}</strong>
+                        <strong style="color: var(--studio-text-main); font-size: 0.95rem;">{{ cfg.name }}</strong>
                         {% if cfg.is_sandbox %}
                         <span class="badge badge-warning">SANDBOX</span>
                         {% else %}
                         <span class="badge badge-success">LIVE</span>
                         {% endif %}
                     </div>
-                    <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.6;">
-                        <div>Provider: <strong class="text-white">{{ cfg.get_provider_display }}</strong></div>
-                        <div>UPI VPA: <span class="font-mono text-cyan-400">{{ cfg.upi_vpa }}</span></div>
-                        <div>MDR Fee: <strong class="text-white">{{ cfg.gateway_fee_percent }}%</strong> (+{{ cfg.gst_on_fee_percent }}% GST)</div>
-                        <div>Double-Entry Auto-Post: <strong style="color: #34d399;">{% if cfg.auto_post_to_gl %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
+                    <div style="font-size: 0.8rem; color: var(--studio-text-muted); line-height: 1.6;">
+                        <div>Provider: <strong class="text-slate-900 dark:text-white">{{ cfg.get_provider_display }}</strong></div>
+                        <div>UPI VPA: <span class="font-mono text-cyan-600 dark:text-cyan-400">{{ cfg.upi_vpa }}</span></div>
+                        <div>MDR Fee: <strong class="text-slate-900 dark:text-white">{{ cfg.gateway_fee_percent }}%</strong> (+{{ cfg.gst_on_fee_percent }}% GST)</div>
+                        <div>Double-Entry Auto-Post: <strong style="color: #10b981;">{% if cfg.auto_post_to_gl %}ENABLED{% else %}DISABLED{% endif %}</strong></div>
                     </div>
                     <div style="margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid rgba(51, 65, 85, 0.5); display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 0.72rem; color: #64748b;">MCC: {{ cfg.mcc_code }}</span>

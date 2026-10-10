@@ -899,6 +899,77 @@
       <div id="actionFeedback" style="font-size: 13px; text-align: center; min-height: 24px; margin-top: 12px;"></div>
     </main>
 
+    <!-- Passenger Digital Touch Signature Card -->
+    <section class="trip-card" id="sigSection" style="margin-top: 4px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-size: 14px; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
+          ✍️ Passenger Digital Signature &amp; Tour Review
+        </div>
+        {% if trip.customer_signature_data %}
+          <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">✓ Signed &amp; Rated</span>
+        {% else %}
+          <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;">Pending Passenger Sign</span>
+        {% endif %}
+      </div>
+
+      {% if trip.customer_signature_data %}
+        <div style="background: #ffffff; border-radius: 12px; padding: 12px; text-align: center; margin-bottom: 10px;">
+          <img src="{{ trip.customer_signature_data }}" style="max-height: 80px; max-width: 100%;" alt="Passenger Digital Signature" />
+          <div style="font-size: 11px; color: #475569; margin-top: 4px;">
+            Digitally signed on {{ trip.customer_signature_at|date:"d M Y @ H:i"|default:"Tour Completion" }}
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 15px; font-weight: 800; color: #f59e0b; margin-bottom: 6px;">
+          Guest Satisfaction: 
+          {% for i in "12345" %}
+            {% if forloop.counter <= trip.guest_rating|default:5 %}★{% else %}☆{% endif %}
+          {% endfor %}
+          ({{ trip.guest_rating|default:5 }}/5)
+        </div>
+        {% if trip.guest_feedback %}
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 10px; font-size: 12px; font-style: italic; color: #94a3b8; text-align: center;">
+            "{{ trip.guest_feedback }}"
+          </div>
+        {% endif %}
+      {% else %}
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+          Hand device to passenger to collect touch digital signature on screen:
+        </div>
+        <div style="background: #ffffff; border: 2px dashed #38bdf8; border-radius: 12px; overflow: hidden; margin-bottom: 10px; touch-action: none;">
+          <canvas id="lifecycleSigCanvas" style="display: block; width: 100%; height: 160px; cursor: crosshair;"></canvas>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <button type="button" onclick="clearLifecycleSig()" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;">
+            🔄 Clear Pad
+          </button>
+          <span style="font-size: 11px; color: #94a3b8;">Use finger or stylus</span>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 12px;">
+          <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">
+            Passenger Rating
+          </div>
+          <div style="display: flex; justify-content: center; gap: 10px; margin-top: 6px;" id="portalStarRow">
+            <button type="button" class="portal-star-btn" onclick="setPortalRating(1)" style="font-size: 26px; color: #f59e0b; background: none; border: none; cursor: pointer;">★</button>
+            <button type="button" class="portal-star-btn" onclick="setPortalRating(2)" style="font-size: 26px; color: #f59e0b; background: none; border: none; cursor: pointer;">★</button>
+            <button type="button" class="portal-star-btn" onclick="setPortalRating(3)" style="font-size: 26px; color: #f59e0b; background: none; border: none; cursor: pointer;">★</button>
+            <button type="button" class="portal-star-btn" onclick="setPortalRating(4)" style="font-size: 26px; color: #f59e0b; background: none; border: none; cursor: pointer;">★</button>
+            <button type="button" class="portal-star-btn" onclick="setPortalRating(5)" style="font-size: 26px; color: #f59e0b; background: none; border: none; cursor: pointer;">★</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">Guest Remarks</label>
+          <input type="text" id="portalGuestFeedback" class="form-input" placeholder="e.g. Chauffeur was very polite, journey pleasant" />
+        </div>
+
+        <button type="button" onclick="submitPortalSignature()" class="btn-advance" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          ✍️ Confirm Passenger Signature &amp; Submit
+        </button>
+        <div id="portalSigFeedback" style="font-size: 12px; text-align: center; margin-top: 8px;"></div>
+      {% endif %}
+    </section>
+
     <!-- Milestone Audit Timeline Card -->
     <section class="timeline-card">
       <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px;">
@@ -1074,6 +1145,113 @@
         }
       } catch (err) {
         fb.innerHTML = `<span style="color: #ef4444;">Network error: ${err.message}</span>`;
+      }
+    }
+
+    // Lifecycle Touch Signature Canvas
+    let portalRating = 5;
+    let isPortalSigDrawn = false;
+    const lCanvas = document.getElementById('lifecycleSigCanvas');
+    let lCtx = null;
+    let lIsDrawing = false;
+
+    if (lCanvas) {
+      lCtx = lCanvas.getContext('2d');
+      lCtx.lineWidth = 2.5;
+      lCtx.lineCap = 'round';
+      lCtx.strokeStyle = '#0f172a';
+
+      function getLCanvasPos(e) {
+        const rect = lCanvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (lCanvas.width / rect.width),
+          y: (clientY - rect.top) * (lCanvas.height / rect.height)
+        };
+      }
+
+      function lStart(e) {
+        e.preventDefault();
+        lIsDrawing = true;
+        isPortalSigDrawn = true;
+        const pos = getLCanvasPos(e);
+        lCtx.beginPath();
+        lCtx.moveTo(pos.x, pos.y);
+      }
+
+      function lMove(e) {
+        if (!lIsDrawing) return;
+        e.preventDefault();
+        const pos = getLCanvasPos(e);
+        lCtx.lineTo(pos.x, pos.y);
+        lCtx.stroke();
+      }
+
+      function lEnd(e) {
+        if (!lIsDrawing) return;
+        e.preventDefault();
+        lIsDrawing = false;
+      }
+
+      lCanvas.addEventListener('mousedown', lStart);
+      lCanvas.addEventListener('mousemove', lMove);
+      lCanvas.addEventListener('mouseup', lEnd);
+      lCanvas.addEventListener('mouseleave', lEnd);
+
+      lCanvas.addEventListener('touchstart', lStart, { passive: false });
+      lCanvas.addEventListener('touchmove', lMove, { passive: false });
+      lCanvas.addEventListener('touchend', lEnd, { passive: false });
+    }
+
+    function clearLifecycleSig() {
+      if (lCtx && lCanvas) {
+        lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height);
+        isPortalSigDrawn = false;
+      }
+    }
+
+    function setPortalRating(val) {
+      portalRating = val;
+      const btns = document.querySelectorAll('#portalStarRow .portal-star-btn');
+      btns.forEach((b, i) => {
+        b.style.color = i < val ? '#f59e0b' : '#64748b';
+      });
+    }
+
+    async function submitPortalSignature() {
+      const fb = document.getElementById('portalSigFeedback');
+      if (!isPortalSigDrawn) {
+        fb.innerHTML = '<span style="color: #ef4444; font-weight: 700;">Please collect the passenger signature on the pad above.</span>';
+        return;
+      }
+
+      fb.innerHTML = '<span style="color: #38bdf8;">Saving digital signature &amp; review...</span>';
+      const sigData = lCanvas.toDataURL('image/png');
+      const feedback = document.getElementById('portalGuestFeedback').value;
+
+      try {
+        const res = await fetch(`/api/trip/${TRIP_ID}/signature/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            customer_signature_data: sigData,
+            guest_rating: portalRating,
+            guest_feedback: feedback
+          })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          fb.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ ${data.message}</span>`;
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          fb.innerHTML = `<span style="color: #ef4444;">✕ ${data.message}</span>`;
+        }
+      } catch (err) {
+        fb.innerHTML = `<span style="color: #ef4444;">Error: ${err.message}</span>`;
       }
     }
   </script>

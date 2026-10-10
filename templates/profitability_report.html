@@ -1,4 +1,69 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}{{ title }} | TravelERP{% endblock %}
-{% block header_title %}Profitability{% endblock %}
-{% block content %}<div class="page-intro"><div><p class="eyebrow">Performance report</p><h1>{{ title }}</h1><p>Revenue less recorded fuel, trip expenses, and driver batta.</p></div></div><section class="panel"><div class="panel-heading"><h2>Report rows</h2></div><table class="data-table"><thead><tr><th>Name</th><th>Revenue</th><th>Cost</th><th>Profit</th></tr></thead><tbody>{% for row in rows %}<tr><td><strong>{{ row.group }}</strong></td><td>{{ row.revenue|floatformat:2 }}</td><td>{{ row.cost|floatformat:2 }}</td><td>{{ row.profit|floatformat:2 }}</td></tr>{% empty %}<tr><td class="empty" colspan="4">No eligible completed trips yet.</td></tr>{% endfor %}</tbody></table></section>{% endblock %}
+{% block header_title %}Profitability Analysis{% endblock %}
+
+{% block content %}
+<div class="page-intro" style="margin-bottom: 1.5rem;">
+  <div>
+    <span class="topbar-kicker">Performance & Financial Analytics</span>
+    <h1 style="margin: 0.25rem 0 0.5rem; font-weight: 800;">{{ title }}</h1>
+    <p style="color: var(--text-muted); margin: 0; font-size: 0.95rem;">Gross revenue minus recorded diesel, FASTag tolls, driver batta, and operational trip expenses.</p>
+  </div>
+</div>
+
+<section class="panel" style="padding: 0; overflow: hidden; border-radius: 12px; border: 1px solid var(--border-color); background: var(--surface-card); box-shadow: var(--shadow-sm);">
+  <div class="panel-heading" style="padding: 1.25rem 1.5rem; margin-bottom: 0; border-bottom: 1px solid var(--border-color); background: var(--surface-subtle); display: flex; justify-content: space-between; align-items: center;">
+    <h2 style="font-size: 1.1rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+      <span>📊</span>
+      <span>Performance Ledger Rows</span>
+    </h2>
+    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-subtle);">{{ rows|length }} Entities Analyzed</span>
+  </div>
+  <div class="table-responsive" style="margin-bottom: 0; border: none; border-radius: 0;">
+    <table class="data-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+      <thead>
+        <tr>
+          <th style="padding: 12px 20px; font-weight: 700;">Entity Name / Asset</th>
+          <th style="padding: 12px 20px; text-align: right; font-weight: 700;">Gross Revenue</th>
+          <th style="padding: 12px 20px; text-align: right; font-weight: 700;">Operational Cost</th>
+          <th style="padding: 12px 20px; text-align: right; font-weight: 700;">Net Profit / Margin</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td style="padding: 14px 20px;">
+            <strong style="color: var(--text-main); font-size: 0.92rem;">{{ row.group }}</strong>
+          </td>
+          <td style="padding: 14px 20px; text-align: right; font-family: monospace; font-size: 0.92rem; font-weight: 700; color: #0284c7;">
+            ₹{{ row.revenue|floatformat:2 }}
+          </td>
+          <td style="padding: 14px 20px; text-align: right; font-family: monospace; font-size: 0.92rem; font-weight: 600; color: #dc2626;">
+            ₹{{ row.cost|floatformat:2 }}
+          </td>
+          <td style="padding: 14px 20px; text-align: right; font-family: monospace; font-size: 0.95rem; font-weight: 800;">
+            {% if row.profit >= 0 %}
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(22, 163, 74, 0.1); color: #16a34a; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(22, 163, 74, 0.25);">
+                +₹{{ row.profit|floatformat:2 }}
+              </span>
+            {% else %}
+              <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.25);">
+                -₹{{ row.profit|floatformat:2 }}
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td class="empty" colspan="4" style="text-align: center; padding: 3rem 1rem; color: var(--text-subtle);">
+            No eligible completed trips recorded for this dataset.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

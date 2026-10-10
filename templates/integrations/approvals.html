@@ -416,6 +416,124 @@
     border: 1px solid rgba(245, 158, 11, 0.4);
     color: #fbbf24;
 }
+
+/* ── Light Mode (html:not(.dark)) Overrides ────────────────────────────── */
+html:not(.dark) {
+    --app-dark-bg: #f8fafc;
+    --app-panel-bg: #ffffff;
+    --app-panel-border: #e2e8f0;
+    --app-title-color: #0f172a;
+    --app-text-muted: #64748b;
+}
+
+html:not(.dark) .approvals-wrapper {
+    color: #0f172a;
+    background: radial-gradient(circle at 10% 10%, rgba(245, 158, 11, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
+                #f8fafc;
+}
+
+html:not(.dark) .approvals-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .approvals-desc {
+    color: #64748b;
+}
+
+html:not(.dark) .btn-action-secondary {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+html:not(.dark) .btn-action-secondary:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .kpi-label {
+    color: #64748b;
+}
+
+html:not(.dark) .kpi-value {
+    color: #0f172a;
+}
+
+html:not(.dark) .kpi-subtext {
+    color: #64748b;
+}
+
+html:not(.dark) .approval-action-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .card-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .card-desc {
+    color: #334155;
+}
+
+html:not(.dark) .card-meta-row {
+    color: #64748b;
+    border-top-color: #e2e8f0;
+}
+
+html:not(.dark) .action-row-dark {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+html:not(.dark) .notes-input-dark {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+html:not(.dark) .notes-input-dark:focus {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+html:not(.dark) .desk-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .desk-header {
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .desk-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .desk-table th {
+    background: #f8fafc;
+    color: #475569;
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .desk-table td {
+    color: #1e293b;
+    border-bottom-color: #f1f5f9;
+}
+
+html:not(.dark) .desk-table tr:hover td {
+    background: #f8fafc;
+}
 </style>
 
 <div class="approvals-wrapper">
@@ -463,7 +581,7 @@
     </div>
 
     <!-- Pending Queue -->
-    <h2 style="font-size: 1.15rem; font-weight: 800; color: #ffffff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+    <h2 style="font-size: 1.15rem; font-weight: 800; color: var(--app-title-color, #ffffff); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
         <span>⚡</span> Urgent Action Items Requiring Sign-Off
     </h2>
 
@@ -508,9 +626,9 @@
         </form>
     </div>
     {% empty %}
-    <div style="background: var(--app-panel-bg); border: 1px dashed rgba(51, 65, 85, 0.5); border-radius: 16px; padding: 3rem; text-align: center; color: #94a3b8; backdrop-filter: blur(12px);">
+    <div style="background: var(--app-panel-bg); border: 1px dashed rgba(51, 65, 85, 0.5); border-radius: 16px; padding: 3rem; text-align: center; color: var(--app-text-muted); backdrop-filter: blur(12px);">
         <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🎉</div>
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.25rem;">No Pending Approval Requests</h3>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--app-title-color, #ffffff); margin-bottom: 0.25rem;">No Pending Approval Requests</h3>
         <p style="font-size: 0.85rem; color: #64748b; margin: 0;">All quotation discount overrides, driver advances, and credit approvals have been reviewed.</p>
     </div>
     {% endfor %}
@@ -521,7 +639,7 @@
             <h2 class="desk-title">
                 <span>📋</span> Actioned Approvals Audit History
             </h2>
-            <a href="/admin/integrations/approvalrequest/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+            <a href="/admin/integrations/approvalrequest/" style="font-size: 0.82rem; color: #0284c7; text-decoration: none; font-weight: 700;">
                 Open Registry in Admin →
             </a>
         </div>
@@ -542,23 +660,25 @@
                 <tbody>
                     {% for item in actioned_approvals %}
                     <tr>
-                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #38bdf8;">
-                            {{ item.approval_number }}
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800">
+                                {{ item.approval_number }}
+                            </span>
                         </td>
                         <td>
-                            <strong style="color: #ffffff;">{{ item.title }}</strong><br>
-                            <small style="color: #94a3b8;">{{ item.get_approval_type_display }}</small>
+                            <strong style="color: var(--app-title-color, inherit);">{{ item.title }}</strong><br>
+                            <small style="color: #64748b;">{{ item.get_approval_type_display }}</small>
                         </td>
-                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #ffffff;">
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--app-title-color, inherit);">
                             {{ item.requested_amount_or_pct }}
                         </td>
-                        <td style="color: #cbd5e1;">{{ item.requested_by.username }}</td>
+                        <td>{{ item.requested_by.username }}</td>
                         <td>
                             <span class="status-pill status-{{ item.status }}">
                                 {{ item.get_status_display }}
                             </span>
                         </td>
-                        <td style="color: #94a3b8; max-width: 250px;">
+                        <td style="color: #64748b; max-width: 250px;">
                             {{ item.manager_notes|default:"-" }}
                         </td>
                         <td style="color: #cbd5e1;">{{ item.approved_by.username|default:"System" }}</td>

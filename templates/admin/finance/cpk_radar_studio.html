@@ -293,6 +293,150 @@
     padding-top: 0.75rem;
     margin-top: 0.75rem;
 }
+
+/* ── Light Mode (html:not(.dark)) Overrides ────────────────────────────── */
+html:not(.dark) {
+    --cpk-bg: #f8fafc;
+    --cpk-card-bg: #ffffff;
+    --cpk-border: #e2e8f0;
+    --cpk-border-glow: rgba(2, 132, 199, 0.2);
+    --cpk-cyan: #0284c7;
+    --cpk-emerald: #059669;
+    --cpk-amber: #d97706;
+    --cpk-rose: #e11d48;
+    --cpk-indigo: #4f46e5;
+}
+
+html:not(.dark) .studio-container {
+    color: #0f172a;
+    background: radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.05) 0%, transparent 45%),
+                #f8fafc;
+}
+
+html:not(.dark) .studio-header {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .header-title {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: #0f172a;
+}
+
+html:not(.dark) .studio-header div div[style*="color: #94a3b8"] {
+    color: #64748b !important;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .kpi-card:hover {
+    border-color: #38bdf8;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
+}
+
+html:not(.dark) .kpi-label {
+    color: #64748b;
+}
+
+html:not(.dark) .kpi-value {
+    color: #0f172a;
+}
+
+html:not(.dark) .kpi-subtext {
+    color: #64748b;
+}
+
+html:not(.dark) .tab-nav {
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .tab-btn {
+    color: #64748b;
+}
+
+html:not(.dark) .tab-btn:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+html:not(.dark) .tab-btn.active {
+    color: #0284c7;
+    border-bottom-color: #0284c7;
+    background: #f0f9ff;
+}
+
+html:not(.dark) .desk-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+html:not(.dark) .desk-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .form-label {
+    color: #475569;
+}
+
+html:not(.dark) .form-control {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+html:not(.dark) .form-control:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+html:not(.dark) .studio-table th {
+    background: #f8fafc;
+    color: #475569;
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .studio-table td {
+    color: #1e293b;
+    border-bottom-color: #f1f5f9;
+}
+
+html:not(.dark) .studio-table tr:hover td {
+    background: #f8fafc;
+}
+
+html:not(.dark) .sim-output-box {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+html:not(.dark) .sim-row {
+    color: #334155;
+}
+
+html:not(.dark) .sim-row.highlight {
+    color: #059669;
+    border-top-color: #e2e8f0;
+}
+
+html:not(.dark) div[style*="background: rgba(0,0,0,0.3)"] {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+html:not(.dark) .status-badge[style*="background: rgba(255,255,255,0.08)"] {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
 </style>
 
 <div class="studio-container">

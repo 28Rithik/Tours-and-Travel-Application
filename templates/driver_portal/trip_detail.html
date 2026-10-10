@@ -1,142 +1,1760 @@
 {% extends "driver_portal/base.html" %}
 
-{% block title %}Trip #{{ trip.trip_id }} | Sivagayathiri Fleet{% endblock %}
+{% block title %}Trip #{{ trip.trip_id }} | Chauffeur PWA Cockpit{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Chauffeur Mobile Cockpit Design System */
+  :root {
+    --stage-active-glow: rgba(56, 189, 248, 0.35);
+  }
+
+  /* Day / Night High-Contrast Driving Theme */
+  body.day-driving-mode {
+    --bg-base: #f1f5f9;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --border: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --primary: #0284c7;
+  }
+
+  .pwa-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    gap: 8px;
+  }
+
+  .trip-id-pill {
+    background: linear-gradient(135deg, #0284c7, #38bdf8);
+    color: #031525;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+
+  .mode-toggle-btn {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Guest & Trip Info Card */
+  .guest-info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .route-strip {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .quick-cta-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .cta-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .cta-call {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+  }
+
+  .cta-nav {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+  }
+
+  /* Stepper Header */
+  .stepper-header {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .stepper-progress-track {
+    width: 100%;
+    height: 7px;
+    background: var(--bg-surface);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 10px 0 12px;
+  }
+
+  .stepper-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0284c7, #10b981);
+    transition: width 0.4s ease;
+  }
+
+  .steps-pills-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .steps-pills-scroll::-webkit-scrollbar { display: none; }
+
+  .step-pill {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .step-pill.active {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 12px var(--stage-active-glow);
+  }
+
+  .step-pill.completed {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+    color: #34d399;
+  }
+
+  /* Active Stage Hero Action Card */
+  .hero-duty-card {
+    background: var(--bg-card);
+    border: 1.5px solid #0284c7;
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  .duty-stage-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+
+  .duty-stage-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+
+  .form-group-mobile {
+    margin-bottom: 12px;
+  }
+
+  .form-group-mobile label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .input-mobile {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    box-sizing: border-box;
+  }
+
+  .btn-duty-action {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    font-size: 15px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    transition: transform 0.1s ease;
+  }
+  .btn-duty-action:active { transform: scale(0.98); }
+
+  /* Digital Signature Pad Styles */
+  .sig-canvas-container {
+    background: #ffffff;
+    border: 2px dashed #0284c7;
+    border-radius: var(--radius-md);
+    position: relative;
+    touch-action: none;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .sig-canvas {
+    display: block;
+    width: 100%;
+    height: 160px;
+    cursor: crosshair;
+  }
+
+  .star-rating-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 12px 0 14px;
+  }
+
+  .star-btn {
+    font-size: 28px;
+    color: #64748b;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  .star-btn.active {
+    color: #f59e0b;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    transform: scale(1.15);
+  }
+
+  /* Expenses Quick Table */
+  .expenses-mini-table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  .expenses-mini-table th {
+    text-align: left;
+    padding: 6px 8px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .expenses-mini-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Timeline Audit Items */
+  .audit-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .audit-item {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    background: var(--bg-surface);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid #10b981;
+  }
+
+  /* Phase 3: QR Camera Scanner Modal & Attendance Manifest */
+  .qr-scanner-modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(3, 7, 18, 0.9);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .qr-scanner-card {
+    background: #0f172a;
+    border: 1.5px solid #a855f7;
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 440px;
+    padding: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+    position: relative;
+    color: #f8fafc;
+  }
+  .qr-viewport-wrap {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    background: #000;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin: 12px 0;
+    border: 1px solid var(--border);
+  }
+  .qr-video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .qr-reticle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 190px;
+    height: 190px;
+    border: 2px dashed #a855f7;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    pointer-events: none;
+  }
+  .qr-laser-beam {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #38bdf8, #a855f7, #38bdf8, transparent);
+    box-shadow: 0 0 14px #38bdf8;
+    animation: qrSweepLaser 2.2s infinite ease-in-out;
+  }
+  @keyframes qrSweepLaser {
+    0% { top: 12%; opacity: 0.7; }
+    50% { top: 85%; opacity: 1; }
+    100% { top: 12%; opacity: 0.7; }
+  }
+  .manifest-commuter-row {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+  }
+  .manifest-commuter-row.boarded {
+    border-left: 3px solid #10b981;
+    background: rgba(16, 185, 129, 0.08);
+  }
+  .manifest-commuter-row.pending {
+    border-left: 3px solid #f59e0b;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="margin-bottom: 16px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <a href="{% url 'driver_portal:dashboard' %}" style="color: var(--primary); text-decoration: none; font-size: 12px; font-weight: 600;">
-                &larr; Back to Dashboard
-            </a>
-            <h1 style="font-size: 20px; font-weight: 800; margin-top: 4px;">Trip #{{ trip.trip_id }}</h1>
-        </div>
-        <span class="badge {% if trip.status == 'started' %}badge-success{% elif trip.status == 'completed' %}badge-info{% else %}badge-warning{% endif %}">
-            {{ trip.get_status_display }}
-        </span>
+<div class="pwa-top-bar">
+  <div>
+    <a href="{% url 'driver_portal:dashboard' %}" style="color: var(--primary); text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;">
+      &larr; Duty Dashboard
+    </a>
+    <div style="display: flex; align-items: center; gap: 6px; margin-top: 3px;">
+      <h1 style="font-size: 18px; font-weight: 800; margin: 0;">#{{ trip.trip_id }}</h1>
+      <span class="trip-id-pill">{{ trip.booking.get_journey_type_display|default:"Tour" }}</span>
     </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 6px;">
+    <button class="mode-toggle-btn" onclick="toggleDrivingMode()" id="btnThemeToggle" title="Toggle High-Contrast Day/Night driving view">
+      🌓 Contrast
+    </button>
+    <span class="badge badge-success" id="netStatusBadge" style="font-size: 10px;">🟢 Online</span>
+  </div>
 </div>
 
-<!-- Guest & Itinerary Card -->
-<div class="card">
-    <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
-        👤 Guest / Client Details
+<!-- Guest & Destination Card -->
+<div class="guest-info-card">
+  <div class="guest-header">
+    <div>
+      <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Primary Passenger</div>
+      <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">
+        {{ trip.guest_name|default:"Valued Guest" }}
+      </div>
+      <div style="font-size: 12px; color: var(--text-secondary);">
+        {% if trip.booking.guest_phone %}📞 {{ trip.booking.guest_phone }} • {% endif %}
+        👥 {{ trip.pax_count|default:1 }} Pax
+      </div>
     </div>
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div>
-            <div style="font-size: 17px; font-weight: 800;">{{ trip.guest_name }}</div>
-            {% if trip.booking.guest_phone %}
-                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
-                    📞 {{ trip.booking.guest_phone }}
-                </div>
-            {% endif %}
-        </div>
-        {% if trip.booking.guest_phone %}
-            <a href="tel:{{ trip.booking.guest_phone }}" class="btn btn-primary" style="width: auto; padding: 8px 14px; font-size: 12px;">
-                📞 Call Guest
-            </a>
-        {% endif %}
+    
+    <!-- Passenger PIN Badge -->
+    <div style="text-align: right;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Passenger PIN</div>
+      <div style="font-family: monospace; font-size: 16px; font-weight: 800; color: #38bdf8; letter-spacing: 2px; margin-top: 2px;">
+        {{ trip.pickup_pin|default:"----" }}
+      </div>
+      <div style="font-size: 10px; font-weight: 700; color: {% if trip.is_pin_verified %}#34d399{% else %}#f59e0b{% endif %};">
+        {% if trip.is_pin_verified %}✓ Verified{% else %}⏳ Unverified{% endif %}
+      </div>
     </div>
+  </div>
 
-    <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 14px;">
-        <div style="margin-bottom: 8px;">
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">PICKUP LOCATION</div>
-            <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">📍 {{ trip.pickup_location }}</div>
-            <div style="font-size: 12px; color: var(--text-secondary);">Reporting: {{ trip.start_time|default:"On Time" }}</div>
-        </div>
-        <div style="border-top: 1px dashed var(--border); padding-top: 8px;">
-            <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">DESTINATION</div>
-            <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">🏁 {{ trip.destination }}</div>
-        </div>
+  <!-- Route Points -->
+  <div class="route-strip">
+    <div>
+      <div style="font-size: 10px; font-weight: 700; color: var(--text-muted);">PICKUP LOCATION</div>
+      <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
+        📍 {{ trip.pickup_location|default:"Garage Depot" }}
+      </div>
     </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-        <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm);">
-            <span style="color: var(--text-muted);">Vehicle:</span>
-            <strong style="color: var(--primary);">{{ trip.vehicle.registration_number|default:"-" }}</strong>
-        </div>
-        <div style="background: var(--bg-surface); padding: 8px 10px; border-radius: var(--radius-sm);">
-            <span style="color: var(--text-muted);">Pax Count:</span>
-            <strong>{{ trip.pax_count|default:1 }} Persons</strong>
-        </div>
+    <div style="border-top: 1px dashed var(--border); padding-top: 6px;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--text-muted);">DESTINATION / DROP</div>
+      <div style="font-size: 13px; font-weight: 700; color: #38bdf8;">
+        🏁 {{ trip.destination|default:"Tour Destination" }}
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- Trip Progression Actions -->
-{% if trip.status != 'completed' %}
-    <div class="card">
-        <div style="font-weight: 700; font-size: 14px; margin-bottom: 14px;">
-            🚗 Trip Duty Progress
-        </div>
+  <!-- Quick Action CTAs -->
+  <div class="quick-cta-row">
+    {% if trip.booking.guest_phone %}
+      <a href="tel:{{ trip.booking.guest_phone }}" class="cta-link-btn cta-call">
+        📞 Call Guest
+      </a>
+    {% else %}
+      <button class="cta-link-btn cta-call" disabled style="opacity: 0.5;">📞 No Phone</button>
+    {% endif %}
 
-        {% if trip.status != 'started' %}
-            <form method="POST" action="{% url 'driver_portal:trip_start' trip.pk %}">
-                {% csrf_token %}
-                <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
-                        Opening Odometer Reading (KM)
-                    </label>
-                    <input 
-                        type="number" 
-                        name="opening_km" 
-                        value="{{ trip.vehicle.current_km|default:0 }}" 
-                        required 
-                        style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; font-weight: 700;"
-                    >
-                </div>
-                <button type="submit" class="btn btn-success" style="padding: 14px; font-size: 15px;">
-                    ▶️ Start Trip & Departure
-                </button>
-            </form>
+    <a href="https://www.google.com/maps/dir/?api=1&destination={{ trip.destination|urlencode }}" target="_blank" class="cta-link-btn cta-nav">
+      🧭 Google Maps
+    </a>
+  </div>
+
+  {% if trip.itinerary_days.exists %}
+  <div style="margin-top: 10px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: var(--radius-md); padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+    <div>
+      <div style="font-size: 10px; font-weight: 700; color: #818cf8; text-transform: uppercase;">Tour Itinerary ({{ trip.itinerary_days.count }} Days)</div>
+      <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-top: 2px;">
+        {% if trip.active_itinerary_day %}
+          Day {{ trip.active_itinerary_day.day_number }}: {{ trip.active_itinerary_day.title|truncatechars:28 }}
         {% else %}
-            <form method="POST" action="{% url 'driver_portal:trip_end' trip.pk %}">
-                {% csrf_token %}
-                <div style="margin-bottom: 12px;">
-                    <span class="badge badge-success">🟢 Trip Currently In Progress</span>
-                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-                        Started at {{ trip.start_time|default:"Earlier" }} &bull; Opening KM: {{ trip.opening_km|default:0 }}
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
-                        Closing Odometer Reading (KM)
-                    </label>
-                    <input 
-                        type="number" 
-                        name="closing_km" 
-                        placeholder="Enter final meter reading" 
-                        required 
-                        style="width: 100%; padding: 12px 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 16px; font-weight: 700;"
-                    >
-                </div>
-
-                <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
-                        Closing Notes / Toll / Parking Remarks
-                    </label>
-                    <textarea 
-                        name="trip_completion_notes" 
-                        rows="2" 
-                        placeholder="e.g. Guest dropped safely at Airport. Fastag toll paid."
-                        style="width: 100%; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 13px;"
-                    ></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-danger" style="padding: 14px; font-size: 15px;">
-                    ⏹️ Complete & Close Trip
-                </button>
-            </form>
+          View Day-by-Day Route &amp; Hotel Stops
         {% endif %}
+      </div>
     </div>
-{% else %}
-    <div class="card" style="border-left: 4px solid var(--accent-green); text-align: center; padding: 20px;">
-        <div style="font-size: 32px; margin-bottom: 8px;">🎉</div>
-        <div style="font-size: 16px; font-weight: 800; color: var(--accent-green);">Trip Completed & Closed</div>
-        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-            Total Run: {{ trip.total_km|default:0 }} KM &bull; Opening: {{ trip.opening_km|default:0 }} &bull; Closing: {{ trip.closing_km|default:0 }}
-        </div>
-    </div>
-{% endif %}
+    <a href="{% url 'trip-itinerary-portal' trip.pk %}" target="_blank" style="background: #6366f1; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap;">
+      🗺️ Schedule &rarr;
+    </a>
+  </div>
+  {% endif %}
 
+  {% if trip.driver_bata > 0 %}
+  <div style="margin-top: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-md); padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+    <div>
+      <div style="font-size: 10px; font-weight: 700; color: #34d399; text-transform: uppercase;">Driver Duty Allowance (Bata)</div>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+        {{ trip.driver_bata_breakdown.calculation_notes|default:"Calculated Duty Allowance"|truncatechars:38 }}
+      </div>
+    </div>
+    <div style="font-size: 15px; font-weight: 800; color: #34d399; font-family: monospace;">
+      ₹{{ trip.driver_bata|floatformat:0 }}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- 7-Milestone Stepper Header -->
+<div class="stepper-header">
+  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700;">
+    <span>Duty Lifecycle Stage</span>
+    <span id="lblProgressPct" style="color: #38bdf8;">{{ trip.milestone_progress_percent }}% Completed</span>
+  </div>
+
+  <div class="stepper-progress-track">
+    <div class="stepper-progress-fill" id="progressFill" style="width: {{ trip.milestone_progress_percent }}%;"></div>
+  </div>
+
+  <div class="steps-pills-scroll">
+    <div class="step-pill {% if trip.milestone_index == 1 %}active{% elif trip.milestone_index > 1 %}completed{% endif %}" onclick="showDutyStage(1)">
+      <span>{% if trip.milestone_index > 1 %}✓{% else %}1{% endif %}</span> Car Pickup
+    </div>
+    <div class="step-pill {% if trip.milestone_index == 2 %}active{% elif trip.milestone_index > 2 %}completed{% endif %}" onclick="showDutyStage(2)">
+      <span>{% if trip.milestone_index > 2 %}✓{% else %}2{% endif %}</span> Reached
+    </div>
+    <div class="step-pill {% if trip.milestone_index == 3 %}active{% elif trip.milestone_index > 3 %}completed{% endif %}" onclick="showDutyStage(3)">
+      <span>{% if trip.milestone_index > 3 %}✓{% else %}3{% endif %}</span> Guest PIN
+    </div>
+    <div class="step-pill {% if trip.milestone_index == 4 %}active{% elif trip.milestone_index > 4 %}completed{% endif %}" onclick="showDutyStage(4)">
+      <span>{% if trip.milestone_index > 4 %}✓{% else %}4{% endif %}</span> On Trip
+    </div>
+    <div class="step-pill {% if trip.milestone_index == 5 %}active{% elif trip.milestone_index > 5 %}completed{% endif %}" onclick="showDutyStage(5)">
+      <span>{% if trip.milestone_index > 5 %}✓{% else %}5{% endif %}</span> Drop-off
+    </div>
+    <div class="step-pill {% if trip.milestone_index == 6 %}active{% elif trip.milestone_index > 6 %}completed{% endif %}" onclick="showDutyStage(6)">
+      <span>{% if trip.milestone_index > 6 %}✓{% else %}6{% endif %}</span> Expenses
+    </div>
+    <div class="step-pill {% if trip.milestone_index == 7 %}active{% elif trip.status == 'completed' %}completed{% endif %}" onclick="showDutyStage(7)">
+      <span>{% if trip.status == 'completed' %}✓{% else %}7{% endif %}</span> Car Drop
+    </div>
+  </div>
+</div>
+
+<!-- Active Duty Stage Card -->
+<div class="hero-duty-card">
+
+  <!-- STAGE 1: CAR PICKUP -->
+  <div id="dutyStage1" class="duty-pane" style="display: {% if trip.milestone_index == 1 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">🚗 Stage 1: Depot Departure &amp; Car Pickup</div>
+    <div class="duty-stage-desc">Record starting meter reading and inspect the assigned vehicle ({{ trip.vehicle.registration_number|default:"Fleet" }}).</div>
+
+    <form onsubmit="handleMilestoneSubmit(event, 'car_pickup')">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div class="form-group-mobile">
+          <label>Opening Odometer (KM)</label>
+          <input type="number" name="odometer_reading" class="input-mobile" value="{{ trip.opening_km|default:trip.vehicle.current_km|default:0 }}" required>
+        </div>
+        <div class="form-group-mobile">
+          <label>Fuel Level (%)</label>
+          <input type="number" name="fuel_level_percent" class="input-mobile" value="100" min="0" max="100">
+        </div>
+      </div>
+      <div class="form-group-mobile">
+        <label>Dashboard Photo</label>
+        <input type="file" name="odometer_photo" accept="image/*" class="input-mobile">
+      </div>
+      <button type="submit" class="btn-duty-action" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">
+        🚀 Confirm Car Pickup &amp; Start Tour
+      </button>
+    </form>
+  </div>
+
+  <!-- STAGE 2: DRIVER REACHED -->
+  <div id="dutyStage2" class="duty-pane" style="display: {% if trip.milestone_index == 2 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">📍 Stage 2: Arrived at Pickup Point</div>
+    <div class="duty-stage-desc">Notify the passenger and dispatcher that you have arrived at {{ trip.pickup_location|default:"Pickup Spot" }}.</div>
+
+    <form onsubmit="handleMilestoneSubmit(event, 'driver_reached')">
+      {% csrf_token %}
+      <input type="hidden" name="gps_latitude" id="lat_driver_reached">
+      <input type="hidden" name="gps_longitude" id="lng_driver_reached">
+      
+      <div style="background: var(--bg-surface); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 12px; text-align: center;">
+        <div style="font-size: 12px; color: var(--text-secondary);" id="gpsStatus_driver_reached">📡 Tap below to lock live GPS coordinates</div>
+        <button type="button" class="btn btn-secondary" onclick="captureGpsCoords('driver_reached')" style="width: auto; padding: 6px 14px; font-size: 11px; margin-top: 6px;">
+          📍 Auto-Detect GPS Location
+        </button>
+      </div>
+
+      <button type="submit" class="btn-duty-action" style="background: linear-gradient(135deg, #059669, #10b981);">
+        📍 I Have Reached Pickup Location
+      </button>
+    </form>
+  </div>
+
+  <!-- STAGE 3: GUEST PIN & QR BOARDING PASS VERIFICATION -->
+  <div id="dutyStage3" class="duty-pane" style="display: {% if trip.milestone_index == 3 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">🎟️ Stage 3: Passenger QR Pass &amp; PIN Verification</div>
+    <div class="duty-stage-desc">
+      Scan each passenger's dynamic QR Boarding Pass via camera, or enter their 4-digit Security PIN to confirm attendance before departure.
+    </div>
+
+    <!-- Primary CTA: Camera QR Scanner -->
+    <div style="margin-bottom: 14px; text-align: center;">
+      <button type="button" class="btn-duty-action" onclick="openQrScannerModal()" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); font-size: 15px; padding: 15px;">
+        📷 Scan Passenger QR Boarding Pass
+      </button>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+        Works offline &bull; Camera viewfinder, file upload, or manual PIN entry
+      </div>
+    </div>
+
+    <!-- Alternative: Quick 4-Digit PIN Form -->
+    <div style="background: var(--bg-surface); border: 1px dashed var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; margin-bottom: 8px;">
+        — Or Enter 4-Digit Passenger PIN —
+      </div>
+      <form onsubmit="handleMilestoneSubmit(event, 'guest_pickup')">
+        {% csrf_token %}
+        <div class="form-group-mobile" style="text-align: center; margin-bottom: 10px;">
+          <input 
+            type="text" 
+            name="passenger_pin" 
+            id="inpPassengerPin"
+            placeholder="••••" 
+            maxlength="6" 
+            required 
+            style="width: 170px; padding: 12px; text-align: center; font-size: 24px; font-weight: 800; letter-spacing: 6px; font-family: monospace; background: var(--bg-card); border: 2px solid #a855f7; border-radius: var(--radius-md); color: var(--text-primary); margin: 0 auto; display: block;"
+          >
+          <div id="pinAlertBox" style="font-size: 12px; margin-top: 6px;"></div>
+        </div>
+
+        <button type="submit" class="btn btn-secondary" style="background: rgba(168, 85, 247, 0.18); border-color: #a855f7; color: #d8b4fe; font-size: 13px; padding: 10px;">
+          🔑 Verify PIN &amp; Board Passenger
+        </button>
+      </form>
+    </div>
+
+    <!-- Live Passenger Manifest Checklist -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">
+            👥 Passenger Manifest Checklist
+          </div>
+          <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-top: 2px;" id="manifestSummaryPill">
+            {% if commute_passes %}
+              <span id="txtBoardedRatio">{{ trip.commute_passes.filter.is_boarded.count }} / {{ trip.commute_passes.count }} Boarded</span>
+            {% else %}
+              <span>{{ trip.guest_name|default:"Tour Guest" }} ({% if trip.is_pin_verified %}✓ Boarded{% else %}⏳ Pending{% endif %})</span>
+            {% endif %}
+          </div>
+        </div>
+        <button type="button" onclick="loadPassengerManifest()" class="btn btn-secondary" style="width: auto; padding: 4px 10px; font-size: 11px;">
+          🔄 Refresh
+        </button>
+      </div>
+
+      <div id="pwaManifestList" style="display: flex; flex-direction: column; gap: 8px;">
+        {% if commute_passes %}
+          {% for cp in commute_passes %}
+          <div class="manifest-commuter-row {% if cp.is_boarded %}boarded{% else %}pending{% endif %}" id="commuterRow_{{ cp.pk }}">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">{{ cp.commuter.name }}</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">
+                📍 {{ cp.commuter.pickup_location|default:"Stop" }} &bull; OTP: <span style="font-family: monospace; color: #38bdf8;">{{ cp.boarding_otp }}</span>
+              </div>
+            </div>
+            <div>
+              {% if cp.is_boarded %}
+                <span class="badge badge-success">✓ Boarded</span>
+              {% else %}
+                <button type="button" class="btn btn-secondary" onclick="verifySpecificOtp('{{ cp.boarding_otp }}')" style="width: auto; padding: 4px 10px; font-size: 11px; border-color: #a855f7; color: #c084fc;">
+                  Board &rarr;
+                </button>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="manifest-commuter-row {% if trip.is_pin_verified %}boarded{% else %}pending{% endif %}">
+            <div>
+              <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">{{ trip.guest_name|default:"Valued Guest" }}</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">
+                📍 {{ trip.pickup_location|default:"Pickup Spot" }} &bull; Security PIN: <span style="font-family: monospace; color: #38bdf8;">{{ trip.pickup_pin }}</span>
+              </div>
+            </div>
+            <div>
+              {% if trip.is_pin_verified %}
+                <span class="badge badge-success">✓ Boarded</span>
+              {% else %}
+                <span class="badge badge-warning">⏳ Awaiting PIN</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 4: ON TRIP -->
+  <div id="dutyStage4" class="duty-pane" style="display: {% if trip.milestone_index == 4 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">🛣️ Stage 4: En-Route &amp; Journey Active</div>
+    <div class="duty-stage-desc">Passenger safely boarded. Live telematics active en-route to {{ trip.destination|default:"destination" }}.</div>
+
+    <form onsubmit="handleMilestoneSubmit(event, 'on_trip')">
+      {% csrf_token %}
+      <div class="form-group-mobile">
+        <label>Highway Observations / Route Notes</label>
+        <input type="text" name="notes" class="input-mobile" placeholder="e.g. Taking NH48 Expressway, traffic clear">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+        {% if trip.tracking_token %}
+          <a href="/track/{{ trip.tracking_token }}/" target="_blank" class="btn btn-secondary" style="font-size: 12px; padding: 10px;">
+            🗺️ Live Radar
+          </a>
+        {% endif %}
+        <a href="{% url 'driver_portal:sos' %}" class="btn btn-danger" style="font-size: 12px; padding: 10px;">
+          🚨 SOS Alert
+        </a>
+      </div>
+
+      <button type="submit" class="btn-duty-action" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">
+        🛣️ Update Journey Status
+      </button>
+    </form>
+  </div>
+
+  <!-- STAGE 5: GUEST DROP -->
+  <div id="dutyStage5" class="duty-pane" style="display: {% if trip.milestone_index == 5 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">🏁 Stage 5: Passenger Destination Drop</div>
+    <div class="duty-stage-desc">Confirm passenger has safely arrived and all luggage has been unloaded.</div>
+
+    <form onsubmit="handleMilestoneSubmit(event, 'guest_drop')">
+      {% csrf_token %}
+      <div class="form-group-mobile">
+        <label>Final Drop Location</label>
+        <input type="text" name="location_name" class="input-mobile" value="{{ trip.destination|default:'Final Drop Point' }}">
+      </div>
+      <div class="form-group-mobile">
+        <label>Luggage Confirmation</label>
+        <input type="text" name="notes" class="input-mobile" value="All passenger bags and belongings unloaded safely.">
+      </div>
+
+      <button type="submit" class="btn-duty-action" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+        🏁 Confirm Passenger Safely Dropped
+      </button>
+    </form>
+  </div>
+
+  <!-- STAGE 6: EXPENSES & FUEL/TOLL -->
+  <div id="dutyStage6" class="duty-pane" style="display: {% if trip.milestone_index == 6 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">🧾 Stage 6: Fastag Toll, Fuel &amp; Expenses</div>
+    <div class="duty-stage-desc">Capture photo receipts for fuel, tolls, parking, and interstate permits.</div>
+
+    <!-- Quick Add Expense Form -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+        + Log New Receipt Photo
+      </div>
+      <form id="formPwaExpense" onsubmit="handleQuickExpenseSubmit(event)">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div class="form-group-mobile">
+            <label>Category</label>
+            <select name="expense_type" class="input-mobile" style="padding: 10px;">
+              <option value="toll">Fastag / Toll Plaza</option>
+              <option value="fuel">Diesel / Fuel</option>
+              <option value="parking">Parking Fee</option>
+              <option value="border_tax">Interstate Permit</option>
+              <option value="driver_food">Driver Bata / Food</option>
+              <option value="other">Other Expense</option>
+            </select>
+          </div>
+          <div class="form-group-mobile">
+            <label>Amount (₹)</label>
+            <input type="number" name="amount" class="input-mobile" placeholder="0.00" step="10" required>
+          </div>
+        </div>
+
+        <div class="form-group-mobile">
+          <label>Camera Snap of Bill</label>
+          <input type="file" name="receipt" accept="image/*" class="input-mobile">
+        </div>
+
+        <button type="submit" class="btn btn-secondary" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 13px;">
+          📸 Save Expense &amp; Upload Bill
+        </button>
+      </form>
+      <div id="pwaExpenseFeedback" style="font-size: 11px; margin-top: 6px; text-align: center;"></div>
+    </div>
+
+    <!-- Logged Receipts Summary -->
+    <div style="margin-bottom: 14px;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+        Total Logged: <strong style="color: #38bdf8;" id="lblPwaExpenseTotal">₹{{ total_expenses|floatformat:2 }}</strong>
+      </div>
+      <table class="expenses-mini-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody id="pwaExpensesTbody">
+          {% for exp in expenses %}
+          <tr>
+            <td><strong>{{ exp.get_expense_type_display }}</strong></td>
+            <td style="color: #38bdf8; font-family: monospace;">₹{{ exp.amount|floatformat:2 }}</td>
+            <td>
+              {% if exp.receipt %}
+                <a href="{{ exp.receipt.url }}" target="_blank" style="color: #34d399; font-size: 11px;">View Photo</a>
+              {% else %}
+                <span style="color: var(--text-muted); font-size: 11px;">No photo</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr id="emptyPwaExpensesRow">
+            <td colspan="3" style="text-align: center; color: var(--text-muted); padding: 10px;">No receipts logged yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <form onsubmit="handleMilestoneSubmit(event, 'expenses_photo')">
+      {% csrf_token %}
+      <button type="submit" class="btn-duty-action" style="background: linear-gradient(135deg, #059669, #10b981);">
+        ✓ Expenses Recorded &bull; Proceed to Car Drop
+      </button>
+    </form>
+  </div>
+
+  <!-- STAGE 7: CAR DROP & DEPOT CLOSURE -->
+  <div id="dutyStage7" class="duty-pane" style="display: {% if trip.milestone_index == 7 %}block{% else %}none{% endif %};">
+    <div class="duty-stage-title">🅿️ Stage 7: Depot Return &amp; Duty Closure</div>
+    <div class="duty-stage-desc">Record closing odometer KM and upload closing dashboard photo to finalize tour.</div>
+
+    <form onsubmit="handleMilestoneSubmit(event, 'car_drop')">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div class="form-group-mobile">
+          <label>Closing Odometer (KM)</label>
+          <input type="number" name="odometer_reading" class="input-mobile" value="{{ trip.closing_km|default:trip.vehicle.current_km|default:0 }}" required>
+        </div>
+        <div class="form-group-mobile">
+          <label>Fuel Remaining (%)</label>
+          <input type="number" name="fuel_level_percent" class="input-mobile" value="85" min="0" max="100">
+        </div>
+      </div>
+      <div class="form-group-mobile">
+        <label>Closing Meter Photo</label>
+        <input type="file" name="odometer_photo" accept="image/*" class="input-mobile">
+      </div>
+      <div class="form-group-mobile">
+        <label>Vehicle Condition Remarks</label>
+        <input type="text" name="notes" class="input-mobile" placeholder="e.g. Keys handed to depot manager, vehicle clean">
+      </div>
+
+      <button type="submit" class="btn-duty-action" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+        🅿️ Finalize Depot Return &amp; Complete Duty
+      </button>
+    </form>
+  </div>
+
+  <div id="dutyActionFeedback" style="font-size: 12px; text-align: center; margin-top: 10px; min-height: 20px;"></div>
+</div>
+
+<!-- Passenger Digital Signature & 5-Star Rating Card -->
+<div class="card" id="digitalSignatureCard">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <div style="font-size: 14px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+      ✍️ Passenger Digital Signature &amp; Review
+    </div>
+    {% if trip.customer_signature_data %}
+      <span class="badge badge-success">✓ Signed</span>
+    {% else %}
+      <span class="badge badge-warning">Pending Sign</span>
+    {% endif %}
+  </div>
+
+  {% if trip.customer_signature_data %}
+    <!-- Display Existing Signature -->
+    <div style="background: #ffffff; border-radius: var(--radius-sm); padding: 10px; text-align: center; margin-bottom: 10px;">
+      <img src="{{ trip.customer_signature_data }}" style="max-height: 80px; max-width: 100%;" alt="Passenger Signature">
+      <div style="font-size: 11px; color: #475569; margin-top: 4px;">
+        Digitally signed on {{ trip.customer_signature_at|date:"d M Y @ H:i"|default:"Trip Completion" }}
+      </div>
+    </div>
+    <div style="text-align: center; font-size: 14px; font-weight: 700; color: #f59e0b; margin-bottom: 6px;">
+      Passenger Rating: 
+      {% for i in "12345" %}
+        {% if forloop.counter <= trip.guest_rating|default:5 %}★{% else %}☆{% endif %}
+      {% endfor %}
+      ({{ trip.guest_rating|default:5 }}/5)
+    </div>
+    {% if trip.guest_feedback %}
+      <div style="background: var(--bg-surface); padding: 10px; border-radius: var(--radius-sm); font-size: 12px; font-style: italic; color: var(--text-secondary); text-align: center;">
+        "{{ trip.guest_feedback }}"
+      </div>
+    {% endif %}
+  {% else %}
+    <!-- Interactive Signature Canvas -->
+    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+      Please ask the passenger to sign on this smartphone screen and provide feedback:
+    </div>
+
+    <div class="sig-canvas-container">
+      <canvas id="pwaSigCanvas" class="sig-canvas" width="460" height="160"></canvas>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <button type="button" class="btn btn-secondary" onclick="clearSignatureCanvas()" style="width: auto; padding: 6px 14px; font-size: 11px;">
+        🔄 Clear Signature
+      </button>
+      <span style="font-size: 11px; color: var(--text-muted);">Sign with finger or stylus</span>
+    </div>
+
+    <!-- 5-Star Rating Selector -->
+    <div style="text-align: center;">
+      <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+        Passenger Satisfaction Rating
+      </div>
+      <div class="star-rating-row" id="starRatingContainer">
+        <button type="button" class="star-btn active" onclick="setRating(1)">★</button>
+        <button type="button" class="star-btn active" onclick="setRating(2)">★</button>
+        <button type="button" class="star-btn active" onclick="setRating(3)">★</button>
+        <button type="button" class="star-btn active" onclick="setRating(4)">★</button>
+        <button type="button" class="star-btn active" onclick="setRating(5)">★</button>
+      </div>
+    </div>
+
+    <!-- Review Textarea -->
+    <div class="form-group-mobile">
+      <label>Guest Remarks (Optional)</label>
+      <input type="text" id="inpGuestFeedback" class="input-mobile" placeholder="e.g. Excellent chauffeur, smooth driving & clean car">
+    </div>
+
+    <button type="button" class="btn btn-success" onclick="saveCustomerSignature()" style="font-size: 14px; padding: 12px;">
+      ✍️ Save Passenger Signature &amp; Rating
+    </button>
+    <div id="sigSaveFeedback" style="font-size: 12px; text-align: center; margin-top: 8px;"></div>
+  {% endif %}
+</div>
+
+<!-- Recorded Audit Timeline -->
+<div class="card">
+  <div style="font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
+    📋 Duty Checkpoint Audit Log
+  </div>
+  <div class="audit-timeline" id="pwaTimelineContainer">
+    {% for ev in milestone_events %}
+      <div class="audit-item">
+        <div style="font-weight: 800; color: #10b981;">✓</div>
+        <div style="flex: 1;">
+          <div style="display: flex; justify-content: space-between;">
+            <strong>Stage {{ ev.milestone_index }}: {{ ev.get_milestone_display }}</strong>
+            <span style="color: var(--text-muted); font-size: 11px;">{{ ev.timestamp|date:"H:i" }}</span>
+          </div>
+          <div style="color: var(--text-secondary); margin-top: 2px;">
+            {% if ev.odometer_reading %}Meter: {{ ev.odometer_reading }} KM &bull; {% endif %}
+            {% if ev.is_pin_verified %}<span style="color: #34d399; font-weight: 700;">PIN Verified</span> &bull; {% endif %}
+            {{ ev.location_name|default:ev.notes|default:"Logged on mobile" }}
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div style="text-align: center; color: var(--text-muted); font-size: 12px; padding: 10px;">
+        No checkpoints logged yet. Advance through stages above.
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Phase 3: Camera QR Boarding Pass Scanner Modal -->
+<div id="qrScannerModal" class="qr-scanner-modal-backdrop">
+  <div class="qr-scanner-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 20px;">📷</span>
+        <div>
+          <div style="font-size: 14px; font-weight: 800;">QR Boarding Scanner</div>
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Live Mobile Camera Attendance Check</div>
+        </div>
+      </div>
+      <button type="button" onclick="closeQrScannerModal()" style="background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; padding: 0 4px;" title="Close">
+        ✕
+      </button>
+    </div>
+
+    <!-- Camera Viewport with Reticle & Laser -->
+    <div class="qr-viewport-wrap" id="qrViewportContainer">
+      <video id="pwaQrVideo" class="qr-video-element" playsinline autoplay muted></video>
+      <div class="qr-reticle">
+        <div class="qr-laser-beam"></div>
+      </div>
+      <div id="qrScannerCameraNotice" style="position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 11px; background: rgba(0,0,0,0.65); padding: 4px; color: #e2e8f0;">
+        Align passenger QR code within frame
+      </div>
+    </div>
+
+    <!-- Camera Controls (Flip / Torch / File Select) -->
+    <div style="display: flex; gap: 6px; justify-content: space-between; margin-bottom: 12px;">
+      <button type="button" class="btn btn-secondary" onclick="flipQrCamera()" style="font-size: 11px; padding: 8px 10px; width: auto; flex: 1;">
+        🔄 Switch Cam
+      </button>
+      <button type="button" class="btn btn-secondary" id="btnToggleTorch" onclick="toggleQrTorch()" style="font-size: 11px; padding: 8px 10px; width: auto; flex: 1;">
+        💡 Flashlight
+      </button>
+      <label class="btn btn-secondary" style="font-size: 11px; padding: 8px 10px; cursor: pointer; margin: 0; text-align: center; width: auto; flex: 1;">
+        📁 Upload QR
+        <input type="file" accept="image/*" id="qrFileInput" onchange="handleQrFileUpload(event)" style="display: none;">
+      </label>
+    </div>
+
+    <!-- Manual Code / Token Entry Fallback in Modal -->
+    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+        Manual Token / 4-Digit PIN Fallback
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <input 
+          type="text" 
+          id="inpManualQrPayload" 
+          class="input-mobile" 
+          placeholder="e.g. 1234 or PASS:token..." 
+          style="padding: 8px 10px; font-size: 13px;"
+        >
+        <button type="button" class="btn btn-primary" onclick="submitManualQrPayload()" style="width: auto; padding: 8px 16px; font-size: 12px; white-space: nowrap;">
+          Verify
+        </button>
+      </div>
+    </div>
+
+    <!-- Scan Result Banner -->
+    <div id="qrScanFeedbackBanner" style="font-size: 12px; text-align: center; min-height: 20px;"></div>
+
+    <button type="button" class="btn btn-secondary" onclick="closeQrScannerModal()" style="margin-top: 8px; font-size: 13px;">
+      Close Scanner
+    </button>
+  </div>
+</div>
+
+<script>
+  const TRIP_ID = {{ trip.pk }};
+  let currentRating = 5;
+  let isCanvasDrawn = false;
+
+  // Day/Night Contrast Toggle
+  function toggleDrivingMode() {
+    document.body.classList.toggle('day-driving-mode');
+    const isDay = document.body.classList.contains('day-driving-mode');
+    document.getElementById('btnThemeToggle').innerText = isDay ? '🌙 Night View' : '☀️ Day View';
+  }
+
+  // Network Connectivity
+  window.addEventListener('online', () => {
+    document.getElementById('netStatusBadge').className = 'badge badge-success';
+    document.getElementById('netStatusBadge').innerText = '🟢 Online';
+  });
+  window.addEventListener('offline', () => {
+    document.getElementById('netStatusBadge').className = 'badge badge-warning';
+    document.getElementById('netStatusBadge').innerText = '🟠 Offline';
+  });
+
+  // Switch Stage View
+  function showDutyStage(stepNum) {
+    document.querySelectorAll('.duty-pane').forEach(el => el.style.display = 'none');
+    const target = document.getElementById(`dutyStage${stepNum}`);
+    if (target) target.style.display = 'block';
+  }
+
+  // GPS Auto-Capture
+  function captureGpsCoords(stageKey) {
+    const statusEl = document.getElementById(`gpsStatus_${stageKey}`);
+    if (!navigator.geolocation) {
+      statusEl.innerText = 'Geolocation not supported by device.';
+      return;
+    }
+    statusEl.innerText = '📡 Searching GPS satellite signal...';
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        document.getElementById(`lat_${stageKey}`).value = pos.coords.latitude.toFixed(6);
+        document.getElementById(`lng_${stageKey}`).value = pos.coords.longitude.toFixed(6);
+        statusEl.innerText = `✓ GPS Locked (${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)})`;
+        statusEl.style.color = '#34d399';
+        if (navigator.vibrate) navigator.vibrate(50);
+      },
+      err => {
+        statusEl.innerText = `GPS Error: ${err.message}`;
+        statusEl.style.color = '#f87171';
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  }
+
+  // Milestone Advance API with Offline Queue Interception
+  async function handleMilestoneSubmit(event, milestoneKey) {
+    event.preventDefault();
+    const fb = document.getElementById('dutyActionFeedback');
+    fb.innerHTML = '<span style="color: #38bdf8;">⏳ Recording duty checkpoint...</span>';
+
+    const formData = new FormData(event.target);
+    formData.append('milestone', milestoneKey);
+
+    // If offline, enqueue directly into IndexedDB
+    if (!navigator.onLine) {
+      return handleOfflineMilestone(formData, milestoneKey, fb);
+    }
+
+    try {
+      const res = await fetch(`/api/trip/${TRIP_ID}/milestone/advance/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+      });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+        fb.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ ${data.message}</span>`;
+        document.getElementById('lblProgressPct').innerText = `${data.progress_percent}% Completed`;
+        document.getElementById('progressFill').style.width = `${data.progress_percent}%`;
+
+        // Append to audit trail
+        const tl = document.getElementById('pwaTimelineContainer');
+        const item = document.createElement('div');
+        item.className = 'audit-item';
+        item.innerHTML = `
+          <div style="font-weight: 800; color: #10b981;">✓</div>
+          <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between;">
+              <strong>Stage ${data.milestone_index}: ${data.current_milestone}</strong>
+              <span style="color: var(--text-muted); font-size: 11px;">${data.timestamp}</span>
+            </div>
+            <div style="color: #34d399; font-weight: 600; font-size: 11px;">Checkpoint recorded!</div>
+          </div>
+        `;
+        tl.prepend(item);
+
+        setTimeout(() => {
+          if (data.milestone_index < 7) {
+            showDutyStage(data.milestone_index + 1);
+          }
+        }, 900);
+      } else {
+        fb.innerHTML = `<span style="color: #ef4444; font-weight: 700;">✕ ${data.message}</span>`;
+        const pinAlert = document.getElementById('pinAlertBox');
+        if (pinAlert && milestoneKey === 'guest_pickup') {
+          pinAlert.innerHTML = `<span style="color: #ef4444;">✕ ${data.message}</span>`;
+        }
+      }
+    } catch (err) {
+      console.warn('[Milestone] Network error, delegating to offline queue:', err);
+      return handleOfflineMilestone(formData, milestoneKey, fb);
+    }
+  }
+
+  async function handleOfflineMilestone(formData, milestoneKey, fb) {
+    const payloadObj = {};
+    formData.forEach((val, key) => {
+      if (val instanceof File) {
+        payloadObj[key] = val.name || 'photo_logged.jpg';
+      } else {
+        payloadObj[key] = val;
+      }
+    });
+
+    if (window.driverOfflineSync) {
+      await window.driverOfflineSync.queue({
+        url: `/api/trip/${TRIP_ID}/milestone/advance/`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: payloadObj,
+        actionName: `Stage Checkpoint: ${milestoneKey}`,
+        tripId: TRIP_ID
+      });
+    }
+
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    fb.innerHTML = `<span style="color: #f59e0b; font-weight: 700;">💾 Saved locally in offline queue! Will auto-sync when online.</span>`;
+
+    const tl = document.getElementById('pwaTimelineContainer');
+    const item = document.createElement('div');
+    item.className = 'audit-item';
+    item.style.borderLeftColor = '#f59e0b';
+    item.innerHTML = `
+      <div style="font-weight: 800; color: #f59e0b;">⏳</div>
+      <div style="flex: 1;">
+        <div style="display: flex; justify-content: space-between;">
+          <strong>Stage Checkpoint: ${milestoneKey}</strong>
+          <span style="color: #f59e0b; font-size: 11px;">Queued Offline</span>
+        </div>
+        <div style="color: #f59e0b; font-weight: 600; font-size: 11px;">Pending auto-sync to Control Room</div>
+      </div>
+    `;
+    tl.prepend(item);
+  }
+
+  // Quick Expense API with Offline Queue Interception
+  async function handleQuickExpenseSubmit(event) {
+    event.preventDefault();
+    const fb = document.getElementById('pwaExpenseFeedback');
+    fb.innerHTML = '<span style="color: #38bdf8;">Uploading receipt...</span>';
+
+    const formData = new FormData(event.target);
+    const amountVal = parseFloat(formData.get('amount') || 0);
+    const expenseTypeVal = formData.get('expense_type') || 'other';
+
+    if (!navigator.onLine) {
+      return handleOfflineExpense(formData, amountVal, expenseTypeVal, fb, event.target);
+    }
+
+    try {
+      const res = await fetch(`/api/trip/${TRIP_ID}/expense/add/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        fb.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ ${data.message}</span>`;
+        document.getElementById('lblPwaExpenseTotal').innerText = `₹${data.total_expenses.toFixed(2)}`;
+
+        const emptyRow = document.getElementById('emptyPwaExpensesRow');
+        if (emptyRow) emptyRow.style.display = 'none';
+
+        const tbody = document.getElementById('pwaExpensesTbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${data.expense_type}</strong></td>
+          <td style="color: #38bdf8; font-family: monospace;">₹${data.amount.toFixed(2)}</td>
+          <td>${data.receipt_url ? `<a href="${data.receipt_url}" target="_blank" style="color: #34d399; font-size: 11px;">View Photo</a>` : '<span style="color: var(--text-muted); font-size: 11px;">No photo</span>'}</td>
+        `;
+        tbody.prepend(tr);
+        event.target.reset();
+      } else {
+        fb.innerHTML = `<span style="color: #ef4444;">✕ ${data.message}</span>`;
+      }
+    } catch (e) {
+      console.warn('[Expense] Network error, delegating to offline queue:', e);
+      return handleOfflineExpense(formData, amountVal, expenseTypeVal, fb, event.target);
+    }
+  }
+
+  async function handleOfflineExpense(formData, amountVal, expenseTypeVal, fb, formEl) {
+    const payloadObj = {
+      expense_type: expenseTypeVal,
+      amount: amountVal
+    };
+    if (window.driverOfflineSync) {
+      await window.driverOfflineSync.queue({
+        url: `/api/trip/${TRIP_ID}/expense/add/`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: payloadObj,
+        actionName: `Expense: ${expenseTypeVal} (₹${amountVal})`,
+        tripId: TRIP_ID
+      });
+    }
+
+    fb.innerHTML = `<span style="color: #f59e0b; font-weight: 700;">💾 Expense saved offline! Will auto-sync when reconnected.</span>`;
+    const tbody = document.getElementById('pwaExpensesTbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${expenseTypeVal}</strong></td>
+      <td style="color: #f59e0b; font-family: monospace;">₹${amountVal.toFixed(2)} <span style="font-size: 10px;">(Offline)</span></td>
+      <td><span style="color: #f59e0b; font-size: 11px;">Queued ⏳</span></td>
+    `;
+    tbody.prepend(tr);
+    formEl.reset();
+  }
+
+  // HTML5 Touch Signature Pad Initialization
+  const canvas = document.getElementById('pwaSigCanvas');
+  let ctx = null;
+  let isDrawing = false;
+
+  if (canvas) {
+    ctx = canvas.getContext('2d');
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#0f172a';
+
+    function getCanvasPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function startDraw(e) {
+      e.preventDefault();
+      isDrawing = true;
+      isCanvasDrawn = true;
+      const pos = getCanvasPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const pos = getCanvasPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function stopDraw(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      isDrawing = false;
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseleave', stopDraw);
+
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDraw, { passive: false });
+  }
+
+  function clearSignatureCanvas() {
+    if (ctx && canvas) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      isCanvasDrawn = false;
+    }
+  }
+
+  function setRating(val) {
+    currentRating = val;
+    const buttons = document.querySelectorAll('#starRatingContainer .star-btn');
+    buttons.forEach((btn, idx) => {
+      btn.classList.toggle('active', idx < val);
+    });
+  }
+
+  // Submit Digital Signature with Offline Queue Interception
+  async function saveCustomerSignature() {
+    const fb = document.getElementById('sigSaveFeedback');
+    if (!isCanvasDrawn) {
+      fb.innerHTML = '<span style="color: #ef4444; font-weight: 700;">Please collect the passenger signature on the pad above.</span>';
+      return;
+    }
+
+    fb.innerHTML = '<span style="color: #38bdf8;">Saving passenger signature & rating...</span>';
+    const sigDataUrl = canvas.toDataURL('image/png');
+    const feedbackText = document.getElementById('inpGuestFeedback').value;
+    const payload = {
+      customer_signature_data: sigDataUrl,
+      guest_rating: currentRating,
+      guest_feedback: feedbackText
+    };
+
+    if (!navigator.onLine) {
+      return handleOfflineSignature(payload, fb);
+    }
+
+    try {
+      const res = await fetch(`/api/trip/${TRIP_ID}/signature/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        fb.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ ${data.message}</span>`;
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        fb.innerHTML = `<span style="color: #ef4444;">✕ ${data.message}</span>`;
+      }
+    } catch (e) {
+      console.warn('[Signature] Network error, delegating to offline queue:', e);
+      return handleOfflineSignature(payload, fb);
+    }
+  }
+
+  async function handleOfflineSignature(payload, fb) {
+    if (window.driverOfflineSync) {
+      await window.driverOfflineSync.queue({
+        url: `/api/trip/${TRIP_ID}/signature/`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: payload,
+        actionName: `Customer Signature (${currentRating}★)`,
+        tripId: TRIP_ID
+      });
+    }
+    fb.innerHTML = `<span style="color: #f59e0b; font-weight: 700;">💾 Signature saved locally in offline queue! Will auto-sync when online.</span>`;
+  }
+
+  // ===========================================================================
+  // Phase 3: QR Code Camera Scanner & Attendance Verification
+  // ===========================================================================
+  let qrStream = null;
+  let qrScanningActive = false;
+  let currentFacingMode = 'environment';
+  let isTorchOn = false;
+  let videoTrack = null;
+  let qrScanInterval = null;
+
+  function playScanBeep() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.18);
+    } catch(e) {}
+  }
+
+  async function openQrScannerModal() {
+    const modal = document.getElementById('qrScannerModal');
+    if (modal) modal.style.display = 'flex';
+    document.getElementById('qrScanFeedbackBanner').innerHTML = '';
+    await startCameraStream();
+  }
+
+  function closeQrScannerModal() {
+    const modal = document.getElementById('qrScannerModal');
+    if (modal) modal.style.display = 'none';
+    stopCameraStream();
+  }
+
+  async function startCameraStream() {
+    stopCameraStream();
+    const notice = document.getElementById('qrScannerCameraNotice');
+    try {
+      if (notice) notice.innerText = 'Initializing camera sensor...';
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera MediaDevices API not available');
+      }
+      qrStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: currentFacingMode },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      const video = document.getElementById('pwaQrVideo');
+      video.srcObject = qrStream;
+      video.setAttribute('playsinline', 'true');
+      await video.play();
+      videoTrack = qrStream.getVideoTracks()[0];
+      qrScanningActive = true;
+      if (notice) notice.innerText = 'Align passenger QR code within frame';
+      startQrFrameDetection();
+    } catch (err) {
+      console.warn('[QR Camera] Access failed or denied:', err);
+      if (notice) notice.innerText = 'Camera unavailable. Use manual PIN input or file upload below.';
+    }
+  }
+
+  function stopCameraStream() {
+    qrScanningActive = false;
+    if (qrScanInterval) {
+      clearInterval(qrScanInterval);
+      qrScanInterval = null;
+    }
+    if (qrStream) {
+      qrStream.getTracks().forEach(track => track.stop());
+      qrStream = null;
+    }
+    videoTrack = null;
+    isTorchOn = false;
+  }
+
+  async function flipQrCamera() {
+    currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+    await startCameraStream();
+  }
+
+  async function toggleQrTorch() {
+    if (!videoTrack) return;
+    try {
+      const caps = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
+      if (caps.torch) {
+        isTorchOn = !isTorchOn;
+        await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+        document.getElementById('btnToggleTorch').innerText = isTorchOn ? '🔦 Torch ON' : '💡 Flashlight';
+      } else {
+        alert('Flashlight/torch is not supported on this camera device.');
+      }
+    } catch (e) {
+      console.warn('Failed to toggle torch:', e);
+    }
+  }
+
+  function startQrFrameDetection() {
+    if (qrScanInterval) clearInterval(qrScanInterval);
+
+    // 1. Native BarcodeDetector (Chrome, Edge, Android WebView)
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['qr_code'] });
+      qrScanInterval = setInterval(async () => {
+        if (!qrScanningActive) return;
+        const video = document.getElementById('pwaQrVideo');
+        if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+        try {
+          const codes = await detector.detect(video);
+          if (codes && codes.length > 0) {
+            const rawVal = codes[0].rawValue;
+            handleDetectedQr(rawVal);
+          }
+        } catch(e) {}
+      }, 250);
+    } else if (window.jsQR) {
+      // 2. jsQR Canvas fallback
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      qrScanInterval = setInterval(() => {
+        if (!qrScanningActive) return;
+        const video = document.getElementById('pwaQrVideo');
+        if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imgData.data, imgData.width, imgData.height);
+        if (code && code.data) {
+          handleDetectedQr(code.data);
+        }
+      }, 300);
+    }
+  }
+
+  function handleDetectedQr(rawQr) {
+    if (!qrScanningActive) return;
+    qrScanningActive = false;
+    playScanBeep();
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    processQrVerification(rawQr);
+  }
+
+  function submitManualQrPayload() {
+    const val = (document.getElementById('inpManualQrPayload').value || '').trim();
+    if (!val) {
+      alert('Please enter a 4-digit PIN or QR token.');
+      return;
+    }
+    processQrVerification(val);
+  }
+
+  function verifySpecificOtp(otp) {
+    openQrScannerModal();
+    document.getElementById('inpManualQrPayload').value = otp;
+    processQrVerification('PIN:' + otp);
+  }
+
+  async function handleQrFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const banner = document.getElementById('qrScanFeedbackBanner');
+    banner.innerHTML = '<span style="color: #38bdf8;">Reading QR from photo...</span>';
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const img = new Image();
+      img.onload = async () => {
+        if ('BarcodeDetector' in window) {
+          try {
+            const detector = new BarcodeDetector({ formats: ['qr_code'] });
+            const codes = await detector.detect(img);
+            if (codes && codes.length > 0) {
+              return handleDetectedQr(codes[0].rawValue);
+            }
+          } catch(err) {}
+        }
+        if (window.jsQR) {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height);
+          if (code && code.data) {
+            return handleDetectedQr(code.data);
+          }
+        }
+        banner.innerHTML = '<span style="color: #ef4444;">No QR code found in photo. Please enter PIN manually.</span>';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function processQrVerification(rawQr) {
+    const banner = document.getElementById('qrScanFeedbackBanner');
+    banner.innerHTML = '<span style="color: #38bdf8;">⏳ Verifying passenger boarding...</span>';
+
+    const payload = { qr_data: rawQr };
+
+    // Offline intercept
+    if (!navigator.onLine) {
+      if (window.driverOfflineSync) {
+        await window.driverOfflineSync.queue({
+          url: `/api/trip/${TRIP_ID}/verify-boarding/`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: payload,
+          actionName: `QR Boarding: ${rawQr.substring(0, 16)}`,
+          tripId: TRIP_ID
+        });
+      }
+      banner.innerHTML = `<span style="color: #34d399; font-weight: 800;">✓ Passenger Boarded (Saved Offline ⏳)</span>`;
+      setTimeout(() => {
+        closeQrScannerModal();
+        loadPassengerManifest();
+      }, 1500);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/trip/${TRIP_ID}/verify-boarding/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        playScanBeep();
+        if (navigator.vibrate) navigator.vibrate([80, 50, 120]);
+        banner.innerHTML = `<span style="color: #34d399; font-weight: 800;">✓ ${data.message}</span>`;
+
+        setTimeout(() => {
+          closeQrScannerModal();
+          loadPassengerManifest();
+
+          // If private guest tour was verified, advance to Stage 4!
+          if (data.type === 'guest_pin' || data.is_pin_verified) {
+            showDutyStage(4);
+            document.getElementById('lblProgressPct').innerText = `57% Completed`;
+            document.getElementById('progressFill').style.width = `57%`;
+          }
+        }, 1400);
+      } else {
+        banner.innerHTML = `<span style="color: #ef4444; font-weight: 700;">✕ ${data.message}</span>`;
+        setTimeout(() => {
+          qrScanningActive = true;
+        }, 2000);
+      }
+    } catch (e) {
+      console.warn('[QR Verify] Network dropped, saving locally:', e);
+      if (window.driverOfflineSync) {
+        await window.driverOfflineSync.queue({
+          url: `/api/trip/${TRIP_ID}/verify-boarding/`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: payload,
+          actionName: `QR Boarding: ${rawQr.substring(0, 16)}`,
+          tripId: TRIP_ID
+        });
+      }
+      banner.innerHTML = `<span style="color: #34d399; font-weight: 800;">✓ Saved Offline! Will sync automatically.</span>`;
+      setTimeout(() => {
+        closeQrScannerModal();
+        loadPassengerManifest();
+      }, 1500);
+    }
+  }
+
+  async function loadPassengerManifest() {
+    try {
+      const res = await fetch(`/api/trip/${TRIP_ID}/passengers/`);
+      const data = await res.json();
+      if (data.status === 'success' && data.passengers) {
+        const listEl = document.getElementById('pwaManifestList');
+        const pill = document.getElementById('manifestSummaryPill');
+        if (pill) {
+          pill.innerText = `${data.total_boarded} / ${data.total_passengers} Boarded`;
+        }
+
+        let html = '';
+        data.passengers.forEach(p => {
+          html += `
+            <div class="manifest-commuter-row ${p.is_boarded ? 'boarded' : 'pending'}">
+              <div>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">${p.name}</div>
+                <div style="font-size: 11px; color: var(--text-secondary);">
+                  📍 ${p.pickup_location} &bull; OTP: <span style="font-family: monospace; color: #38bdf8;">${p.boarding_otp || '----'}</span>
+                </div>
+              </div>
+              <div>
+                ${p.is_boarded 
+                  ? `<span class="badge badge-success">✓ Boarded ${p.boarded_at ? '(' + p.boarded_at + ')' : ''}</span>`
+                  : `<button type="button" class="btn btn-secondary" onclick="verifySpecificOtp('${p.boarding_otp}')" style="width: auto; padding: 4px 10px; font-size: 11px; border-color: #a855f7; color: #c084fc;">Board &rarr;</button>`
+                }
+              </div>
+            </div>
+          `;
+        });
+        if (listEl) listEl.innerHTML = html;
+      }
+    } catch(e) {
+      console.warn('Failed to refresh manifest:', e);
+    }
+  }
+
+  // Load jsQR dynamically if BarcodeDetector not natively supported
+  if (!('BarcodeDetector' in window)) {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+    s.async = true;
+    document.head.appendChild(s);
+  }
+</script>
 {% endblock %}

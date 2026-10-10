@@ -148,8 +148,8 @@ class PaymentWebhookEventProxyAdmin(ModelAdmin):
     @admin.display(description='Event ID')
     def event_id_display(self, obj):
         return format_html(
-            '<span style="color: #94a3b8; font-family: monospace; font-size: 11px; '
-            'background: #0f172a; padding: 3px 6px; border-radius: 3px;">{}</span>',
+            '<span class="badge-event-pill inline-flex items-center px-2.5 py-1 rounded-md border font-mono text-xs font-bold shadow-sm" '
+            'style="background:#f5f3ff; color:#6d28d9; border:1px solid #ddd6fe;">{}</span>',
             obj.event_id
         )
 

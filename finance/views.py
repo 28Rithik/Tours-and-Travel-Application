@@ -622,6 +622,22 @@ def corporate_invoice_print_view(request, invoice_id):
 
 
 @login_required
+def corporate_invoice_pdf_view(request, invoice_id):
+    """
+    Renders official downloadable/printable GST Tax Invoice PDF.
+    """
+    from operations.pdf_generator import render_tax_invoice_pdf
+    invoice = get_object_or_404(CorporateGSTInvoice, pk=invoice_id)
+    pdf_bytes = render_tax_invoice_pdf(invoice)
+    filename = f"TaxInvoice-{invoice.invoice_number or invoice.id}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    return response
+
+
+@login_required
 def export_gstr1_b2b_view(request):
     """
     GSTR-1 B2B e-Invoice CSV download.
@@ -1032,4 +1048,266 @@ def driver_mobile_wallet_view(request, trip_id=None):
         'transactions': recent_txns,
         'categories': PettyCashTransaction.EXPENSE_CATEGORIES,
     })
+
+
+# ==============================================================================
+# Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
+# ==============================================================================
+
+@login_required
+def admin_bank_reconciliation_studio_view(request):
+    """
+    Dispatcher & Finance Control Studio for Automated Bank Statement Reconciliation.
+    Uploads bank CSVs, matches UTR numbers & amounts against unpaid bookings/invoices,
+    and 1-click executes double-entry customer receipt postings.
+    """
+    from .models import BankStatementUpload, BankStatementEntry
+    from .bank_reconciliation import parse_bank_statement_csv, auto_match_statement_entries
+
+    upload_id = request.GET.get('upload_id')
+    selected_upload = None
+    if upload_id:
+        selected_upload = BankStatementUpload.objects.filter(pk=upload_id).first()
+    
+    if not selected_upload:
+        selected_upload = BankStatementUpload.objects.order_by('-uploaded_at').first()
+
+    uploads = BankStatementUpload.objects.all().order_by('-uploaded_at')[:15]
+    
+    entries = []
+    if selected_upload:
+        entries = selected_upload.entries.select_related('matched_booking', 'matched_invoice', 'matched_party', 'matched_payment').order_by('-deposit_amount', 'transaction_date')
+
+    # Summary KPIs
+    total_statements_count = BankStatementUpload.objects.count()
+    total_deposits_all = BankStatementUpload.objects.aggregate(s=models.Sum('total_deposits'))['s'] or Decimal('0.00')
+    total_reconciled_all = BankStatementUpload.objects.aggregate(s=models.Sum('reconciled_amount'))['s'] or Decimal('0.00')
+    total_unmatched_entries = BankStatementEntry.objects.filter(status='unmatched', deposit_amount__gt=0).count()
+    total_matched_entries = BankStatementEntry.objects.filter(status='matched').count()
+
+    reconcile_percentage = 0
+    if total_deposits_all > 0:
+        reconcile_percentage = round(float(total_reconciled_all / total_deposits_all) * 100, 1)
+
+    return render(request, 'finance/bank_reconciliation_studio.html', {
+        'uploads': uploads,
+        'selected_upload': selected_upload,
+        'entries': entries,
+        'total_statements_count': total_statements_count,
+        'total_deposits_all': total_deposits_all,
+        'total_reconciled_all': total_reconciled_all,
+        'reconcile_percentage': reconcile_percentage,
+        'total_unmatched_entries': total_unmatched_entries,
+        'total_matched_entries': total_matched_entries,
+    })
+
+
+@login_required
+@csrf_exempt
+def api_bank_reconciliation_upload(request):
+    """
+    POST API to ingest a bank statement CSV file or raw text.
+    Parses transactions, creates records, and runs auto-matching.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import BankStatementUpload, BankStatementEntry
+    from .bank_reconciliation import parse_bank_statement_csv, auto_match_statement_entries
+
+    bank_name = request.POST.get('bank_name', 'generic')
+    account_number = request.POST.get('account_number', '')
+    csv_file = request.FILES.get('statement_file')
+    csv_text = request.POST.get('csv_text', '')
+
+    filename = 'pasted_statement.csv'
+    if csv_file:
+        filename = csv_file.name
+        content = csv_file.read()
+    elif csv_text:
+        content = csv_text
+    else:
+        return JsonResponse({'status': 'error', 'message': 'No CSV file or text provided'}, status=400)
+
+    parsed_rows = parse_bank_statement_csv(content, bank_name=bank_name)
+    if not parsed_rows:
+        return JsonResponse({'status': 'error', 'message': 'Unable to parse any valid transactions from the provided CSV'}, status=400)
+
+    upload = BankStatementUpload.objects.create(
+        bank_name=bank_name,
+        filename=filename,
+        account_number=account_number,
+        uploaded_by=request.user,
+        total_transactions=len(parsed_rows),
+    )
+
+    created_entries = []
+    for row in parsed_rows:
+        entry = BankStatementEntry(
+            upload=upload,
+            transaction_date=row['transaction_date'],
+            value_date=row.get('value_date') or row['transaction_date'],
+            narration=row.get('narration', ''),
+            reference_or_utr=row.get('reference_or_utr', ''),
+            withdrawal_amount=row.get('withdrawal_amount', Decimal('0.00')),
+            deposit_amount=row.get('deposit_amount', Decimal('0.00')),
+            balance=row.get('balance', Decimal('0.00')),
+        )
+        created_entries.append(entry)
+
+    BankStatementEntry.objects.bulk_create(created_entries)
+
+    # Run auto-matching algorithm
+    matched_count = auto_match_statement_entries(upload.entries.all())
+    upload.update_summary_metrics()
+
+    return JsonResponse({
+        'status': 'success',
+        'upload_id': upload.pk,
+        'total_parsed': len(parsed_rows),
+        'matched_count': matched_count,
+        'message': f"Successfully parsed {len(parsed_rows)} transactions. {matched_count} auto-matched with ERP bookings/invoices."
+    })
+
+
+@login_required
+@csrf_exempt
+def api_bank_reconciliation_reconcile_entry(request, entry_id):
+    """
+    POST API to reconcile a single bank statement entry.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import BankStatementEntry
+    from .bank_reconciliation import execute_bank_reconciliation
+
+    entry = get_object_or_404(BankStatementEntry.objects.select_related('upload', 'matched_booking', 'matched_invoice', 'matched_party'), pk=entry_id)
+
+    # Optional manual override from request body
+    import json
+    if request.body:
+        try:
+            data = json.loads(request.body)
+            booking_id = data.get('booking_id')
+            if booking_id:
+                from operations.models import Booking
+                bk = Booking.objects.filter(pk=booking_id).first()
+                if bk:
+                    entry.matched_booking = bk
+                    entry.matched_party = bk.party
+                    entry.match_confidence = 100
+                    entry.match_reason = "Manually assigned by dispatcher"
+                    entry.save()
+        except Exception:
+            pass
+
+    payment = execute_bank_reconciliation(entry, user=request.user)
+
+    return JsonResponse({
+        'status': 'success',
+        'entry_id': entry.pk,
+        'payment_id': payment.pk,
+        'payment_ref': payment.reference_number,
+        'amount': float(payment.amount),
+        'status_display': entry.get_status_display(),
+        'message': f"Reconciled ₹{payment.amount:,.2f} as Payment #{payment.pk} ({payment.reference_number})."
+    })
+
+
+@login_required
+@csrf_exempt
+def api_bank_reconciliation_batch(request):
+    """
+    POST API to batch reconcile all confident matched entries in a statement upload.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    import json
+    data = json.loads(request.body or '{}')
+    upload_id = data.get('upload_id')
+    min_confidence = int(data.get('min_confidence', 75))
+
+    from .models import BankStatementUpload, BankStatementEntry
+    from .bank_reconciliation import execute_bank_reconciliation
+
+    upload = get_object_or_404(BankStatementUpload, pk=upload_id)
+    target_entries = upload.entries.filter(
+        status='matched',
+        match_confidence__gte=min_confidence,
+        deposit_amount__gt=0
+    )
+
+    reconciled_count = 0
+    reconciled_total = Decimal('0.00')
+
+    for entry in target_entries:
+        try:
+            p = execute_bank_reconciliation(entry, user=request.user)
+            reconciled_count += 1
+            reconciled_total += p.amount
+        except Exception:
+            continue
+
+    upload.update_summary_metrics()
+
+    return JsonResponse({
+        'status': 'success',
+        'reconciled_count': reconciled_count,
+        'reconciled_total': float(reconciled_total),
+        'message': f"Batch reconciled {reconciled_count} entries totaling ₹{reconciled_total:,.2f}."
+    })
+
+
+@login_required
+def export_bank_reconciliation_report_view(request, upload_id=None):
+    """
+    Exports CSV reconciliation audit report for accountants / auditors.
+    """
+    import csv
+    from django.http import HttpResponse
+    from .models import BankStatementUpload, BankStatementEntry
+
+    upload = None
+    if upload_id:
+        upload = get_object_or_404(BankStatementUpload, pk=upload_id)
+        entries = upload.entries.all().order_by('-transaction_date')
+        filename = f"Bank_Reconciliation_Statement_{upload.pk}_{timezone.now().strftime('%Y%m%d')}.csv"
+    else:
+        entries = BankStatementEntry.objects.all().order_by('-transaction_date')[:500]
+        filename = f"All_Bank_Reconciliations_{timezone.now().strftime('%Y%m%d')}.csv"
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        'Entry ID', 'Txn Date', 'Bank Name', 'Narration', 'UTR / Ref No',
+        'Debit (₹)', 'Credit (₹)', 'Balance (₹)', 'Matched Booking',
+        'Matched Customer', 'Confidence (%)', 'Match Reason', 'Status',
+        'Reconciled Payment ID', 'Reconciled Date'
+    ])
+
+    for e in entries:
+        writer.writerow([
+            e.pk,
+            e.transaction_date.strftime('%Y-%m-%d') if e.transaction_date else '',
+            e.upload.get_bank_name_display() if e.upload else '',
+            e.narration,
+            e.reference_or_utr,
+            f"{e.withdrawal_amount:.2f}",
+            f"{e.deposit_amount:.2f}",
+            f"{e.balance:.2f}",
+            e.matched_booking.booking_number if e.matched_booking else '',
+            e.matched_party.name if e.matched_party else (e.matched_booking.guest_name if e.matched_booking else ''),
+            f"{e.match_confidence}%",
+            e.match_reason,
+            e.get_status_display(),
+            e.matched_payment.reference_number if e.matched_payment else '',
+            e.reconciled_at.strftime('%Y-%m-%d %H:%M') if e.reconciled_at else ''
+        ])
+
+    return response
+
 

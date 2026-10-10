@@ -809,6 +809,8 @@ def dispatch_passenger_alert_whatsapp(trip, base_url="http://127.0.0.1:8000"):
             driver=trip.driver if trip else None,
             message_id=result.get('messages', [{}])[0].get('id', f"out_{timezone.now().timestamp()}") if isinstance(result, dict) else ""
         )
+        trip.whatsapp_broadcast_count = (trip.whatsapp_broadcast_count or 0) + 1
+        trip.save(update_fields=['whatsapp_broadcast_count'])
     except Exception as e:
         logger.warning(f"Error logging passenger alert WhatsApp dispatch: {e}")
 

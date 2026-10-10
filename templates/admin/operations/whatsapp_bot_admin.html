@@ -370,6 +370,162 @@
     border-radius: 12px;
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES FOR WHATSAPP BOT STUDIO
+   ══════════════════════════════════════════════════════════════════════════ */
+html:not(.dark) .studio-wrapper {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .studio-wrapper h1 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .studio-wrapper p {
+    color: #64748b !important;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .kpi-label {
+    color: #64748b !important;
+}
+
+html:not(.dark) .kpi-value {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .desk-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .desk-title {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .studio-table th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .studio-table td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+html:not(.dark) .studio-table tr:hover td {
+    background: #f8fafc !important;
+}
+
+html:not(.dark) .studio-table td strong {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .studio-table td span[style*="color: #fff"],
+html:not(.dark) .studio-table td span[style*="color:#fff"] {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .studio-table td span[style*="color: #fbbf24"],
+html:not(.dark) .studio-table td span[style*="color:#fbbf24"] {
+    color: #d97706 !important;
+}
+
+html:not(.dark) .studio-table td span[style*="color: #cbd5e1"],
+html:not(.dark) .studio-table td span[style*="color:#cbd5e1"] {
+    color: #64748b !important;
+}
+
+html:not(.dark) a.btn-action-small[style*="color: #fff"],
+html:not(.dark) a.btn-action-small[style*="color:#fff"] {
+    background: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html:not(.dark) .phone-mock {
+    background: #ffffff !important;
+    border: 4px solid #cbd5e1 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .phone-notch {
+    background: #e2e8f0 !important;
+}
+
+html:not(.dark) .phone-header {
+    background: #f0fdf4 !important;
+    border-bottom: 1px solid #dcfce7 !important;
+}
+
+html:not(.dark) .phone-brand-title {
+    color: #14532d !important;
+}
+
+html:not(.dark) .chat-viewport {
+    background-color: #efeae2 !important;
+}
+
+html:not(.dark) .chat-msg.inbound {
+    background: #ffffff !important;
+    color: #111b21 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08) !important;
+}
+
+html:not(.dark) .chat-msg.outbound {
+    background: #d9fdd3 !important;
+    color: #111b21 !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08) !important;
+}
+
+html:not(.dark) .chat-time {
+    color: #667781 !important;
+}
+
+html:not(.dark) .chip-row {
+    background: #f0f2f5 !important;
+    border-top: 1px solid #e9edef !important;
+}
+
+html:not(.dark) .test-chip {
+    background: #ffffff !important;
+    color: #54656f !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .test-chip:hover {
+    background: #25d366 !important;
+    color: #ffffff !important;
+}
+
+html:not(.dark) .phone-input-bar {
+    background: #f0f2f5 !important;
+}
+
+html:not(.dark) #simPhone {
+    background: #ffffff !important;
+    color: #111b21 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html:not(.dark) .sim-input {
+    background: #ffffff !important;
+    color: #111b21 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+html:not(.dark) .sim-input::placeholder {
+    color: #8696a0 !important;
+}
 </style>
 
 <div class="studio-wrapper">
@@ -377,7 +533,7 @@
     <!-- Header Section -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="font-size: 1.75rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px;">
+            <h1 class="studio-h1" style="font-size: 1.75rem; font-weight: 800; display: flex; align-items: center; gap: 10px;">
                 <span style="color: var(--wa-green);">📲</span> WhatsApp Business Bot & Driver Handover Studio
             </h1>
             <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
@@ -389,7 +545,7 @@
                 <span style="width: 8px; height: 8px; border-radius: 50%; background: #25d366; box-shadow: 0 0 8px #25d366;"></span>
                 Meta Cloud API v17.0 Active
             </span>
-            <a href="{% url 'admin:operations_whatsappbotmessage_changelist' %}" class="btn-action-small" style="background: rgba(255,255,255,0.08); color: #fff;">
+            <a href="{% url 'admin:operations_whatsappbotmessage_changelist' %}" class="btn-action-small btn-raw-logs">
                 📜 Raw Message Logs
             </a>
         </div>
@@ -533,12 +689,13 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fff;">{{ s.odometer_reading }} KM</span><br>
+                                    <span class="odo-text" style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">{{ s.odometer_reading }} KM</span><br>
                                     <span style="font-size: 10px; color: #94a3b8;">Fuel: {{ s.fuel_level_percent }}%</span>
                                 </td>
                                 <td>
                                     {% if s.odometer_photo %}
-                                        <img src="{{ s.odometer_photo.url }}" class="img-thumb" onclick="openPhotoModal('{{ s.odometer_photo.url }}')" title="Click to enlarge odometer photo">
+                                        <img src="{{ s.odometer_photo.url }}" class="img-thumb" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='inline-block';" onclick="openPhotoModal('{{ s.odometer_photo.url }}')" title="Click to enlarge odometer photo">
+                                        <span class="badge-tag" style="display:none; background:rgba(56,189,248,0.15); color:#0284c7; border:1px solid #7dd3fc; font-size:10px;">📷 Photo</span>
                                     {% else %}
                                         <span style="color: #64748b; font-size: 11px;">No Photo</span>
                                     {% endif %}
@@ -602,7 +759,7 @@
                                 </td>
                                 <td>
                                     <span>{{ t.start_date }} @ {{ t.start_time|default:"10:00" }}</span><br>
-                                    <span style="font-size: 11px; color: #cbd5e1;">{{ t.pickup_location|truncatechars:20 }} ➔ {{ t.destination|truncatechars:20 }}</span>
+                                    <span class="trip-route-desc" style="font-size: 11px;">{{ t.pickup_location|truncatechars:20 }} ➔ {{ t.destination|truncatechars:20 }}</span>
                                 </td>
                                 <td>
                                     <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fbbf24;">{{ t.vehicle.registration_number|default:"Pending" }}</span>
@@ -620,7 +777,7 @@
                                         <a href="/customer/trip/{{ t.id }}/invoice/" target="_blank" class="btn-action-small" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);" title="View Customer GST Invoice">
                                             🧾 Invoice
                                         </a>
-                                        <a href="/trip/{{ t.id }}/handover/" target="_blank" class="btn-action-small" style="background: rgba(255,255,255,0.08); color: #fff;" title="Open Driver Mobile Portal">
+                                        <a href="/trip/{{ t.id }}/handover/" target="_blank" class="btn-action-small btn-portal" title="Open Driver Mobile Portal">
                                             📱 Portal
                                         </a>
                                     </div>

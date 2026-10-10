@@ -20,6 +20,8 @@ from .models import (
     EWayBill,
     PettyCashAccount,
     PettyCashTransaction,
+    BankStatementUpload,
+    BankStatementEntry,
 )
 
 
@@ -157,7 +159,7 @@ class TripExpenseAdmin(ModelAdmin):
     @admin.display(description='Amount', ordering='amount')
     def amount_display(self, obj):
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<strong class="text-slate-900 dark:text-white" style="font-size: 13px; font-weight: 700;">{}</strong>',
             f'₹{obj.amount:,.2f}',
         )
 
@@ -224,7 +226,7 @@ class DriverAdvanceAdmin(ModelAdmin):
     @admin.display(description='Total Advance', ordering='amount')
     def amount_display(self, obj):
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<strong class="text-slate-900 dark:text-white" style="font-size: 13px; font-weight: 700;">{}</strong>',
             f'₹{obj.amount:,.2f}',
         )
 
@@ -425,7 +427,7 @@ class SupplierTripCostAdmin(ModelAdmin):
     @admin.display(description='Amount', ordering='amount')
     def amount_display(self, obj):
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<strong class="text-slate-900 dark:text-white" style="font-size: 13px; font-weight: 700;">{}</strong>',
             f'₹{obj.amount:,.2f}',
         )
 
@@ -679,7 +681,8 @@ class CorporateGSTInvoiceAdmin(ModelAdmin):
     def quick_actions(self, obj):
         return format_html(
             '<div class="flex items-center gap-1.5">'
-            '<a href="/finance/invoice/{}/view/" target="_blank" class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">📄 Tax Invoice</a>'
+            '<a href="/finance/invoice/{}/view/" target="_blank" class="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">HTML</a>'
+            '<a href="/finance/invoice/{}/pdf/" target="_blank" class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">📄 PDF</a>'
             '<a href="/api/finance/invoice/{}/eway-json/" download="EWB_{}.json" class="px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20">📥 NIC JSON</a>'
             '<button type="button" onclick="sendInvoiceWhatsApp({}, this)" class="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1" title="Dispatch GST Invoice PDF & Payment Link via WhatsApp">💬 Send WA</button>'
             '</div>'
@@ -695,7 +698,7 @@ class CorporateGSTInvoiceAdmin(ModelAdmin):
             '}};'
             '}}'
             '</script>',
-            obj.pk, obj.pk, obj.invoice_number.replace('/', '_'), obj.pk
+            obj.pk, obj.pk, obj.pk, obj.invoice_number.replace('/', '_'), obj.pk
         )
 
     @admin.display(description='Digital QR Code Stamp')
@@ -858,6 +861,127 @@ class PettyCashTransactionAdmin(ModelAdmin):
         if obj.trip:
             return format_html('<a href="/admin/operations/trip/{}/change/" style="color: #38bdf8; font-weight: 600;">#{}</a>', obj.trip.pk, obj.trip.trip_id)
         return mark_safe('<span style="color: #94a3b8;">-</span>')
+
+
+# ==============================================================================
+# Phase 5: Automated Bank Statement CSV Reconciler Admin Registration
+# ==============================================================================
+
+class BankStatementEntryInline(TabularInline):
+    model = BankStatementEntry
+    extra = 0
+    fields = ('transaction_date', 'reference_or_utr', 'deposit_amount', 'matched_booking', 'match_confidence', 'status')
+    readonly_fields = ('transaction_date', 'reference_or_utr', 'deposit_amount')
+    ordering = ['-deposit_amount']
+
+
+@admin.register(BankStatementUpload)
+class BankStatementUploadAdmin(ModelAdmin):
+    list_display = (
+        'id',
+        'bank_badge',
+        'filename',
+        'uploaded_at_display',
+        'progress_badge',
+        'deposits_display',
+        'reconciled_display',
+        'studio_link',
+    )
+    list_filter = ('bank_name', 'status')
+    search_fields = ('filename', 'account_number')
+    inlines = [BankStatementEntryInline]
+
+    @admin.display(description='Bank')
+    def bank_badge(self, obj):
+        return format_html('<span style="font-weight: 700; background: rgba(99,102,241,0.15); color: #818cf8; padding: 2px 8px; border-radius: 4px;">🏦 {}</span>', obj.get_bank_name_display())
+
+    @admin.display(description='Uploaded Date')
+    def uploaded_at_display(self, obj):
+        return obj.uploaded_at.strftime('%d-%b-%Y %H:%M')
+
+    @admin.display(description='Reconciliation Progress')
+    def progress_badge(self, obj):
+        total = obj.total_transactions or 0
+        rec = obj.reconciled_count or 0
+        pct = int((rec / total) * 100) if total > 0 else 0
+        color = "#10b981" if pct == 100 else ("#38bdf8" if pct > 0 else "#94a3b8")
+        return format_html('<span style="color: {}; font-weight: 800;">{}/{} ({}%)</span>', color, rec, total, pct)
+
+    @admin.display(description='Total Inflows')
+    def deposits_display(self, obj):
+        return format_html('<span style="font-weight: 700; color: #10b981;">₹{}</span>', f"{(obj.total_deposits or 0):,.2f}")
+
+    @admin.display(description='Reconciled')
+    def reconciled_display(self, obj):
+        return format_html('<span style="font-weight: 700; color: #38bdf8;">₹{}</span>', f"{(obj.reconciled_amount or 0):,.2f}")
+
+    @admin.display(description='Reconciliation Studio')
+    def studio_link(self, obj):
+        url = f"/finance/bank-reconciliation/?upload_id={obj.pk}"
+        return format_html('<a href="{}" target="_blank" style="background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; text-decoration: none;">⚡ Open Studio</a>', url)
+
+
+@admin.register(BankStatementEntry)
+class BankStatementEntryAdmin(ModelAdmin):
+    list_display = (
+        'transaction_date',
+        'bank_display',
+        'reference_or_utr',
+        'deposit_display',
+        'matched_booking_link',
+        'confidence_badge',
+        'status_badge',
+        'reconcile_action',
+    )
+    list_filter = ('status', 'upload__bank_name')
+    search_fields = ('reference_or_utr', 'narration', 'matched_booking__booking_number')
+
+    @admin.display(description='Bank')
+    def bank_display(self, obj):
+        return obj.upload.get_bank_name_display() if obj.upload else '-'
+
+    @admin.display(description='Credit (+₹)')
+    def deposit_display(self, obj):
+        if obj.deposit_amount > 0:
+            return format_html('<span style="color: #10b981; font-weight: 800;">+₹{}</span>', f"{obj.deposit_amount:,.2f}")
+        return format_html('<span style="color: #ef4444; font-weight: 700;">-₹{}</span>', f"{obj.withdrawal_amount:,.2f}")
+
+    @admin.display(description='Matched Booking')
+    def matched_booking_link(self, obj):
+        if obj.matched_booking:
+            return format_html('<a href="/admin/operations/booking/{}/change/" style="font-weight: 700; color: #38bdf8;">{} ({})</a>', obj.matched_booking.pk, obj.matched_booking.booking_number, obj.matched_booking.guest_name)
+        return mark_safe('<span style="color: #94a3b8;">Unassigned</span>')
+
+    @admin.display(description='Confidence')
+    def confidence_badge(self, obj):
+        conf = obj.match_confidence
+        if conf >= 90:
+            color = "#10b981"
+        elif conf >= 70:
+            color = "#38bdf8"
+        elif conf > 0:
+            color = "#f59e0b"
+        else:
+            color = "#64748b"
+        return format_html('<span style="color: {}; font-weight: 800; font-size: 12px;">{}%</span>', color, conf)
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'reconciled': ('#047857', '#d1fae5', '✅ Reconciled'),
+            'matched': ('#0284c7', '#e0f2fe', '🎯 Matched'),
+            'unmatched': ('#64748b', '#f1f5f9', '⏳ Unmatched'),
+            'ignored': ('#9ca3af', '#f3f4f6', 'Ignored'),
+        }
+        fg, bg, label = colors.get(obj.status, ('#64748b', '#f1f5f9', obj.status))
+        return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">{}</span>', bg, fg, label)
+
+    @admin.display(description='Action')
+    def reconcile_action(self, obj):
+        if obj.status == 'reconciled':
+            return mark_safe('<span style="color: #10b981; font-weight: 700; font-size: 11px;">✓ Posted</span>')
+        return format_html('<a href="/finance/bank-reconciliation/?upload_id={}" target="_blank" style="color: #6366f1; font-weight: 700; font-size: 11px;">Match & Reconcile &rarr;</a>', obj.upload_id)
+
 
 
 

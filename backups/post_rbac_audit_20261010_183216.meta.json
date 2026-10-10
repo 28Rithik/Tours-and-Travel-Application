@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-10-10T18:32:17.385979",
+  "filename": "post_rbac_audit_20261010_183216.sqlite3",
+  "file_size_bytes": 58572800,
+  "file_size_mb": 55.86,
+  "sha256_checksum": "62665450c5a559d30243c842cda35ab62db8fa21856f39bfa2f51466f8beb5ec",
+  "database_engine": "django.db.backends.sqlite3",
+  "entity_counts": {
+    "parties": 221,
+    "vehicles": 151,
+    "drivers": 140,
+    "bookings": 1115,
+    "trips": 1223,
+    "payments": 1313,
+    "trip_expenses": 4045
+  },
+  "status": "VERIFIED_OK"
+}

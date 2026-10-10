@@ -7,7 +7,7 @@ import datetime
 
 from .models import (
     ServiceRecord, SparePart, PartInventory,
-    VehicleAsset, AssetRotationLog, DefectTicket, ServiceReminder,
+    VehicleAsset, AssetRotationLog, TireInspectionLog, DefectTicket, ServiceReminder,
     PreTripInspectionChecklist,
     VehicleDamageInspection, VehicleDamageMarker,
 )
@@ -247,21 +247,31 @@ class AssetRotationLogInline(TabularInline):
     extra = 1
 
 
+class TireInspectionLogInline(TabularInline):
+    model = TireInspectionLog
+    extra = 0
+    readonly_fields = ('created_at',)
+    fields = ('inspection_date', 'odometer', 'tread_depth_mm', 'psi_pressure', 'inspector_name', 'action_taken', 'has_irregular_wear')
+
+
 @admin.register(VehicleAsset)
 class VehicleAssetAdmin(ModelAdmin):
     list_display = (
-        'asset_type_badge', 'serial_number', 'vehicle_link', 'position_display',
-        'lifecycle_display', 'warranty_status', 'status_badge', 'replacement_alert',
+        'asset_type_badge', 'serial_number', 'brand_model_display', 'vehicle_link', 'position_display',
+        'tread_gauge_display', 'retread_badge', 'lifecycle_display', 'status_badge', 'replacement_alert',
     )
     list_filter = ('asset_type', 'status', AssetReplacementFilter, 'position')
-    search_fields = ('serial_number', 'vehicle__registration_number', 'vendor_name')
+    search_fields = ('serial_number', 'vehicle__registration_number', 'brand', 'vendor_name')
     autocomplete_fields = ['vehicle']
-    inlines = [AssetRotationLogInline]
+    inlines = [AssetRotationLogInline, TireInspectionLogInline]
     list_per_page = 30
 
     fieldsets = (
         ('Asset Identity', {
-            'fields': ('asset_type', 'serial_number', 'vehicle', 'position', 'status')
+            'fields': ('asset_type', 'serial_number', 'brand', 'model_or_size', 'dot_code', 'vehicle', 'position', 'status')
+        }),
+        ('Tire Tread & Inflation', {
+            'fields': ('original_tread_depth_mm', 'current_tread_depth_mm', 'psi_pressure', 'retread_count', 'max_retread_cycles', 'last_inspected_date', 'last_inspected_odometer'),
         }),
         ('Purchase & Warranty Info', {
             'fields': ('purchase_price', 'vendor_name', 'warranty_expiry_date', 'warranty_expiry_km'),
@@ -292,14 +302,14 @@ class VehicleAssetAdmin(ModelAdmin):
         from django.urls import reverse
         url = reverse('admin:core_vehicle_change', args=[obj.vehicle.pk])
         return format_html(
-            '<a href="{}" style="color:#38bdf8; font-weight:700;">{}</a>',
+            '<a href="{}" class="font-bold text-primary-600 dark:text-primary-400 hover:underline">{}</a>',
             url, obj.vehicle.registration_number
         )
 
     @admin.display(description="Position", ordering='position')
     def position_display(self, obj):
         if not obj.position:
-            return mark_safe('<span style="color:#64748b;">—</span>')
+            return mark_safe('<span class="text-slate-400 dark:text-slate-500">—</span>')
         icons = {
             'front_left': '⬅️ FL', 'front_right': '➡️ FR',
             'rear_left_outer': '⬅️ RLO', 'rear_left_inner': '⬅️ RLI',
@@ -308,8 +318,9 @@ class VehicleAssetAdmin(ModelAdmin):
         }
         label = icons.get(obj.position, obj.get_position_display())
         return format_html(
-            '<span style="background:#334155; color:#e2e8f0; padding:2px 8px; border-radius:8px; '
-            'font-size:11px; font-weight:600; border:1px solid #475569;">{}</span>',
+            '<span class="badge-position-pill inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono shadow-sm" '
+            'style="background:#f0f9ff; color:#0369a1; border:1px solid #7dd3fc;">'
+            '{}</span>',
             label
         )
 
@@ -329,11 +340,11 @@ class VehicleAssetAdmin(ModelAdmin):
         info_text = f"{run:,} / {life:,} km ({pct}%)"
         return format_html(
             '<div style="min-width:120px;">'
-            '<div style="background:#1e293b; border-radius:6px; height:8px; width:100%; '
-            'border:1px solid #475569; overflow:hidden; margin-bottom:3px;">'
+            '<div style="background:#e2e8f0; border-radius:6px; height:8px; width:100%; '
+            'border:1px solid #cbd5e1; overflow:hidden; margin-bottom:3px;">'
             '<div style="background:{}; height:100%; width:{}%; border-radius:6px;"></div>'
             '</div>'
-            '<span style="color:#94a3b8; font-size:10px;">{}</span>'
+            '<span style="color:#475569; font-size:11px; font-weight:600;">{}</span>'
             '</div>',
             bar_color, pct, info_text
         )
@@ -408,6 +419,87 @@ class VehicleAssetAdmin(ModelAdmin):
             '<span style="color:#4ade80;">🟢 Healthy</span>'
         )
 
+    @admin.display(description="Brand / Size")
+    def brand_model_display(self, obj):
+        parts = []
+        if obj.brand:
+            parts.append(f"<b>{obj.brand}</b>")
+        if obj.model_or_size:
+            parts.append(f"<span style='color:#64748b; font-size:11px;'>{obj.model_or_size}</span>")
+        return format_html(" ".join(parts)) if parts else "—"
+
+    @admin.display(description="Tread (mm)", ordering='current_tread_depth_mm')
+    def tread_gauge_display(self, obj):
+        if obj.asset_type != 'tyre':
+            return "—"
+        td = float(obj.current_tread_depth_mm or 0)
+        color = "#10b981" if td > 6.0 else ("#f59e0b" if td > 2.5 else "#ef4444")
+        return format_html(
+            '<span style="background:{}; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px;">{} mm</span>',
+            color, f"{td:.1f}"
+        )
+
+    @admin.display(description="Retread")
+    def retread_badge(self, obj):
+        if obj.asset_type != 'tyre':
+            return "—"
+        rc = obj.retread_count or 0
+        if rc == 0:
+            return format_html('<span style="color:#059669; font-weight:700; font-size:11px;">Virgin Casing</span>')
+        return format_html('<span style="background:#e0e7ff; color:#4338ca; padding:2px 7px; border-radius:6px; font-weight:700; font-size:11px;">Retread #{}</span>', rc)
+
+
+@admin.register(TireInspectionLog)
+class TireInspectionLogAdmin(ModelAdmin):
+    list_display = (
+        'log_id_display', 'asset_link', 'vehicle_reg', 'inspection_date',
+        'odometer_display', 'tread_depth_badge', 'psi_display', 'inspector_name', 'action_badge'
+    )
+    list_filter = ('action_taken', 'has_irregular_wear', 'inspection_date')
+    search_fields = ('asset__serial_number', 'asset__vehicle__registration_number', 'inspector_name')
+    readonly_fields = ('created_at',)
+    list_per_page = 30
+
+    @admin.display(description="Log #")
+    def log_id_display(self, obj):
+        return format_html('<b>#{}</b>', obj.pk)
+
+    @admin.display(description="Tyre Serial")
+    def asset_link(self, obj):
+        from django.urls import reverse
+        url = reverse('admin:maintenance_vehicleasset_change', args=[obj.asset.pk])
+        return format_html('<a href="{}" class="font-bold text-primary-600 hover:underline">🛞 {}</a>', url, obj.asset.serial_number)
+
+    @admin.display(description="Vehicle")
+    def vehicle_reg(self, obj):
+        return obj.asset.vehicle.registration_number if obj.asset.vehicle else "—"
+
+    @admin.display(description="Odometer")
+    def odometer_display(self, obj):
+        return f"{obj.odometer:,} km"
+
+    @admin.display(description="Tread Depth")
+    def tread_depth_badge(self, obj):
+        td = float(obj.tread_depth_mm)
+        color = "#10b981" if td > 6.0 else ("#f59e0b" if td > 2.5 else "#ef4444")
+        return format_html('<span style="background:{}; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px;">{} mm</span>', color, f"{td:.1f}")
+
+    @admin.display(description="Pressure")
+    def psi_display(self, obj):
+        return f"{obj.psi_pressure} PSI" if obj.psi_pressure else "—"
+
+    @admin.display(description="Action Taken")
+    def action_badge(self, obj):
+        colors = {
+            'none': '#64748b',
+            'pressure_adjusted': '#0284c7',
+            'rotated': '#8b5cf6',
+            'sent_retread': '#f59e0b',
+            'scrapped': '#ef4444',
+        }
+        bg = colors.get(obj.action_taken, '#64748b')
+        return format_html('<span style="background:{}; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:11px;">{}</span>', bg, obj.get_action_taken_display())
+
 
 # ==========================================================================
 #  4. DefectTicket Admin
@@ -430,8 +522,8 @@ class DefectTicketAdmin(ModelAdmin):
     def ticket_id_display(self, obj):
         tid = f"#DT-{obj.pk:04d}" if obj.pk else "#DT-NEW"
         return format_html(
-            '<span style="background:#334155; color:#e2e8f0; padding:2px 8px; border-radius:6px; '
-            'font-family:monospace; font-size:12px; font-weight:700; border:1px solid #475569;">'
+            '<span class="badge-ticket-pill inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold font-mono shadow-sm" '
+            'style="background:#f0f9ff; color:#0369a1; border:1px solid #7dd3fc;">'
             '{}</span>',
             tid
         )
@@ -441,7 +533,7 @@ class DefectTicketAdmin(ModelAdmin):
         from django.urls import reverse
         url = reverse('admin:core_vehicle_change', args=[obj.vehicle.pk])
         return format_html(
-            '<a href="{}" style="color:#38bdf8; font-weight:700;">{}</a>',
+            '<a href="{}" class="font-bold text-primary-600 dark:text-primary-400 hover:underline">{}</a>',
             url, obj.vehicle.registration_number
         )
 
@@ -791,13 +883,13 @@ class VehicleDamageMarkerInline(TabularInline):
 @admin.register(VehicleDamageInspection)
 class VehicleDamageInspectionAdmin(ModelAdmin):
     list_display = (
-        'inspection_number',
+        'inspection_number_display',
         'vehicle_badge',
         'inspection_type_badge',
         'customer_name',
         'markers_summary',
-        'security_deposit_held',
-        'new_damage_deductions',
+        'deposit_display',
+        'deductions_display',
         'deposit_status_badge',
         'created_at',
         'studio_link',
@@ -807,20 +899,41 @@ class VehicleDamageInspectionAdmin(ModelAdmin):
     inlines = [VehicleDamageMarkerInline]
     date_hierarchy = 'created_at'
 
+    @admin.display(description="Inspection #", ordering='inspection_number')
+    def inspection_number_display(self, obj):
+        return format_html(
+            '<span class="badge-insp-num inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold shadow-sm" '
+            'style="background:#f0f9ff; color:#0369a1; border:1px solid #bae6fd;">'
+            '{}</span>',
+            obj.inspection_number
+        )
+
     @admin.display(description="Vehicle", ordering='vehicle__registration_number')
     def vehicle_badge(self, obj):
         return format_html(
-            '<span style="font-weight:700; color:#38bdf8;">🚗 {}</span>',
+            '<span class="font-bold text-slate-900 dark:text-sky-300 flex items-center gap-1.5">🚗 {}</span>',
             obj.vehicle.registration_number
         )
 
     @admin.display(description="Type", ordering='inspection_type')
     def inspection_type_badge(self, obj):
         if obj.inspection_type == 'checkout':
-            return mark_safe('<span style="background:#0284c7; color:#fff; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700;">🛫 CHECK-OUT</span>')
+            return mark_safe(
+                '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shadow-sm" '
+                'style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; white-space:nowrap;">'
+                '🛫 Check-Out</span>'
+            )
         elif obj.inspection_type == 'checkin':
-            return mark_safe('<span style="background:#10b981; color:#fff; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700;">🛬 RETURN CHECK-IN</span>')
-        return mark_safe('<span style="background:#6366f1; color:#fff; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:700;">🔍 ROUTINE</span>')
+            return mark_safe(
+                '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shadow-sm" '
+                'style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; white-space:nowrap;">'
+                '🛬 Return Check-In</span>'
+            )
+        return mark_safe(
+            '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shadow-sm" '
+            'style="background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; white-space:nowrap;">'
+            '🔍 Routine</span>'
+        )
 
     @admin.display(description="Damage Markers")
     def markers_summary(self, obj):
@@ -835,20 +948,46 @@ class VehicleDamageInspectionAdmin(ModelAdmin):
             )
         return format_html('<span class="text-slate-600 dark:text-slate-300 font-medium">{} pre-existing</span>', total)
 
+    @admin.display(description="Deposit Held", ordering='security_deposit_held')
+    def deposit_display(self, obj):
+        val = obj.security_deposit_held or 0
+        val_str = f"₹{val:,.2f}"
+        return format_html(
+            '<span class="font-mono text-xs font-bold px-2 py-0.5 rounded shadow-sm" '
+            'style="background:#fffbeb; color:#b45309; border:1px solid #fde68a;">{}</span>',
+            val_str
+        )
+
+    @admin.display(description="New Deductions", ordering='new_damage_deductions')
+    def deductions_display(self, obj):
+        val = obj.new_damage_deductions or 0
+        val_str = f"₹{val:,.2f}"
+        if val > 0:
+            return format_html(
+                '<span class="font-mono text-xs font-bold px-2 py-0.5 rounded shadow-sm" '
+                'style="background:#fff1f2; color:#be123c; border:1px solid #fecdd3;">{}</span>',
+                val_str
+            )
+        return format_html(
+            '<span class="font-mono text-xs font-semibold px-2 py-0.5 rounded" '
+            'style="background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;">{}</span>',
+            val_str
+        )
+
     @admin.display(description="Deposit Status", ordering='deposit_status')
     def deposit_status_badge(self, obj):
         if obj.deposit_status == 'held':
-            return mark_safe('<span style="background:#f59e0b; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">HELD</span>')
+            return mark_safe('<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">HELD</span>')
         elif obj.deposit_status == 'settled_refund':
-            return mark_safe('<span style="background:#10b981; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">REFUNDED</span>')
+            return mark_safe('<span style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">REFUNDED</span>')
         elif obj.deposit_status == 'settled_deduction':
-            return mark_safe('<span style="background:#ef4444; color:#fff; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">DEDUCTED</span>')
+            return mark_safe('<span style="background:#fff1f2; color:#9f1239; border:1px solid #fecdd3; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">DEDUCTED</span>')
         return mark_safe('<span style="color:#94a3b8;">None</span>')
 
     @admin.display(description="Interactive Studio")
     def studio_link(self, obj):
         return format_html(
-            '<a href="/maintenance/damage-marker/?inspection_id={}" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; text-decoration:none;">🎨 2D Studio</a>',
+            '<a href="/maintenance/damage-marker/?inspection_id={}" style="display:inline-flex; align-items:center; gap:5px; background:linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color:#ffffff; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; text-decoration:none; box-shadow:0 1px 3px rgba(79,70,229,0.3); transition:all 0.15s ease;">🎨 2D Studio &rarr;</a>',
             obj.pk
         )
 

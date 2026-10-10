@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}2D Axle & Tire Health Studio | TravelERP{% endblock %}
+
+{% block content %}
+<div class="content-header" style="margin-bottom: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+        <span style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;">Phase 6 Fleet Engineering</span>
+        <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main, #0f172a); margin: 0;">🛞 2D Axle & Tire Health Studio</h1>
+      </div>
+      <p style="font-size: 13.5px; color: #64748b; margin: 0;">
+        Real-time tire tread wear diagnostics, 2D axle schematics, atomic position rotations, retreading lifecycle, and odometer PM automation.
+      </p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button type="button" class="button" onclick="runFleetPMAudit()" id="btnRunPMAudit" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+        <span>⚡ Run Fleet PM Audit</span>
+      </button>
+      <a href="/admin/maintenance/vehicleasset/" class="button button-quiet" style="display: inline-flex; align-items: center; gap: 6px;">
+        <span>📋 Asset Inventory Admin</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Studio KPI Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
+  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Fleet Tires Monitored</span>
+      <span style="font-size: 18px;">🛞</span>
+    </div>
+    <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px;" id="kpiTotalTires">{{ total_tires_monitored }}</div>
+    <div style="font-size: 11px; color: #10b981; margin-top: 4px;">Mounted across active fleet</div>
+  </div>
+
+  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-left: 4px solid #ef4444;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #ef4444; letter-spacing: 0.05em;">Critical Tread (≤2.5mm)</span>
+      <span style="font-size: 18px;">🚨</span>
+    </div>
+    <div style="font-size: 26px; font-weight: 800; color: #ef4444; margin-top: 6px;" id="kpiCriticalTires">{{ critical_tires_count }}</div>
+    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Immediate replacement needed</div>
+  </div>
+
+  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-left: 4px solid #f59e0b;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #d97706; letter-spacing: 0.05em;">In Retread Cycles</span>
+      <span style="font-size: 18px;">♻️</span>
+    </div>
+    <div style="font-size: 26px; font-weight: 800; color: #d97706; margin-top: 6px;" id="kpiRetreadTires">{{ retreading_tires_count }}</div>
+    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">At retread partner facilities</div>
+  </div>
+
+  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-left: 4px solid #3b82f6;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #2563eb; letter-spacing: 0.05em;">PM Defect Alerts</span>
+      <span style="font-size: 18px;">🛠️</span>
+    </div>
+    <div style="font-size: 26px; font-weight: 800; color: #2563eb; margin-top: 6px;" id="kpiOverduePM">{{ overdue_pm_count }}</div>
+    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Odometer-triggered workshop tickets</div>
+  </div>
+</div>
+
+<!-- Vehicle Selector & Live Schematic Container -->
+<div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); margin-bottom: 24px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <label for="vehicleSelect" style="font-size: 12px; font-weight: 800; color: #475569; text-transform: uppercase;">Select Fleet Vehicle:</label>
+      <select id="vehicleSelect" onchange="onVehicleChange(this.value)" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 700; font-size: 13.5px; background: #fff; min-width: 240px;">
+        {% for v in vehicles %}
+          <option value="{{ v.id }}" {% if selected_vehicle and selected_vehicle.id == v.id %}selected{% endif %}>
+            {{ v.registration_number }} ({{ v.brand|default:"" }}{% if v.model %} {{ v.model }}{% elif v.vehicle_type %} {{ v.vehicle_type.name }}{% endif %})
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if selected_vehicle %}
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 12.5px; color: #64748b;">
+          Current Odometer: <strong style="color: #0f172a;">{{ selected_vehicle.current_km|default:0 }} km</strong>
+        </span>
+        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 800; font-size: 11px; padding: 4px 10px; border-radius: 99px;">
+          Status: {{ selected_vehicle.get_status_display }}
+        </span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- 2D Chassis Layout Blueprint -->
+  <div style="margin-top: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
+        <span>🚙 2D Wheel Axle Schematic</span>
+        <span style="font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;">Top-Down Vehicle Layout</span>
+      </h3>
+      <div style="display: flex; gap: 12px; font-size: 11px; font-weight: 700;">
+        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Good (&gt;6mm)</span>
+        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span> Caution (3-6mm)</span>
+        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></span> Critical (&le;2.5mm)</span>
+      </div>
+    </div>
+
+    <!-- Interactive Grid of Wheel Assemblies -->
+    <div id="schematicGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+      {% if mounted_tires %}
+        {% for tire in mounted_tires %}
+          <div class="tire-card" style="background: #ffffff; border: 1px solid {% if tire.is_critical_tread %}#fca5a5{% elif tire.is_warning_tread %}#fde68a{% else %}#e2e8f0{% endif %}; border-radius: 10px; padding: 14px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <div>
+                <span style="display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; background: #f0f9ff; color: #0284c7; padding: 2px 7px; border-radius: 4px; border: 1px solid #bae6fd;">
+                  {{ tire.get_position_display }}
+                </span>
+                <div style="font-weight: 800; font-size: 14px; color: #0f172a; margin-top: 4px;">
+                  🛞 {{ tire.serial_number }}
+                </div>
+              </div>
+              <span class="badge" style="background: {% if tire.health_status == 'critical' %}#fee2e2; color: #b91c1c;{% elif tire.health_status == 'warning' %}#fef3c7; color: #b45309;{% else %}#dcfce7; color: #15803d;{% endif %} font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 99px;">
+                {{ tire.health_status|upper }}
+              </span>
+            </div>
+
+            <div style="font-size: 11.5px; color: #64748b; margin-bottom: 10px;">
+              <strong>Brand/Size:</strong> {{ tire.brand|default:"OEM" }} {{ tire.model_or_size|default:"" }}
+              {% if tire.dot_code %}<span style="font-size: 10px; color: #94a3b8;">(DOT {{ tire.dot_code }})</span>{% endif %}
+            </div>
+
+            <!-- Tread Wear Gauge -->
+            <div style="margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                <span style="color: #64748b;">Tread: <strong>{{ tire.current_tread_depth_mm }} mm</strong></span>
+                <span style="color: #64748b;">Wear: <strong>{{ tire.tread_wear_percent }}%</strong></span>
+              </div>
+              <div style="background: #e2e8f0; border-radius: 99px; height: 7px; overflow: hidden;">
+                <div style="height: 100%; width: {{ tire.tread_wear_percent }}%; background: {% if tire.is_critical_tread %}#ef4444{% elif tire.is_warning_tread %}#f59e0b{% else %}#10b981{% endif %}; border-radius: 99px;"></div>
+              </div>
+            </div>
+
+            <!-- Life Stats -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; color: #475569; background: #f8fafc; padding: 6px 8px; border-radius: 6px; margin-bottom: 12px;">
+              <div>Pressure: <strong>{{ tire.psi_pressure|default:"—" }} PSI</strong></div>
+              <div>Run: <strong>{{ tire.current_run_km }} km</strong></div>
+              <div>Retread: <strong>{% if tire.retread_count == 0 %}Virgin{% else %}#{{ tire.retread_count }}{% endif %}</strong></div>
+              <div>CPK: <strong>₹{{ tire.cost_per_km }}/km</strong></div>
+            </div>
+
+            <!-- Card Actions -->
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="button button-quiet" style="font-size: 11px; padding: 3px 8px;" onclick="openInspectModal({{ tire.id }}, '{{ tire.serial_number }}', '{{ tire.current_tread_depth_mm }}', '{{ tire.psi_pressure|default:'' }}')">
+                📏 Inspect
+              </button>
+              <button type="button" class="button button-quiet" style="font-size: 11px; padding: 3px 8px;" onclick="openRotateModal({{ tire.id }}, '{{ tire.serial_number }}', '{{ tire.position }}')">
+                🔄 Rotate
+              </button>
+              <button type="button" class="button button-quiet" style="font-size: 11px; padding: 3px 8px;" onclick="sendForRetreadPrompt({{ tire.id }}, '{{ tire.serial_number }}')">
+                ♻️ Retread
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="grid-column: 1 / -1; padding: 36px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1;">
+          <p style="font-size: 14px; margin: 0 0 8px 0;">No active wheel assets assigned to this vehicle yet.</p>
+          <a href="/admin/maintenance/vehicleasset/add/?vehicle={{ selected_vehicle.id }}&asset_type=tyre" target="_blank" class="button button-primary" style="font-size: 12px;">
+            + Mount First Tire Asset
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent Inspections & Audit Logs Table -->
+<div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0;">📋 Recent Physical Inspection Audit Logs</h3>
+    <a href="/admin/maintenance/tireinspectionlog/" class="button button-quiet" style="font-size: 11px;">View All Logs &rarr;</a>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Date</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Tyre Serial</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Vehicle</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Odometer</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Tread Depth</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Pressure</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Inspector</th>
+          <th style="padding: 10px 12px; font-weight: 700; color: #475569;">Action Taken</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for insp in recent_inspections %}
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 9px 12px; font-family: monospace;">{{ insp.inspection_date }}</td>
+            <td style="padding: 9px 12px; font-weight: 700; color: #0284c7;">{{ insp.asset.serial_number }}</td>
+            <td style="padding: 9px 12px;">{{ insp.asset.vehicle.registration_number|default:"—" }}</td>
+            <td style="padding: 9px 12px; font-family: monospace;">{{ insp.odometer }} km</td>
+            <td style="padding: 9px 12px;">
+              <span style="background: {% if insp.tread_depth_mm > 6.0 %}#10b981{% elif insp.tread_depth_mm > 2.5 %}#f59e0b{% else %}#ef4444{% endif %}; color: #fff; padding: 2px 7px; border-radius: 99px; font-weight: 700; font-size: 10.5px;">
+                {{ insp.tread_depth_mm }} mm
+              </span>
+            </td>
+            <td style="padding: 9px 12px;">{{ insp.psi_pressure|default:"—" }} PSI</td>
+            <td style="padding: 9px 12px;">{{ insp.inspector_name|default:"Tech" }}</td>
+            <td style="padding: 9px 12px;">
+              <span class="badge" style="font-size: 10.5px; background: #f1f5f9; color: #475569;">{{ insp.get_action_taken_display }}</span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="padding: 24px; text-align: center; color: #94a3b8;">No physical inspections recorded yet.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal: Inspect Tire -->
+<div id="modalInspect" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div style="background: white; border-radius: 12px; width: 90%; max-width: 440px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+    <h3 style="margin: 0 0 14px 0; font-size: 17px; font-weight: 800; color: #0f172a;">📏 Record Physical Tire Inspection</h3>
+    <input type="hidden" id="inspectAssetId">
+
+    <div style="margin-bottom: 12px;">
+      <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Tyre Serial Number</label>
+      <input type="text" id="inspectSerial" readonly style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 700; background: #f8fafc; color: #0f172a;">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+      <div>
+        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Tread Depth (mm) *</label>
+        <input type="number" step="0.1" id="inspectTread" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 700; background: #ffffff; color: #0f172a;" placeholder="e.g. 8.5">
+      </div>
+      <div>
+        <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Pressure (PSI)</label>
+        <input type="number" id="inspectPsi" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #0f172a;" placeholder="e.g. 35">
+      </div>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Inspection Notes & Action</label>
+      <select id="inspectAction" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 8px; background: #ffffff; color: #0f172a; font-weight: 600;">
+        <option value="none">Routine Inspection (Pass)</option>
+        <option value="pressure_adjusted">Cold Pressure Adjusted</option>
+        <option value="sent_retread">Critical Wear — Send for Retread</option>
+        <option value="scrapped">Severe Damage — Condemn & Scrap</option>
+      </select>
+      <input type="text" id="inspectNotes" placeholder="Technician observations (e.g. slight shoulder wear)" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; background: #ffffff; color: #0f172a;">
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+      <button type="button" class="button button-quiet" onclick="closeInspectModal()">Cancel</button>
+      <button type="button" class="button button-primary" onclick="submitTireInspection()">Save Inspection</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Rotate Tire -->
+<div id="modalRotate" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div style="background: white; border-radius: 12px; width: 90%; max-width: 440px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+    <h3 style="margin: 0 0 14px 0; font-size: 17px; font-weight: 800; color: #0f172a;">🔄 Rotate Wheel Assembly Position</h3>
+    <input type="hidden" id="rotateAssetId">
+
+    <div style="margin-bottom: 12px;">
+      <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Tyre Serial & Current Position</label>
+      <div id="rotateCurrentInfo" style="padding: 8px 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 700; font-size: 13px; color: #0f172a;"></div>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">New Target Position *</label>
+      <select id="rotateTargetPosition" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 700; background: #ffffff; color: #0f172a;">
+        <option value="front_left">Front Left (FL)</option>
+        <option value="front_right">Front Right (FR)</option>
+        <option value="rear_left_outer">Rear Left Outer (RLO)</option>
+        <option value="rear_left_inner">Rear Left Inner (RLI)</option>
+        <option value="rear_right_outer">Rear Right Outer (RRO)</option>
+        <option value="rear_right_inner">Rear Right Inner (RRI)</option>
+        <option value="spare">Spare / Stepney</option>
+      </select>
+      <small style="color: #64748b; font-size: 10.5px; display: block; margin-top: 3px;">Note: Any tire currently at the target position will automatically swap to this tire's position.</small>
+    </div>
+
+    <div style="margin-bottom: 12px;">
+      <label style="font-size: 11.5px; font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Rotation Reason / Notes</label>
+      <input type="text" id="rotateNotes" placeholder="e.g. Cross-rotation pattern at 15,000 km maintenance" style="width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; background: #ffffff; color: #0f172a;">
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+      <button type="button" class="button button-quiet" onclick="closeRotateModal()">Cancel</button>
+      <button type="button" class="button button-primary" onclick="submitTireRotation()">Execute Atomic Rotation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function onVehicleChange(vehicleId) {
+  window.location.href = '?vehicle_id=' + vehicleId;
+}
+
+// 1. Run Fleet PM Audit
+function runFleetPMAudit() {
+  const btn = document.getElementById('btnRunPMAudit');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Auditing Fleet...';
+
+  fetch('/maintenance/api/pm-engine/evaluate/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'vehicle_id={{ selected_vehicle.id|default:"" }}'
+  })
+  .then(res => res.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Run Fleet PM Audit';
+    alert(
+      '✅ Fleet PM & Tire Safety Audit Complete!\n\n' +
+      '• Overdue PM Tasks: ' + data.overdue_services_count + '\n' +
+      '• Due Soon PM Tasks: ' + data.due_soon_services_count + '\n' +
+      '• Critical Tread Tires: ' + data.critical_tires_count + '\n' +
+      '• New Defect Tickets Created: ' + data.tickets_created_count + '\n' +
+      '• Fleet Maintenance Health Score: ' + data.fleet_health_score + '%'
+    );
+    window.location.reload();
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Run Fleet PM Audit';
+    alert('Failed to run PM audit: ' + err);
+  });
+}
+
+// 2. Inspect Modal
+function openInspectModal(assetId, serial, tread, psi) {
+  document.getElementById('inspectAssetId').value = assetId;
+  document.getElementById('inspectSerial').value = serial;
+  document.getElementById('inspectTread').value = tread;
+  document.getElementById('inspectPsi').value = psi || '';
+  document.getElementById('modalInspect').style.display = 'flex';
+}
+function closeInspectModal() {
+  document.getElementById('modalInspect').style.display = 'none';
+}
+function submitTireInspection() {
+  const assetId = document.getElementById('inspectAssetId').value;
+  const tread = document.getElementById('inspectTread').value;
+  const psi = document.getElementById('inspectPsi').value;
+  const action = document.getElementById('inspectAction').value;
+  const notes = document.getElementById('inspectNotes').value;
+
+  if (!tread || parseFloat(tread) <= 0) {
+    alert('Please enter a valid tread depth in mm.');
+    return;
+  }
+
+  fetch('/maintenance/api/tire/inspect/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      asset_id: assetId,
+      tread_depth_mm: tread,
+      psi_pressure: psi ? parseInt(psi) : null,
+      action_taken: action,
+      notes: notes
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      closeInspectModal();
+      window.location.reload();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  });
+}
+
+// 3. Rotate Modal
+function openRotateModal(assetId, serial, position) {
+  document.getElementById('rotateAssetId').value = assetId;
+  document.getElementById('rotateCurrentInfo').innerText = serial + ' (Currently at ' + position + ')';
+  document.getElementById('modalRotate').style.display = 'flex';
+}
+function closeRotateModal() {
+  document.getElementById('modalRotate').style.display = 'none';
+}
+function submitTireRotation() {
+  const assetId = document.getElementById('rotateAssetId').value;
+  const toPos = document.getElementById('rotateTargetPosition').value;
+  const notes = document.getElementById('rotateNotes').value;
+
+  fetch('/maintenance/api/tire/rotate/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      asset_id: assetId,
+      to_position: toPos,
+      notes: notes
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      closeRotateModal();
+      window.location.reload();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  });
+}
+
+// 4. Send for Retreading
+function sendForRetreadPrompt(assetId, serial) {
+  const vendor = prompt('Enter retreading vendor name for Tyre ' + serial + ':', 'TVS Tread Retreaders');
+  if (vendor === null) return;
+
+  fetch('/maintenance/api/tire/retread/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      action: 'send',
+      asset_id: assetId,
+      vendor_name: vendor,
+      notes: 'Dispatched from Tire Health Studio.'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      alert('Tyre ' + serial + ' successfully transitioned to retreading (Cycle #' + data.retread_count + ').');
+      window.location.reload();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  });
+}
+</script>
+{% endblock %}

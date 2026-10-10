@@ -335,6 +335,54 @@ def customer_trip_invoice_view(request, trip_id):
 
 
 @login_required
+def trip_sheet_pdf_view(request, trip_id):
+    """
+    Downloads or renders the official high-resolution Driver Trip Sheet PDF.
+    """
+    from operations.pdf_generator import render_trip_sheet_pdf
+    trip = get_object_or_404(Trip, pk=trip_id)
+    pdf_bytes = render_trip_sheet_pdf(trip)
+    filename = f"TripSheet-{trip.trip_id or trip.id}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    return response
+
+
+@login_required
+def trip_invoice_pdf_view(request, trip_id):
+    """
+    Downloads or renders the official GST Tax Invoice PDF for a Trip.
+    """
+    from operations.pdf_generator import render_tax_invoice_pdf
+    trip = get_object_or_404(Trip, pk=trip_id)
+    pdf_bytes = render_tax_invoice_pdf(trip)
+    filename = f"TaxInvoice-TR-{trip.id:04d}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    return response
+
+
+@login_required
+def booking_voucher_pdf_view(request, booking_id):
+    """
+    Downloads or renders the official Customer Tour Booking Confirmation Voucher PDF.
+    """
+    from operations.pdf_generator import render_booking_voucher_pdf
+    booking = get_object_or_404(Booking, pk=booking_id)
+    pdf_bytes = render_booking_voucher_pdf(booking)
+    filename = f"BookingVoucher-{booking.booking_number or booking.id}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    return response
+
+
+@login_required
 def api_bulk_contract_context(request, contract_id):
     from .models import BulkContract
     contract = get_object_or_404(BulkContract, pk=contract_id)
@@ -925,38 +973,9 @@ def api_fleet_telematics_tick(request):
         v.current_km = odometer
         v.save(update_fields=['current_location', 'current_km'])
 
-        # Check geofence breach
-        for g in geofences:
-            dist = calculate_haversine_distance_meters(new_lat, new_lng, g.latitude, g.longitude)
-            if dist <= g.radius_meters:
-                if speed > g.speed_limit_kmh:
-                    DriverBehaviorLog.objects.create(
-                        vehicle=v,
-                        driver=v.default_driver,
-                        timestamp=timezone.now(),
-                        event_type='overspeeding',
-                        severity='high',
-                        recorded_speed_kmh=Decimal(str(speed)),
-                        speed_limit_kmh=Decimal(str(g.speed_limit_kmh)),
-                        latitude=Decimal(str(new_lat)),
-                        longitude=Decimal(str(new_lng)),
-                        location_address=g.name,
-                        notes=f"Radar Tick: Speed {speed} km/h exceeded zone limit of {g.speed_limit_kmh} km/h inside {g.name}."
-                    )
-                elif g.zone_type == 'restricted_zone':
-                    DriverBehaviorLog.objects.create(
-                        vehicle=v,
-                        driver=v.default_driver,
-                        timestamp=timezone.now(),
-                        event_type='geofence_breach',
-                        severity='critical',
-                        recorded_speed_kmh=Decimal(str(speed)),
-                        speed_limit_kmh=Decimal(str(g.speed_limit_kmh)),
-                        latitude=Decimal(str(new_lat)),
-                        longitude=Decimal(str(new_lng)),
-                        location_address=g.name,
-                        notes=f"Radar Tick: Unauthorized intrusion into restricted zone {g.name}."
-                    )
+        # Autonomous safety & geofence evaluation
+        from operations.geofence_engine import GeofenceSafetyEngine
+        eval_result = GeofenceSafetyEngine.evaluate_ping(ping)
 
         ticks_generated.append({
             "vehicle": v.registration_number,
@@ -1110,10 +1129,22 @@ def broadcast_driver_whatsapp_view(request, trip_id):
 
 
 @login_required
+def api_smart_dispatch_recommendations(request, trip_id):
+    """
+    REST API returning ranked Smart Dispatch recommendations for a trip:
+    Proximity, safety compliance clearance, vehicle capacity, driver rest/fatigue indices.
+    """
+    from operations.dispatch_engine import SmartDispatchEngine
+    result = SmartDispatchEngine.evaluate_candidates(trip_id)
+    status_code = 200 if result.get('status') == 'success' else 404
+    return JsonResponse(result, status=status_code)
+
+
+@login_required
 def trip_quick_assign_view(request, trip_id):
     """
     Fast Quick-Allocation endpoint:
-    Allocates vehicle and/or chauffeur to a trip with optional instant WhatsApp alerts.
+    Allocates vehicle and/or chauffeur to a trip with compliance verification and optional instant WhatsApp alerts.
     """
     trip = get_object_or_404(Trip, pk=trip_id)
     if request.method == 'POST':
@@ -1121,18 +1152,55 @@ def trip_quick_assign_view(request, trip_id):
         driver_id = request.POST.get('driver_id')
         send_wa_driver = request.POST.get('send_whatsapp_driver') in ['1', 'true', 'on']
         send_wa_guest = request.POST.get('send_whatsapp_passenger') in ['1', 'true', 'on']
+        compliance_override = request.POST.get('compliance_override') in ['1', 'true', 'on']
+
+        selected_vehicle = None
+        selected_driver = None
+        compliance_violations = []
+
+        today = timezone.localdate()
 
         if vehicle_id:
             try:
-                trip.vehicle = Vehicle.objects.get(pk=vehicle_id)
+                selected_vehicle = Vehicle.objects.get(pk=vehicle_id)
+                # Check document expirations
+                for doc_name, exp in [
+                    ('Insurance', selected_vehicle.insurance_expiry),
+                    ('FC / Fitness', selected_vehicle.fc_expiry),
+                    ('PUC / Pollution', selected_vehicle.pollution_expiry),
+                ]:
+                    if exp and exp < today:
+                        compliance_violations.append(f"Vehicle {selected_vehicle.registration_number} {doc_name} is EXPIRED ({exp.strftime('%d/%m/%Y')}).")
             except (Vehicle.DoesNotExist, ValueError):
                 pass
 
         if driver_id:
             try:
-                trip.driver = Driver.objects.get(pk=driver_id)
+                selected_driver = Driver.objects.get(pk=driver_id)
+                # Check license
+                lic = selected_driver.license_status
+                if lic.get('status') == 'expired':
+                    compliance_violations.append(f"Chauffeur {selected_driver.name} driving license is EXPIRED.")
             except (Driver.DoesNotExist, ValueError):
                 pass
+
+        # If hard violations exist and manager has NOT checked override, block with actionable response
+        if compliance_violations and not compliance_override:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
+                return JsonResponse({
+                    "status": "compliance_blocked",
+                    "message": "Safety Compliance Alert: Selected resources have expired regulatory clearances.",
+                    "violations": compliance_violations,
+                }, status=400)
+            else:
+                for v in compliance_violations:
+                    messages.error(request, f"⚠️ Compliance Block: {v}")
+                return redirect(request.META.get('HTTP_REFERER', 'booking-list'))
+
+        if selected_vehicle:
+            trip.vehicle = selected_vehicle
+        if selected_driver:
+            trip.driver = selected_driver
 
         if trip.status == 'booked' and (trip.vehicle or trip.driver):
             trip.status = 'assigned'
@@ -1150,7 +1218,9 @@ def trip_quick_assign_view(request, trip_id):
             dispatch_passenger_alert_whatsapp(trip)
             wa_notes.append(f"Guest {trip.guest_name} notified")
 
-        msg = f"✓ Trip #{trip.trip_id or trip.id} assigned successfully."
+        msg = f"✓ Trip #{trip.trip_id or trip.id} allocated successfully."
+        if compliance_violations and compliance_override:
+            msg += " (⚠️ Manager Compliance Override Applied)"
         if wa_notes:
             msg += f" ({', '.join(wa_notes)} via WhatsApp)"
         messages.success(request, msg)
@@ -1162,6 +1232,7 @@ def trip_quick_assign_view(request, trip_id):
                 "vehicle": trip.vehicle.registration_number if trip.vehicle else None,
                 "driver": trip.driver.name if trip.driver else None,
                 "trip_status": trip.status,
+                "override_applied": bool(compliance_violations and compliance_override),
             })
         return redirect(request.META.get('HTTP_REFERER', 'booking-list'))
 
@@ -1979,7 +2050,7 @@ def api_tara_quick_stats(request):
         finance = get_financial_revenue_overview()
 
         has_key = bool(
-            request.session.get('groq_api_key') or
+            (getattr(request, 'session', None) and request.session.get('groq_api_key')) or
             getattr(settings, 'GROQ_API_KEY', '') or
             os.environ.get('GROQ_API_KEY', '')
         )
@@ -2354,6 +2425,249 @@ def api_trip_quick_expense(request, trip_id):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
+@csrf_exempt
+def api_trip_customer_signature(request, trip_id):
+    """
+    Captures passenger digital touch signature, 1-5 star satisfaction rating,
+    and review feedback remarks directly on the chauffeur's mobile device.
+    """
+    import json
+    trip = get_object_or_404(Trip, pk=trip_id)
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        content_type = request.content_type or ''
+        if 'application/json' in content_type:
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.POST.dict()
+
+        sig_data = data.get('customer_signature_data') or data.get('signature_data') or data.get('signature')
+        rating_raw = data.get('guest_rating') or data.get('rating')
+        feedback = data.get('guest_feedback') or data.get('feedback') or ''
+
+        if not sig_data:
+            return JsonResponse({'status': 'error', 'message': 'Signature data is required.'}, status=400)
+
+        trip.customer_signature_data = sig_data
+        trip.customer_signature_at = timezone.now()
+        if rating_raw:
+            try:
+                trip.guest_rating = max(1, min(5, int(rating_raw)))
+            except (ValueError, TypeError):
+                pass
+        if feedback:
+            trip.guest_feedback = str(feedback).strip()
+        trip.save(update_fields=['customer_signature_data', 'customer_signature_at', 'guest_rating', 'guest_feedback'])
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Passenger digital signature & feedback saved successfully!',
+            'trip_id': trip.trip_id,
+            'guest_rating': trip.guest_rating,
+            'signed_at': trip.customer_signature_at.strftime('%d %b %Y %H:%M'),
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+def api_trip_verify_boarding(request, trip_id):
+    """
+    Phase 3: Digital QR Code Boarding Pass & Passenger Attendance Verification API.
+    Accepts:
+      - qr_data (e.g. 'PASS:<token>', 'PIN:<4-digit>', 'TRIP:<id>:<pin>', or raw token/PIN)
+      - passenger_pin / otp
+      - pass_token
+    Verifies:
+      1. CommuterBoardingPass matching pass_token or boarding_otp for the trip.
+      2. Private/Tour passenger matching trip.pickup_pin.
+    Updates:
+      - Sets is_boarded=True, boarded_at=now, boarded_by_driver=trip.driver
+      - Advances trip milestone if all passengers boarded or primary guest boarded.
+    """
+    import json
+    trip = get_object_or_404(Trip.objects.select_related('driver', 'vehicle'), pk=trip_id)
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        content_type = request.content_type or ''
+        if 'application/json' in content_type:
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.POST.dict()
+
+        raw_qr = (data.get('qr_data') or data.get('qr') or '').strip()
+        pin = str(data.get('passenger_pin') or data.get('pin') or data.get('otp') or '').strip()
+        pass_token = str(data.get('pass_token') or '').strip()
+
+        # Parse QR code payloads
+        if raw_qr:
+            if raw_qr.startswith('PASS:'):
+                pass_token = raw_qr.split('PASS:', 1)[1].strip()
+            elif raw_qr.startswith('PIN:'):
+                pin = raw_qr.split('PIN:', 1)[1].strip()
+            elif raw_qr.startswith('TRIP:'):
+                parts = raw_qr.split(':')
+                if len(parts) >= 3:
+                    pin = parts[2].strip()
+            elif 'pass/' in raw_qr or 'token=' in raw_qr:
+                import re
+                m = re.search(r'[0-9a-fA-F\-]{16,64}', raw_qr)
+                if m:
+                    pass_token = m.group(0)
+            elif len(raw_qr) == 4 and raw_qr.isdigit():
+                pin = raw_qr
+            elif len(raw_qr) >= 16:
+                pass_token = raw_qr
+
+        now = timezone.now()
+
+        # 1. Check Commuter Boarding Pass (Corporate employee / student shuttle)
+        from fleet_commute.models import CommuterBoardingPass
+        commuter_pass = None
+        if pass_token:
+            commuter_pass = CommuterBoardingPass.objects.filter(
+                pass_token=pass_token
+            ).select_related('commuter').first()
+        elif pin and (trip.bulk_contract_day_id or trip.commute_passes.exists()):
+            commuter_pass = CommuterBoardingPass.objects.filter(
+                trip=trip,
+                boarding_otp=pin
+            ).select_related('commuter').first()
+
+        if commuter_pass:
+            commuter_pass.is_boarded = True
+            commuter_pass.boarded_at = now
+            if trip.driver:
+                commuter_pass.boarded_by_driver = trip.driver
+            commuter_pass.save(update_fields=['is_boarded', 'boarded_at', 'boarded_by_driver'])
+
+            total_commuters = CommuterBoardingPass.objects.filter(trip=trip).count()
+            boarded_commuters = CommuterBoardingPass.objects.filter(trip=trip, is_boarded=True).count()
+
+            from operations.models import TripMilestoneEvent
+            TripMilestoneEvent.objects.create(
+                trip=trip,
+                milestone='guest_pickup',
+                milestone_index=3,
+                location_name=getattr(commuter_pass.commuter, 'pickup_location', 'Bus Stop'),
+                passenger_pin_entered=commuter_pass.boarding_otp,
+                is_pin_verified=True,
+                notes=f"Commuter {commuter_pass.commuter.name} boarded successfully via QR Scanner.",
+                actor_driver=trip.driver
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'type': 'commuter_pass',
+                'message': f"✅ Passenger {commuter_pass.commuter.name} Boarded Successfully!",
+                'passenger_name': commuter_pass.commuter.name,
+                'employee_id': getattr(commuter_pass.commuter, 'employee_id', ''),
+                'pickup_stop': getattr(commuter_pass.commuter, 'pickup_location', 'Assigned Stop'),
+                'boarded_at': now.strftime('%H:%M:%S'),
+                'total_boarded': boarded_commuters,
+                'total_manifest': total_commuters,
+            })
+
+        # 2. Check Private Tour Passenger Security PIN
+        if pin:
+            expected_pin = str(trip.pickup_pin).strip()
+            if expected_pin and pin == expected_pin:
+                trip.is_pin_verified = True
+                trip.guest_pickup_at = now
+                if trip.current_milestone in ['car_pickup', 'driver_reached', 'guest_pickup']:
+                    trip.current_milestone = 'on_trip'
+                if trip.status != 'started':
+                    trip.status = 'started'
+                trip.save(update_fields=['is_pin_verified', 'guest_pickup_at', 'current_milestone', 'status'])
+
+                from operations.models import TripMilestoneEvent
+                TripMilestoneEvent.objects.create(
+                    trip=trip,
+                    milestone='guest_pickup',
+                    milestone_index=3,
+                    location_name=trip.pickup_location or 'Pickup Point',
+                    passenger_pin_entered=pin,
+                    is_pin_verified=True,
+                    notes=f"Guest PIN {pin} successfully verified via mobile scanner.",
+                    actor_driver=trip.driver
+                )
+
+                return JsonResponse({
+                    'status': 'success',
+                    'type': 'guest_pin',
+                    'message': f"✅ Guest Security PIN verified! Passenger {trip.guest_name or 'Guest'} Boarded.",
+                    'passenger_name': trip.guest_name or 'Tour Guest',
+                    'boarded_at': now.strftime('%H:%M:%S'),
+                    'is_pin_verified': True,
+                    'current_milestone': trip.current_milestone,
+                })
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f"❌ Invalid Passenger Security PIN ({pin}). Ask guest for the correct 4-digit PIN."
+                }, status=400)
+
+        return JsonResponse({
+            'status': 'error',
+            'message': 'No valid boarding pass token or 4-digit PIN detected in QR code.'
+        }, status=400)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+def api_trip_passengers_list(request, trip_id):
+    """
+    Returns passenger manifest and live boarding attendance status for a trip.
+    """
+    trip = get_object_or_404(Trip, pk=trip_id)
+    from fleet_commute.models import CommuterBoardingPass
+
+    passes = CommuterBoardingPass.objects.filter(
+        trip=trip
+    ).select_related('commuter').order_by('is_boarded', 'commuter__name')
+
+    manifest_data = []
+    for p in passes:
+        manifest_data.append({
+            'id': p.pk,
+            'name': p.commuter.name,
+            'employee_id': getattr(p.commuter, 'employee_id', ''),
+            'pickup_location': getattr(p.commuter, 'pickup_location', 'Stop'),
+            'boarding_otp': p.boarding_otp,
+            'pass_token': p.pass_token,
+            'is_boarded': p.is_boarded,
+            'boarded_at': p.boarded_at.strftime('%H:%M') if p.boarded_at else None,
+        })
+
+    if not manifest_data:
+        manifest_data.append({
+            'id': 0,
+            'name': trip.guest_name or 'Tour Guest',
+            'pickup_location': trip.pickup_location or 'Scheduled Pickup',
+            'boarding_otp': trip.pickup_pin,
+            'is_boarded': trip.is_pin_verified,
+            'boarded_at': trip.guest_pickup_at.strftime('%H:%M') if trip.guest_pickup_at else None,
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'trip_id': trip.trip_id,
+        'guest_name': trip.guest_name,
+        'pickup_pin': trip.pickup_pin,
+        'is_pin_verified': trip.is_pin_verified,
+        'passengers': manifest_data,
+        'total_passengers': len(manifest_data),
+        'total_boarded': sum(1 for m in manifest_data if m['is_boarded']),
+    })
+
+
 # ==============================================================================
 # Phase 4: Multi-Day Tour Itinerary Day-by-Day Builder & Live Guest Experience
 # ==============================================================================
@@ -2632,5 +2946,216 @@ def guest_tour_itinerary_view(request, token=None, trip_id=None):
         'tracking_url': trip.tracking_url,
     })
 
+
+@login_required
+@csrf_exempt
+def api_trip_calculate_bata(request, trip_id):
+    """
+    POST/GET API to auto-calculate and itemize driver allowance (Bata) for a trip.
+    Calculates base daily bata, night halt allowance, early morning reporting,
+    and overtime hours.
+    """
+    trip = get_object_or_404(Trip.objects.select_related('driver', 'vehicle', 'party', 'booking'), pk=trip_id)
+    save_changes = request.method == 'POST' or request.GET.get('save') == '1'
+    res = trip.calculate_auto_bata(save=save_changes)
+    return JsonResponse({
+        'status': 'success',
+        'trip_id': trip.trip_id,
+        'driver_name': trip.driver.name if trip.driver else 'Unassigned',
+        'total_bata': float(res['total_bata']),
+        'base_bata': float(res['base_bata']),
+        'daily_rate': float(res['daily_rate']),
+        'days_count': res['days_count'],
+        'night_halts_count': res['night_halts_count'],
+        'night_halt_bata': float(res['night_halt_bata']),
+        'early_morning_bata': float(res['early_morning_bata']),
+        'late_night_bata': float(res['late_night_bata']),
+        'overtime_hours': res['overtime_hours'],
+        'overtime_bata': float(res['overtime_bata']),
+        'calculation_notes': res['calculation_notes'],
+        'message': f"Calculated total driver allowance: ₹{res['total_bata']:,.2f} ({res['calculation_notes']})"
+    })
+
+
+@login_required
+@csrf_exempt
+def api_acknowledge_incident(request, incident_id):
+    """
+    POST API to acknowledge an EmergencyIncidentAlert by a dispatcher.
+    """
+    from operations.geofence_engine import GeofenceSafetyEngine
+    if request.method not in ['POST', 'PUT']:
+        return JsonResponse({'status': 'error', 'message': 'POST method required'}, status=405)
+
+    import json
+    notes = ""
+    try:
+        if request.body:
+            data = json.loads(request.body)
+            notes = data.get('notes', '')
+    except Exception:
+        notes = request.POST.get('notes', '')
+
+    result = GeofenceSafetyEngine.acknowledge_breach_alert(
+        incident_id=incident_id,
+        user=request.user,
+        resolution_notes=notes
+    )
+    return JsonResponse(result)
+
+
+@login_required
+def api_active_geofence_alarms(request):
+    """
+    GET API returning active unresolved geofence breach incidents and hazard vehicles
+    for real-time dashboard sirens and tactical alert banners.
+    """
+    from operations.models import EmergencyIncidentAlert, DriverBehaviorLog
+    from django.utils import timezone
+    from datetime import timedelta
+
+    active_incidents = EmergencyIncidentAlert.objects.filter(
+        status__in=['reported', 'acknowledged', 'standby_dispatched'],
+        incident_type__in=['geofence_breach', 'corridor_deviation', 'overspeed_violation', 'sos_panic']
+    ).select_related('vehicle', 'driver').order_by('-reported_at')[:10]
+
+    since_1h = timezone.now() - timedelta(hours=1)
+    recent_breaches = DriverBehaviorLog.objects.filter(
+        timestamp__gte=since_1h,
+        event_type__in=['geofence_breach', 'overspeeding']
+    ).select_related('vehicle', 'driver').order_by('-timestamp')[:15]
+
+    incidents_payload = []
+    for inc in active_incidents:
+        incidents_payload.append({
+            'incident_id': inc.incident_id,
+            'incident_type': inc.get_incident_type_display(),
+            'severity': inc.severity,
+            'status': inc.status,
+            'status_display': inc.get_status_display(),
+            'vehicle_reg': inc.vehicle.registration_number,
+            'vehicle_id': inc.vehicle.id,
+            'driver_name': inc.driver.name if inc.driver else 'Unassigned',
+            'driver_phone': inc.driver.phone if inc.driver else '',
+            'location': inc.location_address,
+            'latitude': float(inc.latitude) if inc.latitude else None,
+            'longitude': float(inc.longitude) if inc.longitude else None,
+            'description': inc.description,
+            'reported_at': inc.reported_at.strftime('%H:%M:%S'),
+        })
+
+    breaches_payload = []
+    for b in recent_breaches:
+        breaches_payload.append({
+            'id': b.id,
+            'event_type': b.get_event_type_display(),
+            'severity': b.severity,
+            'vehicle_reg': b.vehicle.registration_number,
+            'driver_name': b.driver.name if b.driver else 'Unassigned',
+            'speed': float(b.recorded_speed_kmh),
+            'limit': float(b.speed_limit_kmh),
+            'location': b.location_address,
+            'time': b.timestamp.strftime('%H:%M:%S'),
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'has_active_alarm': len(incidents_payload) > 0,
+        'active_count': len(incidents_payload),
+        'incidents': incidents_payload,
+        'recent_breaches': breaches_payload,
+    })
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# DATABASE HEALTH DASHBOARD & API
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@login_required
+def admin_database_health_dashboard_view(request):
+    """
+    Renders the interactive Database Health Dashboard inside Unfold Admin.
+    The dashboard fetches audit results via the JSON API endpoint.
+    """
+    from django.contrib import admin
+    context = {
+        **admin.site.each_context(request),
+        'title': '🛡️ Database Health Dashboard',
+        'subtitle': 'Real-time Normalization, Referential Integrity & Compliance Audit',
+    }
+    return render(request, 'admin/operations/database_health_dashboard.html', context)
+
+
+@login_required
+def api_database_health_audit(request):
+    """
+    JSON API endpoint that executes the full database health audit service
+    and returns structured results for the dashboard frontend.
+    """
+    from operations.database_health_service import run_full_database_health_audit
+    is_deep = request.GET.get('deep', '0') in ('1', 'true', 'yes')
+    try:
+        report = run_full_database_health_audit(is_deep=is_deep)
+        return JsonResponse(report, safe=False)
+    except Exception as e:
+        logger.exception('Database health audit failed')
+        return JsonResponse({
+            'status': 'ERROR',
+            'error': str(e),
+            'summary': {'total_checks': 0, 'passed_checks': 0, 'failed_checks': 0, 'compliance_pct': 0},
+            'audits': {},
+            'counts': {},
+        }, status=500)
+
+
+@login_required
+def api_database_snapshot_export(request):
+    """
+    JSON API endpoint to trigger point-in-time database snapshot backups.
+    Restricted to superusers and staff members.
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({'status': 'error', 'message': 'Forbidden'}, status=403)
+
+    from django.core.management import call_command
+    from io import StringIO
+    from pathlib import Path
+    import json
+
+    out = StringIO()
+    try:
+        call_command('export_database_snapshot', stdout=out)
+        backups_dir = Path(settings.BASE_DIR) / 'backups'
+        manifests = sorted(backups_dir.glob('*.meta.json'), key=os.path.getmtime, reverse=True)
+        if manifests:
+            with open(manifests[0], 'r', encoding='utf-8') as mf:
+                data = json.load(mf)
+            return JsonResponse({
+                'status': 'success',
+                'snapshot': data,
+                'message': 'Database snapshot successfully created and verified!'
+            })
+        return JsonResponse({'status': 'error', 'message': 'Snapshot created but manifest missing'}, status=500)
+    except Exception as e:
+        logger.exception('Snapshot export failed')
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+def api_run_scheduler_maintenance(request):
+    """
+    JSON API endpoint to trigger full automated maintenance batch:
+    Nightly database backup snapshot + retention rotation + compliance watchdog.
+    """
+    if not (request.user.is_superuser or request.user.is_staff):
+        return JsonResponse({'status': 'error', 'message': 'Forbidden'}, status=403)
+
+    from operations.scheduler_engine import TravelERPScheduler
+    try:
+        res = TravelERPScheduler.run_all_scheduled_tasks()
+        return JsonResponse(res)
+    except Exception as e:
+        logger.exception('Scheduler maintenance batch failed')
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 

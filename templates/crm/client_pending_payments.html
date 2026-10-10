@@ -13,22 +13,30 @@
     margin-bottom: 24px;
   }
   .metric-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 12px;
     padding: 18px 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
   .metric-card .title {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    color: #64748b;
+    color: var(--text-muted, #64748b);
     margin-bottom: 4px;
+    letter-spacing: .05em;
   }
   .metric-card .val {
     font-size: 22px;
     font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
   }
   .metric-card .sub {
     font-size: 12px;
@@ -39,24 +47,32 @@
   .receivable-table {
     width: 100%;
     border-collapse: collapse;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    box-shadow: var(--shadow-sm);
     font-size: 13.5px;
   }
   .receivable-table th, .receivable-table td {
     padding: 12px 14px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
     vertical-align: middle;
   }
   .receivable-table th {
-    background: #f8fafc;
-    color: #475569;
+    background: var(--surface-subtle, #f8fafc);
+    color: var(--text-muted, #475569);
     font-size: 11px;
     text-transform: uppercase;
     font-weight: 700;
+    letter-spacing: .05em;
+    border-bottom: 2px solid var(--border-strong, #cbd5e1);
+  }
+  .receivable-table td {
+    color: var(--text-main, #0f172a);
+  }
+  .receivable-table tr:hover td {
+    background: var(--surface-subtle, #f8fafc);
   }
 
   .badge-aging {
@@ -69,6 +85,23 @@
   .aging-31-60 { background: #fef9c3; color: #854d0e; }
   .aging-61-90 { background: #ffedd5; color: #c2410c; }
   .aging-over-90 { background: #fee2e2; color: #991b1b; }
+
+  /* Dark mode overrides */
+  html.dark .receivable-table tr:hover td {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  html.dark .receivable-table td div[style*="#0f172a"],
+  html.dark .receivable-table td div[style*="#1e293b"],
+  html.dark .receivable-table td div[style*="#334155"] {
+    color: var(--text-main) !important;
+  }
+  html.dark .receivable-table td span[style*="#475569"],
+  html.dark .receivable-table td div[style*="#475569"] {
+    color: var(--text-muted) !important;
+  }
+  html.dark .metric-card .val[style*="#0f172a"] {
+    color: var(--text-main) !important;
+  }
 </style>
 
 <div class="aging-container">

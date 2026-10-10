@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Statement Auto-Reconciler & UTR Match Studio | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
+
+  <style>
+    :root, html:not(.dark) {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #059669;
+      --accent-glow: rgba(16, 185, 129, 0.15);
+      --text: #0f172a;
+      --text-muted: #475569;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --info: #0284c7;
+      --glass: blur(14px);
+    }
+
+    html.dark {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 28, 45, 0.82);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #0284c7;
+      --glass: blur(14px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 70px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Glow spheres */
+    .glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { top: -100px; left: -100px; width: 450px; height: 450px; background: rgba(99, 102, 241, 0.14); }
+    .glow-2 { bottom: -100px; right: -100px; width: 500px; height: 500px; background: rgba(16, 185, 129, 0.12); }
+
+    /* Top Sticky App Bar */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: var(--glass);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: none;
+      outline: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45); }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* Main Container */
+    .studio-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 28px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* KPI Summary Metric Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      backdrop-filter: var(--glass);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .kpi-meta {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Studio Layout: Ingestion Dock + Transaction Ledger */
+    .studio-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 22px;
+    }
+    @media (max-width: 1024px) {
+      .studio-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Side Dock */
+    .side-dock {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .dock-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      backdrop-filter: var(--glass);
+    }
+    .dock-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .form-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .form-select, .form-input, .form-textarea {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-family: inherit;
+      outline: none;
+    }
+    .form-select:focus, .form-input:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+    .form-textarea {
+      min-height: 80px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      resize: vertical;
+    }
+
+    .upload-dropzone {
+      border: 2px dashed rgba(99, 102, 241, 0.4);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(99, 102, 241, 0.05);
+      transition: all 0.2s;
+    }
+    .upload-dropzone:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+    }
+
+    /* Main Table Deck */
+    .ledger-deck {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: var(--glass);
+      min-height: 500px;
+    }
+    .ledger-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Table styles */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    table.reconcile-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12.5px;
+    }
+    table.reconcile-table th {
+      background: #0f172a;
+      padding: 12px 14px;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    table.reconcile-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+    }
+    table.reconcile-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Badges */
+    .conf-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .conf-100 { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .conf-90 { background: rgba(6, 182, 212, 0.18); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.35); }
+    .conf-75 { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .conf-0 { background: rgba(100, 116, 139, 0.18); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.35); }
+
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .status-reconciled { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .status-matched { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+    .status-unmatched { background: rgba(255, 255, 255, 0.06); color: #94a3b8; }
+
+    /* Action buttons in rows */
+    .btn-act {
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-act-reconcile {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+    .btn-act-reconcile:hover { transform: scale(1.02); }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+       BANK RECONCILIATION STUDIO — LIGHT THEME OVERRIDES
+       ══════════════════════════════════════════════════════════════════════════ */
+    html:not(.dark) .app-header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid #e2e8f0;
+    }
+    html:not(.dark) .kpi-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    html:not(.dark) .kpi-val {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .dock-card,
+    html:not(.dark) .ledger-deck {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    html:not(.dark) .form-select,
+    html:not(.dark) .form-input,
+    html:not(.dark) .form-textarea {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+    }
+    html:not(.dark) .upload-dropzone {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    html:not(.dark) table.reconcile-table th {
+      background: #f8fafc;
+      color: #475569;
+      border-bottom: 2px solid #cbd5e1;
+    }
+    html:not(.dark) table.reconcile-table td {
+      color: #0f172a;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    html:not(.dark) table.reconcile-table tr:hover {
+      background: #f1f5f9;
+    }
+    html:not(.dark) .btn-outline {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+    }
+    html:not(.dark) .btn-outline:hover {
+      background: #f1f5f9;
+    }
+    html:not(.dark) .filter-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+    }
+    html:not(.dark) .filter-btn.active {
+      background: #4f46e5;
+      color: #ffffff;
+      border-color: #4f46e5;
+    }
+    html:not(.dark) .modal-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      color: #0f172a;
+    }
+    html:not(.dark) .conf-100 { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    html:not(.dark) .conf-90 { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    html:not(.dark) .conf-75 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    html:not(.dark) .conf-0 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    html:not(.dark) .status-reconciled { background: #dcfce7; color: #15803d; }
+    html:not(.dark) .status-matched { background: #e0f2fe; color: #0369a1; }
+    html:not(.dark) .status-unmatched { background: #f1f5f9; color: #64748b; }
+  </style>
+</head>
+<body>
+
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-wrap">
+      <div class="brand-icon"><i class="fa-solid fa-building-columns"></i></div>
+      <div class="brand-text">
+        <h1>Bank Statement Auto-Reconciler</h1>
+        <div class="brand-sub">
+          <span>Enterprise Cash Flow &amp; UTR Reconciliation Engine</span>
+          <span>•</span>
+          <span style="color: var(--accent);">● Real-Time Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn-outline" id="btnThemeToggle" title="Toggle Theme (Light / Dark)">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
+      {% if selected_upload %}
+        <a href="{% url 'export-bank-reconciliation' %}?upload_id={{ selected_upload.pk }}" class="btn btn-outline">
+          <i class="fa-solid fa-file-csv"></i> Export CSV Audit Report
+        </a>
+      {% endif %}
+      <a href="/admin/finance/bankstatementupload/" class="btn btn-outline">
+        <i class="fa-solid fa-shield-halved"></i> Unfold Admin
+      </a>
+      <a href="/admin/" class="btn btn-primary">
+        &larr; Operations Hub
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="studio-container">
+
+    <!-- KPI Metric Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Total Processed Statements</div>
+        <div class="kpi-val">{{ total_statements_count }} Statements</div>
+        <div class="kpi-meta"><i class="fa-solid fa-receipt"></i> Active Treasury Feeds</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Total Bank Inflows (Deposits)</div>
+        <div class="kpi-val" style="color: #38bdf8;">₹{{ total_deposits_all|floatformat:2 }}</div>
+        <div class="kpi-meta" style="color: #38bdf8;"><i class="fa-solid fa-arrow-down-long"></i> Customer Credits</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Reconciled Collections</div>
+        <div class="kpi-val" style="color: #34d399;">₹{{ total_reconciled_all|floatformat:2 }}</div>
+        <div class="kpi-meta"><i class="fa-solid fa-circle-check"></i> {{ reconcile_percentage }}% Reconciled</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Ready for 1-Click Posting</div>
+        <div class="kpi-val" style="color: #818cf8;">{{ total_matched_entries }} Entries</div>
+        <div class="kpi-meta" style="color: #818cf8;"><i class="fa-solid fa-bolt"></i> Confirmed UTR Matches</div>
+      </div>
+    </div>
+
+    <!-- Studio Layout -->
+    <div class="studio-layout">
+
+      <!-- Left Ingestion Dock -->
+      <aside class="side-dock">
+        
+        <!-- Upload Card -->
+        <div class="dock-card">
+          <div class="dock-title">
+            <i class="fa-solid fa-cloud-arrow-up" style="color: #6366f1;"></i>
+            <span>Upload Statement Feed</span>
+          </div>
+
+          <form id="uploadForm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+              <label class="form-label">Banking Institution</label>
+              <select name="bank_name" id="bankSelect" class="form-select">
+                <option value="generic">Standard / Generic CSV</option>
+                <option value="sbi">State Bank of India (SBI)</option>
+                <option value="hdfc">HDFC Bank Ltd</option>
+                <option value="icici">ICICI Bank Ltd</option>
+                <option value="axis">Axis Bank Ltd</option>
+                <option value="canara">Canara Bank</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Virtual IBAN / Account Number</label>
+              <input type="text" name="account_number" class="form-input" placeholder="e.g. 50200084729104" value="50200084729104">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statement CSV File</label>
+              <div class="upload-dropzone" onclick="document.getElementById('csvFileInput').click()">
+                <i class="fa-solid fa-file-csv" style="font-size: 26px; color: #818cf8; margin-bottom: 8px;"></i>
+                <div style="font-size: 12px; font-weight: 700;">Click to select CSV file</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">(SBI, HDFC, ICICI, or generic CSV)</div>
+                <input type="file" name="statement_file" id="csvFileInput" accept=".csv,.txt" style="display: none;" onchange="handleFileSelected(this)">
+                <div id="selectedFileName" style="margin-top: 6px; font-size: 11px; color: #34d399; font-weight: 700;"></div>
+              </div>
+            </div>
+
+            <div style="text-align: center; margin: 10px 0; font-size: 11px; color: var(--text-muted); font-weight: 600;">— OR PASTE RAW CSV —</div>
+
+            <div class="form-group">
+              <textarea name="csv_text" id="csvText" class="form-textarea" placeholder="Txn Date, Narration, UTR No, Debit, Credit, Balance"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 14px;">
+              <button type="submit" class="btn btn-primary" style="flex: 1;" id="btnUploadSubmit">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Ingest &amp; Auto-Match
+              </button>
+              <button type="button" class="btn btn-outline" onclick="loadSampleDemoCsv()" title="Load Sample Bank Transactions">
+                <i class="fa-solid fa-vial"></i> Sample
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Recent Uploads History Card -->
+        <div class="dock-card">
+          <div class="dock-title">
+            <i class="fa-solid fa-clock-rotate-left" style="color: #38bdf8;"></i>
+            <span>Recent Statement Feeds</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            {% for up in uploads %}
+              <a href="?upload_id={{ up.pk }}" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 8px; background: {% if up.pk == selected_upload.pk %}rgba(99,102,241,0.2){% else %}rgba(255,255,255,0.03){% endif %}; border: 1px solid {% if up.pk == selected_upload.pk %}var(--primary){% else %}var(--card-border){% endif %}; color: var(--text); text-decoration: none; font-size: 12px;">
+                <div>
+                  <div style="font-weight: 700;">{{ up.get_bank_name_display }}</div>
+                  <div style="font-size: 10.5px; color: var(--text-muted);">{{ up.uploaded_at|date:"d M, H:i" }} • {{ up.total_transactions }} Txns</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-weight: 800; color: #10b981;">₹{{ up.reconciled_amount|floatformat:0 }}</div>
+                  <span class="status-pill {% if up.status == 'reconciled' %}status-reconciled{% else %}status-matched{% endif %}" style="font-size: 9.5px;">
+                    {{ up.get_status_display }}
+                  </span>
+                </div>
+              </a>
+            {% empty %}
+              <div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 14px;">No statements uploaded yet.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- Main Transaction Ledger -->
+      <section class="ledger-deck">
+        <div class="ledger-top">
+          <div>
+            <h2 style="font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+              <span>Statement Transactions &amp; ERP Matches</span>
+              {% if selected_upload %}
+                <span style="font-size: 11px; background: rgba(99,102,241,0.15); color: #818cf8; padding: 2px 8px; border-radius: 6px;">#{{ selected_upload.pk }} - {{ selected_upload.filename|default:"Uploaded" }}</span>
+              {% endif %}
+            </h2>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">
+              Review intelligent UTR and passenger matching before 1-click posting to general ledger.
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div class="filter-pills">
+              <button class="filter-btn active" onclick="filterRows('all')">All ({{ entries|length }})</button>
+              <button class="filter-btn" onclick="filterRows('matched')">🎯 Confirmed Matches</button>
+              <button class="filter-btn" onclick="filterRows('unmatched')">⏳ Unmatched</button>
+              <button class="filter-btn" onclick="filterRows('reconciled')">✅ Reconciled</button>
+            </div>
+
+            {% if selected_upload %}
+              <button type="button" class="btn btn-success" onclick="batchReconcile({{ selected_upload.pk }})" id="btnBatchReconcile">
+                <i class="fa-solid fa-bolt"></i> 1-Click Reconcile Confirmed Matches
+              </button>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="table-wrap">
+          <table class="reconcile-table" id="reconcileTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Narration &amp; UTR</th>
+                <th style="text-align: right;">Credit (+₹)</th>
+                <th>Matched Booking / Party</th>
+                <th>Confidence</th>
+                <th>Status</th>
+                <th style="text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for e in entries %}
+              <tr class="entry-row" data-status="{{ e.status }}" data-confidence="{{ e.match_confidence }}" id="row-{{ e.pk }}">
+                
+                <td style="white-space: nowrap; font-weight: 600; color: #cbd5e1;">
+                  {{ e.transaction_date|date:"d M Y" }}
+                </td>
+
+                <td style="max-width: 320px;">
+                  <div style="font-size: 11.5px; color: #fff; line-height: 1.4; word-break: break-word;">{{ e.narration }}</div>
+                  {% if e.reference_or_utr %}
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #38bdf8; margin-top: 3px;">
+                      <i class="fa-solid fa-receipt"></i> UTR: <strong>{{ e.reference_or_utr }}</strong>
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td style="text-align: right; font-weight: 800; font-size: 13.5px; color: {% if e.deposit_amount > 0 %}#34d399{% else %}#f87171{% endif %}; white-space: nowrap;">
+                  {% if e.deposit_amount > 0 %}
+                    +₹{{ e.deposit_amount|floatformat:2 }}
+                  {% else %}
+                    -₹{{ e.withdrawal_amount|floatformat:2 }}
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if e.matched_booking %}
+                    <div style="font-weight: 700; color: #fff;">
+                      <a href="/admin/operations/booking/{{ e.matched_booking.pk }}/change/" target="_blank" style="color: #38bdf8; text-decoration: none;">
+                        #{{ e.matched_booking.booking_number }}
+                      </a>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                      {{ e.matched_booking.guest_name|default:e.matched_booking.party.name }} • ₹{{ e.matched_booking.quoted_price|floatformat:0 }}
+                    </div>
+                  {% elif e.matched_invoice %}
+                    <div style="font-weight: 700; color: #fff;">
+                      <a href="/finance/invoice/{{ e.matched_invoice.pk }}/view/" target="_blank" style="color: #38bdf8; text-decoration: none;">
+                        #{{ e.matched_invoice.invoice_number }}
+                      </a>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">
+                      {{ e.matched_invoice.party.name }}
+                    </div>
+                  {% else %}
+                    <span style="font-size: 11.5px; color: var(--text-muted); font-style: italic;">No ERP Match</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if e.match_confidence >= 90 %}
+                    <span class="conf-badge conf-100"><i class="fa-solid fa-circle-check"></i> {{ e.match_confidence }}%</span>
+                  {% elif e.match_confidence >= 75 %}
+                    <span class="conf-badge conf-90"><i class="fa-solid fa-check"></i> {{ e.match_confidence }}%</span>
+                  {% elif e.match_confidence > 0 %}
+                    <span class="conf-badge conf-75"><i class="fa-solid fa-triangle-exclamation"></i> {{ e.match_confidence }}%</span>
+                  {% else %}
+                    <span class="conf-badge conf-0">0%</span>
+                  {% endif %}
+                  {% if e.match_reason %}
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">{{ e.match_reason|truncatechars:32 }}</div>
+                  {% endif %}
+                </td>
+
+                <td>
+                  <span class="status-pill {% if e.status == 'reconciled' %}status-reconciled{% elif e.status == 'matched' %}status-matched{% else %}status-unmatched{% endif %}">
+                    {{ e.get_status_display }}
+                  </span>
+                </td>
+
+                <td style="text-align: center; white-space: nowrap;">
+                  {% if e.status == 'reconciled' %}
+                    <span style="color: #34d399; font-size: 11px; font-weight: 700;">
+                      <i class="fa-solid fa-check-double"></i> Posted
+                    </span>
+                  {% else %}
+                    <button type="button" class="btn-act btn-act-reconcile" onclick="reconcileSingleEntry({{ e.pk }})">
+                      <i class="fa-solid fa-bolt"></i> Reconcile
+                    </button>
+                  {% endif %}
+                </td>
+
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                  <i class="fa-solid fa-receipt" style="font-size: 32px; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
+                  <strong>No transactions loaded yet.</strong>
+                  <div style="font-size: 12px; margin-top: 4px;">Upload a bank statement CSV on the left panel or click "Sample" to try.</div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <div id="toast">
+    <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+    <span id="toastMsg">Operation successful</span>
+  </div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+
+    function handleFileSelected(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('selectedFileName').innerText = "✓ " + input.files[0].name;
+      }
+    }
+
+    function filterRows(type) {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const rows = document.querySelectorAll('.entry-row');
+      rows.forEach(r => {
+        const status = r.getAttribute('data-status');
+        if (type === 'all') {
+          r.style.display = '';
+        } else if (type === 'matched') {
+          r.style.display = (status === 'matched') ? '' : 'none';
+        } else if (type === 'unmatched') {
+          r.style.display = (status === 'unmatched') ? '' : 'none';
+        } else if (type === 'reconciled') {
+          r.style.display = (status === 'reconciled') ? '' : 'none';
+        }
+      });
+    }
+
+    // Ingest statement via AJAX
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = this;
+      const formData = new FormData(form);
+      const btn = document.getElementById('btnUploadSubmit');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Parsing &amp; Matching...';
+
+      fetch('/api/finance/bank-reconciliation/upload/', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Ingest &amp; Auto-Match';
+        if (data.status === 'success') {
+          showToast(data.message);
+          setTimeout(() => {
+            window.location.href = '?upload_id=' + data.upload_id;
+          }, 1200);
+        } else {
+          alert("Error: " + data.message);
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Ingest &amp; Auto-Match';
+        alert("Upload failed: " + err);
+      });
+    });
+
+    // Reconcile single entry
+    function reconcileSingleEntry(entryId) {
+      fetch('/api/finance/bank-reconciliation/reconcile/' + entryId + '/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showToast(data.message);
+          const row = document.getElementById('row-' + entryId);
+          if (row) {
+            row.setAttribute('data-status', 'reconciled');
+            const statusCell = row.cells[5];
+            const actCell = row.cells[6];
+            statusCell.innerHTML = '<span class="status-pill status-reconciled">✅ Reconciled</span>';
+            actCell.innerHTML = '<span style="color: #34d399; font-size: 11px; font-weight: 700;"><i class="fa-solid fa-check-double"></i> Posted</span>';
+          }
+        } else {
+          alert("Reconciliation failed: " + data.message);
+        }
+      });
+    }
+
+    // Batch Reconcile
+    function batchReconcile(uploadId) {
+      const btn = document.getElementById('btnBatchReconcile');
+      if (btn) btn.disabled = true;
+
+      fetch('/api/finance/bank-reconciliation/batch/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ upload_id: uploadId, min_confidence: 75 })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (btn) btn.disabled = false;
+        if (data.status === 'success') {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 1500);
+        } else {
+          alert("Batch error: " + data.message);
+        }
+      });
+    }
+
+    // Sample statement generator
+    function loadSampleDemoCsv() {
+      const sampleCsv = `Txn Date,Narration,Ref / UTR,Debit,Credit,Balance
+01-10-2026,UPI/627491028374/Dr Arvind Swaminathan/BK-0042 Advance/HDFC,627491028374,,25000.00,125000.00
+01-10-2026,NEFT-SBI-429184019283-Acme Corp Corporate Tour Payment,429184019283,,85000.00,210000.00
+02-10-2026,IMPS/P2A/919840112233/Mysore Tour Booking Deposit,919840112233,,15000.00,225000.00
+03-10-2026,HPCL AUTO FUEL DEPOT COIMBATORE PETROL PUMP,CHQ449102,12500.00,,212500.00
+03-10-2026,UPI/884910294817/Priya Natarajan Ooty Holiday Full Payment,884910294817,,45000.00,257500.00`;
+      document.getElementById('csvText').value = sampleCsv;
+      showToast("Sample statement loaded into text area.");
+    }
+
+    // Auto-sync theme with localStorage (compatible with Django Unfold)
+    function updateThemeUI() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      }
+    }
+
+    document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      const newTheme = isDark ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('_x_adminTheme', newTheme);
+      updateThemeUI();
+    });
+
+    (function() {
+      const theme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateThemeUI();
+    })();
+  </script>
+</body>
+</html>

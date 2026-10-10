@@ -9,6 +9,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+
   <style>
     :root {
       --bg: #090d16;
@@ -24,6 +33,139 @@
       --warning: #f59e0b;
       --info: #06b6d4;
     }
+
+    /* Light Mode Palette */
+    html.light-mode, body.light-mode {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-glow: rgba(79, 70, 229, 0.2);
+      --accent: #059669;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --info: #0284c7;
+    }
+
+    body.light-mode {
+      background: var(--bg);
+      color: var(--text);
+    }
+    body.light-mode .top-bar {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom-color: #e2e8f0;
+    }
+    body.light-mode .back-btn {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+    body.light-mode .back-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    body.light-mode .trip-badge-title {
+      color: #0f172a;
+    }
+    body.light-mode .btn-outline {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #1e293b;
+    }
+    body.light-mode .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+    body.light-mode .trip-meta-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .meta-value {
+      color: #0f172a;
+    }
+    body.light-mode .meta-label {
+      color: #64748b;
+    }
+    body.light-mode .importer-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    body.light-mode .package-select,
+    body.light-mode .day-date-input,
+    body.light-mode .form-input,
+    body.light-mode .form-textarea,
+    body.light-mode .form-select {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    body.light-mode .package-select:focus,
+    body.light-mode .day-date-input:focus,
+    body.light-mode .form-input:focus,
+    body.light-mode .form-textarea:focus,
+    body.light-mode .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+    body.light-mode .day-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    body.light-mode .day-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    body.light-mode .day-header {
+      border-bottom-color: #f1f5f9;
+    }
+    body.light-mode .icon-btn {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #475569;
+    }
+    body.light-mode .icon-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    body.light-mode .sub-box {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    body.light-mode .spot-chip {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #4338ca;
+    }
+    body.light-mode .day-count-badge {
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+    body.light-mode .trip-id-tag {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #4f46e5;
+    }
+    body.light-mode #toast {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    body.light-mode .empty-state {
+      background: #ffffff;
+      border-color: #cbd5e1;
+    }
+    body.light-mode kbd {
+      background: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -479,6 +621,9 @@
     </div>
 
     <div class="action-group">
+      <button type="button" class="btn btn-outline" id="btnThemeToggle" title="Toggle Theme (Light / Dark)" style="padding: 9px 13px;">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
       <button type="button" class="btn btn-outline" id="btnAddDay">
         <i class="fa-solid fa-plus"></i> Add Day
       </button>
@@ -945,6 +1090,28 @@
         showToast(err.message, 'error');
       }
     });
+
+    // Theme Toggle Controller
+    function updateThemeUI() {
+      const isLight = document.documentElement.classList.contains('light-mode');
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+      }
+      if (isLight) {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+    document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      const newTheme = isLight ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('_x_adminTheme', newTheme);
+      updateThemeUI();
+    });
+    updateThemeUI();
   </script>
 </body>
 </html>

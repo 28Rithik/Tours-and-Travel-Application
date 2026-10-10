@@ -6,8 +6,34 @@
     <title>{{ title }} | Sivagayathiri TravelERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        (function() {
+            try {
+                var raw = localStorage.getItem('_x_adminTheme');
+                var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'auto');
+                var isDark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <style>
         :root {
+            --bg-base: #f8fafc;
+            --bg-card: #ffffff;
+            --border-glass: #e2e8f0;
+            --accent-primary: #0284c7;
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        html.dark {
             --bg-base: #090d16;
             --bg-card: rgba(18, 24, 38, 0.85);
             --border-glass: rgba(255, 255, 255, 0.08);
@@ -52,6 +78,7 @@
         .header-title h1 {
             font-size: 26px;
             font-weight: 700;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -83,9 +110,25 @@
         }
 
         .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border-glass);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        html.dark .btn-secondary {
             background: rgba(255, 255, 255, 0.05);
             color: #cbd5e1;
             border: 1px solid var(--border-glass);
+        }
+
+        html.dark .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
 
         .kpi-grid {
@@ -102,6 +145,7 @@
             border-radius: 14px;
             padding: 18px;
             position: relative;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
         }
 
         .kpi-label {
@@ -114,7 +158,7 @@
         .kpi-val {
             font-size: 28px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             margin-top: 6px;
         }
 
@@ -124,6 +168,7 @@
             border: 1px solid var(--border-glass);
             border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
         }
 
         .table-header {
@@ -134,6 +179,10 @@
             align-items: center;
         }
 
+        .table-header h3 {
+            color: var(--text-main);
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -142,7 +191,7 @@
         }
 
         th {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(0, 0, 0, 0.02);
             color: var(--text-muted);
             font-weight: 600;
             padding: 14px 20px;
@@ -151,10 +200,22 @@
             font-size: 12px;
         }
 
+        html.dark th {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
         td {
             padding: 16px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            color: #e2e8f0;
+            border-bottom: 1px solid var(--border-glass);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        html.dark tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .badge-penalty {
@@ -182,20 +243,32 @@
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(8px);
             z-index: 9999;
             align-items: center;
             justify-content: center;
         }
 
+        html.dark #waiverModal {
+            background: rgba(0, 0, 0, 0.75);
+        }
+
         .modal-content {
-            background: #111827;
+            background: #ffffff;
+            color: #0f172a;
             border: 1px solid var(--border-glass);
             border-radius: 16px;
             width: 90%;
             max-width: 500px;
             padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        html.dark .modal-content {
+            background: #111827;
+            color: #f8fafc;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         }
     </style>
 </head>
@@ -210,13 +283,17 @@
                 </h1>
                 <p>Contract delay tracking, penalty deduction audits, and executive waiver management</p>
             </div>
-            <div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <a href="/commute/roster-dispatcher/" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> Roster Dispatcher
                 </a>
                 <a href="/admin/fleet_contracts/contractmonthlyinvoice/" class="btn btn-primary">
                     <i class="fas fa-file-invoice-dollar"></i> Monthly Invoices
                 </a>
+                <button class="btn btn-secondary" onclick="toggleTheme()" title="Toggle Light/Dark Theme" style="padding: 10px 14px;">
+                    <i class="fas fa-sun" id="themeIconSun" style="display:none; color: #f59e0b;"></i>
+                    <i class="fas fa-moon" id="themeIconMoon" style="color: #64748b;"></i>
+                </button>
             </div>
         </header>
 
@@ -288,7 +365,7 @@
                                 <span class="badge-penalty">Deduction Active</span>
                                 {% endif %}
                             </td>
-                            <td style="max-width: 250px; font-size: 12px; color: #cbd5e1;">
+                            <td style="max-width: 250px; font-size: 12px; color: var(--text-muted);">
                                 {{ p.description|default:"SLA breach recorded." }}
                             </td>
                             <td>
@@ -316,14 +393,14 @@
     </div>
 
     <!-- Waiver Modal -->
-    <div id="waiverModal">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 12px; color: #fff;">🛡️ Waive SLA Penalty</h3>
-            <p id="waiverPromptText" style="color: #cbd5e1; font-size: 14px; margin-bottom: 16px;"></p>
+    <div id="waiverModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 16px; padding: 24px; max-width: 480px; width: 100%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);">
+            <h3 style="margin-bottom: 12px; color: var(--text-main);">🛡️ Waive SLA Penalty</h3>
+            <p id="waiverPromptText" style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;"></p>
             <input type="hidden" id="waiverPenaltyId">
             <div style="margin-bottom: 16px;">
                 <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Audit Justification / Waiver Reason:</label>
-                <input type="text" id="waiverReasonInput" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: 8px; color: #fff; font-size: 14px;" value="Waived per Client Mutual Agreement (Force Majeure Traffic)">
+                <input type="text" id="waiverReasonInput" style="width: 100%; padding: 10px; background: var(--bg-base); border: 1px solid var(--border-glass); border-radius: 8px; color: var(--text-main); font-size: 14px;" value="Waived per Client Mutual Agreement (Force Majeure Traffic)">
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button class="btn btn-secondary" onclick="closeWaiverModal()">Cancel</button>
@@ -367,6 +444,25 @@
                 alert('Connection error.');
             }
         }
+
+        function updateThemeIcon() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const sun = document.getElementById('themeIconSun');
+            const moon = document.getElementById('themeIconMoon');
+            if (sun && moon) {
+                sun.style.display = isDark ? 'inline-block' : 'none';
+                moon.style.display = isDark ? 'none' : 'inline-block';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('_x_adminTheme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        document.addEventListener('DOMContentLoaded', updateThemeIcon);
     </script>
 </body>
 </html>

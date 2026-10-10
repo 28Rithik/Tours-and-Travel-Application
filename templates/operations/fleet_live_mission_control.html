@@ -70,18 +70,23 @@
         </div>
     </header>
 
-    <!-- Emergency SOS Alert Banner (Visible when SOS > 0) -->
+    <!-- Emergency SOS Alert Banner (Visible when SOS > 0 or Geofence Breach Active) -->
     <div id="mcSosBanner" class="mc-sos-banner" style="display: none;">
         <div class="mc-sos-banner-content">
             <span class="mc-sos-beacon">🚨</span>
             <div>
-                <strong id="sosBannerTitle">CRITICAL INCIDENT DETECTED</strong>
+                <strong id="sosBannerTitle">CRITICAL GEOFENCE INCIDENT DETECTED</strong>
                 <p id="sosBannerDesc">Emergency alert active. Standby unit dispatch recommended.</p>
             </div>
         </div>
-        <button id="btnOpenDispatchQuick" class="mc-btn mc-btn-danger">
-            ⚡ Quick Standby Dispatch
-        </button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button id="btnAcknowledgeAlert" class="mc-btn" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; font-weight: 700; cursor: pointer;">
+                ✓ Acknowledge Alert
+            </button>
+            <button id="btnOpenDispatchQuick" class="mc-btn mc-btn-danger">
+                ⚡ Quick Standby Dispatch
+            </button>
+        </div>
     </div>
 
     <!-- Filter & Search Toolbar -->
@@ -1207,6 +1212,165 @@
     font-family: 'JetBrains Mono', monospace;
     pointer-events: none;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FLEET TELEMATICS MISSION CONTROL — LIGHT THEME ADAPTATION
+   ══════════════════════════════════════════════════════════════════════════ */
+html:not(.dark) .mission-control-container {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .mc-header {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .mc-main-title {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .mc-kpi-pill {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .mc-kpi-val {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .mc-kpi-lbl {
+    color: #64748b !important;
+}
+
+html:not(.dark) .mc-toolbar {
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .filter-pill {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+html:not(.dark) .filter-pill.is-active {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    border-color: #0284c7 !important;
+}
+
+html:not(.dark) .mc-search-box input {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .mc-sidebar {
+    background: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .mc-tab-headers {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .mc-tab-btn {
+    color: #64748b !important;
+}
+
+html:not(.dark) .mc-tab-btn.is-active {
+    color: #0284c7 !important;
+    border-bottom-color: #0284c7 !important;
+    background: #e0f2fe !important;
+}
+
+html:not(.dark) .mc-section-card,
+html:not(.dark) .gauge-card {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .card-section-title {
+    color: #475569 !important;
+}
+
+html:not(.dark) .gauge-label {
+    color: #64748b !important;
+}
+
+html:not(.dark) .gauge-value {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .reg-number {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .driver-info strong {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .mc-modal-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+html:not(.dark) .mc-modal-header {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .mc-modal-header h3 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .mc-modal-footer {
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .mc-select,
+html:not(.dark) .mc-input,
+html:not(.dark) .mc-textarea {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .form-group label {
+    color: #475569 !important;
+}
+
+html:not(.dark) #devMapPlaceholder {
+    background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%) !important;
+    color: #0f172a !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) #devMapPlaceholder h3 {
+    color: #0284c7 !important;
+}
+
+html:not(.dark) #devMapPlaceholder p {
+    color: #475569 !important;
+}
+
+html:not(.dark) #devMapPlaceholder code {
+    background: #e2e8f0 !important;
+    color: #0369a1 !important;
+}
+
+html:not(.dark) #btnDevAlwaysAutoLoad {
+    background: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
 </style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1528,6 +1692,57 @@
         }
     }
 
+    // --- Check Active Incidents & Geofence Breaches for Hazard Banner ---
+    let activeAlertIncidentId = null;
+
+    function checkSosAlerts(incidents) {
+        const banner = document.getElementById('mcSosBanner');
+        if (!banner) return;
+
+        if (incidents && incidents.length > 0) {
+            const inc = incidents[0];
+            activeAlertIncidentId = inc.incident_id;
+            const titleEl = document.getElementById('sosBannerTitle');
+            const descEl = document.getElementById('sosBannerDesc');
+            if (titleEl) {
+                titleEl.innerText = `🚨 ${inc.severity.toUpperCase()} ALERT: ${inc.incident_id} (${inc.vehicle_reg})`;
+            }
+            if (descEl) {
+                descEl.innerText = `${inc.incident_type} at ${inc.location || 'GPS Coordinates'}. ${inc.description}`;
+            }
+            banner.style.display = 'flex';
+        } else {
+            activeAlertIncidentId = null;
+            banner.style.display = 'none';
+        }
+    }
+
+    async function acknowledgeActiveIncident() {
+        if (!activeAlertIncidentId) return;
+        const btn = document.getElementById('btnAcknowledgeAlert');
+        if (btn) btn.innerText = 'Acknowledging...';
+        try {
+            const resp = await fetch(`/api/incidents/${activeAlertIncidentId}/acknowledge/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ notes: 'Acknowledged via Mission Control Command Banner' })
+            });
+            const data = await resp.json();
+            if (data.status === 'success') {
+                fetchLiveFeed();
+            } else {
+                alert(data.message || 'Error acknowledging incident');
+            }
+        } catch (err) {
+            console.error('Error acknowledging incident:', err);
+        } finally {
+            if (btn) btn.innerText = '✓ Acknowledge Alert';
+        }
+    }
+
     // --- Select Vehicle & Display in Telemetry Inspector ---
     function selectVehicle(v, panToMap = true) {
         selectedVehicleId = v.id;
@@ -1712,7 +1927,7 @@
 
     // --- Developer Mode: Map Auto-Load Controller ---
     let isMapLoaded = false;
-    let isDevMapPaused = localStorage.getItem('travelerp_dev_pause_maps') !== 'false';
+    let isDevMapPaused = localStorage.getItem('travelerp_dev_pause_maps') === 'true';
 
     function updateDevPauseUI() {
         const btnText = document.getElementById('devPauseText');
@@ -1851,8 +2066,11 @@
             btn.addEventListener('click', () => switchTab(btn.dataset.tab));
         });
 
-        // Modal triggers
-        document.getElementById('btnOpenDispatchQuick').addEventListener('click', () => openDispatchModal());
+        // Modal & Alert triggers
+        const btnAck = document.getElementById('btnAcknowledgeAlert');
+        if (btnAck) btnAck.addEventListener('click', acknowledgeActiveIncident);
+        const btnQuick = document.getElementById('btnOpenDispatchQuick');
+        if (btnQuick) btnQuick.addEventListener('click', () => openDispatchModal());
         const triggerDetail = document.getElementById('btnTriggerDispatchFromDetail');
         if (triggerDetail) {
             triggerDetail.addEventListener('click', () => {

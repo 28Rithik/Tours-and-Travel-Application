@@ -107,6 +107,22 @@ class TransportContract(models.Model):
         blank=True,
         help_text="Vertical-specific operational rules, compliance checklists, and SLA parameters"
     )
+    campus_latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        default=Decimal('11.016800'),
+        help_text="Campus / Destination Facility GPS Latitude"
+    )
+    campus_longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        default=Decimal('76.955800'),
+        help_text="Campus / Destination Facility GPS Longitude"
+    )
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -125,6 +141,22 @@ class TransportContract(models.Model):
                 
             if overlapping_contracts.exists():
                 raise ValidationError('An active contract for this customer already exists in this date range.')
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(end_date__gte=models.F('start_date')),
+                name='contract_end_date_gte_start_date'
+            ),
+            models.CheckConstraint(
+                check=models.Q(default_rate__gte=0),
+                name='contract_default_rate_non_negative'
+            ),
+            models.CheckConstraint(
+                check=models.Q(committed_vehicle_count__gte=0),
+                name='contract_committed_vehicles_non_negative'
+            ),
+        ]
 
     def __str__(self):
         return f"{self.name} - {self.customer.name}"
@@ -164,6 +196,8 @@ class RouteStop(models.Model):
     )
     pickup_landmark = models.CharField(max_length=255, blank=True, help_text="Key landmark / GPS reference")
     expected_passenger_count = models.PositiveIntegerField(default=0, help_text="Expected commuters boarding here")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text="GPS Latitude")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text="GPS Longitude")
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -355,6 +389,9 @@ class CommuterManifest(models.Model):
         related_name='assigned_commuters',
         help_text="Designated pickup/drop stop"
     )
+    pickup_address = models.CharField(max_length=255, blank=True, help_text="Home doorstep or pickup address")
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text="Home/Pickup GPS Latitude")
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True, help_text="Home/Pickup GPS Longitude")
     requires_night_escort = models.BooleanField(
         default=False,
         help_text="Flagged for female night drops requiring escort security confirmation"
@@ -432,6 +469,16 @@ class ContractTripLog(models.Model):
         related_name='replaced_trips',
         help_text="Primary vehicle that broke down"
     )
+    cluster_code = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="AI Route Clustering Code (e.g. CLUS-MORN-V01)"
+    )
+    cluster_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Optimized waypoints, metrics, and TSP sequence"
+    )
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -454,6 +501,22 @@ class ContractTripLog(models.Model):
                 if settlement.batta != self.driver_bata:
                     settlement.batta = self.driver_bata
                     settlement.save(update_fields=['batta'])
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(closing_km__isnull=True) | models.Q(opening_km__isnull=True) | models.Q(closing_km__gte=models.F('opening_km')),
+                name='contract_trip_closing_km_gte_opening_km'
+            ),
+            models.CheckConstraint(
+                check=models.Q(driver_bata__gte=0),
+                name='contract_trip_driver_bata_non_negative'
+            ),
+            models.CheckConstraint(
+                check=models.Q(toll_parking_charges__gte=0),
+                name='contract_trip_toll_parking_non_negative'
+            ),
+        ]
 
     def __str__(self):
         return f"{self.shift} on {self.date}"

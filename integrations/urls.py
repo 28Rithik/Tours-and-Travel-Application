@@ -29,4 +29,8 @@ urlpatterns = [
     # Left Sidebar Feature 2: Manager Approvals Module
     path('approvals/', views.manager_approvals_view, name='manager_approvals'),
     path('approvals/<int:approval_id>/action/', views.api_action_approval, name='api_action_approval'),
+
+    # Zoho Arattai Business Webhook
+    path('arattai/webhook/', views.arattai_inbound_webhook_view, name='arattai_webhook'),
+    path('api/arattai/webhook/', views.arattai_inbound_webhook_view, name='api_arattai_webhook'),
 ]

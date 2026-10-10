@@ -150,6 +150,20 @@ else:
         )
     }
 
+# ==============================================================================
+# IN-MEMORY HIGH PERFORMANCE CACHE SUBSYSTEM
+# ==============================================================================
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'travelerp-local-cache',
+        'TIMEOUT': 600,  # 10 minutes default
+        'OPTIONS': {
+            'MAX_ENTRIES': 3000,
+        }
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -257,6 +271,11 @@ UNFOLD = {
             "800": "7 89 133",
             "900": "12 74 110",
             "950": "8 47 73",
+        },
+        "font": {
+            "subtle-light": "#334155",
+            "default-light": "#0f172a",
+            "important-light": "#020617",
         },
     },
     "SIDEBAR": {
@@ -431,12 +450,14 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {"title": "🎨 2D Damage Marker Studio", "icon": "brush", "link": "/maintenance/damage-marker/"},
+                    {"title": "🛞 2D Axle & Tire Health Studio", "icon": "tire_repair", "link": "/maintenance/tire-studio/"},
                     {"title": "Damage Inspections", "icon": "car_crash", "link": reverse_lazy("admin:maintenance_vehicledamageinspection_changelist")},
                     {"title": "Pre-Trip Inspections", "icon": "fact_check", "link": reverse_lazy("admin:maintenance_pretripinspectionchecklist_changelist")},
                     {"title": "Defect Tickets", "icon": "bug_report", "link": reverse_lazy("admin:maintenance_defectticket_changelist")},
                     {"title": "Service Reminders", "icon": "notifications", "link": reverse_lazy("admin:maintenance_servicereminder_changelist")},
                     {"title": "Service Records", "icon": "build_circle", "link": reverse_lazy("admin:maintenance_servicerecord_changelist")},
                     {"title": "Vehicle Assets", "icon": "inventory", "link": reverse_lazy("admin:maintenance_vehicleasset_changelist")},
+                    {"title": "Tire Inspection Logs", "icon": "speed", "link": reverse_lazy("admin:maintenance_tireinspectionlog_changelist")},
                     {"title": "Part Inventory", "icon": "settings", "link": reverse_lazy("admin:maintenance_partinventory_changelist")},
                 ],
             },
@@ -561,6 +582,7 @@ UNFOLD = {
                 "icon": "admin_panel_settings",
                 "collapsible": True,
                 "items": [
+                    {"title": "🛡️ Database Health Dashboard", "icon": "health_and_safety", "link": "/admin/operations/database-health/"},
                     {"title": "Supplier Contracts", "icon": "description", "link": reverse_lazy("admin:enterprise_governance_suppliercontractproxy_changelist")},
                     {"title": "Commission Rules", "icon": "percent", "link": reverse_lazy("admin:enterprise_governance_commissionruleproxy_changelist")},
                     {"title": "Audit Logs", "icon": "history", "link": reverse_lazy("admin:enterprise_governance_auditlogentryproxy_changelist")},

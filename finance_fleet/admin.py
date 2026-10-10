@@ -134,16 +134,16 @@ class FuelRecordAdmin(ModelAdmin):
 
     @admin.display(description='Qty (Litres)', ordering='fuel_quantity')
     def fuel_quantity_display(self, obj):
-        return f'{obj.fuel_quantity:,.2f} L'
+        return format_html('<span class="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded">{}</span>', f'{obj.fuel_quantity:,.2f} L')
 
     @admin.display(description='Rate', ordering='fuel_price')
     def fuel_price_display(self, obj):
-        return f'₹{obj.fuel_price:,.2f}/L'
+        return format_html('<span class="font-mono text-xs text-slate-600 dark:text-slate-400">{}</span>', f'₹{obj.fuel_price:,.2f}/L')
 
-    @admin.display(description='Total Cost')
+    @admin.display(description='Total Cost', ordering='amount')
     def total_cost_display(self, obj):
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">{}</span>',
             f'₹{obj.amount:,.2f}',
         )
 
@@ -151,32 +151,33 @@ class FuelRecordAdmin(ModelAdmin):
     def distance_display(self, obj):
         dist = obj.distance
         if dist > 0:
-            return f'{dist:,} km'
-        return '—'
+            return format_html('<span class="font-mono text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 border border-sky-300 dark:border-sky-800 px-2 py-0.5 rounded">{}</span>', f'{dist:,} km')
+        return mark_safe('<span class="text-slate-400">—</span>')
 
     @admin.display(description='Mileage')
     def mileage_display(self, obj):
         m = obj.mileage
         if m > 0:
-            return f'{m:.2f} km/L'
-        return '—'
+            color_class = "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800" if m >= 4.0 else "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800"
+            return format_html('<span class="inline-flex items-center px-2 py-0.5 rounded font-mono text-xs font-bold border {}">{}</span>', color_class, f'{m:.2f} km/L')
+        return mark_safe('<span class="text-slate-400">—</span>')
 
     @admin.display(description='Theft Alert')
     def theft_alert_badge(self, obj):
         if obj.is_theft_suspected:
             return mark_safe(
-                '<span class="badge badge-danger" style="animation: pulse 1.5s infinite;">⚠️ Low Mileage (Theft?)</span>'
+                '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800 animate-pulse">⚠️ Low Mileage (Theft?)</span>'
             )
-        return mark_safe('<span class="badge badge-success">✓ Normal</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800">✓ Normal</span>')
 
     @admin.display(description='Petro Card')
     def petro_account_badge(self, obj):
         if obj.petro_account:
             return format_html(
-                '<span class="badge badge-info"><i class="fas fa-credit-card mr-1"></i>{}</span>',
+                '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-sky-50 text-sky-800 border border-sky-300 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800">💳 {}</span>',
                 obj.petro_account.account_name,
             )
-        return mark_safe('<span class="badge badge-secondary">Cash / Local</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Cash / Local</span>')
 
     @admin.display(description='Receipt')
     def receipt_link(self, obj):
@@ -295,14 +296,14 @@ class FastagTollDeductionAdmin(ModelAdmin):
     @admin.display(description='Toll Plaza')
     def toll_plaza_badge(self, obj):
         return format_html(
-            '<span class="badge badge-secondary"><i class="fas fa-road mr-1"></i>{}</span>',
+            '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">🛣️ {}</span>',
             obj.toll_plaza or 'National Highway Toll',
         )
 
     @admin.display(description='Amount', ordering='amount')
     def amount_display(self, obj):
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-rose-50 dark:bg-rose-950/50 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800">{}</span>',
             f'₹{obj.amount:,.2f}',
         )
 
@@ -310,10 +311,10 @@ class FastagTollDeductionAdmin(ModelAdmin):
     def account_badge(self, obj):
         if obj.account:
             return format_html(
-                '<span class="badge badge-info">{}</span>',
+                '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-sky-50 text-sky-800 border border-sky-300 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800">💳 {}</span>',
                 obj.account.account_name,
             )
-        return '—'
+        return mark_safe('<span class="text-slate-400">—</span>')
 
     @admin.display(description='Linked Trip / Shift')
     def trip_link(self, obj):

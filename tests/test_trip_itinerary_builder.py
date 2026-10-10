@@ -222,3 +222,56 @@ class TripItineraryBuilderTestCase(TestCase):
         response2 = self.client.get(id_url)
         self.assertEqual(response2.status_code, 200)
         self.assertContains(response2, 'TR-TEST-0042')
+
+    def test_linked_hotel_voucher_resolution_and_guest_portal(self):
+        """Test linked_voucher property links HotelConfirmationVoucher to itinerary day."""
+        from suppliers.models import HotelConfirmationVoucher
+
+        self.trip.import_package_itinerary(self.package)
+        day1 = self.trip.itinerary_days.get(day_number=1)
+        day1.hotel_voucher_number = 'VCH-ROYAL-771'
+        day1.hotel_name = 'Royal Orchid Metropole'
+        day1.save()
+
+        voucher = HotelConfirmationVoucher.objects.create(
+            voucher_number='VCH-ROYAL-771',
+            trip=self.trip,
+            hotel_name='Royal Orchid Metropole',
+            hotel_city='Mysore',
+            check_in_date=self.trip.start_date,
+            check_out_date=self.trip.start_date + timedelta(days=1),
+            total_nights=1,
+            lead_guest_name=self.trip.guest_name,
+        )
+
+        # Check property resolution
+        self.assertIsNotNone(day1.linked_voucher)
+        self.assertEqual(day1.linked_voucher.pk, voucher.pk)
+
+        # Check guest portal renders link to voucher
+        url = reverse('trip-itinerary-portal', args=[self.trip.pk])
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'View Hotel Voucher')
+        self.assertContains(res, f'/suppliers/hotel-voucher/{voucher.pk}/print/')
+
+    def test_trip_detail_view_includes_itinerary_controls(self):
+        """Test operational trip detail view contains Itinerary Studio and Guest Portal links."""
+        self.trip.import_package_itinerary(self.package)
+        url = reverse('trip-detail', args=[self.trip.pk])
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'Itinerary Studio')
+        self.assertContains(res, 'Guest Tour Portal')
+        self.assertContains(res, 'Tour Itinerary &amp; Sightseeing Schedule')
+        self.assertContains(res, 'Bangalore to Mysore Heritage &amp; Palace')
+
+    def test_driver_cockpit_includes_tour_schedule(self):
+        """Test chauffeur mobile cockpit displays the tour itinerary schedule link."""
+        self.trip.import_package_itinerary(self.package)
+        url = reverse('driver_portal:trip_detail', args=[self.trip.pk])
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, 'Tour Itinerary')
+        self.assertContains(res, 'Schedule &rarr;')
+

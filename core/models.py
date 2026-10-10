@@ -20,6 +20,17 @@ class Party(models.Model):
 	is_active = models.BooleanField(default=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=models.Q(default_day_rate__gte=0) & models.Q(default_km_rate__gte=0) & models.Q(tds_rate__gte=0),
+				name='party_rates_non_negative'
+			),
+		]
+		indexes = [
+			models.Index(fields=['is_active', 'party_type'], name='idx_party_active_type'),
+		]
+
 	def __str__(self):
 		return self.name
 
@@ -186,6 +197,11 @@ class Driver(models.Model):
 			start_date__lte=today,
 			end_date__gte=today
 		).first()
+
+	class Meta:
+		indexes = [
+			models.Index(fields=['status', 'driver_type'], name='idx_drv_status_type'),
+		]
 
 	def __str__(self):
 		return self.name
@@ -406,6 +422,12 @@ class Vehicle(models.Model):
 			return {'status': 'expiring_soon', 'label': f'{name} due in {in_days}d', 'color': '#f59e0b', 'count': len(expiring_soon)}
 		else:
 			return {'status': 'valid', 'label': 'Compliant', 'color': '#16a34a', 'count': 0}
+
+	class Meta:
+		indexes = [
+			models.Index(fields=['status', 'vehicle_type'], name='idx_veh_status_type'),
+			models.Index(fields=['ownership_type', 'status'], name='idx_veh_owner_status'),
+		]
 
 	def __str__(self):
 		return f'{self.vehicle_type} ({self.registration_number})'

@@ -284,6 +284,94 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #cbd5e1;
 }
+
+/* ── Light Mode (html:not(.dark)) Overrides ────────────────────────────── */
+html:not(.dark) {
+    --cockpit-dark-bg: #f8fafc;
+    --cockpit-panel-bg: #ffffff;
+    --cockpit-panel-border: #e2e8f0;
+    --cockpit-title-color: #0f172a;
+    --cockpit-amount-color: #059669;
+}
+
+html:not(.dark) .cockpit-wrapper {
+    color: #0f172a;
+    background: radial-gradient(circle at 10% 10%, rgba(56, 189, 248, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
+                #f8fafc;
+}
+
+html:not(.dark) .cockpit-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .cockpit-desc {
+    color: #64748b;
+}
+
+html:not(.dark) .btn-action-secondary {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+html:not(.dark) .btn-action-secondary:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .kpi-label {
+    color: #64748b;
+}
+
+html:not(.dark) .kpi-value {
+    color: #0f172a;
+}
+
+html:not(.dark) .kpi-subtext {
+    color: #64748b;
+}
+
+html:not(.dark) .desk-card {
+    background: #ffffff;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+html:not(.dark) .desk-header {
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .desk-title {
+    color: #0f172a;
+}
+
+html:not(.dark) .desk-table th {
+    background: #f8fafc;
+    color: #475569;
+    border-bottom-color: #e2e8f0;
+}
+
+html:not(.dark) .desk-table td {
+    color: #1e293b;
+    border-bottom-color: #f1f5f9;
+}
+
+html:not(.dark) .desk-table tr:hover td {
+    background: #f8fafc;
+}
+
+html:not(.dark) .source-tag {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #475569;
+}
 </style>
 
 <div class="cockpit-wrapper">
@@ -364,12 +452,12 @@
                 <tbody>
                     {% for fu in pending_followups %}
                     <tr>
-                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #ffffff;">
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--cockpit-title-color, inherit);">
                             {{ fu.scheduled_at|date:"d-M H:i" }}
                         </td>
                         <td>
-                            <strong style="color: #ffffff;">{{ fu.inquiry.party.name|default:fu.inquiry.guest_name }}</strong><br>
-                            <small style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">{{ fu.inquiry.guest_phone|default:"No phone" }}</small>
+                            <strong style="color: var(--cockpit-title-color, inherit); font-weight: 700;">{{ fu.inquiry.party.name|default:fu.inquiry.guest_name }}</strong><br>
+                            <small style="color: #64748b; font-family: 'JetBrains Mono', monospace;">{{ fu.inquiry.guest_phone|default:"No phone" }}</small>
                         </td>
                         <td>
                             <a href="/admin/crm/inquiry/{{ fu.inquiry.id }}/change/" class="inq-link-cyan">
@@ -381,7 +469,7 @@
                                 💬 {{ fu.get_channel_display|default:"Call" }}
                             </span>
                         </td>
-                        <td style="color: #94a3b8; max-width: 320px;">
+                        <td style="color: #64748b; max-width: 320px;">
                             {{ fu.notes|truncatechars:70|default:"Scheduled follow-up regarding holiday package quote." }}
                         </td>
                         <td>
@@ -409,7 +497,7 @@
                 <span>🧭</span> Recent Assigned Inquiries
                 <span class="badge-count">{{ my_inquiries|length }}</span>
             </h2>
-            <a href="/admin/crm/inquiry/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+            <a href="/admin/crm/inquiry/" style="font-size: 0.82rem; color: #0284c7; text-decoration: none; font-weight: 700;">
                 Open Full CRM Registry →
             </a>
         </div>
@@ -435,12 +523,12 @@
                             </a>
                         </td>
                         <td>
-                            <strong style="color: #ffffff;">{{ inq.party.name|default:inq.guest_name }}</strong><br>
-                            <small style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">{{ inq.guest_phone|default:"" }}</small>
+                            <strong style="color: var(--cockpit-title-color, inherit); font-weight: 700;">{{ inq.party.name|default:inq.guest_name }}</strong><br>
+                            <small style="color: #64748b; font-family: 'JetBrains Mono', monospace;">{{ inq.guest_phone|default:"" }}</small>
                         </td>
                         <td>
-                            <span style="color: #ffffff;">{{ inq.destination|default:"Tamil Nadu Tour" }}</span>
-                            {% if inq.adult_count %}<span style="color: #94a3b8; font-family: 'JetBrains Mono', monospace;">({{ inq.adult_count }} Pax)</span>{% endif %}
+                            <span style="color: var(--cockpit-title-color, inherit);">{{ inq.destination|default:"Tamil Nadu Tour" }}</span>
+                            {% if inq.adult_count %}<span style="color: #64748b; font-family: 'JetBrains Mono', monospace;">({{ inq.adult_count }} Pax)</span>{% endif %}
                         </td>
                         <td>
                             <span class="source-tag">
@@ -456,7 +544,7 @@
                                 {{ inq.get_status_display|default:inq.status }}
                             </span>
                         </td>
-                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                        <td style="color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
                             {{ inq.created_at|date:"d-M H:i" }}
                         </td>
                         <td>
@@ -484,7 +572,7 @@
                 <span>💼</span> Quotations Pipeline
                 <span class="badge-count">{{ my_quotations|length }}</span>
             </h2>
-            <a href="/admin/crm/quotation/" style="font-size: 0.82rem; color: #38bdf8; text-decoration: none; font-weight: 700;">
+            <a href="/admin/crm/quotation/" style="font-size: 0.82rem; color: #0284c7; text-decoration: none; font-weight: 700;">
                 View All Quotations →
             </a>
         </div>
@@ -510,12 +598,12 @@
                             </a>
                         </td>
                         <td>
-                            <strong style="color: #ffffff;">{{ q.party.name|default:q.guest_name }}</strong>
+                            <strong style="color: var(--cockpit-title-color, inherit); font-weight: 700;">{{ q.party.name|default:q.guest_name }}</strong>
                         </td>
-                        <td style="color: #94a3b8;">
+                        <td style="color: #64748b;">
                             {{ q.title|default:"Custom Tour Package" }}
                         </td>
-                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #34d399;">
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--cockpit-amount-color, #059669);">
                             ₹{{ q.gross_price|default:"0.00" }}
                         </td>
                         <td>
@@ -523,7 +611,7 @@
                                 {{ q.get_status_display|default:q.status }}
                             </span>
                         </td>
-                        <td style="color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                        <td style="color: #64748b; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
                             {{ q.valid_until|date:"d-M-Y"|default:"30 Days" }}
                         </td>
                         <td>

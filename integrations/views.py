@@ -354,3 +354,24 @@ def api_action_approval(request, approval_id):
         messages.warning(request, f"Approval Request #{approval.approval_number} was REJECTED.")
 
     return redirect('integrations:manager_approvals')
+
+
+@csrf_exempt
+def arattai_inbound_webhook_view(request):
+    """
+    Inbound webhook receiver for Zoho Arattai business platform.
+    Automatically processes incoming guest messages, status lookups,
+    and questions answered through Rathasārathi AI grounded RAG!
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'ok', 'gateway': 'Zoho Arattai Business Webhook Active'})
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST.dict()
+
+    from .arattai_service import ArattaiBusinessService
+    result = ArattaiBusinessService.handle_inbound_webhook(data)
+    return JsonResponse(result)
+

@@ -17,6 +17,11 @@ from .views import (
     api_petty_cash_audit_action,
     api_petty_cash_stats,
     driver_mobile_wallet_view,
+    admin_bank_reconciliation_studio_view,
+    api_bank_reconciliation_upload,
+    api_bank_reconciliation_reconcile_entry,
+    api_bank_reconciliation_batch,
+    export_bank_reconciliation_report_view,
 )
 
 urlpatterns = [
@@ -31,13 +36,20 @@ urlpatterns = [
     path('payslips/<int:payslip_id>/', driver_payslip_detail_view, name='driver-payslip-detail'),
     path('api/payment-context/', api_payment_context, name='finance-api-payment-context'),
     path('api/invoice/<int:invoice_id>/whatsapp/', api_dispatch_corporate_invoice_whatsapp, name='api-finance-invoice-whatsapp'),
-    # Phase 5: Petty Cash Float Register & Cash Wallet Studio
+    # Petty Cash Float Register & Cash Wallet Studio
     path('petty-cash/', admin_petty_cash_studio_view, name='petty-cash-studio'),
     path('wallet/', driver_mobile_wallet_view, name='driver-wallet'),
     path('api/petty-cash/topup/', api_petty_cash_topup, name='api-petty-cash-topup'),
     path('api/petty-cash/disburse/', api_petty_cash_disburse, name='api-petty-cash-disburse'),
     path('api/petty-cash/audit-action/<int:txn_id>/', api_petty_cash_audit_action, name='api-petty-cash-audit-action'),
     path('api/petty-cash/stats/', api_petty_cash_stats, name='api-petty-cash-stats'),
+    # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching
+    path('bank-reconciliation/', admin_bank_reconciliation_studio_view, name='bank-reconciliation-studio'),
+    path('bank-reconciliation/export/', export_bank_reconciliation_report_view, name='bank-reconciliation-export'),
+    path('bank-reconciliation/export/<int:upload_id>/', export_bank_reconciliation_report_view, name='bank-reconciliation-upload-export'),
+    path('api/bank-reconciliation/upload/', api_bank_reconciliation_upload, name='api-bank-reconciliation-upload'),
+    path('api/bank-reconciliation/reconcile/<int:entry_id>/', api_bank_reconciliation_reconcile_entry, name='api-bank-reconciliation-reconcile'),
+    path('api/bank-reconciliation/batch/', api_bank_reconciliation_batch, name='api-bank-reconciliation-batch'),
 ]
 
 

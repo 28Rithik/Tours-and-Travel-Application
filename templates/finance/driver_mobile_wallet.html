@@ -9,6 +9,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <script>
+    (function() {
+      var savedTheme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+
   <style>
     :root {
       --bg: #090d16;
@@ -21,6 +30,58 @@
       --text: #f8fafc;
       --text-muted: #94a3b8;
     }
+
+    /* Light Mode Customizations */
+    html.light-mode, body.light-mode {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #4f46e5;
+      --accent: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body.light-mode {
+      background: var(--bg);
+      color: var(--text);
+    }
+    body.light-mode .mobile-header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom-color: #e2e8f0;
+    }
+    body.light-mode .balance-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+    }
+    body.light-mode .txn-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    body.light-mode .txn-cat {
+      color: #0f172a;
+    }
+    body.light-mode .modal-box {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    body.light-mode .modal-box h3 {
+      color: #0f172a !important;
+    }
+    body.light-mode .form-input,
+    body.light-mode .form-select,
+    body.light-mode .form-textarea {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -214,9 +275,14 @@
       <div class="brand-icon"><i class="fa-solid fa-wallet"></i></div>
       <div style="font-weight: 800; font-size: 14px;">Driver Cash Float Wallet</div>
     </div>
-    {% if trip %}
-      <span style="font-size: 11px; background: rgba(99,102,241,0.2); color: #818cf8; padding: 3px 8px; border-radius: 6px; font-weight: 700;">#{{ trip.trip_id }}</span>
-    {% endif %}
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <button type="button" id="btnThemeToggle" title="Toggle Theme" style="background: rgba(255,255,255,0.06); border: 1px solid var(--card-border); color: var(--text); padding: 5px 9px; border-radius: 6px; cursor: pointer;">
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
+      </button>
+      {% if trip %}
+        <span style="font-size: 11px; background: rgba(99,102,241,0.2); color: #818cf8; padding: 3px 8px; border-radius: 6px; font-weight: 700;">#{{ trip.trip_id }}</span>
+      {% endif %}
+    </div>
   </header>
 
   <main class="mobile-container">
@@ -357,6 +423,28 @@
         alert(err.message);
       }
     };
+
+    // Theme Toggle Controller
+    function updateThemeUI() {
+      const isLight = document.documentElement.classList.contains('light-mode');
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+      }
+      if (isLight) {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+    document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      const newTheme = isLight ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('_x_adminTheme', newTheme);
+      updateThemeUI();
+    });
+    updateThemeUI();
   </script>
 </body>
 </html>

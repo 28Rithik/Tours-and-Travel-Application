@@ -29,18 +29,18 @@ logger = logging.getLogger(__name__)
 DEFAULT_GROQ_MODEL = getattr(settings, 'GROQ_MODEL', 'llama-3.3-70b-versatile')
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
-# System Prompt defining TARA's role and capabilities
-TARA_SYSTEM_PROMPT = """You are TARA, the intelligent AI Operations Copilot and Business Brain for Sivagayathiri Travels & Tours (HQ in Coimbatore, Tamil Nadu, operating tours across South & Pan-India).
-You have real-time access to live database tools to inspect active tours, vehicle compliance (Insurance, PUC, Permits, Fitness), driver safety telemetry, financials (revenue, collections, receivables), and CRM leads.
+# System Prompt defining Rathasārathi AI's role and capabilities
+TARA_SYSTEM_PROMPT = """You are Rathasārathi AI (रथसारथी) — The Royal Charioteer Operations Intelligence & Business Brain for Sivagayathiri Travels & Tours (HQ in Coimbatore, Tamil Nadu, operating pan-India tours).
+You have real-time access to:
+1. Live database tools to inspect active tours, vehicle compliance (Insurance, PUC, Permits, Fitness), driver safety telemetry, financials, and CRM leads.
+2. An internal RAG knowledge repository covering South India tour packages, cancellation & refund slabs, chauffeur night bata rules, temple dress codes, Nilgiris/Kodaikanal e-pass regulations, and fleet emergency SOPs.
 
 Guidelines:
-1. Always use the available tools to fetch accurate, real-time facts before answering. Never hallucinate trip IDs, vehicle numbers, or financial metrics.
-2. Present answers in a clear, executive-friendly markdown format:
-   - Use bold highlights, emoji indicators (🟢, ⚠️, 🚨, 💰, 🚌), and bullet points.
-   - When presenting metrics, provide clear context (e.g. "Collection Rate: 94.2%").
-   - Highlight actionable insights or urgent warnings (e.g. expiring documents within 7-30 days).
-3. Conclude with proactive recommendations or 1-click operational next steps.
-4. Keep answers professional, concise, yet comprehensive.
+1. Always use the available tools and grounded RAG knowledge to answer with real facts. Never hallucinate trip numbers or rates.
+2. Present answers in clear, executive-friendly markdown with emojis (🟢, ⚠️, 🚨, 💰, 🚌, 🏛️, 👑), bullet points, and bold metrics.
+3. When addressing tourism or policy questions, cite company guidelines (e.g. "Per Sivagayathiri Booking Policy 2026...").
+4. Conclude with proactive recommendations or 1-click operational next steps.
+5. Keep answers courteous, authoritative, concise, yet comprehensive.
 """
 
 # ==============================================================================
@@ -512,7 +512,15 @@ def execute_groq_llm(user_message, conversation_history=None, api_key=None, mode
 
     model_name = model or getattr(settings, 'GROQ_MODEL', DEFAULT_GROQ_MODEL)
 
-    messages = [{"role": "system", "content": TARA_SYSTEM_PROMPT}]
+    # RAG Grounding Search
+    from operations.rag_engine import RAGKnowledgeEngine
+    rag_chunks = RAGKnowledgeEngine.search(user_message, top_k=2, min_score=0.10)
+    sys_content = TARA_SYSTEM_PROMPT
+    if rag_chunks:
+        rag_text = "\n\n---\n".join([f"[{c['category_display']} - {c['document_title']}]\n{c['content']}" for c in rag_chunks])
+        sys_content += f"\n\n### INTERNAL GROUNDING KNOWLEDGE (FROM SIVAGAYATHIRI RAG REPOSITORY):\n{rag_text}\n"
+
+    messages = [{"role": "system", "content": sys_content}]
 
     # Add historical messages (limit to recent 6 turns)
     if conversation_history and isinstance(conversation_history, list):
@@ -814,36 +822,67 @@ def execute_local_semantic_copilot(user_query):
         ]
 
     else:
-        # General assistance / greeting
-        tours = get_active_tours_summary()
-        comp = get_compliance_expiry_alerts()
-        fin = get_financial_revenue_overview()
+        # Check RAG Knowledge Base for Tour Packages, Cancellation, Temple Rules, Driver Bata, SOPs
+        from operations.rag_engine import RAGKnowledgeEngine
+        rag_matches = RAGKnowledgeEngine.search(user_query, top_k=2, min_score=0.10)
 
-        kpi_cards = [
-            {"label": "Active Tours", "value": str(tours['total_active_tours']), "color": "#0284c7", "icon": "route"},
-            {"label": "Compliance Alerts", "value": str(comp['total_vehicle_compliance_alerts']), "color": "#f59e0b", "icon": "shield"},
-            {"label": "Collection Rate", "value": f"{fin['collection_rate_percent']}%", "color": "#10b981", "icon": "payments"},
-        ]
+        if rag_matches:
+            top_match = rag_matches[0]
+            kpi_cards = [
+                {"label": "Knowledge Category", "value": top_match["category_display"][:22], "color": "#0284c7", "icon": "menu_book"},
+                {"label": "RAG Confidence", "value": f"{min(int(top_match['score'] * 150), 99)}%", "color": "#10b981", "icon": "psychology"},
+            ]
+            reply = f"### 👑 Rathasārathi AI — Grounded Operations Intelligence\n\n"
+            for m in rag_matches:
+                reply += f"#### {m['category_display']} • {m['document_title']}\n"
+                reply += f"*(Relevance: {m['score']} • Source: {m['source']})*\n\n"
+                snippet = m['content'].strip()
+                if len(snippet) > 850:
+                    snippet = snippet[:850] + "...\n*(Refer to full circular for complete schedule)*"
+                reply += f"{snippet}\n\n---\n\n"
+            reply += "💡 *Operational Mandate:* All chauffeur dispatches and guest inquiries must strictly observe these standard operating procedures."
 
-        reply = f"👋 **Hello! I'm TARA, your Operations Business Brain.**\n\n"
-        reply += "I'm connected directly to your live database. Ask me anything about your tours, fleet compliance, revenue, driver safety, or fleet availability!\n\n"
-        reply += "#### ⚡ Instant Highlights Right Now:\n"
-        reply += f"- 🚌 **{tours['total_active_tours']} Active Tours** in progress today.\n"
-        reply += f"- 🛡️ **{comp['total_vehicle_compliance_alerts']} Vehicles** have compliance documents expiring within 30 days.\n"
-        reply += f"- 💰 **{fin['collection_rate_percent']}% Collection Rate** for {fin['month']}.\n\n"
-        reply += "Try clicking one of the suggested queries below or type any operational question."
+            actions = [
+                {"label": "🗺️ Browse Tour Packages", "url": "/package-tours/", "primary": True},
+                {"label": "📄 RAG Knowledge Studio", "url": "/admin/documents/knowledgedocument/", "primary": False},
+            ]
+            suggested = [
+                "What is the cancellation policy?",
+                "What are temple dress code rules for Madurai?",
+                "Driver night bata rules",
+                "Vehicle breakdown and replacement SOP"
+            ]
+        else:
+            # General assistance / greeting
+            tours = get_active_tours_summary()
+            comp = get_compliance_expiry_alerts()
+            fin = get_financial_revenue_overview()
 
-        actions = [
-            {"label": "🛰️ Live Fleet Radar", "url": "/admin/operations/fleet-radar/", "primary": True},
-            {"label": "📊 Executive DMC Dashboard", "url": "/crm/dashboard/", "primary": False},
-        ]
-        suggested = [
-            "How many tours are running today?",
-            "Which vehicles need insurance renewal?",
-            "What is our revenue and collection rate?",
-            "Show driver safety scorecard alerts",
-            "Available Innovas tomorrow"
-        ]
+            kpi_cards = [
+                {"label": "Active Tours", "value": str(tours['total_active_tours']), "color": "#0284c7", "icon": "route"},
+                {"label": "Compliance Alerts", "value": str(comp['total_vehicle_compliance_alerts']), "color": "#f59e0b", "icon": "shield"},
+                {"label": "Collection Rate", "value": f"{fin['collection_rate_percent']}%", "color": "#10b981", "icon": "payments"},
+            ]
+
+            reply = f"👑 **Namaste! I am Rathasārathi AI (रथसारथी), your Operations Charioteer & Business Brain.**\n\n"
+            reply += "I'm integrated directly with your live database and internal travel knowledge repositories. Ask me anything about active tours, vehicle compliance, revenue, driver safety, or tour package guidelines!\n\n"
+            reply += "#### ⚡ Instant Highlights Right Now:\n"
+            reply += f"- 🚌 **{tours['total_active_tours']} Active Tours** in progress today.\n"
+            reply += f"- 🛡️ **{comp['total_vehicle_compliance_alerts']} Vehicles** have compliance documents expiring within 30 days.\n"
+            reply += f"- 💰 **{fin['collection_rate_percent']}% Collection Rate** for {fin['month']}.\n\n"
+            reply += "Try clicking one of the suggested queries below or type any operational or travel inquiry."
+
+            actions = [
+                {"label": "🛰️ Live Fleet Radar", "url": "/admin/operations/fleet-radar/", "primary": True},
+                {"label": "📊 Executive DMC Dashboard", "url": "/crm/dashboard/", "primary": False},
+            ]
+            suggested = [
+                "How many tours are running today?",
+                "What is our cancellation and refund policy?",
+                "What are temple dress code rules for Madurai?",
+                "Which vehicles need insurance renewal?",
+                "What is our revenue and collection rate?"
+            ]
 
     return {
         "status": "success",

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import IntegrationSettings, LeadIngestionLog, ApprovalRequest
+from .models import IntegrationSettings, LeadIngestionLog, ApprovalRequest, ArattaiMessageLog
 
 
 @admin.register(IntegrationSettings)
@@ -41,6 +41,14 @@ class IntegrationSettingsAdmin(ModelAdmin):
                 "whatsapp_messages_sent",
             )
         }),
+        ("Zoho Arattai App (Made-in-India Messaging)", {
+            "fields": (
+                "arattai_active",
+                ("arattai_business_id", "arattai_webhook_secret"),
+                "arattai_bot_token",
+                "arattai_messages_sent",
+            )
+        }),
     )
 
 
@@ -58,3 +66,13 @@ class ApprovalRequestAdmin(ModelAdmin):
     list_filter = ('approval_type', 'status', 'created_at')
     search_fields = ('approval_number', 'title', 'requested_by__username', 'description')
     readonly_fields = ('approval_number', 'created_at', 'actioned_at')
+
+
+@admin.register(ArattaiMessageLog)
+class ArattaiMessageLogAdmin(ModelAdmin):
+    from .models import ArattaiMessageLog
+    list_display = ('phone_number', 'direction', 'message_type', 'status', 'external_message_id', 'created_at')
+    list_filter = ('direction', 'message_type', 'status', 'created_at')
+    search_fields = ('phone_number', 'sender_name', 'message_text', 'response_text', 'external_message_id')
+    readonly_fields = ('created_at',)
+

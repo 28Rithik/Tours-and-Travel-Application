@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trip Sheet #{{ trip.trip_id|default:trip.id }} | TravelERP{% endblock %}
+
+{% block extra_head %}
+<style>
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+  }
+  .trip-sheet-card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+.ts-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 1.5rem;
+}
+html.dark .ts-action-bar {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.ts-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ts-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.ts-btn-primary {
+  background: #0284c7;
+  color: white;
+}
+.ts-btn-primary:hover {
+  background: #0369a1;
+}
+.ts-btn-success {
+  background: #16a34a;
+  color: white;
+}
+.ts-btn-success:hover {
+  background: #15803d;
+}
+.ts-btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.ts-btn-secondary:hover {
+  background: #e2e8f0;
+}
+html.dark .ts-btn-secondary {
+  background: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.trip-sheet-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  color: #0f172a;
+}
+html.dark .trip-sheet-card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f8fafc;
+}
+
+.ts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid #0f172a;
+  margin-bottom: 1.5rem;
+}
+html.dark .ts-header {
+  border-bottom-color: #38bdf8;
+}
+
+.ts-brand-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+}
+html.dark .ts-brand-title {
+  color: #f8fafc;
+}
+
+.ts-brand-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+html.dark .ts-brand-sub {
+  color: #94a3b8;
+}
+
+.ts-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ts-info-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+html.dark .ts-info-box {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.ts-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 0.35rem;
+}
+.ts-info-label {
+  color: #64748b;
+  font-weight: 600;
+}
+.ts-info-val {
+  font-weight: 700;
+  color: #0f172a;
+}
+html.dark .ts-info-val {
+  color: #f8fafc;
+}
+
+.ts-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+.ts-table th {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  text-align: left;
+}
+html.dark .ts-table th {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f8fafc;
+}
+.ts-table td {
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.82rem;
+  color: #334155;
+}
+html.dark .ts-table td {
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+.ts-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+html.dark .ts-signatures {
+  border-top-color: #334155;
+}
+.ts-sig-box {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Top Action Strip -->
+  <div class="ts-action-bar no-print">
+    <div>
+      <a href="{% url 'dispatch-console' %}" class="ts-btn ts-btn-secondary">
+        <span>⬅️</span> Back to Dispatch
+      </a>
+    </div>
+    <div class="ts-btn-group">
+      <a href="{% url 'trip-sheet-pdf' trip.id %}" target="_blank" class="ts-btn ts-btn-primary">
+        <span>📄</span> Download Trip Sheet PDF
+      </a>
+      <a href="{% url 'trip-invoice-pdf' trip.id %}" target="_blank" class="ts-btn ts-btn-success">
+        <span>🧾</span> Tax Invoice PDF
+      </a>
+      <button onclick="window.print()" class="ts-btn ts-btn-secondary">
+        <span>🖨️</span> Print
+      </button>
+    </div>
+  </div>
+
+  <!-- Printable Trip Sheet Card -->
+  <div class="trip-sheet-card">
+    <!-- Header -->
+    <div class="ts-header">
+      <div>
+        <div class="ts-brand-title">SIVAGAYATHIRI TOURS AND TRAVELS</div>
+        <div class="ts-brand-sub">
+          123 Main Road, Gandhipuram, Coimbatore, Tamil Nadu - 641012<br/>
+          Phone: +91 98765 43210 | GSTIN: 33AABCS1234F1Z8
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: 800; font-size: 1.1rem; color: #0284c7;">DRIVER TRIP SHEET</div>
+        <div style="font-size: 0.9rem; font-weight: 700; color: #0f172a;">#{{ trip.trip_id|default:trip.id }}</div>
+        <div style="font-size: 0.75rem; color: #64748b;">Issued: {{ trip.start_date|date:"d M Y" }}</div>
+      </div>
+    </div>
+
+    <!-- Metadata Grid -->
+    <div class="ts-grid-2">
+      <!-- Passenger & Route -->
+      <div class="ts-info-box">
+        <div class="ts-info-row">
+          <span class="ts-info-label">Guest / Passenger:</span>
+          <span class="ts-info-val">{{ trip.guest_name|default:trip.booking.guest_name|default:"Valued Guest" }}</span>
+        </div>
+        <div class="ts-info-row">
+          <span class="ts-info-label">Corporate Client:</span>
+          <span class="ts-info-val">{{ trip.party.name|default:"Direct Private Client" }}</span>
+        </div>
+        <div class="ts-info-row">
+          <span class="ts-info-label">Scheduled Route:</span>
+          <span class="ts-info-val">{{ trip.booking.pickup_location|default:"Origin" }} ➡️ {{ trip.booking.destination|default:"Destination" }}</span>
+        </div>
+        <div class="ts-info-row">
+          <span class="ts-info-label">Journey Type:</span>
+          <span class="ts-info-val">{{ trip.booking.get_journey_type_display|default:"Outstation" }} ({{ trip.days_count|default:1 }} Days)</span>
+        </div>
+      </div>
+
+      <!-- Vehicle & Driver Allocation -->
+      <div class="ts-info-box">
+        <div class="ts-info-row">
+          <span class="ts-info-label">Assigned Vehicle:</span>
+          <span class="ts-info-val" style="color: #0284c7;">
+            {{ trip.vehicle.registration_number|default:"UNASSIGNED" }}
+          </span>
+        </div>
+        <div class="ts-info-row">
+          <span class="ts-info-label">Vehicle Make/Type:</span>
+          <span class="ts-info-val">{{ trip.vehicle.brand }} {{ trip.vehicle.model }} ({{ trip.vehicle.vehicle_type.name|default:"Fleet" }})</span>
+        </div>
+        <div class="ts-info-row">
+          <span class="ts-info-label">Chauffeur / Captain:</span>
+          <span class="ts-info-val">{{ trip.driver.name|default:"UNASSIGNED" }} (📞 {{ trip.driver.phone|default:"N/A" }})</span>
+        </div>
+        <div class="ts-info-row">
+          <span class="ts-info-label">Badge Number:</span>
+          <span class="ts-info-val">{{ trip.driver.badge_number|default:"Verified Chauffeur" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Duty Odometer Log Table -->
+    <h5 style="font-size: 0.88rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.65rem;">
+      Duty Timings &amp; Odometer Record
+    </h5>
+    <table class="ts-table">
+      <thead>
+        <tr>
+          <th>Duty Milestone</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Odometer (KM)</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Garage Out / Starting</td>
+          <td>{{ trip.start_date|date:"d/m/Y" }}</td>
+          <td></td>
+          <td>{{ trip.opening_km|default:"___________ KM" }}</td>
+          <td>Garage Depot</td>
+        </tr>
+        <tr>
+          <td>Customer Pickup Point</td>
+          <td></td>
+          <td></td>
+          <td>___________ KM</td>
+          <td>{{ trip.booking.pickup_location|default:"" }}</td>
+        </tr>
+        <tr>
+          <td>Customer Drop Point</td>
+          <td></td>
+          <td></td>
+          <td>___________ KM</td>
+          <td>{{ trip.booking.destination|default:"" }}</td>
+        </tr>
+        <tr>
+          <td>Garage In / Closing</td>
+          <td>{{ trip.end_date|date:"d/m/Y" }}</td>
+          <td></td>
+          <td>{{ trip.closing_km|default:"___________ KM" }}</td>
+          <td>Depot Close</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Signatures -->
+    <div class="ts-signatures">
+      <div class="ts-sig-box">
+        Guest Feedback &amp; Signature<br/><br/><br/>
+        _________________________
+      </div>
+      <div class="ts-sig-box">
+        Chauffeur / Captain Signature<br/><br/><br/>
+        _________________________
+      </div>
+      <div class="ts-sig-box">
+        Authorized Fleet Dispatcher<br/><br/><br/>
+        _________________________
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

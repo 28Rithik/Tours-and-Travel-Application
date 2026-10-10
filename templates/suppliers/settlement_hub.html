@@ -5,6 +5,142 @@
 {% block header_title %}Outsourced Fleet Settlements & Partner Hub{% endblock %}
 
 {% block content %}
+<style>
+.settle-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.settle-kpi-card {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.settle-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.settle-kpi-label {
+  color: var(--text-muted, #64748b);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.settle-kpi-val {
+  font-size: 26px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main, #0f172a);
+  margin-top: 4px;
+}
+.settle-filter-card {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.settle-ledger-card {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.settle-ledger-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-subtle, #f8fafc);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.settle-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.settle-table th {
+  background: var(--surface-subtle, #f8fafc);
+  color: var(--text-muted, #475569);
+  text-align: left;
+  border-bottom: 2px solid var(--border-strong, #cbd5e1);
+  padding: 12px 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+.settle-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  color: var(--text-main, #0f172a);
+  vertical-align: middle;
+}
+.settle-table tr:hover td {
+  background: var(--surface-subtle, #f8fafc);
+}
+html.dark .settle-table tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+html.dark .settle-filter-card select {
+  background: var(--surface-subtle);
+  border-color: var(--border-strong) !important;
+  color: var(--text-main);
+}
+.unsettled-alert-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.unsettled-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.unsettled-table th {
+  padding: 8px 10px;
+  text-align: left;
+  color: #92400e;
+  border-bottom: 1px solid #fde68a;
+  font-weight: 700;
+}
+.unsettled-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #fef3c7;
+}
+html.dark .unsettled-alert-box {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+html.dark .unsettled-alert-box strong {
+  color: #f59e0b !important;
+}
+html.dark .unsettled-table th {
+  color: #f59e0b !important;
+  border-bottom-color: rgba(245, 158, 11, 0.25) !important;
+}
+html.dark .unsettled-table td {
+  border-bottom-color: rgba(245, 158, 11, 0.15) !important;
+  color: var(--text-main) !important;
+}
+</style>
+
 <div class="settlement-studio" style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
 
   <!-- Header Banner -->
@@ -12,7 +148,7 @@
     <div>
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
         <span style="font-size: 24px;">🤝</span>
-        <h1 style="font-size: 22px; font-weight: 700; margin: 0;">Outsourced Fleet &amp; Partner Settlement Hub</h1>
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0; color: #fff;">Outsourced Fleet &amp; Partner Settlement Hub</h1>
         <span style="background: #3b82f6; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Sec 194C Compliant</span>
       </div>
       <p style="margin: 0; color: #94a3b8; font-size: 14px;">
@@ -30,45 +166,45 @@
   </div>
 
   <!-- KPI Metrics Grid -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Total Outsourced Duties</span>
-      <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px;">{{ total_count }}</div>
+  <div class="settle-kpi-grid">
+    <div class="settle-kpi-card">
+      <span class="settle-kpi-label">Total Outsourced Duties</span>
+      <div class="settle-kpi-val">{{ total_count }}</div>
       <div style="font-size: 12px; color: #3b82f6; margin-top: 4px;">{{ pending_count }} pending audit</div>
     </div>
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Partner Buy Turnover</span>
-      <div style="font-size: 26px; font-weight: 800; color: #1e293b; margin-top: 4px;">₹{{ total_buy|floatformat:0 }}</div>
-      <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Agreed operator billings</div>
+    <div class="settle-kpi-card">
+      <span class="settle-kpi-label">Partner Buy Turnover</span>
+      <div class="settle-kpi-val">₹{{ total_buy|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 4px;">Agreed operator billings</div>
     </div>
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">TDS Withheld (194C)</span>
-      <div style="font-size: 26px; font-weight: 800; color: #7c3aed; margin-top: 4px;">₹{{ total_tds|floatformat:0 }}</div>
-      <div style="font-size: 12px; color: #7c3aed; margin-top: 4px;">Form 26Q tax credit</div>
+    <div class="settle-kpi-card">
+      <span class="settle-kpi-label">TDS Withheld (194C)</span>
+      <div class="settle-kpi-val" style="color: #a855f7;">₹{{ total_tds|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #a855f7; margin-top: 4px;">Form 26Q tax credit</div>
     </div>
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Net Operator Payables</span>
-      <div style="font-size: 26px; font-weight: 800; color: #d97706; margin-top: 4px;">₹{{ total_net|floatformat:0 }}</div>
-      <div style="font-size: 12px; color: #d97706; margin-top: 4px;">Net clearances to pay</div>
+    <div class="settle-kpi-card">
+      <span class="settle-kpi-label">Net Operator Payables</span>
+      <div class="settle-kpi-val" style="color: #f59e0b;">₹{{ total_net|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #f59e0b; margin-top: 4px;">Net clearances to pay</div>
     </div>
-    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-      <span style="color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase;">Gross Margin Retained</span>
-      <div style="font-size: 26px; font-weight: 800; color: #16a34a; margin-top: 4px;">₹{{ total_margin|floatformat:0 }}</div>
-      <div style="font-size: 12px; color: #16a34a; margin-top: 4px;">Outsourced commission</div>
+    <div class="settle-kpi-card">
+      <span class="settle-kpi-label">Gross Margin Retained</span>
+      <div class="settle-kpi-val" style="color: #22c55e;">₹{{ total_margin|floatformat:0 }}</div>
+      <div style="font-size: 12px; color: #22c55e; margin-top: 4px;">Outsourced commission</div>
     </div>
   </div>
 
   <!-- Filter & Actions Bar -->
-  <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+  <div class="settle-filter-card">
     <form method="get" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 0;">
-      <select name="status" class="form-control" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="this.form.submit()">
+      <select name="status" class="form-control" style="padding: 6px 12px; border: 1px solid var(--border-color, #cbd5e1); border-radius: 6px;" onchange="this.form.submit()">
         <option value="">All Settlement Statuses</option>
         <option value="draft" {% if selected_status == 'draft' %}selected{% endif %}>Draft</option>
         <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Verified</option>
         <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved (In GL)</option>
         <option value="paid" {% if selected_status == 'paid' %}selected{% endif %}>Settled &amp; Paid</option>
       </select>
-      <select name="supplier" class="form-control" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px;" onchange="this.form.submit()">
+      <select name="supplier" class="form-control" style="padding: 6px 12px; border: 1px solid var(--border-color, #cbd5e1); border-radius: 6px;" onchange="this.form.submit()">
         <option value="">All Partner Suppliers</option>
         {% for s in suppliers_list %}
         <option value="{{ s.id }}" {% if selected_supplier == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
@@ -79,34 +215,34 @@
       {% endif %}
     </form>
     <div>
-      <span style="font-size: 13px; color: #64748b;">Showing latest records</span>
+      <span style="font-size: 13px; color: var(--text-muted, #64748b);">Showing latest records</span>
     </div>
   </div>
 
   <!-- Unsettled Trips Alert Table (If any) -->
   {% if unsettled_trips %}
-  <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px; margin-bottom: 24px;">
+  <div class="unsettled-alert-box">
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="color: #b45309; font-size: 18px;">⚠️</span>
-        <strong style="color: #92400e; font-size: 15px;">{{ unsettled_trips|length }} Trips Executed via Outsourced Fleet Awaiting Settlement</strong>
+        <span style="font-size: 18px;">⚠️</span>
+        <strong style="font-size: 15px;">{{ unsettled_trips|length }} Trips Executed via Outsourced Fleet Awaiting Settlement</strong>
       </div>
     </div>
     <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <table class="unsettled-table">
         <thead>
-          <tr style="text-align: left; color: #92400e; border-bottom: 1px solid #fde68a;">
-            <th style="padding: 8px;">Trip Ref</th>
-            <th style="padding: 8px;">Dates</th>
-            <th style="padding: 8px;">Outsourced Vehicle</th>
-            <th style="padding: 8px;">Supplier / Owner</th>
-            <th style="padding: 8px;">Customer Revenue</th>
-            <th style="padding: 8px; text-align: right;">Action</th>
+          <tr>
+            <th>Trip Ref</th>
+            <th>Dates</th>
+            <th>Outsourced Vehicle</th>
+            <th>Supplier / Owner</th>
+            <th>Customer Revenue</th>
+            <th style="text-align: right;">Action</th>
           </tr>
         </thead>
         <tbody>
           {% for t in unsettled_trips %}
-          <tr style="border-bottom: 1px solid #fef3c7;">
+          <tr>
             <td style="padding: 8px; font-weight: 600;">Trip #{{ t.id }}</td>
             <td style="padding: 8px;">{{ t.start_date|date:"d M" }} - {{ t.end_date|date:"d M Y" }}</td>
             <td style="padding: 8px;"><span style="background: #fef08a; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ t.vehicle.registration_number }}</span> ({{ t.vehicle.vehicle_type.name }})</td>
@@ -127,57 +263,57 @@
   {% endif %}
 
   <!-- Main Settlements Ledger Table -->
-  <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-    <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Outsourced Trip Settlements Ledger</h2>
-      <span style="font-size: 12px; color: #64748b;">Sorted by newest</span>
+  <div class="settle-ledger-card">
+    <div class="settle-ledger-header">
+      <h2 style="font-size: 16px; font-weight: 700; color: var(--text-main, #0f172a); margin: 0;">Outsourced Trip Settlements Ledger</h2>
+      <span style="font-size: 12px; color: var(--text-muted, #64748b);">Sorted by newest</span>
     </div>
     <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <table class="settle-table">
         <thead>
-          <tr style="background: #f8fafc; color: #475569; text-align: left; border-bottom: 2px solid #e2e8f0;">
-            <th style="padding: 12px 16px;">Voucher Ref</th>
-            <th style="padding: 12px 16px;">Date</th>
-            <th style="padding: 12px 16px;">Supplier &amp; Vehicle</th>
-            <th style="padding: 12px 16px;">Driver &amp; Odo KM</th>
-            <th style="padding: 12px 16px; text-align: right;">Buy Rate</th>
-            <th style="padding: 12px 16px; text-align: right;">TDS (194C)</th>
-            <th style="padding: 12px 16px; text-align: right;">Net Payable</th>
-            <th style="padding: 12px 16px; text-align: right;">Margin</th>
-            <th style="padding: 12px 16px; text-align: center;">Status</th>
-            <th style="padding: 12px 16px; text-align: right;">Documents &amp; Actions</th>
+          <tr>
+            <th>Voucher Ref</th>
+            <th>Date</th>
+            <th>Supplier &amp; Vehicle</th>
+            <th>Driver &amp; Odo KM</th>
+            <th style="text-align: right;">Buy Rate</th>
+            <th style="text-align: right;">TDS (194C)</th>
+            <th style="text-align: right;">Net Payable</th>
+            <th style="text-align: right;">Margin</th>
+            <th style="text-align: center;">Status</th>
+            <th style="text-align: right;">Documents &amp; Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for s in settlements %}
-          <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+          <tr>
             <td style="padding: 12px 16px;">
-              <span style="font-weight: 700; color: #0f172a; font-family: monospace;">{{ s.settlement_number }}</span>
-              {% if s.trip %}<br><small style="color: #64748b;">Trip #{{ s.trip.id }}</small>{% endif %}
+              <span style="font-weight: 700; color: var(--text-main, #0f172a); font-family: 'JetBrains Mono', monospace;">{{ s.settlement_number }}</span>
+              {% if s.trip %}<br><small style="color: var(--text-muted, #64748b);">Trip #{{ s.trip.id }}</small>{% endif %}
             </td>
-            <td style="padding: 12px 16px; color: #475569;">{{ s.settlement_date|date:"d M Y" }}</td>
+            <td style="padding: 12px 16px; color: var(--text-muted, #475569);">{{ s.settlement_date|date:"d M Y" }}</td>
             <td style="padding: 12px 16px;">
-              <strong style="color: #1e293b;">{{ s.supplier.name }}</strong><br>
-              <span style="background: #e2e8f0; color: #334155; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+              <strong style="color: var(--text-main, #1e293b);">{{ s.supplier.name }}</strong><br>
+              <span style="background: var(--surface-subtle, #e2e8f0); color: var(--text-main, #334155); font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; border: 1px solid var(--border-color);">
                 {{ s.vehicle.registration_number }}
               </span>
             </td>
-            <td style="padding: 12px 16px; color: #475569;">
+            <td style="padding: 12px 16px; color: var(--text-muted, #475569);">
               {{ s.driver_name|default:"Partner Driver" }}<br>
-              <small style="color: #64748b;">{{ s.total_km_run }} KM run</small>
+              <small style="color: var(--text-muted, #64748b);">{{ s.total_km_run }} KM run</small>
             </td>
-            <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #1e293b;">
+            <td style="padding: 12px 16px; text-align: right; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; color: var(--text-main, #1e293b);">
               ₹{{ s.agreed_buy_rate|floatformat:2 }}
             </td>
-            <td style="padding: 12px 16px; text-align: right; color: #7c3aed;">
+            <td style="padding: 12px 16px; text-align: right; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; color: #a855f7;">
               -₹{{ s.tds_amount|floatformat:2 }}<br>
-              <small style="font-size: 10px; color: #64748b;">({{ s.tds_rate_percent }}%)</small>
+              <small style="font-size: 10px; color: var(--text-muted, #64748b);">({{ s.tds_rate_percent }}%)</small>
             </td>
             <td style="padding: 12px 16px; text-align: right;">
-              <strong style="color: #d97706; font-size: 14px;">₹{{ s.net_payable_amount|floatformat:2 }}</strong>
+              <strong style="color: #f59e0b; font-size: 14px; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;">₹{{ s.net_payable_amount|floatformat:2 }}</strong>
             </td>
-            <td style="padding: 12px 16px; text-align: right; font-weight: 600; color: #16a34a;">
-              ₹{{ s.gross_margin_earned|floatformat:2 }}
+            <td style="padding: 12px 16px; text-align: right; font-weight: 600; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; color: #22c55e;">
+              +₹{{ s.gross_margin_earned|floatformat:2 }}
             </td>
             <td style="padding: 12px 16px; text-align: center;">
               {% if s.status == 'approved' or s.status == 'paid' %}

@@ -59,17 +59,17 @@ class DriverSalaryProfileAdmin(ModelAdmin):
 
     @admin.display(description='Basic Salary', ordering='basic_salary')
     def basic_salary_display(self, obj):
-        return f'₹{obj.basic_salary:,.2f}'
+        return format_html('<span class="font-mono text-xs font-semibold text-slate-800 dark:text-slate-200">{}</span>', f'₹{obj.basic_salary:,.2f}')
 
     @admin.display(description='Allowances', ordering='allowances')
     def allowances_display(self, obj):
-        return f'₹{obj.allowances:,.2f}'
+        return format_html('<span class="font-mono text-xs text-slate-600 dark:text-slate-400">{}</span>', f'₹{obj.allowances:,.2f}')
 
     @admin.display(description='Gross Monthly Pay')
     def gross_monthly_display(self, obj):
         gross = obj.basic_salary + obj.allowances
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">{}</span>',
             f'₹{gross:,.2f}',
         )
 
@@ -77,21 +77,21 @@ class DriverSalaryProfileAdmin(ModelAdmin):
     def epf_badge(self, obj):
         if obj.epf_number:
             return format_html(
-                '<span class="badge badge-info">{} ({}%)</span>',
+                '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800">{} ({}%)</span>',
                 obj.epf_number,
                 obj.epf_deduction_rate,
             )
-        return mark_safe('<span class="badge badge-secondary">Not Enrolled</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Not Enrolled</span>')
 
     @admin.display(description='ESI Account')
     def esi_badge(self, obj):
         if obj.esi_number:
             return format_html(
-                '<span class="badge badge-primary">{} ({}%)</span>',
+                '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">{} ({}%)</span>',
                 obj.esi_number,
                 obj.esi_deduction_rate,
             )
-        return mark_safe('<span class="badge badge-secondary">Not Enrolled</span>')
+        return mark_safe('<span class="inline-flex items-center px-2 py-0.5 rounded text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Not Enrolled</span>')
 
 
 @admin.register(DriverPayslip)
@@ -226,7 +226,7 @@ class EmployeePaymentAdmin(ModelAdmin):
     @admin.display(description='Amount', ordering='amount')
     def amount_display(self, obj):
         return format_html(
-            '<strong class="text-white" style="font-size: 13px;">{}</strong>',
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">{}</span>',
             f'₹{obj.amount:,.2f}',
         )
 

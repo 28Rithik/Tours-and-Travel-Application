@@ -17,6 +17,9 @@ from .views import (
     sla_penalty_studio_view,
     api_waive_sla_penalty,
     api_driver_pre_shift_safety_gate,
+    api_optimize_commute_clusters,
+    api_commit_commute_clusters,
+    api_commute_cluster_stats,
 )
 
 app_name = 'fleet_commute'
@@ -58,4 +61,9 @@ urlpatterns = [
 
     # Phase 10: Driver Pre-Shift "Fit-to-Drive" & Sobriety Breathalyzer Gate
     path('api/driver/pre-shift-safety/', api_driver_pre_shift_safety_gate, name='api_driver_pre_shift_safety_gate'),
+
+    # Phase 10: Corporate Commute Roster Optimization & Route Clustering Engine
+    path('api/clusters/optimize/', api_optimize_commute_clusters, name='api_optimize_commute_clusters'),
+    path('api/clusters/commit/', api_commit_commute_clusters, name='api_commit_commute_clusters'),
+    path('api/clusters/stats/', api_commute_cluster_stats, name='api_commute_cluster_stats'),
 ]

@@ -144,20 +144,20 @@ class PackageTemplateAdmin(ModelAdmin):
     @admin.display(description='Category')
     def category_badge(self, obj):
         return format_html(
-            '<span class="badge" style="background-color: #334155; color: #f8fafc; padding: 4px 8px;">{}</span>',
+            '<span class="badge" style="background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 4px 8px; font-weight: 600;">{}</span>',
             obj.get_category_display()
         )
 
     @admin.display(description='Duration')
     def duration_display(self, obj):
         return format_html(
-            '<span style="color: #38bdf8; font-weight: 700;">{}N / {}D</span>',
+            '<span style="color: #0284c7; font-weight: 700;">{}N / {}D</span>',
             obj.duration_nights, obj.duration_days
         )
 
     @admin.display(description='Base Rate')
     def base_price_display(self, obj):
-        return format_html('<span style="color: #10b981; font-weight: 700;">₹{}</span>', f"{obj.base_price:,.0f}")
+        return format_html('<span style="color: #059669; font-weight: 700;">₹{}</span>', f"{obj.base_price:,.0f}")
 
 
 # ==============================================================================
@@ -258,7 +258,7 @@ class PackageAdmin(ModelAdmin):
     def name_display(self, obj):
         code_str = f"[{obj.package_code}] " if obj.package_code else ""
         return format_html(
-            '<span style="font-weight: 700; color: #f8fafc;"><i class="fas fa-umbrella-beach mr-1" style="color: #38bdf8;"></i>{}{}</span>',
+            '<span style="font-weight: 700; color: #0f172a;"><i class="fas fa-umbrella-beach mr-1" style="color: #0284c7;"></i>{}{}</span>',
             code_str, obj.name
         )
 
@@ -287,7 +287,7 @@ class PackageAdmin(ModelAdmin):
     def destination_badge(self, obj):
         dest_clean = (obj.destination or 'Tamil Nadu, India').strip()[:40]
         return format_html(
-            '<span style="color: #fef08a; font-weight: 700; font-size: 12px;"><i class="fas fa-map-marker-alt text-danger mr-1"></i>{}</span>',
+            '<span style="color: #b45309; font-weight: 700; font-size: 12px;"><i class="fas fa-map-marker-alt text-rose-600 mr-1"></i>{}</span>',
             dest_clean
         )
 
@@ -302,11 +302,11 @@ class PackageAdmin(ModelAdmin):
     def dual_pricing_display(self, obj):
         if obj.price_with_food or obj.price_without_food:
             return format_html(
-                '<span style="color: #10b981; font-weight: 700;">₹{}</span> <small style="color: #94a3b8;">(With Food)</small><br>'
-                '<span style="color: #38bdf8; font-weight: 700;">₹{}</span> <small style="color: #94a3b8;">(Without Food)</small>',
+                '<span style="color: #059669; font-weight: 700;">₹{}</span> <small style="color: #475569; font-weight: 500;">(With Food)</small><br>'
+                '<span style="color: #0284c7; font-weight: 700;">₹{}</span> <small style="color: #475569; font-weight: 500;">(Without Food)</small>',
                 f"{obj.price_with_food:,.0f}", f"{obj.price_without_food:,.0f}"
             )
-        return format_html('<span style="color: #10b981; font-weight: 700;">₹{}</span>', f"{obj.base_price:,.0f}")
+        return format_html('<span style="color: #059669; font-weight: 700;">₹{}</span>', f"{obj.base_price:,.0f}")
 
     @admin.display(description='Gross Margin P&L')
     def unit_margin_badge(self, obj):
@@ -326,7 +326,7 @@ class PackageAdmin(ModelAdmin):
     @admin.display(description='Unit Economics & Gross Margin P&L')
     def unit_economics_summary_card(self, obj):
         if not obj or not obj.id:
-            return mark_safe('<span style="color: #94a3b8;">Save package first to calculate unit economics.</span>')
+            return mark_safe('<span style="color: #64748b; font-weight: 500;">Save package first to calculate unit economics.</span>')
         selling = obj.price_with_food or obj.base_price or 0
         total_cost = obj.total_direct_cost_per_pax
         margin = obj.gross_margin_per_pax
@@ -335,28 +335,28 @@ class PackageAdmin(ModelAdmin):
 
         margin_color = '#10b981' if margin_pct >= 18 else ('#f59e0b' if margin_pct >= 10 else '#ef4444')
         return format_html(
-            '<div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-top: 8px; max-width: 800px;">'
+            '<div class="admin-dark-hero" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-top: 8px; max-width: 800px;">'
             '  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px;">'
-            '    <div style="font-weight: 700; color: #f8fafc; font-size: 14px;"><i class="fas fa-chart-line mr-2" style="color: #38bdf8;"></i>Tour Unit Economics & Operating Margin</div>'
+            '    <div style="font-weight: 700; color: #ffffff; font-size: 14px;"><i class="fas fa-chart-line mr-2" style="color: #38bdf8;"></i>Tour Unit Economics & Operating Margin</div>'
             '    <span style="background-color: {}; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">'
             '      {}% Gross Margin'
             '    </span>'
             '  </div>'
             '  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px;">'
             '    <div style="background: #1e293b; padding: 10px; border-radius: 6px; border: 1px solid #475569;">'
-            '      <small style="color: #94a3b8;">Selling Rate (With Food)</small>'
+            '      <small style="color: #cbd5e1;">Selling Rate (With Food)</small>'
             '      <div style="color: #38bdf8; font-size: 16px; font-weight: 700;">₹{} / pax</div>'
             '    </div>'
             '    <div style="background: #1e293b; padding: 10px; border-radius: 6px; border: 1px solid #475569;">'
-            '      <small style="color: #94a3b8;">Direct COGS Cost</small>'
+            '      <small style="color: #cbd5e1;">Direct COGS Cost</small>'
             '      <div style="color: #f87171; font-size: 16px; font-weight: 700;">₹{} / pax</div>'
             '    </div>'
             '    <div style="background: #1e293b; padding: 10px; border-radius: 6px; border: 1px solid #475569;">'
-            '      <small style="color: #94a3b8;">Gross Profit / Pax</small>'
+            '      <small style="color: #cbd5e1;">Gross Profit / Pax</small>'
             '      <div style="color: {}; font-size: 16px; font-weight: 700;">₹{} / pax</div>'
             '    </div>'
             '    <div style="background: #1e293b; padding: 10px; border-radius: 6px; border: 1px solid #475569;">'
-            '      <small style="color: #94a3b8;">Batch Profit ({} Pax)</small>'
+            '      <small style="color: #cbd5e1;">Batch Profit ({} Pax)</small>'
             '      <div style="color: {}; font-size: 16px; font-weight: 700;">₹{}</div>'
             '    </div>'
             '  </div>'
@@ -429,14 +429,14 @@ class PackageVehicleTariffAdmin(ModelAdmin):
     @admin.display(description='Tour Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #38bdf8; text-decoration: none; font-weight: 600;">{}</a>',
+            '<a href="/admin/packages/package/{}/change/" style="color: #0284c7; text-decoration: none; font-weight: 600;">{}</a>',
             obj.package.id, obj.package.name
         )
 
     @admin.display(description='Seating Tier (4-60 Seats)')
     def seating_tier_badge(self, obj):
         colors = {
-            '4_sedan': ('#38bdf8', 'fas fa-car-side'),
+            '4_sedan': ('#0284c7', 'fas fa-car-side'),
             '7_crysta': ('#3b82f6', 'fas fa-car'),
             '17_tt_urbania': ('#10b981', 'fas fa-van-shuttle'),
             '26_force_coach': ('#f59e0b', 'fas fa-bus-simple'),
@@ -471,7 +471,7 @@ class PackageVehicleTariffAdmin(ModelAdmin):
             return format_html(
                 '<span class="badge" style="background-color: #0284c7; color: #fff; padding: 4px 8px; font-size: 11px;">'
                 '<i class="fas fa-users mr-1"></i>~₹{} / head</span><br>'
-                '<small style="color: #94a3b8;">({} seats)</small>',
+                '<small style="color: #475569; font-weight: 500;">({} seats)</small>',
                 per_head_str, seats
             )
         return mark_safe('<span style="color: #64748b;">—</span>')
@@ -576,13 +576,13 @@ class ItineraryDayAdmin(ModelAdmin):
 
     @admin.display(description='Day Title')
     def title_display(self, obj):
-        return format_html('<span style="color: #f8fafc; font-weight: 600;">{}</span>', obj.title)
+        return format_html('<span style="color: #0f172a; font-weight: 600;">{}</span>', obj.title)
 
     @admin.display(description='Night Stay')
     def stay_display(self, obj):
         if obj.night_stay_location:
             return format_html(
-                '<span style="color: #e2e8f0; font-size: 12px;"><i class="fas fa-bed mr-1 text-warning"></i>{}</span>',
+                '<span style="color: #0f172a; font-size: 12px; font-weight: 500;"><i class="fas fa-bed mr-1 text-amber-600"></i>{}</span>',
                 obj.night_stay_location
             )
         return mark_safe('<span style="color: #64748b;">Overnight Transit</span>')
@@ -590,7 +590,7 @@ class ItineraryDayAdmin(ModelAdmin):
     @admin.display(description='Meals')
     def meals_display(self, obj):
         return format_html(
-            '<span style="color: #38bdf8; font-size: 12px;"><i class="fas fa-utensils mr-1"></i>{}</span>',
+            '<span style="color: #0284c7; font-size: 12px; font-weight: 600;"><i class="fas fa-utensils mr-1"></i>{}</span>',
             obj.meals_included
         )
 
@@ -608,7 +608,7 @@ class PackageSeasonalRateAdmin(ModelAdmin):
     @admin.display(description='Tour Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #38bdf8; text-decoration: none; font-weight: 500;">{}</a>',
+            '<a href="/admin/packages/package/{}/change/" style="color: #0284c7; text-decoration: none; font-weight: 600;">{}</a>',
             obj.package.id, obj.package.name
         )
 
@@ -630,7 +630,7 @@ class PackageSeasonalRateAdmin(ModelAdmin):
     @admin.display(description='Date Range')
     def date_range_display(self, obj):
         return format_html(
-            '<span style="color: #e2e8f0; font-size: 12px;"><i class="far fa-calendar-alt text-info mr-1"></i>{} → {}</span>',
+            '<span style="color: #0f172a; font-size: 12px; font-weight: 500;"><i class="far fa-calendar-alt text-sky-600 mr-1"></i>{} → {}</span>',
             obj.start_date.strftime('%d/%m/%y'), obj.end_date.strftime('%d/%m/%y')
         )
 
@@ -663,15 +663,15 @@ class PackageHotelAllotmentAdmin(ModelAdmin):
     @admin.display(description='Tour Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #38bdf8; text-decoration: none; font-weight: 500;">{}</a>',
+            '<a href="/admin/packages/package/{}/change/" style="color: #0284c7; text-decoration: none; font-weight: 600;">{}</a>',
             obj.package.id, obj.package.name
         )
 
     @admin.display(description='Room Category')
     def room_category_badge(self, obj):
         return format_html(
-            '<span class="badge" style="background-color: #334155; color: #f8fafc; border: 1px solid #475569; padding: 4px 8px;">'
-            '<i class="fas fa-bed mr-1 text-warning"></i>{}</span>',
+            '<span class="badge" style="background-color: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 4px 8px; font-weight: 600;">'
+            '<i class="fas fa-bed mr-1 text-amber-600"></i>{}</span>',
             obj.get_room_category_display()
         )
 
@@ -725,7 +725,7 @@ class PackageAddonAdmin(ModelAdmin):
     @admin.display(description='Tour Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #38bdf8; text-decoration: none; font-weight: 500;">{}</a>',
+            '<a href="/admin/packages/package/{}/change/" style="color: #0284c7; text-decoration: none; font-weight: 600;">{}</a>',
             obj.package.id, obj.package.name
         )
 
@@ -735,11 +735,11 @@ class PackageAddonAdmin(ModelAdmin):
 
     @admin.display(description='Procurement Cost')
     def cost_price_display(self, obj):
-        return format_html('<span style="color: #f87171;">₹{}</span>', f"{(obj.cost_price or 0):,.0f}")
+        return format_html('<span style="color: #dc2626; font-weight: 600;">₹{}</span>', f"{(obj.cost_price or 0):,.0f}")
 
     @admin.display(description='Selling Rate')
     def selling_price_display(self, obj):
-        return format_html('<span style="color: #38bdf8; font-weight: 700;">₹{}</span>', f"{(obj.selling_price or 0):,.0f}")
+        return format_html('<span style="color: #0284c7; font-weight: 700;">₹{}</span>', f"{(obj.selling_price or 0):,.0f}")
 
     @admin.display(description='Margin')
     def margin_badge(self, obj):
@@ -767,7 +767,7 @@ class PackageB2BMarginAdmin(ModelAdmin):
     @admin.display(description='Tour Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #38bdf8; text-decoration: none;">{}</a>',
+            '<a href="/admin/packages/package/{}/change/" style="color: #0284c7; text-decoration: none; font-weight: 600;">{}</a>',
             obj.package.id, obj.package.name
         )
 
@@ -780,8 +780,8 @@ class PackageB2BMarginAdmin(ModelAdmin):
     @admin.display(description='B2B Net Buying Price')
     def b2b_net_rates_display(self, obj):
         return format_html(
-            '<span style="color: #38bdf8; font-weight: 600;">₹{} (With Food)</span> | '
-            '<span style="color: #94a3b8;">₹{} (No Food)</span>',
+            '<span style="color: #0284c7; font-weight: 600;">₹{} (With Food)</span> | '
+            '<span style="color: #475569; font-weight: 500;">₹{} (No Food)</span>',
             f"{obj.net_b2b_rate_with_food:,.0f}", f"{obj.net_b2b_rate_without_food:,.0f}"
         )
 
@@ -814,26 +814,26 @@ class TourFeedbackLogAdmin(ModelAdmin):
 
     @admin.display(description='Customer')
     def guest_name_display(self, obj):
-        phone_str = f"<br><small style='color: #94a3b8;'>{obj.guest_phone}</small>" if obj.guest_phone else ""
+        phone_str = f"<br><small style='color: #475569; font-weight: 500;'>{obj.guest_phone}</small>" if obj.guest_phone else ""
         return format_html(
-            '<span style="font-weight: 700; color: #f8fafc;"><i class="fas fa-user-check text-success mr-1"></i>{}</span>{}',
+            '<span style="font-weight: 700; color: #0f172a;"><i class="fas fa-user-check text-emerald-600 mr-1"></i>{}</span>{}',
             obj.guest_name, mark_safe(phone_str)
         )
 
     @admin.display(description='Tour Package')
     def package_link(self, obj):
         return format_html(
-            '<a href="/admin/packages/package/{}/change/" style="color: #38bdf8; text-decoration: none; font-weight: 500;">{}</a>',
+            '<a href="/admin/packages/package/{}/change/" style="color: #0284c7; text-decoration: none; font-weight: 600;">{}</a>',
             obj.package.id, obj.package.name
         )
 
     @admin.display(description='Overall Rating')
     def star_rating_display(self, obj):
         stars = "★" * obj.overall_rating + "☆" * (5 - obj.overall_rating)
-        color = '#fbbf24' if obj.overall_rating >= 4 else ('#f59e0b' if obj.overall_rating == 3 else '#ef4444')
+        color = '#d97706' if obj.overall_rating >= 4 else ('#b45309' if obj.overall_rating == 3 else '#dc2626')
         return format_html(
             '<span style="color: {}; font-size: 14px; font-weight: 700;">{}</span> '
-            '<small style="color: #94a3b8;">({}/5)</small>',
+            '<small style="color: #475569; font-weight: 500;">({}/5)</small>',
             color, stars, obj.overall_rating
         )
 
@@ -874,8 +874,8 @@ class TourFeedbackLogAdmin(ModelAdmin):
     @admin.display(description='Verified')
     def verified_badge(self, obj):
         if obj.is_verified:
-            return mark_safe('<span style="color: #10b981;"><i class="fas fa-check-circle"></i> Verified</span>')
-        return mark_safe('<span style="color: #94a3b8;">Unverified</span>')
+            return mark_safe('<span style="color: #059669; font-weight: 600;"><i class="fas fa-check-circle"></i> Verified</span>')
+        return mark_safe('<span style="color: #64748b; font-weight: 500;">Unverified</span>')
 
 
 # ==============================================================================

@@ -2,12 +2,41 @@
 {% load static %}
 
 {% block extrahead %}
+<script>
+  (function() {
+    try {
+      var raw = localStorage.getItem('_x_adminTheme');
+      var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'auto');
+      var isDark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch(e) {}
+  })();
+</script>
 <style>
   :root {
+    --gis-bg: #f8fafc;
+    --gis-surface: #ffffff;
+    --gis-card: #ffffff;
+    --gis-border: #e2e8f0;
+    --gis-text: #0f172a;
+    --gis-text-muted: #64748b;
+    --gis-neon-cyan: #0284c7;
+    --gis-neon-green: #059669;
+    --gis-neon-amber: #d97706;
+    --gis-neon-red: #dc2626;
+  }
+
+  html.dark {
     --gis-bg: #090d16;
     --gis-surface: #0f172a;
     --gis-card: rgba(30, 41, 59, 0.7);
     --gis-border: rgba(56, 189, 248, 0.2);
+    --gis-text: #f1f5f9;
+    --gis-text-muted: #94a3b8;
     --gis-neon-cyan: #38bdf8;
     --gis-neon-green: #10b981;
     --gis-neon-amber: #f59e0b;
@@ -16,11 +45,12 @@
 
   body {
     background-color: var(--gis-bg) !important;
+    color: var(--gis-text) !important;
   }
 
   .gis-container {
     padding: 24px;
-    color: #f1f5f9;
+    color: var(--gis-text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
@@ -37,6 +67,18 @@
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
   }
 
+  html:not(.dark) .gis-header {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  }
+  html:not(.dark) .gis-header h1 {
+    color: #0f172a !important;
+  }
+  html:not(.dark) .gis-header div {
+    color: #64748b !important;
+  }
+
   .gis-badge-pulse {
     display: inline-flex;
     align-items: center;
@@ -49,6 +91,12 @@
     font-weight: 700;
     font-size: 13px;
     letter-spacing: 0.5px;
+  }
+
+  html:not(.dark) .gis-badge-pulse {
+    background: #ecfdf5 !important;
+    border: 1px solid #a7f3d0 !important;
+    color: #047857 !important;
   }
 
   .pulse-dot {
@@ -81,6 +129,12 @@
     transition: transform 0.2s ease, border-color 0.2s ease;
   }
 
+  html:not(.dark) .gis-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  }
+
   .gis-card:hover {
     transform: translateY(-2px);
     border-color: var(--gis-neon-cyan);
@@ -95,11 +149,19 @@
     font-weight: 600;
   }
 
+  html:not(.dark) .card-label {
+    color: #64748b !important;
+  }
+
   .card-val {
     font-size: 26px;
     font-weight: 800;
     color: #ffffff;
     font-family: monospace;
+  }
+
+  html:not(.dark) .card-val {
+    color: #0f172a !important;
   }
 
   .card-subtext {
@@ -115,7 +177,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #38bdf8;
+    color: var(--gis-neon-cyan);
   }
 
   .infra-grid {
@@ -132,6 +194,12 @@
     padding: 24px;
   }
 
+  html:not(.dark) .infra-box {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  }
+
   .infra-header {
     display: flex;
     justify-content: space-between;
@@ -141,10 +209,18 @@
     padding-bottom: 12px;
   }
 
+  html:not(.dark) .infra-header {
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
   .infra-title {
     font-size: 16px;
     font-weight: 700;
     color: #f8fafc;
+  }
+
+  html:not(.dark) .infra-title {
+    color: #0f172a !important;
   }
 
   .infra-row {
@@ -155,6 +231,10 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
+  html:not(.dark) .infra-row {
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
   .infra-row:last-child {
     border-bottom: none;
   }
@@ -163,10 +243,18 @@
     color: #94a3b8;
   }
 
+  html:not(.dark) .infra-k {
+    color: #64748b !important;
+  }
+
   .infra-v {
     color: #e2e8f0;
     font-family: monospace;
     font-weight: 600;
+  }
+
+  html:not(.dark) .infra-v {
+    color: #0f172a !important;
   }
 
   .btn-gis {
@@ -200,6 +288,15 @@
     background: rgba(56, 189, 248, 0.1);
   }
 
+  html:not(.dark) .btn-outline {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #0284c7;
+  }
+  html:not(.dark) .btn-outline:hover {
+    background: #f1f5f9;
+  }
+
   .test-console {
     background: #020617;
     border: 1px solid #1e293b;
@@ -213,6 +310,12 @@
     margin-top: 14px;
     white-space: pre-wrap;
   }
+
+  html:not(.dark) .test-console {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0369a1 !important;
+  }
 </style>
 <script src="{% static 'operations/js/maplibre_offline_pack.js' %}"></script>
 {% endblock %}
@@ -223,7 +326,7 @@
   <!-- Header -->
   <div class="gis-header">
     <div>
-      <h1 style="font-size: 24px; font-weight: 800; margin: 0 0 6px 0; color: #fff;">
+      <h1 style="font-size: 24px; font-weight: 800; margin: 0 0 6px 0; color: var(--gis-text);">
         🛰️ Enterprise OSM GIS & Telematics Mission Control
       </h1>
       <div style="font-size: 13px; color: #94a3b8;">

@@ -77,16 +77,70 @@
     align-items: center;
     gap: 6px;
 }
+
+/* Light Mode Overrides */
+html:not(.dark) .import-container {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .glass-box {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) .glass-box h1 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .glass-box p {
+    color: #64748b !important;
+}
+
+html:not(.dark) .drop-zone {
+    background: #f0f9ff !important;
+    border: 2px dashed #7dd3fc !important;
+}
+
+html:not(.dark) .drop-zone:hover {
+    background: #e0f2fe !important;
+    border-color: #0284c7 !important;
+}
+
+html:not(.dark) .drop-zone div {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .drop-zone #selectedFileName {
+    color: #64748b !important;
+}
+
+html:not(.dark) select {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) label {
+    color: #334155 !important;
+}
+
+html:not(.dark) .btn-sample {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #0284c7 !important;
+}
 </style>
 
 <div class="import-container">
     <div class="glass-box">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
             <div>
-                <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #fff;">
+                <h1 style="font-size: 24px; font-weight: 800; margin: 0;">
                     📋 Bulk Corporate Employee CSV Roster Importer
                 </h1>
-                <p style="color: #94a3b8; font-size: 13px; margin: 4px 0 0;">
+                <p style="color: #64748b; font-size: 13px; margin: 4px 0 0;">
                     Onboard 1,000+ employees, auto-map routes, assign stops, and generate dynamic boarding passes.
                 </p>
             </div>
@@ -97,16 +151,16 @@
 
         {% if import_result %}
         <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-            <div style="font-weight: 700; color: #34d399; font-size: 15px;">
+            <div style="font-weight: 700; color: #059669; font-size: 15px;">
                 ✅ Import Summary for {{ import_result.contract }}:
             </div>
-            <div style="font-size: 13px; color: #f1f5f9; margin-top: 6px;">
+            <div style="font-size: 13px; margin-top: 6px;">
                 Total Processed: <strong>{{ import_result.total_processed }}</strong> | 
                 New Employees Created: <strong>{{ import_result.created_count }}</strong> | 
                 Updated: <strong>{{ import_result.updated_count }}</strong>
             </div>
             {% if import_result.errors %}
-            <div style="margin-top: 10px; font-size: 12px; color: #f87171;">
+            <div style="margin-top: 10px; font-size: 12px; color: #dc2626;">
                 <strong>Warnings:</strong>
                 <ul style="margin: 4px 0 0 16px;">
                     {% for err in import_result.errors %}
@@ -121,10 +175,10 @@
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; color: #cbd5e1; margin-bottom: 8px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
                     Select Corporate Transport Contract:
                 </label>
-                <select name="contract_id" required style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px 14px; border-radius: 8px; font-size: 13px;">
+                <select name="contract_id" required style="width: 100%; padding: 10px 14px; border-radius: 8px; font-size: 13px;">
                     {% for c in contracts %}
                     <option value="{{ c.id }}">{{ c.name }} ({{ c.customer.name }})</option>
                     {% empty %}
@@ -135,17 +189,17 @@
 
             <div class="drop-zone" onclick="document.getElementById('csvFileInput').click()">
                 <div style="font-size: 36px; margin-bottom: 8px;">📄</div>
-                <div style="font-weight: 700; font-size: 15px; color: #e2e8f0;">
+                <div style="font-weight: 700; font-size: 15px;" class="drop-title">
                     Click to select CSV file or drag and drop here
                 </div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;" id="selectedFileName">
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;" id="selectedFileName">
                     Accepts .csv files formatted with Employee_ID, Name, Gender, Phone, Stop_Name
                 </div>
                 <input type="file" name="csv_file" id="csvFileInput" accept=".csv" required style="display: none;" onchange="document.getElementById('selectedFileName').innerText = this.files[0].name" />
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <a href="{% url 'fleet_commute:women_safety_studio' %}" style="color: #94a3b8; font-size: 13px; text-decoration: none;">
+                <a href="{% url 'fleet_commute:women_safety_studio' %}" style="color: #64748b; font-size: 13px; text-decoration: none;">
                     &larr; Back to Women Safety Studio
                 </a>
                 <button type="submit" class="btn-primary-glow">

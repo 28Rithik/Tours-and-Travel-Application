@@ -7,47 +7,178 @@
 {% block content %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-/* ----------------- Modern Operations Control Room Styles ----------------- */
-.cr-wrapper {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #1e293b;
+/* ─────────────────────────────────────────────────────────────
+   Operations Control Room — Django Unfold Executive Design System
+   Full Unfold Admin Palette & Modern Executive Cockpit Architecture
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --cr-primary: #0284c7;
+  --cr-primary-hover: #0369a1;
+  --cr-emerald: #059669;
+  --cr-amber: #d97706;
+  --cr-indigo: #4f46e5;
+  --cr-rose: #e11d48;
 }
 
-/* Page Intro & Quick Actions Header */
-.cr-header-strip {
+.cr-wrapper {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-main, #0f172a);
+  max-width: 1580px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.mono-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── §1 TOP 4-METRIC VIBRANT UNFOLD KPI DECK ── */
+.unfold-kpi-deck {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.unfold-kpi-card {
+  border-radius: 14px;
+  padding: 1.25rem 1.45rem;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 126px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.12);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.unfold-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px -4px rgba(15, 23, 42, 0.22);
+}
+
+.unfold-kpi-card::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+  pointer-events: none;
+  border-radius: 50%;
+}
+
+.unfold-kpi-blue {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+}
+.unfold-kpi-green {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+.unfold-kpi-amber {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+.unfold-kpi-indigo {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.unfold-kpi-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.65rem;
 }
 
-.cr-station-badge {
+.unfold-kpi-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.unfold-kpi-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: #ffffff;
+}
+
+.unfold-kpi-number {
+  font-size: 1.95rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.025em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.unfold-kpi-number.mono-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.65rem;
+}
+
+.unfold-kpi-footer {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── §2 UNFOLD STUDIO BANNER & LAUNCHPAD ── */
+.unfold-studio-banner {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 1.4rem 1.65rem;
+  color: #ffffff;
+  margin-bottom: 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  box-shadow: 0 10px 28px -5px rgba(15, 23, 42, 0.22);
+}
+
+.unfold-station-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: rgba(2, 132, 199, 0.1);
-  color: #0284c7;
-  border: 1px solid rgba(2, 132, 199, 0.25);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
-.cr-pulse-dot {
+.unfold-pulse-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
+  background: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
   animation: pulse-dot 2s infinite;
 }
 
@@ -57,268 +188,459 @@
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-.cr-greeting-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.85rem, 3vw, 2.35rem);
+.unfold-studio-title {
+  font-size: 1.55rem;
   font-weight: 800;
-  color: #0f172a;
-  line-height: 1.15;
+  color: #ffffff;
+  line-height: 1.2;
   margin: 0 0 0.35rem;
   letter-spacing: -0.02em;
 }
 
-.cr-greeting-subtitle {
-  color: #64748b;
-  font-size: 0.94rem;
+.unfold-studio-subtitle {
+  color: #94a3b8;
+  font-size: 0.86rem;
   margin: 0;
+  max-width: 680px;
 }
 
-/* Launchpad Quick Action Buttons */
-.cr-launchpad {
+.unfold-launchpad-actions {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.cr-action-btn {
+.unfold-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.65rem 1.15rem;
-  border-radius: 10px;
-  font-size: 0.84rem;
+  padding: 0.55rem 1rem;
+  border-radius: 9px;
+  font-size: 0.82rem;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid transparent;
   cursor: pointer;
+  border: 1px solid transparent;
 }
 
-.cr-btn-primary {
+.unfold-btn-primary {
   background: #0284c7;
-  color: white;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
 }
-.cr-btn-primary:hover {
+.unfold-btn-primary:hover {
   background: #0369a1;
+  color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
-  color: white;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
 }
 
-.cr-btn-radar {
-  background: #0f172a;
+.unfold-btn-radar {
+  background: rgba(15, 23, 42, 0.6);
   color: #38bdf8;
   border-color: #334155;
 }
-.cr-btn-radar:hover {
+.unfold-btn-radar:hover {
   background: #1e293b;
-  color: white;
+  color: #ffffff;
+  border-color: #475569;
   transform: translateY(-2px);
 }
 
-.cr-btn-outline {
-  background: white;
-  color: #334155;
-  border-color: #cbd5e1;
+.unfold-btn-tara {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(217, 119, 6, 0.25) 100%);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
 }
-.cr-btn-outline:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+.unfold-btn-tara:hover {
+  background: linear-gradient(135deg, #0284c7 0%, #d97706 100%);
+  color: #ffffff;
+  border-color: #f59e0b;
   transform: translateY(-2px);
-  color: #0f172a;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
 }
 
-/* Operational Alerts Banner */
-.cr-alert-strip {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border: 1px solid #fde68a;
-  border-radius: 14px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+.unfold-btn-ghost {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.unfold-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  transform: translateY(-2px);
 }
 
-.cr-alert-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.88rem;
-  color: #92400e;
-}
-
-.cr-alert-pill {
-  background: #f59e0b;
-  color: white;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* KPI 6-Grid Matrix */
-.cr-kpi-matrix {
+/* ── §3 VISUAL ANALYTICS STUDIO (DUAL INTERACTIVE CHARTS) ── */
+.cr-analytics-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 1.15rem;
-  margin-bottom: 2.25rem;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
 }
 
-.cr-kpi-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.15rem 0.95rem;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+.cr-chart-card {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem 1.45rem;
   display: flex;
   flex-direction: column;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+html.dark .cr-chart-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.cr-chart-header {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cr-chart-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+html.dark .cr-chart-title {
+  color: #f8fafc;
+}
+
+.cr-chart-subtitle {
+  font-size: 0.74rem;
+  color: var(--text-muted, #64748b);
+  margin-top: 2px;
+}
+
+.cr-chart-controls {
+  display: flex;
+  gap: 0.35rem;
+  background: var(--surface-subtle, #f1f5f9);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+html.dark .cr-chart-controls {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.cr-chart-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  padding: 3px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cr-chart-btn.active {
+  background: var(--surface-card, #ffffff);
+  color: var(--primary, #0284c7);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+html.dark .cr-chart-btn.active {
+  background: #334155;
+  color: #38bdf8;
+}
+
+.cr-chart-canvas-wrap {
   position: relative;
+  height: 220px;
+  width: 100%;
+}
+
+.cr-chart-footer-metrics {
+  display: flex;
+  justify-content: space-around;
+  border-top: 1px solid var(--border-color, #f1f5f9);
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+}
+
+html.dark .cr-chart-footer-metrics {
+  border-top-color: #334155;
+}
+
+.cr-chart-metric-item {
+  text-align: center;
+}
+
+.cr-chart-metric-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.cr-chart-metric-value {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main, #0f172a);
+  margin-top: 2px;
+}
+
+html.dark .cr-chart-metric-value {
+  color: #f8fafc;
+}
+
+/* Corridors breakdown list */
+.cr-corridors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.cr-corridor-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cr-corridor-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+}
+
+.cr-corridor-name {
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+html.dark .cr-corridor-name {
+  color: #f1f5f9;
+}
+
+.cr-corridor-stats {
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.cr-corridor-bar-bg {
+  height: 6px;
+  background: var(--surface-subtle, #f1f5f9);
+  border-radius: 99px;
   overflow: hidden;
 }
 
-.cr-kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--kpi-accent, #0284c7);
-  opacity: 0.85;
+html.dark .cr-corridor-bar-bg {
+  background: #334155;
 }
 
-.cr-kpi-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 25px -5px rgba(15, 23, 42, 0.08);
-  border-color: #cbd5e1;
+.cr-corridor-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
 }
 
-.cr-kpi-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.65rem;
-}
-
-.cr-kpi-label {
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
-}
-
-.cr-kpi-icon {
-  font-size: 1.2rem;
-  opacity: 0.85;
-}
-
-.cr-kpi-val {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.12rem, 1.32vw, 1.48rem);
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.15;
-  margin-bottom: 0.35rem;
-  letter-spacing: -0.025em;
-  white-space: nowrap;
-}
-
-.cr-kpi-sub {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  white-space: nowrap;
-}
-
-/* Two-Column Core Operational Deck */
-.cr-deck-grid {
+/* ── §4 2-COLUMN COCKPIT LAYOUT (70% MAIN / 30% SIDEBAR) ── */
+.cr-cockpit-deck {
   display: grid;
-  grid-template-columns: 2fr 1.05fr;
+  grid-template-columns: minmax(0, 1fr) 370px;
   gap: 1.75rem;
   align-items: start;
 }
 
-/* Section Panels */
-.cr-panel {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+/* Card Containers */
+.cr-card-panel {
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
+  margin-bottom: 1.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.cr-panel-head {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+html.dark .cr-card-panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.cr-card-head {
+  padding: 1.15rem 1.35rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-subtle, #f8fafc);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f8fafc;
 }
 
-.cr-panel-head h2 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.15rem;
+html.dark .cr-card-head {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+
+.cr-card-head h2 {
+  font-size: 1.02rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-main, #0f172a);
   margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.cr-panel-head a {
+html.dark .cr-card-head h2 {
+  color: #f8fafc;
+}
+
+.cr-card-head a {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #0284c7;
+  color: var(--primary, #0284c7);
   text-decoration: none;
 }
-.cr-panel-head a:hover {
+.cr-card-head a:hover {
   text-decoration: underline;
 }
 
-/* Table Design */
-.cr-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.84rem;
+/* Operations Live Filter Toolbar */
+.cr-table-toolbar {
+  padding: 0.85rem 1.35rem;
+  background: var(--surface-card, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.cr-table th {
-  background: #ffffff;
-  color: #64748b;
+html.dark .cr-table-toolbar {
+  background: #1e293b;
+  border-bottom-color: #334155;
+}
+
+.cr-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--surface-subtle, #f8fafc);
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+  min-width: 280px;
+}
+
+html.dark .cr-search-box {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.cr-search-input {
+  border: none;
+  background: transparent;
+  font-size: 0.82rem;
+  color: var(--text-main, #0f172a);
+  outline: none;
+  width: 100%;
+}
+
+html.dark .cr-search-input {
+  color: #f1f5f9;
+}
+
+.cr-filter-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.cr-filter-chip {
+  background: var(--surface-subtle, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 99px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted, #64748b);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+html.dark .cr-filter-chip {
+  background: #0f172a;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.cr-filter-chip.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+/* Table Design matching Unfold Admin */
+.cr-unfold-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.cr-unfold-table th {
+  background: var(--surface-subtle, #f8fafc);
+  color: var(--text-muted, #475569);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.85rem 0.95rem;
+  padding: 0.85rem 1.15rem;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-strong, #cbd5e1);
+  white-space: nowrap;
 }
 
-.cr-table td {
-  padding: 0.85rem 0.95rem;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
+html.dark .cr-unfold-table th {
+  background: #0f172a;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+
+.cr-unfold-table td {
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid var(--border-color, #f1f5f9);
+  color: var(--text-main, #1e293b);
   vertical-align: middle;
 }
 
-.cr-table tr:hover td {
-  background: #f8fafc;
+html.dark .cr-unfold-table td {
+  border-bottom-color: #334155;
+  color: #e2e8f0;
 }
 
-.cr-table tr:last-child td {
+.cr-unfold-table tr:hover td {
+  background: var(--surface-subtle, #f8fafc);
+}
+
+html.dark .cr-unfold-table tr:hover td {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cr-unfold-table tr:last-child td {
   border-bottom: none;
 }
 
@@ -334,80 +656,79 @@
   text-transform: capitalize;
 }
 
-.status-started {
-  background: #dcfce7;
-  color: #15803d;
-}
+.status-started { background: #dcfce7; color: #15803d; }
+.status-assigned { background: #e0f2fe; color: #0369a1; }
+.status-booked { background: #fef3c7; color: #b45309; }
+.status-completed { background: #f1f5f9; color: #475569; }
 
-.status-assigned {
-  background: #e0f2fe;
-  color: #0369a1;
-}
+html.dark .status-started { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+html.dark .status-assigned { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+html.dark .status-booked { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+html.dark .status-completed { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
 
-.status-booked {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.status-completed {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-/* Action Buttons inside Table */
 .tbl-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.35rem 0.7rem;
+  gap: 0.25rem;
+  padding: 0.35rem 0.65rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
   text-decoration: none;
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #e2e8f0;
-  transition: all 0.15s;
+  background: var(--surface-subtle, #f1f5f9);
+  color: var(--text-main, #1e293b);
+  border: 1px solid var(--border-color, #cbd5e1);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+html.dark .tbl-btn {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
 }
 
 .tbl-btn:hover {
-  background: #0284c7;
-  color: white;
-  border-color: #0284c7;
+  background: var(--primary, #0284c7);
+  color: #ffffff;
+  border-color: var(--primary, #0284c7);
 }
 
-/* Financial Progress Bar */
+/* ── §5 SIDEBAR FINANCIAL PULSE & TELEMATICS WIDGETS ── */
 .cr-finance-pulse {
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 .cr-progress-wrap {
-  margin: 1rem 0 1.5rem;
+  margin: 0.85rem 0 1.25rem;
 }
 
 .cr-progress-bar {
-  height: 10px;
-  background: #f1f5f9;
+  display: flex;
+  height: 8px;
   border-radius: 9999px;
   overflow: hidden;
-  display: flex;
+  background: #e2e8f0;
 }
 
-.cr-prog-profit {
-  background: #10b981;
+html.dark .cr-progress-bar {
+  background: #334155;
 }
 
-.cr-prog-expense {
-  background: #f43f5e;
-}
+.cr-prog-profit { background: #10b981; }
+.cr-prog-expense { background: #f43f5e; }
 
 .cr-stat-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.85rem 0;
-  border-bottom: 1px dashed #e2e8f0;
-  font-size: 0.85rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed var(--border-color, #e2e8f0);
+  font-size: 0.82rem;
+}
+
+html.dark .cr-stat-item {
+  border-bottom-color: #334155;
 }
 
 .cr-stat-item:last-child {
@@ -415,763 +736,1016 @@
 }
 
 .cr-stat-item span {
-  color: #64748b;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 600;
 }
 
 .cr-stat-item strong {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.95rem;
-  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main, #0f172a);
 }
 
-/* Operational Shortcuts Grid */
+html.dark .cr-stat-item strong {
+  color: #f8fafc;
+}
+
 .cr-shortcuts-list {
-  padding: 1.25rem 1.5rem;
-  background: #f8fafc;
-  border-top: 1px solid #f1f5f9;
-  display: grid;
-  gap: 0.6rem;
+  padding: 0 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
 .cr-shortcut-row {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   padding: 0.65rem 0.85rem;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: var(--surface-subtle, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 8px;
-  text-decoration: none;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #334155;
-  transition: all 0.2s;
+  text-decoration: none;
+  color: var(--text-main, #334155);
+  transition: all 0.15s ease;
+}
+
+html.dark .cr-shortcut-row {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
 }
 
 .cr-shortcut-row:hover {
-  border-color: #0284c7;
-  color: #0284c7;
+  background: var(--surface, #ffffff);
+  border-color: var(--primary, #0284c7);
+  color: var(--primary, #0284c7);
   transform: translateX(3px);
 }
 
-/* Responsive */
+/* ── §6 RESPONSIVE BREAKPOINTS ── */
 @media (max-width: 1280px) {
-  .cr-kpi-matrix {
-    grid-template-columns: repeat(3, 1fr);
+  .unfold-kpi-deck {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cr-analytics-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 980px) {
-  .cr-deck-grid {
+@media (max-width: 1024px) {
+  .cr-cockpit-deck {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 640px) {
-  .cr-kpi-matrix {
-    grid-template-columns: repeat(2, 1fr);
+  .unfold-kpi-deck {
+    grid-template-columns: 1fr;
   }
-  .cr-header-strip {
+  .unfold-studio-banner {
     flex-direction: column;
     align-items: flex-start;
   }
-  .cr-launchpad {
+  .unfold-launchpad-actions {
     width: 100%;
   }
 }
 </style>
 
 <div class="cr-wrapper">
-  <!-- 1. Page Header & Quick Launchpad Bar -->
-  <div class="cr-header-strip">
-    <div>
-      <div class="cr-station-badge">
-        <span class="cr-pulse-dot"></span>
-        <span>Gandhipuram HQ • Live Dispatch Console</span>
+
+  <!-- ==============================================================
+       1. TOP 4-METRIC VIBRANT UNFOLD KPI DECK
+       ============================================================== -->
+  <section class="unfold-kpi-deck">
+    <!-- Metric 1: Active Trips (Ocean Blue) -->
+    <div class="unfold-kpi-card unfold-kpi-blue">
+      <div class="unfold-kpi-top">
+        <span class="unfold-kpi-title">Active Deployments</span>
+        <div class="unfold-kpi-icon-box">🚗</div>
       </div>
-      <h1 class="cr-greeting-title">Good morning, {{ user.get_username|capfirst }}.</h1>
-      <p class="cr-greeting-subtitle">Unified Operations Mission Control for fleet movement, telemetry radar, and financial settlements.</p>
+      <div>
+        <div class="unfold-kpi-number">{{ active_trips }}</div>
+        <div class="unfold-kpi-footer">
+          <span class="unfold-pulse-dot" style="background: #ffffff; box-shadow: 0 0 6px #ffffff;"></span>
+          <span>{{ started_trips }} in transit &bull; {{ available_vehicles_count }} standby</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Quick Action Launchpad -->
-    <!-- Quick Action Launchpad -->
-    <div class="cr-launchpad">
+    <!-- Metric 2: Fleet Units & Crew (Emerald Forest) -->
+    <div class="unfold-kpi-card unfold-kpi-green">
+      <div class="unfold-kpi-top">
+        <span class="unfold-kpi-title">Commercial Fleet &amp; Crew</span>
+        <div class="unfold-kpi-icon-box">🚛</div>
+      </div>
+      <div>
+        <div class="unfold-kpi-number">{{ total_fleet_count }} <span style="font-size: 1.1rem; font-weight: 600; opacity: 0.85;">Units</span></div>
+        <div class="unfold-kpi-footer">
+          <span>{{ total_drivers_count }} Captains &bull; {{ compliance_score }}% Compliance</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric 3: Monthly Billed Revenue (Sun Amber) -->
+    <div class="unfold-kpi-card unfold-kpi-amber">
+      <div class="unfold-kpi-top">
+        <span class="unfold-kpi-title">Monthly Billed Revenue</span>
+        <div class="unfold-kpi-icon-box">💰</div>
+      </div>
+      <div>
+        <div class="unfold-kpi-number mono-val">{{ revenue_inr }}</div>
+        <div class="unfold-kpi-footer">
+          <span>Net Profit: {{ profit_inr }} (~{{ profit_pct }}%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metric 4: Liquidity & Working Capital (Royal Indigo) -->
+    <div class="unfold-kpi-card unfold-kpi-indigo">
+      <div class="unfold-kpi-top">
+        <span class="unfold-kpi-title">Working Capital Liquidity</span>
+        <div class="unfold-kpi-icon-box">🏛️</div>
+      </div>
+      <div>
+        <div class="unfold-kpi-number mono-val">{{ working_capital_inr }}</div>
+        <div class="unfold-kpi-footer">
+          <span>AR: {{ receivables_compact }} &bull; AP: {{ payables_compact }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================================
+       2. SLEEK UNFOLD STUDIO ACTION BANNER
+       ============================================================== -->
+  <section class="unfold-studio-banner">
+    <div>
+      <div class="unfold-station-pill">
+        <span class="unfold-pulse-dot"></span>
+        <span>Gandhipuram HQ &bull; Live Operations Mission Control</span>
+      </div>
+      <h1 class="unfold-studio-title">Good morning, {{ user.get_full_name|default:user.username|capfirst }}.</h1>
+      <p class="unfold-studio-subtitle">
+        Branch Station: <strong style="color: #ffffff;">{{ user_branch|default:"Gandhipuram HQ" }}</strong> &bull; Designation: <strong style="color: #ffffff;">{{ user_designation|default:"Enterprise Operations" }}</strong> &bull; High-throughput dispatch radar, telemetry monitor &amp; financial ledger.
+      </p>
+    </div>
+
+    <!-- Quick Action Launchpad Buttons -->
+    <div class="unfold-launchpad-actions">
       {% if is_booking_manager or is_superuser %}
-      <a class="cr-action-btn cr-btn-primary" href="{% url 'booking-create' %}">
+      <a class="unfold-btn unfold-btn-primary" href="{% url 'booking-create' %}">
         <span>+ New Booking</span>
       </a>
       {% endif %}
-      {% if is_fleet_manager or is_superuser %}
-      <a class="cr-action-btn cr-btn-radar" href="{% url 'fleet-live' %}">
+
+      <a class="unfold-btn unfold-btn-radar" href="{% url 'fleet-live' %}">
         <span>🛰️ Live Fleet Radar</span>
       </a>
-      {% endif %}
-      {% if is_finance_user or is_superuser %}
-      <a class="cr-action-btn cr-btn-outline" href="{% url 'crm:invoice_console' %}">
-        <span>🧾 Tax Invoices</span>
-      </a>
-      <a class="cr-action-btn cr-btn-outline" href="{% url 'generate-statement' %}">
-        <span>📑 Statement</span>
-      </a>
-      {% endif %}
-      <a class="cr-action-btn cr-btn-outline" href="{% url 'admin-tara-copilot-studio' %}" style="color: #6366f1; border-color: rgba(99, 102, 241, 0.3);">
-        <span>🧠 TARA AI</span>
-      </a>
-    </div>
-  </div>
 
-  <!-- 2. Operational Attention Alert Banner (if pending items) -->
-  {% if unassigned_trips_count > 0 or pending_bookings_count > 0 %}
-  <div class="cr-alert-strip">
-    <div class="cr-alert-content">
-      <span class="cr-alert-pill">⚡ Action Required</span>
-      <span>
-        <strong>Operations Queue:</strong> 
-        {% if unassigned_trips_count > 0 %}
-          {{ unassigned_trips_count }} trip{{ unassigned_trips_count|pluralize }} pending vehicle/chauffeur allocation. 
-        {% endif %}
-        {% if pending_bookings_count > 0 %}
-          {{ pending_bookings_count }} online booking inquiries awaiting confirmation.
-        {% endif %}
-      </span>
-    </div>
-    <a href="{% url 'booking-list' %}" style="font-size: 0.82rem; font-weight: 700; color: #b45309; text-decoration: none;">
-      Review Dispatch Queue →
-    </a>
-  </div>
-  {% endif %}
+      <a class="unfold-btn unfold-btn-tara" href="{% url 'admin-tara-copilot-studio' %}">
+        <span>☸️ Rathasārathi AI</span>
+      </a>
 
-  <!-- ⚡ Tactical Role-Specific Workspace Ribbon (Crisp Light Mode First) -->
-  <div class="role-workspace-ribbon" style="background: #ffffff; border: 1px solid #e2e8f0; border-left: 4px solid {{ user_role_color }}; border-radius: 14px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
-      <div style="display: flex; align-items: center; gap: 0.75rem;">
-        <span style="font-size: 1.5rem; line-height: 1;">{{ user_role_icon }}</span>
-        <div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <strong style="color: #0f172a; font-size: 1.05rem;">{{ user_role_label }} Workspace</strong>
-            <span style="background: {{ user_role_color }}15; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}40; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">
-              {{ user_employee_id|default:"SGT-ACTIVE" }}
-            </span>
-          </div>
-          <p style="margin: 2px 0 0; color: #64748b; font-size: 0.82rem;">
-            Branch Station: <strong style="color: #1e293b;">{{ user_branch }}</strong> &bull; Designation: <strong style="color: #1e293b;">{{ user_designation }}</strong>
-          </p>
-        </div>
-      </div>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href="{% url 'staff-roles-matrix' %}" style="display: inline-flex; align-items: center; gap: 0.35rem; background: #f8fafc; color: #0284c7; border: 1px solid #cbd5e1; padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; text-decoration: none; transition: all 0.15s;">
-          <span>🛡️ RBAC Matrix</span>
-        </a>
-        <button type="button" onclick="togglePersonaDropdown(event)" style="display: inline-flex; align-items: center; gap: 0.35rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.15s;">
-          <span>⚡ Switch Persona</span>
-        </button>
-      </div>
-    </div>
+      <a class="unfold-btn unfold-btn-ghost" href="{% url 'admin-database-health-dashboard' %}">
+        <span>💾 DB Snapshot</span>
+      </a>
 
+      <a class="unfold-btn unfold-btn-ghost" href="{% url 'staff-roles-matrix' %}">
+        <span>🛡️ RBAC Matrix</span>
+      </a>
+
+      <button type="button" class="unfold-btn unfold-btn-ghost" onclick="togglePersonaDropdown(event)">
+        <span>⚡ Switch Persona</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ==============================================================
+       ROLE-TAILORED WORKSPACE RIBBON (Contextual to Active Persona)
+       ============================================================== -->
+  <section class="unfold-role-ribbon-deck" style="margin-bottom: 1.5rem;">
     {% if is_manager and not is_admin %}
     <!-- 🏢 General Manager Executive Approvals Queue -->
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-        <span style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: #6d28d9; letter-spacing: 0.05em;">
-          ⏳ Pending Executive Approvals Queue ({{ pending_approvals|length }})
+    <div class="cr-card-panel" style="padding: 1.15rem 1.35rem; margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+        <span style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: #7c3aed; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+          <span>⏳</span> Pending Executive Approvals Queue ({{ pending_approvals|length }})
         </span>
-        <span style="font-size: 0.74rem; color: #64748b;">High-Value Overrides &amp; Disciplinary Waivers</span>
+        <span style="font-size: 0.74rem; color: var(--text-muted); font-weight: 600;">High-Value Overrides &amp; Disciplinary Waivers</span>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.85rem;">
         {% for apv in pending_approvals %}
-        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="background: var(--surface-subtle, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 0.85rem; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 0.7rem; font-family: monospace; color: #64748b; font-weight: 700;">{{ apv.id }}</span>
-              <span style="font-size: 0.65rem; font-weight: 800; background: #fee2e2; color: #b91c1c; padding: 1px 6px; border-radius: 4px; border: 1px solid #fecaca;">{{ apv.urgency }}</span>
+              <span class="mono-val" style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">{{ apv.id }}</span>
+              <span style="font-size: 0.65rem; font-weight: 800; background: rgba(239, 68, 68, 0.12); color: #ef4444; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(239, 68, 68, 0.25);">{{ apv.urgency }}</span>
             </div>
-            <strong style="font-size: 0.84rem; color: #0f172a; display: block;">{{ apv.type }}</strong>
-            <p style="font-size: 0.76rem; color: #475569; margin: 3px 0 6px;">{{ apv.subject }}</p>
+            <strong style="font-size: 0.84rem; color: var(--text-main); display: block;">{{ apv.type }}</strong>
+            <p style="font-size: 0.76rem; color: var(--text-muted); margin: 3px 0 6px;">{{ apv.subject }}</p>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 6px; margin-top: 4px;">
-            <span style="font-size: 0.84rem; font-weight: 800; color: #059669; font-family: monospace;">{{ apv.amount }}</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle, #f1f5f9); padding-top: 6px; margin-top: 4px;">
+            <span class="mono-val" style="font-size: 0.88rem; font-weight: 800; color: #059669;">{{ apv.amount }}</span>
             <div style="display: flex; gap: 4px;">
-              <button type="button" style="background: #10b981; color: white; border: none; border-radius: 5px; padding: 3px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">Approve</button>
-              <button type="button" style="background: #e2e8f0; color: #334155; border: none; border-radius: 5px; padding: 3px 9px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">Review</button>
+              <button type="button" class="tbl-btn" style="background: #059669; color: #fff; border-color: #059669;">Approve</button>
+              <button type="button" class="tbl-btn">Review</button>
             </div>
           </div>
         </div>
         {% endfor %}
       </div>
     </div>
+
     {% elif is_sales_executive or is_sales %}
     <!-- 📑 Sales Executive & Corporate Quotation Pipeline -->
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+    <div class="cr-card-panel" style="padding: 1.15rem 1.35rem; margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; align-items: center;">
       <div>
         <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #059669; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
           🎯 Monthly Sales Target Progress
         </span>
-        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px;">
-          <span style="color: #64748b;">Achieved: <strong style="color: #059669;" class="mono-val">{{ sales_achieved_inr }}</strong></span>
-          <span style="color: #64748b;">Target: <strong style="color: #0f172a;" class="mono-val">{{ sales_target_inr }}</strong></span>
+        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 5px;">
+          <span style="color: var(--text-muted);">Achieved: <strong style="color: #059669;" class="mono-val">{{ sales_achieved_inr }}</strong></span>
+          <span style="color: var(--text-muted);">Target: <strong style="color: var(--text-main);" class="mono-val">{{ sales_target_inr }}</strong></span>
         </div>
-        <div style="height: 8px; background: #e2e8f0; border-radius: 99px; overflow: hidden;">
-          <div style="width: {{ sales_progress_pct }}%; height: 100%; background: #10b981; border-radius: 99px;"></div>
+        <div style="height: 8px; background: var(--surface-subtle); border: 1px solid var(--border-color); border-radius: 99px; overflow: hidden;">
+          <div style="width: {{ sales_progress_pct }}%; height: 100%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 99px;"></div>
         </div>
-        <div style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">{{ sales_progress_pct }}% of monthly booking volume completed</div>
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">{{ sales_progress_pct }}% of monthly booking volume completed</div>
       </div>
       <div>
         <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #0284c7; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
           🏢 Priority B2B Corporate Accounts
         </span>
-        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+        <div style="display: flex; gap: 0.45rem; flex-wrap: wrap;">
           {% for client in top_corporate_clients %}
-          <span style="background: #ffffff; border: 1px solid #cbd5e1; color: #1e293b; font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+          <span style="background: var(--surface-subtle); border: 1px solid var(--border-color); color: var(--text-main); font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
             {{ client.name }}
           </span>
           {% empty %}
-          <span style="color: #64748b; font-size: 0.75rem;">All corporate client accounts synchronized.</span>
+          <span style="color: var(--text-muted); font-size: 0.75rem;">All corporate client accounts synchronized.</span>
           {% endfor %}
         </div>
       </div>
-      <div style="display: flex; flex-direction: column; justify-content: center; gap: 0.5rem;">
-        <a href="{% url 'crm:quotation_create' %}" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: #059669; color: white; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
-          <span>+ Create Custom Proposal</span>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        <a href="{% url 'crm:quotation_create' %}" class="unfold-btn unfold-btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
+          <span>+ New Quotation</span>
         </a>
-        <a href="{% url 'crm:inquiry_pipeline' %}" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'crm:inquiry_pipeline' %}" class="tbl-btn" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
           <span>🔎 Query Tracker 2.0</span>
         </a>
       </div>
     </div>
+
     {% elif is_operation_account %}
     <!-- 💰 Accounts & Billing Desk -->
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+    <div class="cr-card-panel" style="padding: 1.15rem 1.35rem; margin-bottom: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem;">
       <div>
         <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #d97706; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
           🧾 Tax Invoicing &amp; Receivables
         </span>
-        <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; font-family: monospace;">{{ receivables_inr }}</div>
-        <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">{{ unpaid_invoices_count }} pending B2B GST tax invoices awaiting payment</div>
+        <div class="mono-val" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">{{ receivables_inr }}</div>
+        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">{{ unpaid_invoices_count }} pending B2B GST tax invoices awaiting payment</div>
       </div>
       <div>
-        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #dc2626; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
+        <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #ef4444; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">
           💸 Driver Fuel &amp; Vendor Payables
         </span>
-        <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; font-family: monospace;">{{ payables_inr }}</div>
-        <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">Driver Bata, Toll FASTag &amp; supplier settlements to clear</div>
+        <div class="mono-val" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">{{ payables_inr }}</div>
+        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">Driver Bata, Toll FASTag &amp; supplier settlements to clear</div>
       </div>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <a href="{% url 'crm:invoice_console' %}" style="flex: 1; text-align: center; background: #d97706; color: white; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
+      <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
+        <a href="{% url 'crm:invoice_console' %}" class="unfold-btn unfold-btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
           🧾 Invoices Console
         </a>
-        <a href="{% url 'generate-statement' %}" style="flex: 1; text-align: center; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.55rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'generate-statement' %}" class="tbl-btn" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
           📑 Ledger Statement
         </a>
       </div>
     </div>
+
     {% elif is_driver %}
     <!-- 👨‍✈️ Field Chauffeur Tour Cockpit -->
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div class="cr-card-panel" style="padding: 1.15rem 1.35rem; margin-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <div>
         <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #ea580c; letter-spacing: 0.05em; display: block; margin-bottom: 3px;">
           🚘 Current Assigned Chauffeur Duty
         </span>
-        <strong style="color: #0f172a; font-size: 0.95rem;">Toyota Innova Crysta &bull; TN 38 AA 7788</strong>
-        <p style="margin: 2px 0 0; color: #64748b; font-size: 0.78rem;">Route: Coimbatore CJB &rarr; Ooty Club &bull; Guest: Mr. Sundar Pichai</p>
+        <strong style="color: var(--text-main); font-size: 0.95rem;">Toyota Innova Crysta &bull; TN 38 AA 7788</strong>
+        <p style="margin: 2px 0 0; color: var(--text-muted); font-size: 0.78rem;">Route: Coimbatore CJB &rarr; Ooty Club &bull; Guest: Mr. Sundar Pichai</p>
       </div>
       <div style="display: flex; gap: 0.6rem;">
-        <a href="/trip/1/handover/" style="background: #0284c7; color: white; padding: 0.55rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
-          📱 Open Handover Checklist
+        <a href="/trip/1/handover/" class="unfold-btn unfold-btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
+          📱 Open Mobile Handover
         </a>
-        <a href="/trip/1/lifecycle/" style="background: #059669; color: white; padding: 0.55rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; text-decoration: none;">
-          🧭 Tour Milestones
+        <a href="/trip/1/" class="tbl-btn" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
+          View Manifest
         </a>
       </div>
     </div>
+
     {% else %}
     <!-- 👑 Director / Fleet Operations Universal Control -->
-    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+    <div class="cr-card-panel" style="padding: 1.15rem 1.35rem; margin-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; gap: 1.75rem; align-items: center; flex-wrap: wrap;">
         <div>
-          <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Available Vehicles</span>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #059669; font-family: monospace;">{{ available_vehicles_count }} / {{ total_fleet_count }}</div>
+          <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Standby Available</span>
+          <div class="mono-val" style="font-size: 1.1rem; font-weight: 800; color: #059669;">{{ available_vehicles_count }} / {{ total_fleet_count }} Units</div>
         </div>
         <div>
-          <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Drivers Active</span>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #0284c7; font-family: monospace;">{{ total_drivers_count }} Captains</div>
+          <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Commercial Chauffeurs</span>
+          <div class="mono-val" style="font-size: 1.1rem; font-weight: 800; color: #0284c7;">{{ total_drivers_count }} Captains</div>
         </div>
         <div>
-          <span style="font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Compliance Radar</span>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #d97706; font-family: monospace;">{{ compliance_alerts_count }} Alert{{ compliance_alerts_count|pluralize }}</div>
+          <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Compliance Radar</span>
+          <div class="mono-val" style="font-size: 1.1rem; font-weight: 800; color: {% if compliance_alerts_count > 0 %}#d97706{% else %}#059669{% endif %};">
+            {{ compliance_score }}% Health ({% if compliance_alerts_count > 0 %}{{ compliance_alerts_count }} Attention{% else %}All Clear{% endif %})
+          </div>
         </div>
       </div>
       <div style="display: flex; gap: 0.5rem;">
-        <a href="{% url 'fleet-live' %}" style="background: #0284c7; color: white; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'fleet-live' %}" class="unfold-btn unfold-btn-primary" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
           🛰️ Open Fleet Radar
         </a>
-        <a href="{% url 'dispatch-console' %}" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none;">
+        <a href="{% url 'dispatch-console' %}" class="tbl-btn" style="padding: 0.45rem 0.85rem; font-size: 0.78rem;">
           📋 Dispatch Console
         </a>
       </div>
     </div>
     {% endif %}
-  </div>
-
-  <!-- 3. Role-Adapted 6-KPI Matrix -->
-  <section class="cr-kpi-matrix">
-    {% if is_finance_user or is_superuser %}
-      <!-- Financial Leadership & Treasury Metrics -->
-      <div class="cr-kpi-card" style="--kpi-accent: #0284c7;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Active Trips</span>
-          <span class="cr-kpi-icon">🚗</span>
-        </div>
-        <div class="cr-kpi-val">{{ active_trips }}</div>
-        <div class="cr-kpi-sub">
-          <span style="color: #10b981;">●</span> {{ started_trips }} in-transit right now
-        </div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #10b981;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Completed Trips</span>
-          <span class="cr-kpi-icon">🏁</span>
-        </div>
-        <div class="cr-kpi-val">{{ completed_trips }}</div>
-        <div class="cr-kpi-sub">Total delivered journeys</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #f59e0b;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Monthly Revenue</span>
-          <span class="cr-kpi-icon">💰</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #b45309;">{{ revenue_inr }}</div>
-        <div class="cr-kpi-sub">{{ revenue_compact }} billed this month</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #059669;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Net Profit</span>
-          <span class="cr-kpi-icon">📈</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #059669;">{{ profit_inr }}</div>
-        <div class="cr-kpi-sub">Net Margin ~{{ profit_pct }}%</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #6366f1;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Receivables</span>
-          <span class="cr-kpi-icon">⏳</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #4f46e5;">{{ receivables_inr }}</div>
-        <div class="cr-kpi-sub">{{ receivables_compact }} B2B Client Ledger</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #f43f5e;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Vendor Payables</span>
-          <span class="cr-kpi-icon">💸</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #e11d48;">{{ payables_inr }}</div>
-        <div class="cr-kpi-sub">Fuel, Tolls &amp; Vendor Due</div>
-      </div>
-
-    {% elif is_fleet_manager %}
-      <!-- Fleet Operations Specific Metrics (No Confidential Financials) -->
-      <div class="cr-kpi-card" style="--kpi-accent: #0284c7;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Active Deployments</span>
-          <span class="cr-kpi-icon">🚗</span>
-        </div>
-        <div class="cr-kpi-val">{{ active_trips }}</div>
-        <div class="cr-kpi-sub">
-          <span style="color: #10b981;">●</span> {{ started_trips }} on road right now
-        </div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #10b981;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Fleet Available</span>
-          <span class="cr-kpi-icon">🅿️</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #059669;">{{ available_vehicles_count }}</div>
-        <div class="cr-kpi-sub">Ready at Gandhipuram HQ</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #6366f1;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Registered Fleet</span>
-          <span class="cr-kpi-icon">🛰️</span>
-        </div>
-        <div class="cr-kpi-val">{{ total_fleet_count }}</div>
-        <div class="cr-kpi-sub">Active fleet assets</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #0ea5e9;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Chauffeur Corps</span>
-          <span class="cr-kpi-icon">👨‍✈️</span>
-        </div>
-        <div class="cr-kpi-val">{{ total_drivers_count }}</div>
-        <div class="cr-kpi-sub">Verified commercial drivers</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #f59e0b;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Pending Allocation</span>
-          <span class="cr-kpi-icon">⚠️</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #b45309;">{{ unassigned_trips_count }}</div>
-        <div class="cr-kpi-sub">Need vehicle or driver</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #8b5cf6;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Completed Trips</span>
-          <span class="cr-kpi-icon">🏁</span>
-        </div>
-        <div class="cr-kpi-val">{{ completed_trips }}</div>
-        <div class="cr-kpi-sub">Delivered journeys</div>
-      </div>
-
-    {% else %}
-      <!-- Booking & Dispatch Specific Metrics -->
-      <div class="cr-kpi-card" style="--kpi-accent: #0284c7;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Active Bookings</span>
-          <span class="cr-kpi-icon">🚗</span>
-        </div>
-        <div class="cr-kpi-val">{{ active_trips }}</div>
-        <div class="cr-kpi-sub">{{ started_trips }} in transit</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #f59e0b;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Online Inquiries</span>
-          <span class="cr-kpi-icon">📩</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #b45309;">{{ pending_bookings_count }}</div>
-        <div class="cr-kpi-sub">Pending confirmation</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #ef4444;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Needs Chauffeur</span>
-          <span class="cr-kpi-icon">⚠️</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #dc2626;">{{ unassigned_trips_count }}</div>
-        <div class="cr-kpi-sub">Trips pending allocation</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #10b981;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Ready Vehicles</span>
-          <span class="cr-kpi-icon">✅</span>
-        </div>
-        <div class="cr-kpi-val" style="color: #059669;">{{ available_vehicles_count }}</div>
-        <div class="cr-kpi-sub">Available for dispatch</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #6366f1;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Total Fleet</span>
-          <span class="cr-kpi-icon">🚘</span>
-        </div>
-        <div class="cr-kpi-val">{{ total_fleet_count }}</div>
-        <div class="cr-kpi-sub">Cars, vans &amp; buses</div>
-      </div>
-
-      <div class="cr-kpi-card" style="--kpi-accent: #8b5cf6;">
-        <div class="cr-kpi-top">
-          <span class="cr-kpi-label">Completed Trips</span>
-          <span class="cr-kpi-icon">🏁</span>
-        </div>
-        <div class="cr-kpi-val">{{ completed_trips }}</div>
-        <div class="cr-kpi-sub">Successfully fulfilled</div>
-      </div>
-    {% endif %}
   </section>
 
-  <!-- 4. Two-Column Core Operational Deck (Eliminating Whitespace) -->
-  <div class="cr-deck-grid">
-    <!-- Left Column: Active Trips & Dispatch Console -->
-    <div class="cr-panel">
-      <div class="cr-panel-head">
-        <h2>
-          <span>🛰️</span>
-          <span>Live Operations Dispatch Deck</span>
-        </h2>
-        <a href="{% url 'booking-list' %}">View All 181 Active Trips →</a>
+  <!-- ==============================================================
+       3. EXECUTIVE VISUAL ANALYTICS STUDIO (DUAL INTERACTIVE CHARTS)
+       ============================================================== -->
+  <section class="cr-analytics-grid">
+    <!-- Chart Panel A: 6-Month Financial Trajectory (Revenue vs Expenses vs Profit) -->
+    <div class="cr-chart-card">
+      <div class="cr-chart-header">
+        <div>
+          <div class="cr-chart-title">
+            <span>📈</span>
+            <span>Financial Trajectory &amp; Cashflow Pulse</span>
+          </div>
+          <div class="cr-chart-subtitle">6-Month historical comparison: Billed Revenue vs Operating Costs vs Net Retained</div>
+        </div>
+        <div class="cr-chart-controls">
+          <button type="button" class="cr-chart-btn active" id="btn-chart-all" onclick="setFinanceChartMode('all')">All</button>
+          <button type="button" class="cr-chart-btn" id="btn-chart-rev" onclick="setFinanceChartMode('rev')">Revenue</button>
+          <button type="button" class="cr-chart-btn" id="btn-chart-profit" onclick="setFinanceChartMode('profit')">Net Margin</button>
+        </div>
       </div>
 
-      <div style="overflow-x: auto;">
-        <table class="cr-table">
-          <thead>
-            <tr>
-              <th>Trip ID</th>
-              <th>Route Corridor</th>
-              <th>Vehicle Assigned</th>
-              <th>Chauffeur</th>
-              <th>Status</th>
-              <th style="text-align: right;">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for trip in recent_active_trips %}
-            <tr>
-              <td>
-                <a href="{% url 'trip-detail' trip.id %}" style="font-weight: 800; color: #0284c7; text-decoration: none;">
-                  {{ trip.trip_id|default:trip.id }}
-                </a>
-              </td>
-              <td>
-                <div style="font-weight: 700; color: #0f172a;">
-                  {{ trip.booking.destination|default:trip.guest_name|default:"Outstation Route" }}
-                </div>
-                <div style="font-size: 0.72rem; color: #64748b;">
-                  {{ trip.booking.pickup_location|default:"Coimbatore Gandhipuram" }}
-                </div>
-              </td>
-              <td>
-                {% if trip.vehicle %}
-                  <span style="font-weight: 700; font-family: monospace; font-size: 0.86rem; color: #0f172a;">
-                    {{ trip.vehicle.registration_number }}
-                  </span>
-                  <div style="font-size: 0.72rem; color: #64748b;">{{ trip.vehicle.vehicle_type.name|default:"Commercial" }}</div>
-                {% else %}
-                  <span style="color: #f59e0b; font-weight: 700; font-size: 0.78rem;">⚠️ Vehicle Needed</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if trip.driver %}
-                  <span style="font-weight: 600;">{{ trip.driver.name }}</span>
-                  <div style="font-size: 0.72rem; color: #64748b;">{{ trip.driver.phone }}</div>
-                {% else %}
-                  <span style="color: #f59e0b; font-weight: 700; font-size: 0.78rem;">⚠️ Driver Needed</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if trip.status == 'started' %}
-                  <span class="status-pill status-started">● Started</span>
-                {% elif trip.status == 'assigned' %}
-                  <span class="status-pill status-assigned">● Assigned</span>
-                {% elif trip.status == 'booked' %}
-                  <span class="status-pill status-booked">● Booked</span>
-                {% else %}
-                  <span class="status-pill status-completed">{{ trip.get_status_display }}</span>
-                {% endif %}
-              </td>
-              <td style="text-align: right; white-space: nowrap;">
-                <a class="tbl-btn" href="{% url 'trip-sheet' trip.id %}" title="Generate RTO Trip Sheet">
-                  📋 Sheet
-                </a>
-                <a class="tbl-btn" href="{% url 'trip-detail' trip.id %}">
-                  Details →
-                </a>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="6" style="text-align: center; padding: 2.5rem; color: #94a3b8;">
-                No active trips currently in transit. Use "+ New Booking" to dispatch vehicles.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="cr-chart-canvas-wrap">
+        <canvas id="financeSplineChart"></canvas>
+      </div>
+
+      <div class="cr-chart-footer-metrics">
+        <div class="cr-chart-metric-item">
+          <div class="cr-chart-metric-label">
+            <span style="color: #0284c7;">●</span> Current Month Revenue
+          </div>
+          <div class="cr-chart-metric-value mono-val">{{ revenue_inr }}</div>
+        </div>
+        <div class="cr-chart-metric-item">
+          <div class="cr-chart-metric-label">
+            <span style="color: #f43f5e;">●</span> Monthly Expenses
+          </div>
+          <div class="cr-chart-metric-value mono-val">{{ expenses_inr }}</div>
+        </div>
+        <div class="cr-chart-metric-item">
+          <div class="cr-chart-metric-label">
+            <span style="color: #10b981;">●</span> Net Retained Profit
+          </div>
+          <div class="cr-chart-metric-value mono-val" style="color: #059669;">{{ profit_inr }}</div>
+        </div>
       </div>
     </div>
 
-    <!-- Right Column: Operations Pulse Deck -->
+    <!-- Chart Panel B: Fleet Deployment Status & Top Demand Corridors -->
+    <div class="cr-chart-card">
+      <div class="cr-chart-header">
+        <div>
+          <div class="cr-chart-title">
+            <span>🛰️</span>
+            <span>Fleet Telematics &amp; Regional Corridors</span>
+          </div>
+          <div class="cr-chart-subtitle">Live vehicle deployment distribution &amp; key arterial booking demand</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 140px 1fr; gap: 1rem; align-items: center;">
+        <div style="position: relative; height: 130px; width: 130px; margin: 0 auto;">
+          <canvas id="fleetDoughnutChart"></canvas>
+          <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+            <div class="mono-val" style="font-size: 1.15rem; font-weight: 800; color: var(--text-main);">{{ total_fleet_count }}</div>
+            <div style="font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">Fleet Units</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.76rem;">
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #0284c7;"></span> In Transit:
+              </span>
+              <strong class="mono-val" style="color: #0284c7;">{{ fleet_on_trip }} Units</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span> Assigned / Booked:
+              </span>
+              <strong class="mono-val" style="color: #d97706;">{{ fleet_assigned }} Units</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span> Depot Standby:
+              </span>
+              <strong class="mono-val" style="color: #059669;">{{ fleet_available }} Units</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Corridors Section -->
+      <div style="margin-top: 1rem; border-top: 1px solid var(--border-color, #f1f5f9); padding-top: 0.75rem;">
+        <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">
+          Top Regional Route Corridors
+        </span>
+        <div class="cr-corridors-list">
+          {% for corridor in top_corridors %}
+          <div class="cr-corridor-row">
+            <div class="cr-corridor-info">
+              <span class="cr-corridor-name">{{ corridor.destination }}</span>
+              <span class="cr-corridor-stats">{{ corridor.count }} trips ({{ corridor.pct }}%)</span>
+            </div>
+            <div class="cr-corridor-bar-bg">
+              <div class="cr-corridor-bar-fill" style="width: {{ corridor.pct }}%;"></div>
+            </div>
+          </div>
+          {% empty %}
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 0.5rem 0;">
+            Corridor routing telemetry syncing with booking logs...
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================================================
+       4. 2-COLUMN COCKPIT DECK (70% TABLE / 30% SIDEBAR)
+       ============================================================== -->
+  <div class="cr-cockpit-deck">
+
+    <!-- ── LEFT COLUMN (70%): OPERATIONS TABLE & DISPATCH DECK ── -->
     <div>
-      <div class="cr-panel" style="margin-bottom: 1.5rem;">
-        {% if is_finance_user or is_superuser %}
-          <div class="cr-panel-head">
-            <h2>
-              <span>📊</span>
-              <span>Monthly Financial Pulse</span>
-            </h2>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase;">
-              {% now "M Y" %}
-            </span>
+      <!-- Operations Attention Alert Strip -->
+      {% if unassigned_trips_count > 0 or pending_bookings_count > 0 %}
+      <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 0.85rem 1.15rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.65rem; font-size: 0.85rem; color: #d97706; font-weight: 700;">
+          <span style="font-size: 1.1rem;">⚠️</span>
+          <span>
+            <strong>Action Required:</strong>
+            {% if unassigned_trips_count > 0 %}
+              {{ unassigned_trips_count }} trip{{ unassigned_trips_count|pluralize }} awaiting vehicle or chauffeur allocation.
+            {% endif %}
+            {% if pending_bookings_count > 0 %}
+              {{ pending_bookings_count }} online inquiries awaiting confirmation.
+            {% endif %}
+          </span>
+        </div>
+        <a href="{% url 'booking-list' %}" style="font-size: 0.8rem; font-weight: 800; color: #d97706; text-decoration: none;">
+          Review Dispatch Queue &rarr;
+        </a>
+      </div>
+      {% endif %}
+
+      <!-- Core Table Panel with Real-Time Search & Interactive Filter Chips -->
+      <div class="cr-card-panel">
+        <div class="cr-card-head">
+          <h2>
+            <span>🛰️</span>
+            <span>Live Operations Dispatch Deck</span>
+          </h2>
+          <a href="{% url 'booking-list' %}">View All 181 Active Trips &rarr;</a>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="cr-table-toolbar">
+          <div class="cr-search-box">
+            <span>🔍</span>
+            <input type="text" id="cr-trip-search" class="cr-search-input" placeholder="Quick search Trip ID, Chauffeur, Plate, Route..." onkeyup="filterTripTable()">
           </div>
-
-          <div class="cr-finance-pulse">
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
-              <span style="color: #059669;">Net Retained ({{ profit_pct }}%)</span>
-              <span style="color: #e11d48;">Expenses ({{ expense_pct }}%)</span>
-            </div>
-
-            <!-- Dual Color Progress Bar -->
-            <div class="cr-progress-wrap">
-              <div class="cr-progress-bar">
-                <div class="cr-prog-profit" style="width: {{ profit_pct }}%;"></div>
-                <div class="cr-prog-expense" style="width: {{ expense_pct }}%;"></div>
-              </div>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>💰</span> Billed Revenue</span>
-              <strong style="color: #0f172a;">{{ revenue_inr }}</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>⛽</span> Direct Trip Expenses</span>
-              <strong style="color: #e11d48;">{{ expenses_inr }}</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>📈</span> Operating Profit</span>
-              <strong style="color: #059669;">{{ profit_inr }}</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>🛰️</span> Fleet Deployment Rate</span>
-              <strong style="color: #0284c7;">{{ active_trips }} / {{ total_fleet_count }} units</strong>
-            </div>
+          <div class="cr-filter-chips">
+            <button type="button" class="cr-filter-chip active" onclick="setTripFilter('all', this)">All ({{ recent_active_trips|length }})</button>
+            <button type="button" class="cr-filter-chip" onclick="setTripFilter('started', this)">In Transit</button>
+            <button type="button" class="cr-filter-chip" onclick="setTripFilter('assigned', this)">Assigned</button>
+            <button type="button" class="cr-filter-chip" onclick="setTripFilter('needs_vehicle', this)">Needs Vehicle</button>
+            <button type="button" class="cr-filter-chip" onclick="setTripFilter('needs_driver', this)">Needs Driver</button>
           </div>
+        </div>
 
-          <!-- Financial Shortcuts -->
-          <div class="cr-shortcuts-list">
-            <a class="cr-shortcut-row" href="{% url 'crm:invoice_console' %}">
-              <span>🧾 Tax Invoices &amp; GST Invoicing</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'generate-statement' %}">
-              <span>📑 Client Statements &amp; Ledger</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'accounting-export' %}">
-              <span>💰 Export to Tally &amp; Zoho Books</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'vehicle-profitability' %}">
-              <span>📊 Vehicle Profitability Reports</span>
-              <span>→</span>
-            </a>
-          </div>
-
-        {% elif is_fleet_manager %}
-          <!-- Fleet Operations Pulse -->
-          <div class="cr-panel-head">
-            <h2>
-              <span>🚛</span>
-              <span>Fleet Readiness Pulse</span>
-            </h2>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">
-              Live Radar
-            </span>
-          </div>
-
-          <div class="cr-finance-pulse">
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
-              <span style="color: #0284c7;">Active on Road</span>
-              <span style="color: #10b981;">Ready in Yard</span>
-            </div>
-
-            <div class="cr-progress-wrap">
-              <div class="cr-progress-bar">
-                <div class="cr-prog-profit" style="width: 58%; background: #0284c7;"></div>
-                <div class="cr-prog-expense" style="width: 42%; background: #10b981;"></div>
-              </div>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>🚗</span> Total Fleet Assets</span>
-              <strong style="color: #0f172a;">{{ total_fleet_count }} registered</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>⚡</span> In-Transit Now</span>
-              <strong style="color: #0284c7;">{{ started_trips }} units</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>🅿️</span> Ready at Gandhipuram</span>
-              <strong style="color: #059669;">{{ available_vehicles_count }} units</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>👨‍✈️</span> Commercial Chauffeurs</span>
-              <strong style="color: #6366f1;">{{ total_drivers_count }} active</strong>
-            </div>
-          </div>
-
-          <!-- Fleet Shortcuts -->
-          <div class="cr-shortcuts-list">
-            <a class="cr-shortcut-row" href="{% url 'fleet-live' %}">
-              <span>🛰️ Open Fullscreen GPS Radar Map</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'maintenance:compliance_dashboard' %}">
-              <span>🛡️ RTO Fitness &amp; Insurance Radar</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'analytics:fleet_analytics' %}">
-              <span>📊 Fleet Analytics &amp; CPK Radar</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'admin:core_vehicle_changelist' %}">
-              <span>🚗 Manage Vehicle Assets</span>
-              <span>→</span>
-            </a>
-          </div>
-
-        {% else %}
-          <!-- Booking & Dispatch Pulse -->
-          <div class="cr-panel-head">
-            <h2>
-              <span>📋</span>
-              <span>Dispatch Queue Pulse</span>
-            </h2>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase;">
-              Active Desk
-            </span>
-          </div>
-
-          <div class="cr-finance-pulse">
-            <div class="cr-stat-item">
-              <span><span>🚗</span> Active Dispatched</span>
-              <strong style="color: #0284c7;">{{ active_trips }} trips</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>📩</span> Inquiries to Confirm</span>
-              <strong style="color: #f59e0b;">{{ pending_bookings_count }} pending</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>⚠️</span> Vehicle Allocation Queue</span>
-              <strong style="color: #ef4444;">{{ unassigned_trips_count }} unassigned</strong>
-            </div>
-
-            <div class="cr-stat-item">
-              <span><span>🏁</span> Delivered Journeys</span>
-              <strong style="color: #059669;">{{ completed_trips }} completed</strong>
-            </div>
-          </div>
-
-          <!-- Dispatch Shortcuts -->
-          <div class="cr-shortcuts-list">
-            <a class="cr-shortcut-row" href="{% url 'booking-list' %}">
-              <span>📋 View All Dispatch Bookings</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'crm:inquiry_pipeline' %}">
-              <span>🔎 Open Query Tracker 2.0</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'crm:quotation_create' %}">
-              <span>📑 Create Customer Quotation</span>
-              <span>→</span>
-            </a>
-            <a class="cr-shortcut-row" href="{% url 'crm:dashboard' %}">
-              <span>📊 Open DMC Executive Board</span>
-              <span>→</span>
-            </a>
-          </div>
-        {% endif %}
+        <div style="overflow-x: auto;">
+          <table class="cr-unfold-table" id="cr-trips-table">
+            <thead>
+              <tr>
+                <th>Trip ID</th>
+                <th>Route Corridor</th>
+                <th>Vehicle Assigned</th>
+                <th>Chauffeur</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for trip in recent_active_trips %}
+              <tr class="trip-row" 
+                  data-status="{{ trip.status }}" 
+                  data-has-vehicle="{% if trip.vehicle %}1{% else %}0{% endif %}" 
+                  data-has-driver="{% if trip.driver %}1{% else %}0{% endif %}"
+                  data-search="{{ trip.trip_id|default:trip.id }} {{ trip.booking.destination|default:trip.guest_name }} {{ trip.vehicle.registration_number }} {{ trip.driver.name }}">
+                <td>
+                  <a href="{% url 'trip-detail' trip.id %}" style="font-weight: 800; color: var(--primary, #0284c7); text-decoration: none; font-family: 'JetBrains Mono', monospace;">
+                    {{ trip.trip_id|default:trip.id }}
+                  </a>
+                </td>
+                <td>
+                  <div style="font-weight: 700; color: var(--text-main, #0f172a);">
+                    {{ trip.booking.destination|default:trip.guest_name|default:"Outstation Route" }}
+                  </div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted, #64748b);">
+                    {{ trip.booking.pickup_location|default:"Coimbatore Gandhipuram" }}
+                  </div>
+                </td>
+                <td>
+                  {% if trip.vehicle %}
+                    <span style="font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; background: var(--surface-subtle, #f1f5f9); border: 1px solid var(--border-color, #cbd5e1); padding: 2px 6px; border-radius: 4px;">
+                      {{ trip.vehicle.registration_number }}
+                    </span>
+                    <div style="font-size: 0.72rem; color: var(--text-muted, #64748b); margin-top: 2px;">{{ trip.vehicle.vehicle_type.name|default:"Commercial" }}</div>
+                  {% else %}
+                    <span style="color: #f59e0b; font-weight: 700; font-size: 0.76rem; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.25);">⚠️ Vehicle Needed</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if trip.driver %}
+                    <span style="font-weight: 600;">{{ trip.driver.name }}</span>
+                    <div style="font-size: 0.72rem; color: var(--text-muted, #64748b);">{{ trip.driver.phone }}</div>
+                  {% else %}
+                    <span style="color: #f59e0b; font-weight: 700; font-size: 0.76rem; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.25);">⚠️ Driver Needed</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if trip.status == 'started' %}
+                    <span class="status-pill status-started">● Started</span>
+                  {% elif trip.status == 'assigned' %}
+                    <span class="status-pill status-assigned">● Assigned</span>
+                  {% elif trip.status == 'booked' %}
+                    <span class="status-pill status-booked">● Booked</span>
+                  {% else %}
+                    <span class="status-pill status-completed">{{ trip.get_status_display }}</span>
+                  {% endif %}
+                </td>
+                <td style="text-align: right; white-space: nowrap;">
+                  <a class="tbl-btn" href="{% url 'trip-sheet' trip.id %}" title="Generate RTO Trip Sheet">
+                    📋 Sheet
+                  </a>
+                  <a class="tbl-btn" href="{% url 'trip-detail' trip.id %}">
+                    Details &rarr;
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2.5rem; color: var(--text-muted, #94a3b8);">
+                  No active trips currently in transit. Use "+ New Booking" to dispatch vehicles.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
+
+    <!-- ── RIGHT COLUMN (30%): ADMIN PULSE SIDEBAR ── -->
+    <div>
+      {% if is_finance_user or is_superuser or is_manager %}
+      <!-- Card 1: Monthly Financial Pulse -->
+      <div class="cr-card-panel">
+        <div class="cr-card-head">
+          <h2>
+            <span>📊</span>
+            <span>Monthly Financial Pulse</span>
+          </h2>
+          <span style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted, #64748b); text-transform: uppercase;">
+            {% now "M Y" %}
+          </span>
+        </div>
+
+        <div class="cr-finance-pulse">
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700;">
+            <span style="color: #10b981;">Net Retained ({{ profit_pct }}%)</span>
+            <span style="color: #f43f5e;">Expenses ({{ expense_pct }}%)</span>
+          </div>
+
+          <!-- Dual Color Progress Bar -->
+          <div class="cr-progress-wrap">
+            <div class="cr-progress-bar">
+              <div class="cr-prog-profit" style="width: {{ profit_pct }}%;"></div>
+              <div class="cr-prog-expense" style="width: {{ expense_pct }}%;"></div>
+            </div>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>💰</span> Billed Revenue</span>
+            <strong style="color: var(--text-main, #0f172a);">{{ revenue_inr }}</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>⛽</span> Trip Expenses</span>
+            <strong style="color: #f43f5e;">{{ expenses_inr }}</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>📈</span> Operating Profit</span>
+            <strong style="color: #10b981;">{{ profit_inr }}</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>⏳</span> Total Receivables</span>
+            <strong style="color: #6366f1;">{{ receivables_inr }}</strong>
+          </div>
+        </div>
+
+        <!-- Financial Quick Links -->
+        <div class="cr-shortcuts-list">
+          <a class="cr-shortcut-row" href="{% url 'crm:invoice_console' %}">
+            <span>🧾 Tax Invoices &amp; Invoicing</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'generate-statement' %}">
+            <span>📑 Client Statements &amp; Ledger</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'vehicle-profitability' %}">
+            <span>📊 Vehicle Profitability Ledger</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if is_booking_manager or is_superuser or is_manager %}
+      <!-- Card: Dispatch Queue & Leads -->
+      <div class="cr-card-panel">
+        <div class="cr-card-head">
+          <h2>
+            <span>📋</span>
+            <span>Dispatch Queue &amp; Leads</span>
+          </h2>
+          <span style="font-size: 0.72rem; font-weight: 800; color: #10b981; text-transform: uppercase;">
+            Active Desk
+          </span>
+        </div>
+
+        <div class="cr-finance-pulse">
+          <div class="cr-stat-item">
+            <span><span>🚗</span> Active Dispatched</span>
+            <strong style="color: #0284c7;">{{ active_trips }} trips</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>📩</span> Inquiries to Confirm</span>
+            <strong style="color: #f59e0b;">{{ pending_bookings_count }} pending</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>⚠️</span> Vehicle Allocation Queue</span>
+            <strong style="color: #ef4444;">{{ unassigned_trips_count }} unassigned</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>🏁</span> Delivered Journeys</span>
+            <strong style="color: #059669;">{{ completed_trips }} completed</strong>
+          </div>
+        </div>
+
+        <!-- Dispatch Shortcuts -->
+        <div class="cr-shortcuts-list">
+          <a class="cr-shortcut-row" href="{% url 'booking-list' %}">
+            <span>📋 View All Dispatch Bookings</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'crm:inquiry_pipeline' %}">
+            <span>🔎 Open Query Tracker 2.0</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'crm:quotation_create' %}">
+            <span>📑 Create Customer Quotation</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'crm:dashboard' %}">
+            <span>📊 Open DMC Executive Board</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if is_fleet_manager or is_superuser or is_manager %}
+      <!-- Card 2: Fleet Readiness & Telematics Radar -->
+      <div class="cr-card-panel">
+        <div class="cr-card-head">
+          <h2>
+            <span>🚛</span>
+            <span>Fleet Readiness &amp; Radar</span>
+          </h2>
+          <span style="font-size: 0.72rem; font-weight: 800; color: #0284c7; text-transform: uppercase;">
+            Live
+          </span>
+        </div>
+
+        <div class="cr-finance-pulse">
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem;">
+            <span style="color: #0284c7;">Fleet Deployment Rate</span>
+            <span style="color: var(--text-main, #0f172a);">{{ active_trips }} / {{ total_fleet_count }} Units</span>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>🅿️</span> Ready Vehicles</span>
+            <strong style="color: #10b981;">{{ available_vehicles_count }} Units</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>👨‍✈️</span> Active Chauffeurs</span>
+            <strong style="color: #0284c7;">{{ total_drivers_count }} Captains</strong>
+          </div>
+
+          <div class="cr-stat-item">
+            <span><span>🛡️</span> Compliance Radar</span>
+            <strong style="color: {% if compliance_alerts_count > 0 %}#f59e0b{% else %}#10b981{% endif %};">
+              {{ compliance_alerts_count }} Alert{{ compliance_alerts_count|pluralize }}
+            </strong>
+          </div>
+        </div>
+
+        <!-- Telematics Shortcuts -->
+        <div class="cr-shortcuts-list">
+          <a class="cr-shortcut-row" href="{% url 'fleet-live' %}">
+            <span>🛰️ Open Live Fleet Radar</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'maintenance:compliance_dashboard' %}">
+            <span>🛡️ RTO Compliance Watchdog</span>
+            <span>&rarr;</span>
+          </a>
+          <a class="cr-shortcut-row" href="{% url 'analytics:fleet_analytics' %}">
+            <span>📊 Fleet CPK Analytics</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Card 3: Enterprise Backup & Health Utility Widget -->
+      <div class="cr-card-panel">
+        <div class="cr-card-head">
+          <h2>
+            <span>💾</span>
+            <span>Enterprise Database Health</span>
+          </h2>
+          <span style="font-size: 0.72rem; font-weight: 800; color: #059669; text-transform: uppercase;">
+            Online
+          </span>
+        </div>
+        <div style="padding: 1.15rem 1.25rem;">
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 0.85rem; line-height: 1.45;">
+            Point-in-time SQLite atomic snapshots with cryptographic SHA256 integrity verification.
+          </p>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="{% url 'admin-database-health-dashboard' %}" class="unfold-btn unfold-btn-primary" style="flex: 1; justify-content: center; font-size: 0.78rem; padding: 0.45rem 0.8rem;">
+              <span>💾 Snapshot Console</span>
+            </a>
+            <a href="{% url 'admin:index' %}" class="tbl-btn" style="padding: 0.45rem 0.8rem; font-size: 0.78rem;">
+              Admin Studio
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </div>
+
+<!-- ==============================================================
+     INTERACTIVE JAVASCRIPT CHARTS & REAL-TIME TABLE FILTER LOGIC
+     ============================================================== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 1. Initialize Chart.js Financial Spline Area Chart
+  const chartLabels = {{ chart_labels_json|safe|default:"['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct']" }};
+  const revData = {{ chart_rev_json|safe|default:"[250000, 310000, 420000, 480000, 520000, 610000]" }};
+  const expData = {{ chart_exp_json|safe|default:"[180000, 220000, 280000, 310000, 340000, 390000]" }};
+  const profitData = {{ chart_profit_json|safe|default:"[70000, 90000, 140000, 170000, 180000, 220000]" }};
+
+  const isDarkMode = document.documentElement.classList.contains('dark');
+  const textColor = isDarkMode ? '#94a3b8' : '#64748b';
+  const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)';
+
+  const ctxSpline = document.getElementById('financeSplineChart');
+  if (ctxSpline) {
+    window.financeChartInstance = new Chart(ctxSpline, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: 'Revenue (₹)',
+            data: revData,
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(2, 132, 199, 0.08)',
+            fill: true,
+            tension: 0.38,
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+          },
+          {
+            label: 'Expenses (₹)',
+            data: expData,
+            borderColor: '#f43f5e',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.38,
+            borderWidth: 2,
+            borderDash: [5, 4],
+            pointRadius: 2,
+            pointHoverRadius: 5,
+          },
+          {
+            label: 'Net Retained (₹)',
+            data: profitData,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+            fill: true,
+            tension: 0.38,
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 10,
+            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '700' },
+            bodyFont: { family: 'JetBrains Mono', size: 12 },
+            callbacks: {
+              label: function(context) {
+                return ' ' + context.dataset.label + ': ₹ ' + context.parsed.y.toLocaleString('en-IN');
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: textColor, font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
+          },
+          y: {
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'JetBrains Mono', size: 10 },
+              callback: function(val) {
+                if (val >= 100000) return '₹' + (val / 100000).toFixed(1) + 'L';
+                if (val >= 1000) return '₹' + (val / 1000).toFixed(0) + 'k';
+                return '₹' + val;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Initialize Fleet Deployment Doughnut Chart
+  const ctxDoughnut = document.getElementById('fleetDoughnutChart');
+  if (ctxDoughnut) {
+    new Chart(ctxDoughnut, {
+      type: 'doughnut',
+      data: {
+        labels: ['In Transit', 'Assigned', 'Depot Standby'],
+        datasets: [{
+          data: [{{ fleet_on_trip|default:15 }}, {{ fleet_assigned|default:25 }}, {{ fleet_available|default:110 }}],
+          backgroundColor: ['#0284c7', '#f59e0b', '#10b981'],
+          borderWidth: 2,
+          borderColor: isDarkMode ? '#1e293b' : '#ffffff',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            padding: 8,
+            bodyFont: { family: 'Plus Jakarta Sans', size: 11 }
+          }
+        }
+      }
+    });
+  }
+});
+
+// Interactive Chart Dataset Filter Modes
+function setFinanceChartMode(mode) {
+  if (!window.financeChartInstance) return;
+  const chart = window.financeChartInstance;
+
+  ['all', 'rev', 'profit'].forEach(m => {
+    const el = document.getElementById('btn-chart-' + m);
+    if (el) el.classList.toggle('active', m === mode);
+  });
+
+  if (mode === 'all') {
+    chart.data.datasets[0].hidden = false;
+    chart.data.datasets[1].hidden = false;
+    chart.data.datasets[2].hidden = false;
+  } else if (mode === 'rev') {
+    chart.data.datasets[0].hidden = false;
+    chart.data.datasets[1].hidden = false;
+    chart.data.datasets[2].hidden = true;
+  } else if (mode === 'profit') {
+    chart.data.datasets[0].hidden = true;
+    chart.data.datasets[1].hidden = true;
+    chart.data.datasets[2].hidden = false;
+  }
+  chart.update();
+}
+
+// Real-Time Trip Table Client Search Filter
+let currentTripFilter = 'all';
+
+function setTripFilter(filterKey, btnEl) {
+  currentTripFilter = filterKey;
+  document.querySelectorAll('.cr-filter-chip').forEach(c => c.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  applyCombinedFilters();
+}
+
+function filterTripTable() {
+  applyCombinedFilters();
+}
+
+function applyCombinedFilters() {
+  const query = (document.getElementById('cr-trip-search')?.value || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#cr-trips-table tbody tr.trip-row');
+
+  rows.forEach(row => {
+    const status = row.getAttribute('data-status');
+    const hasVehicle = row.getAttribute('data-has-vehicle') === '1';
+    const hasDriver = row.getAttribute('data-has-driver') === '1';
+    const searchBlob = (row.getAttribute('data-search') || '').toLowerCase();
+
+    // Check filter category
+    let matchesCategory = true;
+    if (currentTripFilter === 'started') {
+      matchesCategory = (status === 'started');
+    } else if (currentTripFilter === 'assigned') {
+      matchesCategory = (status === 'assigned' || status === 'driver_confirmed');
+    } else if (currentTripFilter === 'needs_vehicle') {
+      matchesCategory = (!hasVehicle);
+    } else if (currentTripFilter === 'needs_driver') {
+      matchesCategory = (!hasDriver);
+    }
+
+    // Check text search query
+    const matchesSearch = !query || searchBlob.includes(query);
+
+    row.style.display = (matchesCategory && matchesSearch) ? '' : 'none';
+  });
+}
+</script>
 {% endblock %}

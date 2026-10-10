@@ -7,7 +7,8 @@
     <p class="eyebrow">Trip record</p>
     <h1>{{ booking.booking_number }} / {{ booking.guest_name }}</h1>
   </div>
-  <div>
+  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+    <a class="button" style="background: #059669; color: white; display: inline-flex; align-items: center; gap: 4px;" href="{% url 'booking-voucher-pdf' booking.pk %}" target="_blank">📄 Booking Voucher PDF</a>
     <a class="button button-primary" href="{% url 'trip-create' booking.pk %}">Create confirmed trip</a>
   </div>
 </div>

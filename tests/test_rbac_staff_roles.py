@@ -67,7 +67,7 @@ class RbacRoleVerificationTests(TestCase):
         content = resp.content.decode('utf-8')
         # Fleet sections must be visible
         self.assertIn('Fleet &amp; Telematics', content)
-        self.assertIn('Fleet Readiness Pulse', content)
+        self.assertIn('Fleet Readiness &amp; Radar', content)
         self.assertIn('Live Fleet Map', content)
         
         # Finance and Sales sections must be filtered out
@@ -88,7 +88,7 @@ class RbacRoleVerificationTests(TestCase):
         content = resp.content.decode('utf-8')
         # Sales sections must be visible
         self.assertIn('Sales &amp; CRM', content)
-        self.assertIn('Dispatch Queue Pulse', content)
+        self.assertIn('Dispatch Queue &amp; Leads', content)
         self.assertIn('Query Tracker 2.0', content)
 
         # Fleet and Finance sections must be filtered out

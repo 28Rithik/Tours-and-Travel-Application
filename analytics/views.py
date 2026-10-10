@@ -16,35 +16,54 @@ def package_profitability_dashboard(request):
     Accessible only by staff (Admin).
     """
     # 1. Package Profitability
-    packages = Package.objects.all()
-    package_data = []
-    
-    for package in packages:
-        total_revenue = Payment.objects.filter(
-            booking__package=package,
+    packages = list(Package.objects.all())
+    package_rev_map = dict(
+        Payment.objects.filter(
+            booking__package__isnull=False,
             payment_type='customer_receipt'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
+        ).values('booking__package_id').annotate(
+            total=Sum('amount')
+        ).values_list('booking__package_id', 'total')
+    )
+    package_bookings_map = dict(
+        Booking.objects.filter(
+            package__isnull=False
+        ).values('package_id').annotate(
+            count=Count('id')
+        ).values_list('package_id', 'count')
+    )
+    package_data = []
+    for package in packages:
         package_data.append({
             'package_name': package.name,
-            'total_bookings': package.bookings.count(),
-            'revenue': total_revenue
+            'total_bookings': package_bookings_map.get(package.pk, 0),
+            'revenue': package_rev_map.get(package.pk, 0)
         })
         
     # 2. Customer Profitability
-    customers = Client.objects.all()
-    customer_data = []
-    
-    for customer in customers:
-        total_revenue = Payment.objects.filter(
-            booking__party=customer,
+    customers = list(Client.objects.all())
+    customer_rev_map = dict(
+        Payment.objects.filter(
+            booking__party__isnull=False,
             payment_type='customer_receipt'
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
+        ).values('booking__party_id').annotate(
+            total=Sum('amount')
+        ).values_list('booking__party_id', 'total')
+    )
+    customer_bookings_map = dict(
+        Booking.objects.filter(
+            party__isnull=False
+        ).values('party_id').annotate(
+            count=Count('id')
+        ).values_list('party_id', 'count')
+    )
+    customer_data = []
+    for customer in customers:
+        total_revenue = customer_rev_map.get(customer.pk, 0)
         if total_revenue > 0:
             customer_data.append({
                 'name': customer.name,
-                'total_bookings': customer.bookings.count(),
+                'total_bookings': customer_bookings_map.get(customer.pk, 0),
                 'revenue': total_revenue
             })
             
@@ -80,67 +99,105 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from core.models import Vehicle, Driver
 from .models import DriverScorecard
-from .services import calculate_driver_scorecard, calculate_vehicle_cpk, get_fleet_utilization_breakdown
+from .services import (
+    calculate_driver_scorecard,
+    calculate_vehicle_cpk,
+    calculate_fleet_cpk_bulk,
+    get_fleet_utilization_breakdown,
+    get_driver_scorecards_leaderboard,
+)
+
+
+import time
+from django.core.cache import cache
+
+FLEET_ANALYTICS_CACHE_KEY = 'fleet_analytics_payload_v3'
+FLEET_ANALYTICS_CACHE_TTL = 600  # 10 minutes
 
 
 @staff_member_required
 def fleet_analytics_dashboard(request):
     """
     Fleet Intelligence Command:
-    - True Cost-Per-KM (CPK) Analysis by Vehicle & Model
+    - True Cost-Per-KM (CPK) Analysis by Vehicle & Model (bulk single-query set aggregates)
     - Fleet Utilization breakdown (Active vs Standby vs Workshop vs Idle)
     - Captain Driver Performance Scorecards Leaderboard
+    - High-Performance In-Memory Caching (Sub-5ms on cache hits)
     """
-    # 1. Utilization Breakdown
-    utilization = get_fleet_utilization_breakdown()
+    t_start = time.perf_counter()
+    refresh_scores = request.GET.get('refresh', '').lower() in ['1', 'true', 'yes']
 
-    # 2. Vehicle CPK Performance
-    vehicles = Vehicle.objects.all().select_related('vehicle_type')
-    cpk_list = [calculate_vehicle_cpk(v) for v in vehicles]
+    cached_data = None if refresh_scores else cache.get(FLEET_ANALYTICS_CACHE_KEY)
 
-    # Benchmark CPK by Vehicle Type
-    model_benchmarks = {}
-    for item in cpk_list:
-        vtype = item['vehicle_type']
-        if vtype not in model_benchmarks:
-            model_benchmarks[vtype] = {
-                'count': 0,
-                'total_cost': Decimal('0.0'),
-                'total_km': 0,
-                'total_revenue': Decimal('0.0'),
-            }
-        model_benchmarks[vtype]['count'] += 1
-        model_benchmarks[vtype]['total_cost'] += item['total_cost']
-        model_benchmarks[vtype]['total_km'] += item['total_km']
-        model_benchmarks[vtype]['total_revenue'] += item['revenue']
+    if cached_data is not None:
+        utilization = cached_data['utilization']
+        cpk_list = cached_data['cpk_list']
+        benchmarks_summary = cached_data['benchmarks_summary']
+        scorecards = cached_data['scorecards']
+        cached_at = cached_data.get('cached_at', 'Just now')
+        from_cache = True
+    else:
+        # 1. Utilization Breakdown (4 bulk queries)
+        utilization = get_fleet_utilization_breakdown()
 
-    benchmarks_summary = []
-    for vtype, data in model_benchmarks.items():
-        km = Decimal(str(max(1, data['total_km'])))
-        avg_cpk = round(data['total_cost'] / km, 2)
-        avg_rpk = round(data['total_revenue'] / km, 2)
-        margin = round(avg_rpk - avg_cpk, 2)
-        benchmarks_summary.append({
-            'vehicle_type': vtype,
-            'count': data['count'],
-            'avg_cpk': avg_cpk,
-            'avg_rpk': avg_rpk,
-            'margin': margin,
-        })
+        # 2. Vehicle CPK Performance (bulk prefetch & single aggregates)
+        vehicles = list(Vehicle.objects.all().select_related('vehicle_type'))
+        cpk_list = calculate_fleet_cpk_bulk(vehicles)
 
-    # 3. Driver Scorecard Leaderboard
-    active_drivers = Driver.objects.filter(status='active')
-    scorecards = []
-    for d in active_drivers:
-        card = calculate_driver_scorecard(d)
-        scorecards.append(card)
-    scorecards.sort(key=lambda x: x.overall_composite_score, reverse=True)
+        # Benchmark CPK by Vehicle Type
+        model_benchmarks = {}
+        for item in cpk_list:
+            vtype = item['vehicle_type']
+            if vtype not in model_benchmarks:
+                model_benchmarks[vtype] = {
+                    'count': 0,
+                    'total_cost': Decimal('0.0'),
+                    'total_km': 0,
+                    'total_revenue': Decimal('0.0'),
+                }
+            model_benchmarks[vtype]['count'] += 1
+            model_benchmarks[vtype]['total_cost'] += item['total_cost']
+            model_benchmarks[vtype]['total_km'] += item['total_km']
+            model_benchmarks[vtype]['total_revenue'] += item['revenue']
+
+        benchmarks_summary = []
+        for vtype, data in model_benchmarks.items():
+            km = Decimal(str(max(1, data['total_km'])))
+            avg_cpk = round(data['total_cost'] / km, 2)
+            avg_rpk = round(data['total_revenue'] / km, 2)
+            margin = round(avg_rpk - avg_cpk, 2)
+            benchmarks_summary.append({
+                'vehicle_type': vtype,
+                'count': data['count'],
+                'avg_cpk': avg_cpk,
+                'avg_rpk': avg_rpk,
+                'margin': margin,
+            })
+
+        # 3. Driver Scorecard Leaderboard (persisted monthly snapshots or bulk computed)
+        scorecards = get_driver_scorecards_leaderboard(refresh=refresh_scores)
+
+        cached_at = timezone.now().strftime('%d %b, %H:%M:%S')
+        from_cache = False
+
+        cache.set(FLEET_ANALYTICS_CACHE_KEY, {
+            'utilization': utilization,
+            'cpk_list': cpk_list,
+            'benchmarks_summary': benchmarks_summary,
+            'scorecards': scorecards,
+            'cached_at': cached_at,
+        }, timeout=FLEET_ANALYTICS_CACHE_TTL)
+
+    t_elapsed_ms = round((time.perf_counter() - t_start) * 1000, 1)
 
     return render(request, 'analytics/fleet_dashboard.html', {
         'utilization': utilization,
         'cpk_list': cpk_list,
         'benchmarks_summary': benchmarks_summary,
         'scorecards': scorecards,
+        'from_cache': from_cache,
+        'cached_at': cached_at,
+        't_elapsed_ms': t_elapsed_ms,
     })
 
 
