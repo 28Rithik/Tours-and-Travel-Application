@@ -412,8 +412,15 @@
        BANK RECONCILIATION STUDIO — LIGHT THEME OVERRIDES
        ══════════════════════════════════════════════════════════════════════════ */
     html:not(.dark) .app-header {
-      background: rgba(255, 255, 255, 0.95);
-      border-bottom: 1px solid #e2e8f0;
+      background: rgba(255, 255, 255, 0.95) !important;
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+    html:not(.dark) .brand-text h1,
+    html:not(.dark) .dock-title {
+      color: #0f172a !important;
+    }
+    html:not(.dark) .brand-sub {
+      color: #475569 !important;
     }
     html:not(.dark) .kpi-card {
       background: #ffffff;

@@ -10,15 +10,45 @@
   }
 
   /* Day / Night High-Contrast Driving Theme */
-  body.day-driving-mode {
-    --bg-base: #f1f5f9;
+  body.day-driving-mode, body.light-mode, body {
+    --bg-base: #f8fafc;
     --bg-surface: #ffffff;
     --bg-card: #ffffff;
-    --border: #cbd5e1;
+    --border: #e2e8f0;
     --text-primary: #0f172a;
     --text-secondary: #334155;
     --text-muted: #64748b;
     --primary: #0284c7;
+  }
+
+  body.light-mode .cta-call, body .cta-call {
+    background: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+  }
+
+  body.light-mode .cta-nav, body .cta-nav {
+    background: #eff6ff !important;
+    color: #0284c7 !important;
+    border: 1px solid #bfdbfe !important;
+  }
+
+  body.light-mode .step-pill.active, body .step-pill.active {
+    background: #e0f2fe !important;
+    border-color: #0284c7 !important;
+    color: #0284c7 !important;
+  }
+
+  body.light-mode .step-pill.completed, body .step-pill.completed {
+    background: #ecfdf5 !important;
+    border-color: #059669 !important;
+    color: #059669 !important;
+  }
+
+  body.light-mode .hero-duty-card, body .hero-duty-card {
+    background: #ffffff;
+    border: 1.5px solid #0284c7;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
   }
 
   .pwa-top-bar {

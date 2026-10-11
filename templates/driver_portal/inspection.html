@@ -256,11 +256,17 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 12px;
+    padding: 10px 14px;
     background: var(--bg-surface);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     cursor: pointer;
     user-select: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.check-row:hover {
+    background: var(--bg-card-hover);
+    border-color: #cbd5e1;
 }
 .custom-toggle {
     width: 22px;

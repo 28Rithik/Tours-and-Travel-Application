@@ -132,13 +132,13 @@ function switchWaTab(tab) {
     if (target) target.classList.remove('hidden');
 
     document.querySelectorAll('[id^="wa-tab-"]').forEach(function(btn) {
-        btn.classList.remove('bg-emerald-600', 'text-white');
-        btn.classList.add('bg-slate-800', 'text-slate-300');
+        btn.classList.remove('bg-emerald-600', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-slate-100', 'text-slate-600');
     });
     var activeBtn = document.getElementById('wa-tab-' + tab);
     if (activeBtn) {
-        activeBtn.classList.add('bg-emerald-600', 'text-white');
-        activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+        activeBtn.classList.add('bg-emerald-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('bg-slate-100', 'text-slate-600');
     }
 }
 

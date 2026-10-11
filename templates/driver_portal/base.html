@@ -27,19 +27,19 @@
     </script>
     <style>
         :root {
-            --bg-base: #090d16;
-            --bg-surface: #111827;
-            --bg-card: #1e293b;
-            --bg-card-hover: #26354a;
-            --border: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
             --text-muted: #64748b;
-            --primary: #38bdf8;
-            --primary-glow: rgba(56, 189, 248, 0.25);
-            --accent-green: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
+            --primary: #0284c7;
+            --primary-glow: rgba(2, 132, 199, 0.15);
+            --accent-green: #059669;
+            --accent-amber: #d97706;
+            --accent-red: #dc2626;
             --radius-sm: 8px;
             --radius-md: 14px;
             --radius-lg: 20px;
@@ -51,31 +51,64 @@
             --bg-surface: #ffffff;
             --bg-card: #ffffff;
             --bg-card-hover: #f1f5f9;
-            --border: #cbd5e1;
+            --border: #e2e8f0;
             --text-primary: #0f172a;
             --text-secondary: #334155;
             --text-muted: #64748b;
             --primary: #0284c7;
-            --primary-glow: rgba(2, 132, 199, 0.2);
+            --primary-glow: rgba(2, 132, 199, 0.15);
         }
 
-        body.light-mode .app-header {
+        /* 🌙 Dark Mode Override (Only if explicitly enabled by user) */
+        html.dark-mode, body.dark-mode {
+            --bg-base: #090d16;
+            --bg-surface: #111827;
+            --bg-card: #1e293b;
+            --bg-card-hover: #26354a;
+            --border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.25);
+        }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
             background: rgba(255, 255, 255, 0.95);
-            border-bottom: 1px solid #cbd5e1;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             color: #0f172a;
         }
 
-        body.light-mode .bottom-nav {
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
             background: rgba(255, 255, 255, 0.97);
-            border-top: 1px solid #cbd5e1;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
             color: #475569;
         }
 
-        body.light-mode .card,
-        body.light-mode .guest-info-card,
-        body.light-mode .hero-duty-card,
-        body.light-mode .stepper-header {
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+        .card,
+        .guest-info-card,
+        .hero-duty-card,
+        .stepper-header {
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
         }
 
         * {
@@ -98,20 +131,7 @@
             font-family: 'Outfit', sans-serif;
         }
 
-        /* Top Mobile Header */
-        .app-header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+
 
         .header-brand {
             display: flex;
@@ -197,43 +217,31 @@
         }
 
         .alert-success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.35);
-            color: #6ee7b7;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            font-weight: 600;
         }
 
         .alert-warning {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.35);
-            color: #fcd34d;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            font-weight: 600;
         }
 
         .alert-error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.35);
-            color: #fca5a5;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            font-weight: 600;
         }
 
         .alert-info {
-            background: rgba(56, 189, 248, 0.15);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            color: #7dd3fc;
-        }
-
-        /* Mobile Bottom Nav Bar */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            background: rgba(15, 23, 42, 0.94);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            font-weight: 600;
         }
 
         .nav-item {
@@ -265,7 +273,7 @@
             border-radius: var(--radius-lg);
             padding: 18px;
             margin-bottom: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
         }
 
         .btn {
@@ -286,24 +294,28 @@
 
         .btn-primary {
             background: linear-gradient(135deg, #0284c7, #38bdf8);
-            color: #031525;
+            color: #ffffff;
             box-shadow: 0 4px 14px var(--primary-glow);
         }
 
         .btn-success {
             background: linear-gradient(135deg, #059669, #10b981);
-            color: #fff;
+            color: #ffffff;
         }
 
         .btn-danger {
             background: linear-gradient(135deg, #dc2626, #ef4444);
-            color: #fff;
+            color: #ffffff;
         }
 
         .btn-secondary {
             background: var(--bg-surface);
             color: var(--text-primary);
             border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
         }
 
         .badge {
@@ -316,10 +328,10 @@
             font-weight: 700;
         }
 
-        .badge-success { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .badge-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-        .badge-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .badge-info { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+        .badge-success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .badge-warning { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .badge-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-info { background: #eff6ff; color: #0284c7; border: 1px solid #bfdbfe; }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -438,7 +450,7 @@
     <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/static/sw.js', { scope: '/driver/' })
+            navigator.serviceWorker.register('/driver/sw.js', { scope: '/driver/' })
                 .then(function(reg) {
                     console.log('[PWA] Service Worker registered, scope:', reg.scope);
                 })

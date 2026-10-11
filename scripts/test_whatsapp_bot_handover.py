@@ -309,7 +309,7 @@ def run_tests():
     # 8. 1-CLICK PASSENGER DISPATCH BROADCAST API
     print("\n--- [STAGE 8] 1-CLICK PASSENGER DISPATCH ALERT DISPATCHER ---")
     initial_broadcast_count = trip.whatsapp_broadcast_count or 0
-    req_dispatch = factory.post(f'/api/whatsapp/trip/{trip.pk}/dispatch/')
+    req_dispatch = factory.post(f'/api/whatsapp/trip/{trip.pk}/dispatch/', {'sync': '1'})
     resp_dispatch = api_dispatch_whatsapp_trip_sheet(req_dispatch, trip_id=trip.pk)
     assert_check(resp_dispatch.status_code == 200, "1-Click dispatch API returned 200 OK")
     

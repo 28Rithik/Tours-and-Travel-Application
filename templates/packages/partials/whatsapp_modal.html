@@ -1,62 +1,168 @@
-<!-- WhatsApp 1-Click Briefing Generator Modal -->
-<div id="sg-whatsapp-modal-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full p-6 text-slate-100 flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-400 text-2xl">chat</span>
-                <h3 class="text-base font-bold text-slate-100 m-0">1-Click WhatsApp Tour Briefing Generator</h3>
+<!-- WhatsApp 1-Click Briefing Generator Modal (100% Light Mode Self-Contained) -->
+<style>
+.sg-wa-backdrop {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px);
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    box-sizing: border-box;
+}
+.sg-wa-card {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 680px; width: 100%; padding: 24px; color: #0f172a;
+    display: flex; flex-direction: column; gap: 16px; max-height: 90vh; overflow-y: auto;
+    box-sizing: border-box;
+}
+.sg-wa-header {
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #f1f5f9; padding-bottom: 14px;
+}
+.sg-wa-title-row {
+    display: flex; align-items: center; gap: 10px;
+}
+.sg-wa-title-row h3 {
+    font-size: 16px; font-weight: 800; color: #0f172a; margin: 0;
+}
+.sg-wa-close-btn {
+    background: transparent; border: none; color: #94a3b8; cursor: pointer;
+    border-radius: 8px; padding: 6px; display: grid; place-items: center;
+    transition: all 0.15s; font-size: 18px;
+}
+.sg-wa-close-btn:hover {
+    background: #f1f5f9; color: #0f172a;
+}
+.sg-wa-tabs {
+    display: flex; gap: 8px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; flex-wrap: wrap;
+}
+.sg-wa-tab-btn {
+    padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
+    border: none; cursor: pointer; transition: all 0.15s;
+    background: #f1f5f9; color: #475569;
+}
+.sg-wa-tab-btn.active {
+    background: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+.sg-wa-tab-btn:hover:not(.active) {
+    background: #e2e8f0; color: #0f172a;
+}
+.sg-wa-label {
+    display: block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;
+}
+.sg-wa-textarea {
+    width: 100%; box-sizing: border-box; background: #f8fafc; border: 1px solid #cbd5e1;
+    border-radius: 12px; padding: 14px; font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    color: #1e293b; resize: none; line-height: 1.6; outline: none; transition: border-color 0.15s;
+}
+.sg-wa-textarea:focus {
+    background: #ffffff; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+.sg-wa-btn-row {
+    display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px;
+}
+.sg-wa-btn-copy {
+    padding: 8px 14px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;
+    border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;
+}
+.sg-wa-btn-copy:hover {
+    background: #e2e8f0; color: #0f172a;
+}
+.sg-wa-btn-send {
+    padding: 8px 18px; background: #25d366; color: #ffffff; border: none;
+    border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+.sg-wa-btn-send:hover {
+    background: #1eb857; transform: translateY(-1px);
+}
+.hidden { display: none !important; }
+</style>
+
+<div id="sg-whatsapp-modal-backdrop" class="sg-wa-backdrop">
+    <div class="sg-wa-card">
+        <div class="sg-wa-header">
+            <div class="sg-wa-title-row">
+                <span style="font-size: 22px;">💬</span>
+                <h3>1-Click WhatsApp Tour Briefing Generator</h3>
             </div>
-            <button type="button" onclick="closeWhatsAppModal()" class="text-slate-400 hover:text-white p-1 rounded-md">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+            <button type="button" onclick="closeWhatsAppModal()" class="sg-wa-close-btn" title="Close">✕</button>
         </div>
 
-        <div class="flex gap-2 border-b border-slate-800 pb-2">
-            <button type="button" onclick="switchWaTab('client')" id="wa-tab-client" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white">Client Proposal Pitch</button>
-            <button type="button" onclick="switchWaTab('driver')" id="wa-tab-driver" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Driver Logistics Briefing</button>
-            <button type="button" onclick="switchWaTab('faculty')" id="wa-tab-faculty" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">Faculty / Group Coordinator</button>
+        <div class="sg-wa-tabs">
+            <button type="button" onclick="switchWaTab('client')" id="wa-tab-client" class="sg-wa-tab-btn active">Client Proposal Pitch</button>
+            <button type="button" onclick="switchWaTab('driver')" id="wa-tab-driver" class="sg-wa-tab-btn">Driver Logistics Briefing</button>
+            <button type="button" onclick="switchWaTab('faculty')" id="wa-tab-faculty" class="sg-wa-tab-btn">Faculty / Group Coordinator</button>
         </div>
 
         <!-- Content 1: Client Pitch -->
         <div id="wa-box-client" class="wa-content-box">
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Message Preview:</label>
-            <textarea id="wa-text-client" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 resize-none focus:outline-none focus:border-emerald-500">{{ client_pitch }}</textarea>
-            <div class="flex items-center justify-end gap-2 mt-3">
-                <button type="button" onclick="copyWaText('wa-text-client')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-semibold flex items-center gap-1 border border-slate-700">
-                    <span class="material-symbols-outlined text-sm">content_copy</span> Copy Text
-                </button>
-                <button type="button" onclick="sendWhatsAppDirect('wa-text-client')" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-xs font-bold flex items-center gap-1 shadow-md">
-                    <span class="material-symbols-outlined text-sm">send</span> Open WhatsApp
-                </button>
+            <label class="sg-wa-label">Message Preview:</label>
+            <textarea id="wa-text-client" rows="8" class="sg-wa-textarea">{{ client_pitch }}</textarea>
+            <div class="sg-wa-btn-row">
+                <button type="button" onclick="copyWaText('wa-text-client')" class="sg-wa-btn-copy">📋 Copy Text</button>
+                <button type="button" onclick="sendWhatsAppDirect('wa-text-client')" class="sg-wa-btn-send">➤ Open WhatsApp</button>
             </div>
         </div>
 
         <!-- Content 2: Driver Dispatch -->
         <div id="wa-box-driver" class="wa-content-box hidden">
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Message Preview:</label>
-            <textarea id="wa-text-driver" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 resize-none focus:outline-none focus:border-emerald-500">{{ driver_dispatch }}</textarea>
-            <div class="flex items-center justify-end gap-2 mt-3">
-                <button type="button" onclick="copyWaText('wa-text-driver')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-semibold flex items-center gap-1 border border-slate-700">
-                    <span class="material-symbols-outlined text-sm">content_copy</span> Copy Text
-                </button>
-                <button type="button" onclick="sendWhatsAppDirect('wa-text-driver')" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-xs font-bold flex items-center gap-1 shadow-md">
-                    <span class="material-symbols-outlined text-sm">send</span> Open WhatsApp
-                </button>
+            <label class="sg-wa-label">Message Preview:</label>
+            <textarea id="wa-text-driver" rows="8" class="sg-wa-textarea">{{ driver_dispatch }}</textarea>
+            <div class="sg-wa-btn-row">
+                <button type="button" onclick="copyWaText('wa-text-driver')" class="sg-wa-btn-copy">📋 Copy Text</button>
+                <button type="button" onclick="sendWhatsAppDirect('wa-text-driver')" class="sg-wa-btn-send">➤ Open WhatsApp</button>
             </div>
         </div>
 
         <!-- Content 3: Faculty Briefing -->
         <div id="wa-box-faculty" class="wa-content-box hidden">
-            <label class="block text-xs font-semibold text-slate-400 mb-1">Message Preview:</label>
-            <textarea id="wa-text-faculty" rows="8" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-slate-200 resize-none focus:outline-none focus:border-emerald-500">{{ faculty_briefing }}</textarea>
-            <div class="flex items-center justify-end gap-2 mt-3">
-                <button type="button" onclick="copyWaText('wa-text-faculty')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-semibold flex items-center gap-1 border border-slate-700">
-                    <span class="material-symbols-outlined text-sm">content_copy</span> Copy Text
-                </button>
-                <button type="button" onclick="sendWhatsAppDirect('wa-text-faculty')" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md text-xs font-bold flex items-center gap-1 shadow-md">
-                    <span class="material-symbols-outlined text-sm">send</span> Open WhatsApp
-                </button>
+            <label class="sg-wa-label">Message Preview:</label>
+            <textarea id="wa-text-faculty" rows="8" class="sg-wa-textarea">{{ faculty_briefing }}</textarea>
+            <div class="sg-wa-btn-row">
+                <button type="button" onclick="copyWaText('wa-text-faculty')" class="sg-wa-btn-copy">📋 Copy Text</button>
+                <button type="button" onclick="sendWhatsAppDirect('wa-text-faculty')" class="sg-wa-btn-send">➤ Open WhatsApp</button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function closeWhatsAppModal() {
+    var modal = document.getElementById('sg-whatsapp-modal-backdrop');
+    if (modal) modal.remove();
+}
+
+function switchWaTab(tab) {
+    document.querySelectorAll('.wa-content-box').forEach(function(box) { box.classList.add('hidden'); });
+    var target = document.getElementById('wa-box-' + tab);
+    if (target) target.classList.remove('hidden');
+
+    document.querySelectorAll('[id^="wa-tab-"]').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    var activeBtn = document.getElementById('wa-tab-' + tab);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
+}
+
+function copyWaText(elementId) {
+    var copyText = document.getElementById(elementId);
+    if (copyText) {
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert('✨ WhatsApp briefing text copied to clipboard!');
+    }
+}
+
+function sendWhatsAppDirect(elementId) {
+    var textEl = document.getElementById(elementId);
+    if (textEl) {
+        var text = encodeURIComponent(textEl.value);
+        window.open('https://api.whatsapp.com/send?text=' + text, '_blank');
+    }
+}
+</script>
