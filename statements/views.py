@@ -83,4 +83,11 @@ def download_statement(request, statement_id):
 		
 	if statement.file_format == 'excel':
 		return _statement_response(statement, render_excel(statement.party, statement.from_date, statement.to_date, rows, ledger, is_fleet_contract=bool(statement.transport_contract)), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'xlsx')
-	return _statement_response(statement, render_pdf(statement.party, statement.from_date, statement.to_date, rows, ledger, is_fleet_contract=bool(statement.transport_contract)), 'application/pdf', 'pdf')
+
+	from core.cache_services import get_or_render_cached_pdf
+	cache_key = f"pdf:statement:{statement.id}:{statement.closing_balance}"
+	if request.GET.get('force') == '1':
+		pdf_bytes = render_pdf(statement.party, statement.from_date, statement.to_date, rows, ledger, is_fleet_contract=bool(statement.transport_contract))
+	else:
+		pdf_bytes = get_or_render_cached_pdf(cache_key, lambda: render_pdf(statement.party, statement.from_date, statement.to_date, rows, ledger, is_fleet_contract=bool(statement.transport_contract)))
+	return _statement_response(statement, pdf_bytes, 'application/pdf', 'pdf')

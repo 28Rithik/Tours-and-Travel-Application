@@ -5,6 +5,110 @@
 
 {% block content %}
 <div style="min-height: calc(100vh - 180px); display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem; background: radial-gradient(circle at 50% 20%, rgba(30, 58, 138, 0.08) 0%, rgba(15, 23, 42, 0.02) 100%);">
+    <style>
+        .tab-pill-container {
+            display: flex;
+            background: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.75rem;
+            gap: 0.35rem;
+        }
+        .tab-pill-btn {
+            flex: 1;
+            padding: 0.65rem 0.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            background: transparent;
+            color: #64748b;
+            font-family: inherit;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .tab-pill-btn:hover {
+            color: #1e293b;
+        }
+        .tab-pill-btn.active {
+            background: #ffffff;
+            color: #0f172a;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+        }
+        .portal-input-group {
+            display: flex;
+            align-items: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            background: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+        }
+        .portal-input-group:focus-within {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+        .portal-input-prefix {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 0.85rem;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+        .portal-input-inner {
+            flex: 1;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #0f172a;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+            width: 100%;
+        }
+        .portal-input-inner::placeholder {
+            color: #94a3b8;
+        }
+        .portal-btn-primary {
+            width: 100%;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border: none;
+            border-radius: 0.65rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+        .portal-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+        }
+        .portal-btn-primary:active {
+            transform: translateY(0);
+        }
+    </style>
+
     <div style="width: 100%; max-width: 480px;" x-data="{
         activeTab: 'otp', // 'otp' or 'password'
         phone: '',
@@ -117,16 +221,18 @@
         <div class="glass-card" style="padding: 2rem; border-radius: 1.25rem; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);">
             
             <!-- Dual Mode Navigation Tabs -->
-            <div style="display: flex; background: #f1f5f9; padding: 0.35rem; border-radius: 0.75rem; margin-bottom: 1.75rem;">
-                <button type="button" @click="activeTab = 'otp'" 
-                    :style="activeTab === 'otp' ? 'background: #ffffff; color: #0f172a; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.06);' : 'background: transparent; color: #64748b; font-weight: 500;'"
-                    style="flex: 1; padding: 0.65rem 0.5rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+            <div class="tab-pill-container">
+                <button type="button" 
+                    class="tab-pill-btn" 
+                    :class="{ 'active': activeTab === 'otp' }"
+                    @click="activeTab = 'otp'">
                     <span>⚡ Mobile OTP</span>
-                    <span style="background: #10b981; color: white; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 800;">FAST</span>
+                    <span style="background: #10b981; color: white; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 800; letter-spacing: 0.02em;">FAST</span>
                 </button>
-                <button type="button" @click="activeTab = 'password'"
-                    :style="activeTab === 'password' ? 'background: #ffffff; color: #0f172a; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.06);' : 'background: transparent; color: #64748b; font-weight: 500;'"
-                    style="flex: 1; padding: 0.65rem 0.5rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                <button type="button" 
+                    class="tab-pill-btn" 
+                    :class="{ 'active': activeTab === 'password' }"
+                    @click="activeTab = 'password'">
                     <span>🔑 Password Login</span>
                 </button>
             </div>
@@ -166,8 +272,7 @@
                     </div>
 
                     <button type="button" @click="requestOtp" :disabled="isLoading"
-                        style="width: 100%; padding: 0.85rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; border: none; border-radius: 0.65rem; font-size: 1rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3); transition: transform 0.15s ease;"
-                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
+                        class="portal-btn-primary">
                         <span x-show="!isLoading">⚡ Send Instant Verification Code</span>
                         <span x-show="isLoading" x-cloak>Sending OTP...</span>
                     </button>
@@ -214,27 +319,35 @@
                 </div>
             </div>
 
-            <!-- TAB 2: Corporate Password Login -->
+            <!-- TAB 2: Standard Password Login -->
             <div x-show="activeTab === 'password'" x-cloak>
                 <form method="POST" action="{% url 'customer_portal:login' %}{% if next %}?next={{ next }}{% endif %}">
                     {% csrf_token %}
                     <div style="margin-bottom: 1.25rem;">
                         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;" for="username">
-                            Corporate Username / Email
+                            Username or Mobile Number
                         </label>
-                        <input type="text" id="username" name="username" required
-                            style="width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; color: #0f172a; outline: none;">
+                        <div class="portal-input-group">
+                            <span class="portal-input-prefix">👤</span>
+                            <input type="text" id="username" name="username" required
+                                class="portal-input-inner"
+                                placeholder="Enter username or mobile number">
+                        </div>
                     </div>
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 0.5rem;" for="password">
                             Password
                         </label>
-                        <input type="password" id="password" name="password" required
-                            style="width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; color: #0f172a; outline: none;">
+                        <div class="portal-input-group">
+                            <span class="portal-input-prefix">🔒</span>
+                            <input type="password" id="password" name="password" required
+                                class="portal-input-inner"
+                                placeholder="Enter your password">
+                        </div>
                     </div>
-                    <button type="submit"
-                        style="width: 100%; padding: 0.85rem; background: #0f172a; color: white; border: none; border-radius: 0.65rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s;">
-                        Corporate Sign In &rarr;
+                    <button type="submit" class="portal-btn-primary">
+                        <span>Sign In with Password</span>
+                        <span>&rarr;</span>
                     </button>
                 </form>
             </div>

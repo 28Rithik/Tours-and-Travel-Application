@@ -15,6 +15,9 @@ from .models import (
     NightSafetyEscort,
     CommuterBoardingPass,
     ESGCarbonMetric,
+    CorporateAuthAuditLog,
+    CorporateUserRole,
+    EnterpriseSSOConfig,
 )
 
 
@@ -616,3 +619,84 @@ class ESGCarbonMetricAdmin(ModelAdmin):
     @admin.display(description='Green Score')
     def green_score_badge(self, obj):
         return format_html('<span style="background: rgba(16,185,129,0.15); color: #34d399; padding: 2px 8px; border-radius: 6px; font-weight: 700;">{} / 100</span>', obj.green_efficiency_score)
+
+
+@admin.register(CorporateAuthAuditLog)
+class CorporateAuthAuditLogAdmin(ModelAdmin):
+    list_display = ('timestamp', 'event_badge', 'identifier', 'client', 'user', 'ip_address', 'status_reason')
+    list_filter = ('event_type', 'timestamp', 'client')
+    search_fields = ('identifier', 'ip_address', 'status_reason', 'client__name')
+    readonly_fields = ('timestamp', 'event_type', 'identifier', 'client', 'user', 'ip_address', 'user_agent', 'status_reason')
+
+    @admin.display(description='Event')
+    def event_badge(self, obj):
+        colors = {
+            'login_credentials_success': '#10b981',
+            'login_credentials_failed': '#ef4444',
+            'tenant_quick_switch': '#6366f1',
+            'otp_dispatched': '#0284c7',
+            'otp_verified_success': '#059669',
+            'otp_verified_failed': '#dc2626',
+            'logout': '#64748b',
+            'security_mismatch_blocked': '#e11d48',
+            'pii_unmasked': '#f59e0b',
+            'role_switched': '#8b5cf6',
+        }
+        color = colors.get(obj.event_type, '#475569')
+        return format_html('<span style="color: {}; font-weight: 700; font-size: 12px;">{}</span>', color, obj.get_event_type_display())
+
+
+@admin.register(CorporateUserRole)
+class CorporateUserRoleAdmin(ModelAdmin):
+    list_display = ('user', 'client', 'role_badge', 'allowed_ip_ranges', 'is_active', 'created_at')
+    list_filter = ('role', 'is_active', 'client')
+    search_fields = ('user__username', 'user__email', 'client__name', 'allowed_ip_ranges')
+
+    @admin.display(description='Assigned Persona')
+    def role_badge(self, obj):
+        role_colors = {
+            'transport_admin': ('#eef2ff', '#4f46e5', '#c7d2fe'),
+            'safety_auditor': ('#fef2f2', '#b91c1c', '#fecaca'),
+            'finance_officer': ('#eff6ff', '#1d4ed8', '#bfdbfe'),
+            'gate_security': ('#fffbeb', '#b45309', '#fde68a'),
+        }
+        bg, text, border = role_colors.get(obj.role, ('#f1f5f9', '#475569', '#cbd5e1'))
+        return format_html(
+            '<span style="background: {}; color: {}; border: 1px solid {}; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 11px;">{}</span>',
+            bg, text, border, obj.get_role_display()
+        )
+
+
+@admin.register(EnterpriseSSOConfig)
+class EnterpriseSSOConfigAdmin(ModelAdmin):
+    list_display = ('client', 'domain_badge', 'idp_display_name', 'brand_slug_badge', 'enforce_sso_only', 'is_active', 'updated_at')
+    list_filter = ('is_active', 'enforce_sso_only')
+    search_fields = ('client__name', 'domain', 'brand_subdomain_slug', 'idp_display_name')
+    fieldsets = (
+        ('Corporate Tenant & Domain', {
+            'fields': ('client', 'domain', 'is_active', 'enforce_sso_only')
+        }),
+        ('SAML 2.0 / OIDC Identity Provider', {
+            'fields': ('idp_display_name', 'idp_entity_id', 'sso_login_url', 'x509_certificate')
+        }),
+        ('White-Label Subdomain & Branding', {
+            'fields': ('brand_subdomain_slug', 'brand_primary_color', 'brand_logo_url', 'campus_branches')
+        }),
+    )
+
+    @admin.display(description='Corporate Domain')
+    def domain_badge(self, obj):
+        return format_html(
+            '<span style="font-family: monospace; font-weight: 700; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 2px 8px; border-radius: 6px;">@{}</span>',
+            obj.domain
+        )
+
+    @admin.display(description='White-Label Slug')
+    def brand_slug_badge(self, obj):
+        return format_html(
+            '<span style="font-family: monospace; font-weight: 700; background: {}; color: #ffffff; padding: 2px 8px; border-radius: 6px;">{}.travelerp.in</span>',
+            obj.brand_primary_color, obj.brand_subdomain_slug
+        )
+
+
+

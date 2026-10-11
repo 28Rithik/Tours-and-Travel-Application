@@ -1,16 +1,27 @@
 import calendar
+import concurrent.futures
+import logging
 import requests
 from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 
+logger = logging.getLogger(__name__)
 
-def send_whatsapp_message(to_phone, message_text, template_name=None):
-    """
-    Sends a WhatsApp message using the WhatsApp Business API.
-    Uses standard text or predefined template.
-    Gracefully handles dev/test environments without breaking execution.
-    """
+# Enterprise background worker thread pool for non-blocking notifications
+_COMM_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=6, thread_name_prefix="travelerp_comm_worker")
+
+
+def get_comm_executor():
+    """Returns singleton worker pool for async communication tasks."""
+    global _COMM_EXECUTOR
+    if _COMM_EXECUTOR is None or _COMM_EXECUTOR._shutdown:
+        _COMM_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=6, thread_name_prefix="travelerp_comm_worker")
+    return _COMM_EXECUTOR
+
+
+def _send_whatsapp_message_sync(to_phone, message_text, template_name=None):
+    """Internal synchronous implementation of WhatsApp Business API dispatch."""
     if not to_phone:
         return {"status": "skipped", "reason": "No phone number provided"}
 
@@ -50,8 +61,41 @@ def send_whatsapp_message(to_phone, message_text, template_name=None):
         response = requests.post(url, headers=headers, json=payload, timeout=10)
         return response.json()
     except Exception as e:
-        print(f"Failed to send WhatsApp message to {clean_phone}: {e}")
+        logger.error(f"Failed to send WhatsApp message to {clean_phone}: {e}")
         return {"error": str(e)}
+
+
+def send_whatsapp_message(to_phone, message_text, template_name=None, is_async=False, on_complete=None):
+    """
+    Sends a WhatsApp message using the WhatsApp Business API.
+    Uses standard text or predefined template.
+    If is_async=True, submits to background thread pool and returns immediately to keep web requests sub-15ms.
+    """
+    if is_async:
+        executor = get_comm_executor()
+        def _task():
+            try:
+                res = _send_whatsapp_message_sync(to_phone, message_text, template_name)
+                if on_complete:
+                    on_complete(res)
+                return res
+            except Exception as exc:
+                logger.error(f"Background WhatsApp execution failed: {exc}")
+                return {"status": "error", "reason": str(exc)}
+
+        future = executor.submit(_task)
+        return {
+            "status": "queued",
+            "async": True,
+            "future": future
+        }
+
+    return _send_whatsapp_message_sync(to_phone, message_text, template_name)
+
+
+def send_whatsapp_message_async(to_phone, message_text, template_name=None, on_complete=None):
+    """Convenience non-blocking wrapper for background WhatsApp dispatch."""
+    return send_whatsapp_message(to_phone, message_text, template_name=template_name, is_async=True, on_complete=on_complete)
 
 
 def send_email_notification(to_email, subject, body_html):
@@ -80,11 +124,7 @@ def send_email_notification(to_email, subject, body_html):
 # EVENT-DRIVEN OMNICHANNEL ALERT DISPATCHERS
 # ==============================================================================
 
-def dispatch_trip_assignment_alert(trip, base_url="http://127.0.0.1:8000"):
-    """
-    Broadcasts booking confirmation, driver details, and live passenger GPS tracking
-    link to the customer upon assignment.
-    """
+def _dispatch_trip_assignment_alert_sync(trip, base_url="http://127.0.0.1:8000"):
     customer_phone = (
         trip.booking.guest_phone if trip.booking and trip.booking.guest_phone
         else (trip.party.phone if trip.party else "")
@@ -128,58 +168,80 @@ def dispatch_trip_assignment_alert(trip, base_url="http://127.0.0.1:8000"):
     return result
 
 
-def dispatch_emergency_sos_broadcast(incident):
+def dispatch_trip_assignment_alert(trip, base_url="http://127.0.0.1:8000", is_async=False):
+    """
+    Broadcasts booking confirmation, driver details, and live passenger GPS tracking
+    link to the customer upon assignment. Non-blocking if is_async=True.
+    """
+    if is_async:
+        return get_comm_executor().submit(_dispatch_trip_assignment_alert_sync, trip, base_url)
+    return _dispatch_trip_assignment_alert_sync(trip, base_url)
+
+
+def dispatch_emergency_sos_broadcast(incident, is_async=False):
     """
     Instant broadcast to fleet control room and management on Emergency SOS trigger.
     """
-    control_room_phone = getattr(settings, 'FLEET_CONTROL_ROOM_PHONE', '919876543210')
-    veh_reg = incident.vehicle.registration_number if incident.vehicle else "N/A"
-    driver_name = incident.driver.name if incident.driver else "N/A"
-    driver_phone = incident.driver.phone if incident.driver else "N/A"
+    def _execute():
+        control_room_phone = getattr(settings, 'FLEET_CONTROL_ROOM_PHONE', '919876543210')
+        veh_reg = incident.vehicle.registration_number if incident.vehicle else "N/A"
+        driver_name = incident.driver.name if incident.driver else "N/A"
+        driver_phone = incident.driver.phone if incident.driver else "N/A"
 
-    message = (
-        f"🚨 *CRITICAL FLEET SOS ALERT!* 🚨\n\n"
-        f"• *Incident ID:* {incident.incident_id}\n"
-        f"• *Type:* {incident.get_incident_type_display()}\n"
-        f"• *Severity:* {incident.get_severity_display()}\n"
-        f"• *Vehicle:* {veh_reg}\n"
-        f"• *Captain:* {driver_name} ({driver_phone})\n"
-        f"• *Passengers:* {incident.passenger_count} ({incident.get_passengers_safety_status_display()})\n"
-        f"• *Location:* {incident.location_address or 'Highway GPS coordinates'}\n"
-        f"• *Issue:* {incident.description}\n\n"
-        f"⚡ Please dispatch standby vehicle from Mission Control immediately."
-    )
-    return send_whatsapp_message(control_room_phone, message)
+        message = (
+            f"🚨 *CRITICAL FLEET SOS ALERT!* 🚨\n\n"
+            f"• *Incident ID:* {incident.incident_id}\n"
+            f"• *Type:* {incident.get_incident_type_display()}\n"
+            f"• *Severity:* {incident.get_severity_display()}\n"
+            f"• *Vehicle:* {veh_reg}\n"
+            f"• *Captain:* {driver_name} ({driver_phone})\n"
+            f"• *Passengers:* {incident.passenger_count} ({incident.get_passengers_safety_status_display()})\n"
+            f"• *Location:* {incident.location_address or 'Highway GPS coordinates'}\n"
+            f"• *Issue:* {incident.description}\n\n"
+            f"⚡ Please dispatch standby vehicle from Mission Control immediately."
+        )
+        return send_whatsapp_message(control_room_phone, message)
+
+    if is_async:
+        return get_comm_executor().submit(_execute)
+    return _execute()
 
 
-def dispatch_payslip_alert(payslip, base_url="http://127.0.0.1:8000"):
+def dispatch_payslip_alert(payslip, base_url="http://127.0.0.1:8000", is_async=False):
     """
     Sends salary disbursement summary to the driver on WhatsApp.
     """
-    driver = payslip.driver
-    if not driver or not driver.phone:
-        return {"status": "skipped", "reason": "No driver phone"}
+    def _execute():
+        driver = payslip.driver
+        if not driver or not driver.phone:
+            return {"status": "skipped", "reason": "No driver phone"}
 
-    month_name = calendar.month_name[payslip.month]
-    message = (
-        f"Vanakkam {driver.name}! 💰\n\n"
-        f"Your monthly salary payslip for *{month_name} {payslip.year}* has been finalized:\n\n"
-        f"• *Verified Duty Days:* {payslip.days_present} Days\n"
-        f"• *Gross Earnings:* ₹{payslip.gross_earnings:,.2f}\n"
-        f"• *Statutory Deductions (EPF/ESI):* ₹{(payslip.epf_deduction + payslip.esi_deduction):,.2f}\n"
-        f"• *Fines / Advances:* ₹{(payslip.traffic_fines_deduction + payslip.advances_recovered):,.2f}\n"
-        f"• *Net Take-Home Pay:* *₹{payslip.net_payable:,.2f}*\n\n"
-        f"📄 View & print your complete salary slip: {base_url}/finance/payslips/{payslip.id}/\n\n"
-        f"Thank you for your dedicated service!"
-    )
-    return send_whatsapp_message(driver.phone, message)
+        month_name = calendar.month_name[payslip.month]
+        message = (
+            f"Vanakkam {driver.name}! 💰\n\n"
+            f"Your monthly salary payslip for *{month_name} {payslip.year}* has been finalized:\n\n"
+            f"• *Verified Duty Days:* {payslip.days_present} Days\n"
+            f"• *Gross Earnings:* ₹{payslip.gross_earnings:,.2f}\n"
+            f"• *Statutory Deductions (EPF/ESI):* ₹{(payslip.epf_deduction + payslip.esi_deduction):,.2f}\n"
+            f"• *Fines / Advances:* ₹{(payslip.traffic_fines_deduction + payslip.advances_recovered):,.2f}\n"
+            f"• *Net Take-Home Pay:* *₹{payslip.net_payable:,.2f}*\n\n"
+            f"📄 View & print your complete salary slip: {base_url}/finance/payslips/{payslip.id}/\n\n"
+            f"Thank you for your dedicated service!"
+        )
+        return send_whatsapp_message(driver.phone, message)
+
+    if is_async:
+        return get_comm_executor().submit(_execute)
+    return _execute()
 
 
-def send_trip_invoice_pdf(trip_or_id, recipient_phone=None, base_url="http://127.0.0.1:8000"):
+def send_trip_invoice_pdf(trip_or_id, recipient_phone=None, base_url="http://127.0.0.1:8000", is_async=False):
     """
     Dispatches automated WhatsApp notification with official GST invoice details
     and PDF download link for a Trip or CorporateGSTInvoice.
     """
     from operations.whatsapp_bot import send_trip_invoice_pdf as _send_invoice
+    if is_async:
+        return get_comm_executor().submit(_send_invoice, trip_or_id, recipient_phone=recipient_phone, base_url=base_url)
     return _send_invoice(trip_or_id, recipient_phone=recipient_phone, base_url=base_url)
 

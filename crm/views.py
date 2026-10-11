@@ -62,15 +62,23 @@ def inquiry_pipeline_view(request):
             Q(party__name__icontains=q)
         )
 
-    # KPI Metrics
-    all_inqs = Inquiry.objects.all()
-    today_count = all_inqs.filter(created_at__gte=today_start).count()
-    month_count = all_inqs.filter(created_at__gte=month_start).count()
-    active_count = all_inqs.filter(status__in=['new', 'in_progress']).count()
-    quoted_count = all_inqs.filter(status='quoted').count()
-    won_count = all_inqs.filter(status='won').count()
-    overdue_count = all_inqs.filter(status__in=['new', 'in_progress'], tat_deadline__lt=now).count()
-    total_closed = won_count + all_inqs.filter(status='lost').count()
+    # KPI Metrics — Single consolidated aggregation
+    inq_counts = Inquiry.objects.aggregate(
+        today_count=Count('id', filter=Q(created_at__gte=today_start)),
+        month_count=Count('id', filter=Q(created_at__gte=month_start)),
+        active_count=Count('id', filter=Q(status__in=['new', 'in_progress'])),
+        quoted_count=Count('id', filter=Q(status='quoted')),
+        won_count=Count('id', filter=Q(status='won')),
+        lost_count=Count('id', filter=Q(status='lost')),
+        overdue_count=Count('id', filter=Q(status__in=['new', 'in_progress'], tat_deadline__lt=now)),
+    )
+    today_count = inq_counts['today_count']
+    month_count = inq_counts['month_count']
+    active_count = inq_counts['active_count']
+    quoted_count = inq_counts['quoted_count']
+    won_count = inq_counts['won_count']
+    overdue_count = inq_counts['overdue_count']
+    total_closed = won_count + inq_counts['lost_count']
     win_rate = round((won_count / total_closed * 100), 1) if total_closed > 0 else 0.0
 
     context = {
@@ -2181,14 +2189,14 @@ def api_crm_kanban_data(request):
     """
     from .models import Inquiry
 
-    inquiries = Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to').all()
+    inquiries = list(Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to').all())
     stages = dict(Inquiry.STATUS_CHOICES)
 
     board = {}
     for st_key in stages.keys():
-        st_inqs = inquiries.filter(status=st_key)
+        st_inqs = [i for i in inquiries if i.status == st_key]
         board[st_key] = {
-            'count': st_inqs.count(),
+            'count': len(st_inqs),
             'total_value': float(sum((i.deal_value for i in st_inqs), Decimal('0.00'))),
             'items': [
                 {
@@ -2197,7 +2205,7 @@ def api_crm_kanban_data(request):
                     'guest_name': i.guest_name,
                     'phone': i.guest_phone,
                     'destination': i.destination,
-                    'pickup_date': i.pickup_date.strftime('%Y-%m-%d'),
+                    'pickup_date': i.pickup_date.strftime('%Y-%m-%d') if i.pickup_date else '',
                     'priority': i.priority,
                     'deal_value': float(i.deal_value),
                     'is_overdue': i.is_overdue,

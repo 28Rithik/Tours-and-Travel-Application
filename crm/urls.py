@@ -88,14 +88,6 @@ urlpatterns = [
     # Phase E: DMC Comprehensive Reports & Analytics Hub
     path('reports/', views.dmc_reports_hub_view, name='reports_hub'),
 
-    # Phase 6: TutterflyCRM Power-Up APIs
-    path('api/notifications/poll/', views.api_notifications_poll, name='api_notifications_poll'),
-    path('api/notifications/mark-read/', views.api_notifications_mark_read, name='api_notifications_mark_read'),
-    path('api/inquiries/<int:inquiry_id>/log-objection/', views.api_inquiry_log_objection, name='api_inquiry_log_objection'),
-    path('api/inquiries/mass-reassign/', views.api_inquiry_mass_reassign, name='api_inquiry_mass_reassign'),
-    path('api/inquiries/<int:inquiry_id>/clone/', views.api_inquiry_clone, name='api_inquiry_clone'),
-    path('api/tat-dashboard/', views.api_tat_dashboard, name='api_tat_dashboard'),
-
     # Phase 6: Extended Power-Ups (Social Lead Ingestion, 360 Profile Enhancer, Tenant Admin)
     path('webhooks/social-lead/', views.api_social_lead_webhook, name='api_social_lead_webhook'),
     path('api/profile-enhancer/<int:party_id>/', views.api_profile_enhancer, name='api_profile_enhancer'),

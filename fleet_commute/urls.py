@@ -8,8 +8,18 @@ from .views import (
     sample_roster_csv_download,
     employee_mobile_web_pass_view,
     esg_scorecard_dashboard_view,
+    client_portal_login_view,
+    client_portal_logout_view,
     client_portal_index_view,
     client_transparency_portal_view,
+    api_client_portal_live_fleet,
+    api_client_roster_add,
+    api_client_roster_swap,
+    api_client_roster_import_csv,
+    client_roster_export_csv,
+    api_client_dispute_sla_penalty,
+    client_invoice_pdf_view,
+    client_esg_certificate_view,
     roster_dispatcher_studio_view,
     api_execute_roster_dispatch,
     parent_live_bus_tracking_view,
@@ -20,6 +30,12 @@ from .views import (
     api_optimize_commute_clusters,
     api_commit_commute_clusters,
     api_commute_cluster_stats,
+    api_switch_corporate_role,
+    api_unmask_commuter_pii,
+    api_sso_domain_lookup,
+    client_sso_initiate_view,
+    client_sso_callback_view,
+    client_branded_login_view,
 )
 
 app_name = 'fleet_commute'
@@ -44,11 +60,31 @@ urlpatterns = [
     path('esg-scorecard/', esg_scorecard_dashboard_view, name='esg_scorecard'),
 
     # Phase 6: Corporate Client Transparency & Compliance Portal
+    path('client-portal/login/', client_portal_login_view, name='client_portal_login'),
+    path('client-portal/logout/', client_portal_logout_view, name='client_portal_logout'),
     path('client-portal/', client_portal_index_view, name='client_portal_index'),
     path('client-portal/<int:contract_id>/', client_transparency_portal_view, name='client_transparency_portal'),
+    path('client-portal/<int:contract_id>/api/live-fleet/', api_client_portal_live_fleet, name='api_client_portal_live_fleet'),
+    path('client-portal/<int:contract_id>/roster/add/', api_client_roster_add, name='api_client_roster_add'),
+    path('client-portal/<int:contract_id>/roster/swap-shift/', api_client_roster_swap, name='api_client_roster_swap'),
+    path('client-portal/<int:contract_id>/roster/import-csv/', api_client_roster_import_csv, name='api_client_roster_import_csv'),
+    path('client-portal/<int:contract_id>/roster/export-csv/', client_roster_export_csv, name='client_roster_export_csv'),
+    path('client-portal/<int:contract_id>/sla/dispute/', api_client_dispute_sla_penalty, name='api_client_dispute_sla_penalty'),
+    path('client-portal/<int:contract_id>/invoice/<int:invoice_id>/', client_invoice_pdf_view, name='client_invoice_pdf'),
+    path('client-portal/<int:contract_id>/esg/certificate/', client_esg_certificate_view, name='client_esg_certificate'),
+    path('client-portal/<int:contract_id>/api/switch-role/', api_switch_corporate_role, name='api_switch_corporate_role'),
+    path('client-portal/<int:contract_id>/api/unmask-commuter/', api_unmask_commuter_pii, name='api_unmask_commuter_pii'),
+
+    # Phase 3: Enterprise SSO & White-Label Subdomains
+    path('client-portal/api/sso/lookup-domain/', api_sso_domain_lookup, name='api_sso_domain_lookup'),
+    path('client-portal/sso/<slug:brand_slug>/login/', client_sso_initiate_view, name='client_sso_initiate'),
+    path('client-portal/sso/<slug:brand_slug>/callback/', client_sso_callback_view, name='client_sso_callback'),
+    path('client-portal/brand/<slug:brand_slug>/', client_branded_login_view, name='client_branded_login'),
 
     # Phase 7: Automated Batch Daily Roster Dispatcher (300+ Vehicles Scale)
     path('roster-dispatcher/', roster_dispatcher_studio_view, name='roster_dispatcher_studio'),
+    path('roster-studio/', roster_dispatcher_studio_view, name='roster_dispatcher_studio_alias_1'),
+    path('roster/studio/', roster_dispatcher_studio_view, name='roster_dispatcher_studio_alias_2'),
     path('api/roster-dispatcher/generate/', api_execute_roster_dispatch, name='api_execute_roster_dispatch'),
 
     # Phase 8: Parent & Employee Real-Time Live Bus Tracking Portal & Telematics API

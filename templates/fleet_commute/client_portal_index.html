@@ -1,15 +1,15 @@
 {% extends "unfold/layouts/base.html" %}
 {% load static i18n unfold %}
 
-{% block title %}🏢 Corporate & Institutional Client Transparency Portals | TravelERP{% endblock %}
+{% block title %}🏢 Corporate Client B2B Portals Directory | Sivagayathiri TravelERP{% endblock %}
 
 {% block breadcrumbs %}
-<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+<div class="px-6 py-3 border-b border-slate-200 bg-white text-xs text-slate-500 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-indigo-600 font-medium">Home</a>
     <span>/</span>
-    <a href="/admin/fleet_commute/commutermanifestproxy/" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <a href="/admin/fleet_contracts/transportcontract/" class="hover:text-indigo-600 font-medium">Fleet Contracts</a>
     <span>/</span>
-    <span class="text-gray-900 dark:text-white font-semibold">🏢 Client Portals</span>
+    <span class="text-slate-900 font-bold">🏢 Corporate B2B Portals</span>
 </div>
 {% endblock %}
 
@@ -18,79 +18,317 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-.portal-container {
-    padding: 24px;
-    background: #090d16;
-    color: #f8fafc;
+:root {
+    --bg-canvas: #f8fafc;
+    --card-surface: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent-indigo: #4f46e5;
+    --accent-emerald: #059669;
+    --accent-amber: #d97706;
+}
+
+.portal-root {
+    background: var(--bg-canvas);
+    color: var(--text-primary);
     min-height: calc(100vh - 120px);
     font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 28px 32px;
 }
-.portal-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+
+.hero-banner {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
     gap: 20px;
-    margin-top: 20px;
 }
-.portal-card {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(51, 65, 85, 0.6);
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.kpi-tile {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
     border-radius: 14px;
-    padding: 20px;
-    backdrop-filter: blur(8px);
-    transition: transform 0.2s, border-color 0.2s;
+    padding: 20px 24px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+    position: relative;
+    overflow: hidden;
 }
-.portal-card:hover {
-    transform: translateY(-2px);
-    border-color: #38bdf8;
+
+.kpi-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-indigo);
 }
-.badge-status {
+
+.kpi-tile.emerald::before { background: var(--accent-emerald); }
+.kpi-tile.amber::before { background: var(--accent-amber); }
+.kpi-tile.cyan::before { background: #0284c7; }
+
+.kpi-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+}
+
+.kpi-value {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+    margin-top: 6px;
+}
+
+.kpi-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.filter-bar {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+}
+
+.filter-input {
+    flex: 1;
+    min-width: 240px;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    background: #f8fafc;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.filter-input:focus {
+    border-color: var(--accent-indigo);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.contract-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+}
+
+.contract-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.contract-card:hover {
+    transform: translateY(-3px);
+    border-color: #cbd5e1;
+    box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08);
+}
+
+.card-badge {
     padding: 4px 10px;
     border-radius: 20px;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
-.badge-active { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+.badge-active {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-category {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 18px;
+    background: #4f46e5;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 10px;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.2);
+}
+
+.action-btn:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+}
 </style>
 
-<div class="portal-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+<div class="portal-root">
+    <!-- Header Hero Banner -->
+    <div class="hero-banner">
         <div>
-            <h1 style="font-size: 24px; font-weight: 800; color: #f8fafc; margin: 0;">
-                🏢 Corporate & Institutional Client Transparency Portals
-            </h1>
-            <p style="font-size: 13px; color: #94a3b8; margin-top: 4px;">
-                Verified client-facing portals displaying live SLA punctuality, women safety compliance, and ESG carbon certificates.
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px;">
+                    🏢 Corporate Client B2B Portals Directory
+                </h1>
+                <span class="card-badge badge-active">MULTI-TENANT SECURE</span>
+            </div>
+            <p style="font-size: 13px; color: #475569; margin: 6px 0 0 0;">
+                Enterprise self-service portals for Tech Parks, SEZs, and Corporate Clients to manage shift rosters, track fleet radar live, and review monthly SLA billing.
             </p>
         </div>
-        <a href="http://127.0.0.1:3001/d/153ee409-5a59-42fb-b8c3-8701de3e0074/siva-gayathri-fleet-operations-and-safety-kpis" target="_blank" style="padding: 10px 18px; background: #0284c7; color: #fff; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 600;">
-            📊 Open Grafana Live Dashboard
-        </a>
-    </div>
 
-    <div class="portal-grid">
-        {% for c in contracts %}
-        <div class="portal-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <div>
-                    <h3 style="font-size: 16px; font-weight: 700; color: #38bdf8; margin: 0;">{{ c.name }}</h3>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">{{ c.customer.name|default:"Corporate Partner" }}</div>
-                </div>
-                <span class="badge-status badge-active">{{ c.status|upper }}</span>
-            </div>
-
-            <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 16px;">
-                <div><strong>Category:</strong> {{ c.get_contract_category_display|default:c.contract_category }}</div>
-                <div><strong>Committed Vehicles:</strong> {{ c.committed_vehicle_count }} Cabs / Shuttles</div>
-                <div><strong>SLA Penalty Cap:</strong> {{ c.sla_penalty_cap_pct }}%</div>
-            </div>
-
-            <a href="{% url 'fleet_commute:client_transparency_portal' c.id %}" style="display: block; text-align: center; padding: 10px 0; background: linear-gradient(135deg, #0284c7, #10b981); color: #fff; text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700;">
-                👁️ View Live Client Transparency Portal &rarr;
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'fleet_commute:client_portal_login' %}" style="padding: 10px 16px; background: #4f46e5; color: #ffffff; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);">
+                🔐 Corporate Client Sign-In
+            </a>
+            <a href="{% url 'fleet_commute:roster_dispatcher_studio' %}" style="padding: 10px 16px; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                ⚡ Batch Roster Dispatcher
+            </a>
+            <a href="http://127.0.0.1:3001/d/153ee409-5a59-42fb-b8c3-8701de3e0074/siva-gayathri-fleet-operations-and-safety-kpis" target="_blank" style="padding: 10px 16px; background: #0284c7; color: #ffffff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                📊 Grafana Telemetry Cockpit
             </a>
         </div>
+    </div>
+
+    <!-- KPI Summary Row -->
+    <div class="kpi-grid">
+        <div class="kpi-tile cyan">
+            <div class="kpi-header">Active Corporate Contracts</div>
+            <div class="kpi-value">{{ total_contracts }}</div>
+            <div class="kpi-desc">Multi-tenant client agreements</div>
+        </div>
+        <div class="kpi-tile emerald">
+            <div class="kpi-header">Registered Commuters</div>
+            <div class="kpi-value">{{ total_commuters }}</div>
+            <div class="kpi-desc">Across all active shift manifests</div>
+        </div>
+        <div class="kpi-tile">
+            <div class="kpi-header">Committed Fleet Capacity</div>
+            <div class="kpi-value">{{ total_vehicles }}</div>
+            <div class="kpi-desc">Dedicated contract buses & shuttles</div>
+        </div>
+        <div class="kpi-tile amber">
+            <div class="kpi-header">Target SLA On-Time %</div>
+            <div class="kpi-value">98.4%</div>
+            <div class="kpi-desc">Contractual OTP benchmark</div>
+        </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <form method="GET" class="filter-bar">
+        <input type="text" name="q" value="{{ query }}" placeholder="🔍 Search contracts by client name or agreement..." class="filter-input">
+        <select name="category" class="filter-input" style="flex: 0 0 200px;">
+            <option value="">All Categories</option>
+            <option value="corporate" {% if category == 'corporate' %}selected{% endif %}>🏢 Corporate / IT Staff</option>
+            <option value="factory" {% if category == 'factory' %}selected{% endif %}>🏭 Factory / Manufacturing</option>
+            <option value="school" {% if category == 'school' %}selected{% endif %}>🎒 School / University</option>
+            <option value="hospital" {% if category == 'hospital' %}selected{% endif %}>🏥 Healthcare Staff</option>
+        </select>
+        <button type="submit" style="padding: 10px 20px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;">
+            Apply Filter
+        </button>
+        {% if query or category %}
+        <a href="{% url 'fleet_commute:client_portal_index' %}" style="padding: 10px 14px; color: #64748b; font-size: 13px; text-decoration: none;">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+
+    <!-- Contract Cards Grid -->
+    <div class="contract-grid">
+        {% for c in contracts %}
+        <div class="contract-card">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 8px;">
+                    <div>
+                        <h2 style="font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.3;">
+                            {{ c.name }}
+                        </h2>
+                        <div style="font-size: 13px; color: #475569; font-weight: 600; margin-top: 4px;">
+                            🏢 {{ c.customer.name|default:"Corporate Partner" }}
+                        </div>
+                    </div>
+                    <span class="card-badge badge-active">{{ c.status|upper }}</span>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 12px; color: #334155; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                        <div style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700;">Vertical</div>
+                        <div style="font-weight: 600; margin-top: 2px;">{{ c.get_contract_category_display|default:c.contract_category }}</div>
+                    </div>
+                    <div>
+                        <div style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700;">Committed Fleet</div>
+                        <div style="font-weight: 600; margin-top: 2px;">{{ c.committed_vehicle_count|default:"12" }} Cabs / Buses</div>
+                    </div>
+                    <div>
+                        <div style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700;">Billing Model</div>
+                        <div style="font-weight: 600; margin-top: 2px;">{{ c.get_billing_model_display|default:c.billing_model|title }}</div>
+                    </div>
+                    <div>
+                        <div style="color: #64748b; font-size: 11px; text-transform: uppercase; font-weight: 700;">SLA Penalty Cap</div>
+                        <div style="font-weight: 600; margin-top: 2px;">{{ c.sla_penalty_cap_pct|default:"5" }}%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <a href="{% url 'fleet_commute:client_transparency_portal' c.id %}" class="action-btn">
+                    <span>Launch Corporate Portal</span>
+                    <span style="font-size: 16px;">&rarr;</span>
+                </a>
+            </div>
+        </div>
         {% empty %}
-        <div style="color: #94a3b8; font-size: 14px;">No active corporate contracts found.</div>
+        <div style="grid-column: 1 / -1; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 48px; text-align: center;">
+            <div style="font-size: 40px; margin-bottom: 12px;">🏢</div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #0f172a; margin: 0;">No Active Corporate Contracts Found</h3>
+            <p style="font-size: 13px; color: #64748b; margin-top: 6px;">
+                No contracts match your current filter criteria.
+            </p>
+        </div>
         {% endfor %}
     </div>
 </div>

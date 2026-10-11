@@ -27,7 +27,7 @@
     <!-- Live Trip Billing & Pricing Summary Container -->
     <div id="trip-pricing-htmx-container"
          hx-get="{% url 'htmx_operations:trip-calculate-totals' %}"
-         hx-trigger="input from:#id_opening_km delay:150ms, input from:#id_closing_km delay:150ms, input from:#id_km_rate delay:150ms, input from:#id_day_rate delay:150ms, input from:#id_fixed_amount delay:150ms, input from:#id_driver_bata delay:150ms, change from:#id_billing_model, trip-pricing-updated from:body"
+         hx-trigger="input from:#id_opening_km delay:350ms, input from:#id_closing_km delay:350ms, input from:#id_km_rate delay:350ms, input from:#id_day_rate delay:350ms, input from:#id_fixed_amount delay:350ms, input from:#id_driver_bata delay:350ms, change from:#id_billing_model, trip-pricing-updated from:body"
          hx-include="#id_billing_model, #id_day_rate, #id_km_rate, #id_fixed_amount, #id_days_count, #id_driver_bata, #id_opening_km, #id_closing_km">
     </div>
 </div>

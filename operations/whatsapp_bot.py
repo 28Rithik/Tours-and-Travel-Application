@@ -743,82 +743,96 @@ def send_trip_invoice_pdf(trip_or_id, recipient_phone=None, base_url="http://127
     }
 
 
-def dispatch_driver_briefing_whatsapp(trip, base_url="http://127.0.0.1:8000"):
+def dispatch_driver_briefing_whatsapp(trip, base_url="http://127.0.0.1:8000", is_async=False):
     """
     Sends WhatsApp briefing sheet directly to the assigned driver with
     duty parameters, guest details, and digital vehicle handover link.
+    Non-blocking if is_async=True.
     """
-    if not trip or not trip.driver or not trip.driver.phone:
-        return {"status": "skipped", "reason": "No driver or driver phone assigned"}
+    def _execute():
+        if not trip or not trip.driver or not trip.driver.phone:
+            return {"status": "skipped", "reason": "No driver or driver phone assigned"}
 
-    clean_phone = normalize_phone_digits(trip.driver.phone)
-    message_text = generate_driver_briefing_sheet(trip, base_url=base_url)
-    result = send_whatsapp_message(clean_phone, message_text)
+        clean_phone = normalize_phone_digits(trip.driver.phone)
+        message_text = generate_driver_briefing_sheet(trip, base_url=base_url)
+        result = send_whatsapp_message(clean_phone, message_text)
 
-    try:
-        status_val = 'sent' if ('messages' in result or result.get('status') == 'simulated_sent') else 'failed'
-        WhatsAppBotMessage.objects.create(
-            sender_phone=getattr(settings, 'WHATSAPP_BUSINESS_PHONE', '+91 94431 23456'),
-            recipient_phone=clean_phone,
-            message_direction='outbound',
-            intent='driver_briefing',
-            message_body=message_text,
-            raw_payload=result if isinstance(result, dict) else {},
-            status=status_val,
-            trip=trip,
-            driver=trip.driver,
-            message_id=result.get('messages', [{}])[0].get('id', f"out_{timezone.now().timestamp()}") if isinstance(result, dict) else ""
-        )
-    except Exception as e:
-        logger.warning(f"Error logging driver briefing WhatsApp dispatch: {e}")
+        try:
+            status_val = 'sent' if ('messages' in result or result.get('status') == 'simulated_sent') else 'failed'
+            WhatsAppBotMessage.objects.create(
+                sender_phone=getattr(settings, 'WHATSAPP_BUSINESS_PHONE', '+91 94431 23456'),
+                recipient_phone=clean_phone,
+                message_direction='outbound',
+                intent='driver_briefing',
+                message_body=message_text,
+                raw_payload=result if isinstance(result, dict) else {},
+                status=status_val,
+                trip=trip,
+                driver=trip.driver,
+                message_id=result.get('messages', [{}])[0].get('id', f"out_{timezone.now().timestamp()}") if isinstance(result, dict) else ""
+            )
+        except Exception as e:
+            logger.warning(f"Error logging driver briefing WhatsApp dispatch: {e}")
 
-    return {
-        "status": "success",
-        "phone": clean_phone,
-        "result": result
-    }
+        return {
+            "status": "success",
+            "phone": clean_phone,
+            "result": result
+        }
+
+    if is_async:
+        from integrations.communication import get_comm_executor
+        return get_comm_executor().submit(_execute)
+    return _execute()
 
 
-def dispatch_passenger_alert_whatsapp(trip, base_url="http://127.0.0.1:8000"):
+def dispatch_passenger_alert_whatsapp(trip, base_url="http://127.0.0.1:8000", is_async=False):
     """
     Sends luxury confirmation WhatsApp message to the guest/passenger with
     assigned vehicle details, captain contact, and real-time GPS tracking link.
+    Non-blocking if is_async=True.
     """
-    customer_phone = (
-        trip.booking.guest_phone if (trip.booking and trip.booking.guest_phone)
-        else (trip.party.phone if trip.party else "")
-    )
-    if not customer_phone:
-        return {"status": "skipped", "reason": "No passenger phone available"}
-
-    clean_phone = normalize_phone_digits(customer_phone)
-    message_text = generate_passenger_dispatch_sheet(trip, base_url=base_url)
-    result = send_whatsapp_message(clean_phone, message_text)
-
-    try:
-        status_val = 'sent' if ('messages' in result or result.get('status') == 'simulated_sent') else 'failed'
-        WhatsAppBotMessage.objects.create(
-            sender_phone=getattr(settings, 'WHATSAPP_BUSINESS_PHONE', '+91 94431 23456'),
-            recipient_phone=clean_phone,
-            message_direction='outbound',
-            intent='dispatch_alert',
-            message_body=message_text,
-            raw_payload=result if isinstance(result, dict) else {},
-            status=status_val,
-            trip=trip,
-            driver=trip.driver if trip else None,
-            message_id=result.get('messages', [{}])[0].get('id', f"out_{timezone.now().timestamp()}") if isinstance(result, dict) else ""
+    def _execute():
+        customer_phone = (
+            trip.booking.guest_phone if (trip.booking and trip.booking.guest_phone)
+            else (trip.party.phone if trip.party else "")
         )
-        trip.whatsapp_broadcast_count = (trip.whatsapp_broadcast_count or 0) + 1
-        trip.save(update_fields=['whatsapp_broadcast_count'])
-    except Exception as e:
-        logger.warning(f"Error logging passenger alert WhatsApp dispatch: {e}")
+        if not customer_phone:
+            return {"status": "skipped", "reason": "No passenger phone available"}
 
-    return {
-        "status": "success",
-        "phone": clean_phone,
-        "result": result
-    }
+        clean_phone = normalize_phone_digits(customer_phone)
+        message_text = generate_passenger_dispatch_sheet(trip, base_url=base_url)
+        result = send_whatsapp_message(clean_phone, message_text)
+
+        try:
+            status_val = 'sent' if ('messages' in result or result.get('status') == 'simulated_sent') else 'failed'
+            WhatsAppBotMessage.objects.create(
+                sender_phone=getattr(settings, 'WHATSAPP_BUSINESS_PHONE', '+91 94431 23456'),
+                recipient_phone=clean_phone,
+                message_direction='outbound',
+                intent='dispatch_alert',
+                message_body=message_text,
+                raw_payload=result if isinstance(result, dict) else {},
+                status=status_val,
+                trip=trip,
+                driver=trip.driver if trip else None,
+                message_id=result.get('messages', [{}])[0].get('id', f"out_{timezone.now().timestamp()}") if isinstance(result, dict) else ""
+            )
+            trip.whatsapp_broadcast_count = (trip.whatsapp_broadcast_count or 0) + 1
+            trip.save(update_fields=['whatsapp_broadcast_count'])
+        except Exception as e:
+            logger.warning(f"Error logging passenger alert WhatsApp dispatch: {e}")
+
+        return {
+            "status": "success",
+            "phone": clean_phone,
+            "result": result
+        }
+
+    if is_async:
+        from integrations.communication import get_comm_executor
+        return get_comm_executor().submit(_execute)
+    return _execute()
 
 
 

@@ -1,0 +1,32 @@
+[Unit]
+Description=TravelERP Gunicorn + Uvicorn Application Daemon
+After=network.target mysql.service redis-server.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/travelerp
+EnvironmentFile=/var/www/travelerp/.env
+
+# Gunicorn Execution with ASGI Uvicorn workers
+ExecStart=/var/www/travelerp/.venv/bin/gunicorn \
+    travelerp.asgi:application \
+    -c /var/www/travelerp/gunicorn.conf.py
+
+# Graceful Reload & Stop Signals
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=30
+PrivateTmp=true
+
+# Process Resilience
+Restart=always
+RestartSec=5s
+
+# File Descriptor & Socket Limits
+LimitNOFILE=65535
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

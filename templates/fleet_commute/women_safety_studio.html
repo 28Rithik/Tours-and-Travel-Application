@@ -140,6 +140,82 @@
     box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
     transform: translateY(-1px);
 }
+
+/* Light Mode Overrides */
+html:not(.dark) .safety-container {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+}
+
+html:not(.dark) .safety-container h1 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .kpi-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+html:not(.dark) .kpi-val {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .glass-panel {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important;
+}
+
+html:not(.dark) .glass-panel h2 {
+    color: #0f172a !important;
+}
+
+html:not(.dark) .table-custom th {
+    color: #64748b !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .table-custom td {
+    color: #1e293b !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+html:not(.dark) .table-custom tr:hover td {
+    background: #f8fafc !important;
+}
+
+html:not(.dark) .badge-night {
+    background: #fee2e2 !important;
+    color: #dc2626 !important;
+    border-color: #fca5a5 !important;
+}
+
+html:not(.dark) .badge-buddy {
+    background: #e0f2fe !important;
+    color: #0284c7 !important;
+    border-color: #bae6fd !important;
+}
+
+html:not(.dark) .phone-mockup {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+}
+
+html:not(.dark) .phone-notch {
+    background: #cbd5e1 !important;
+}
+
+html:not(.dark) .phone-screen {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+html:not(.dark) .phone-screen div {
+    color: #0f172a;
+}
+
 /* Phone Mockup */
 .phone-mockup {
     background: #020617;
@@ -259,7 +335,7 @@ html:not(.dark) .table-custom td strong {
     <div class="kpi-grid">
         <div class="kpi-card">
             <div style="font-size: 12px; color: #94a3b8;">🌙 Night Shift Commuters</div>
-            <div class="kpi-val" style="color: #38bdf8;">{{ passes.count }}</div>
+            <div class="kpi-val" style="color: #38bdf8;">{{ passes|length }}</div>
         </div>
         <div class="kpi-card">
             <div style="font-size: 12px; color: #94a3b8;">⚠️ Isolated Female Drops</div>

@@ -1,0 +1,1125 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🏢 Corporate Client B2B Portal Login | Sivagayathiri TravelERP{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-6 py-3 border-b border-slate-200 bg-white text-xs text-slate-500 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-indigo-600 font-medium">Home</a>
+    <span>/</span>
+    <a href="{% url 'fleet_commute:client_portal_index' %}" class="hover:text-indigo-600 font-medium">Corporate Portals Directory</a>
+    <span>/</span>
+    <span class="text-slate-900 font-bold">🏢 Client Sign-In</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-canvas: #f8fafc;
+    --card-surface: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent-indigo: #4f46e5;
+    --accent-emerald: #059669;
+    --accent-amber: #d97706;
+    --accent-blue: #0284c7;
+}
+
+.login-root {
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 1160px;
+}
+
+/* Header hero */
+.login-hero {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.portal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border: 1px solid #c7d2fe;
+    margin-bottom: 12px;
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+}
+
+.login-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+/* Split layout grid */
+.login-split-grid {
+    display: grid;
+    grid-template-columns: 440px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 980px) {
+    .login-split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Auth Card */
+.auth-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px 26px;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Mode Switcher Tabs */
+.auth-mode-tabs {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+    gap: 4px;
+}
+
+.auth-tab-btn {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.auth-tab-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.auth-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+}
+
+.auth-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 3px;
+}
+
+.auth-desc {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 5px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #0f172a;
+    background: #ffffff;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.btn-primary-auth {
+    width: 100%;
+    padding: 11px 16px;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+}
+
+.btn-primary-auth:hover {
+    background: #4338ca;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+/* Phase 3: Real-Time Enterprise SSO Detection Card */
+.sso-detection-card {
+    display: none;
+    margin-bottom: 18px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: all 0.25s ease;
+    animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sso-detection-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.sso-detection-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #e0e7ff;
+    color: #4338ca;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.sso-detection-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.sso-detection-desc {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.sso-detection-btn {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #4f46e5;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    transition: all 0.2s ease;
+}
+
+.sso-detection-btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+/* SSO Quick Partner Badges Row */
+.sso-partners-row {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.sso-partners-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sso-partners-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.sso-partner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.sso-partner-badge:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    background: #ffffff;
+    transform: translateY(-1px);
+}
+
+.btn-whatsapp-auth {
+    width: 100%;
+    padding: 11px 16px;
+    background: #059669;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.25);
+}
+
+.btn-whatsapp-auth:hover {
+    background: #047857;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+/* Tenant Switcher Card */
+.tenant-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 28px 26px;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Quick Search & Filter Toolbar */
+.tenant-toolbar {
+    margin-bottom: 16px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.tenant-search-box {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #f8fafc;
+    color: #0f172a;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.tenant-search-box:focus {
+    background: #ffffff;
+    border-color: #4f46e5;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.filter-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.chip-btn {
+    padding: 5px 11px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.chip-btn.active, .chip-btn:hover {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4f46e5;
+}
+
+/* Recent Workstations Bar */
+.recent-workstations-bar {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.recent-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.recent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.recent-chip:hover {
+    border-color: #4f46e5;
+    color: #4f46e5;
+    transform: translateY(-1px);
+}
+
+/* Tenant Grid */
+.tenant-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.tenant-item-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tenant-item-btn:hover {
+    background: #ffffff;
+    border-color: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
+}
+
+.tenant-logo-bubble {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.tenant-logo-bubble.hospital { background: #ecfdf5; color: #059669; }
+.tenant-logo-bubble.school { background: #fef3c7; color: #d97706; }
+.tenant-logo-bubble.factory { background: #f1f5f9; color: #475569; }
+
+.tenant-meta {
+    flex: 1;
+    min-width: 0;
+}
+
+.tenant-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tenant-sub {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+}
+
+.tenant-enter-icon {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-left: 6px;
+}
+
+.tenant-item-btn:hover .tenant-enter-icon {
+    color: #4f46e5;
+    transform: translateX(2px);
+}
+
+/* Trust footer */
+.trust-footer {
+    margin-top: 32px;
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.alert-box {
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-error {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+}
+
+.alert-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #047857;
+}
+
+.demo-otp-banner {
+    background: #eff6ff;
+    border: 1px dashed #60a5fa;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: #1e40af;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>
+
+<div class="login-root">
+    <div class="login-container">
+        <!-- Hero Header -->
+        <div class="login-hero">
+            <div class="portal-badge">
+                <span>🛡️</span> Sivagayathiri TravelERP • B2B Commute Cloud
+            </div>
+            <h1 class="login-title">Corporate Client Commute Portal</h1>
+            <p class="login-subtitle">
+                Multi-tenant self-service platform for Enterprise Facility Desks, HR Mobility Teams, Healthcare Shuttles & University Coordinators.
+            </p>
+        </div>
+
+        {% if active_session_client %}
+        <div style="padding: 10px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #15803d; font-size: 12px; font-weight: 600; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>Active Organization:</strong> Signed into <strong>{{ active_session_client }}</strong>.
+            </div>
+            <a href="{% url 'fleet_commute:client_portal_logout' %}" style="color: #b91c1c; text-decoration: underline; font-size: 12px; font-weight: 700;">
+                Clear & Sign Out
+            </a>
+        </div>
+        {% endif %}
+
+        {% if error_message %}
+        <div class="alert-box alert-error">
+            <span>⚠️</span> {{ error_message }}
+        </div>
+        {% endif %}
+
+        {% if success_message %}
+        <div class="alert-box alert-success">
+            <span>✅</span> {{ success_message }}
+        </div>
+        {% endif %}
+
+        <!-- Split Grid: Multi-Mode Sign-In & 1-Click Tenant Access -->
+        <div class="login-split-grid">
+            <!-- Left: Sign-In Box (Credentials vs WhatsApp OTP) -->
+            <div class="auth-card">
+                <!-- Tab Controls -->
+                <div class="auth-mode-tabs">
+                    <button type="button" class="auth-tab-btn {% if active_tab != 'otp' %}active{% endif %}" onclick="switchAuthTab('credentials')">
+                        🔐 Corporate Credentials
+                    </button>
+                    <button type="button" class="auth-tab-btn {% if active_tab == 'otp' %}active{% endif %}" onclick="switchAuthTab('otp')">
+                        💬 WhatsApp / SMS OTP
+                    </button>
+                </div>
+
+                <!-- TAB 1: Credentials Mode -->
+                <div id="pane-credentials" style="display: {% if active_tab != 'otp' %}block{% else %}none{% endif %};">
+                    <div class="auth-header">
+                        <div class="auth-title">Corporate Credentials</div>
+                        <div class="auth-desc">Enter your corporate email or transport coordinator username.</div>
+                    </div>
+
+                    <!-- Real-Time SSO Detection Card -->
+                    <div id="ssoDetectionCard" class="sso-detection-card">
+                        <div class="sso-detection-header">
+                            <div id="ssoDetectionIcon" class="sso-detection-icon">🏢</div>
+                            <div>
+                                <div id="ssoDetectionTitle" class="sso-detection-title">Enterprise Account Detected</div>
+                                <div id="ssoDetectionDesc" class="sso-detection-desc">Single Sign-On Available</div>
+                            </div>
+                        </div>
+                        <a href="#" id="ssoDetectionBtn" class="sso-detection-btn">
+                            <span>🔐</span> Continue with SSO (<span id="ssoIdpName">Azure AD</span>)
+                        </a>
+                    </div>
+
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="credentials">
+                        <input type="hidden" name="active_tab" value="credentials">
+                        {% if next_url %}
+                        <input type="hidden" name="next" value="{{ next_url }}">
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label class="form-label">Corporate Email or Username</label>
+                            <input type="text" name="username" id="corporateUsernameInput" class="form-input" placeholder="e.g. transport.lead@cognizant.com" oninput="handleEnterpriseDomainLookup(this.value)" autofocus>
+                        </div>
+
+                        <div class="form-group" id="passwordGroup">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" id="corporatePasswordInput" class="form-input" placeholder="••••••••••••">
+                        </div>
+
+                        <div id="credentialsExtraOptions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 12px; color: #64748b;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="checkbox" checked style="accent-color: #4f46e5;"> Remember workstation
+                            </label>
+                            <a href="mailto:support@travelerp.com?subject=Corporate%20Portal%20Password%20Reset" style="color: #4f46e5; text-decoration: none; font-weight: 600;">
+                                Forgot password?
+                            </a>
+                        </div>
+
+                        <button type="submit" id="credentialsSubmitBtn" class="btn-primary-auth">
+                            <span>🔐</span> Secure Corporate Sign In
+                        </button>
+                    </form>
+
+                    {% if sso_configs %}
+                    <div class="sso-partners-row">
+                        <div class="sso-partners-label">
+                            <span>🏢 Enterprise SSO Portals</span>
+                            <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">SAML 2.0 / OIDC</span>
+                        </div>
+                        <div class="sso-partners-chips">
+                            {% for sso in sso_configs %}
+                            <a href="{% url 'fleet_commute:client_branded_login' brand_slug=sso.brand_subdomain_slug %}" class="sso-partner-badge" title="{{ sso.client.name }} (@{{ sso.domain }})">
+                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: {{ sso.brand_primary_color|default:'#4f46e5' }};"></span>
+                                {{ sso.client.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- TAB 2: WhatsApp / SMS OTP Mode -->
+                <div id="pane-otp" style="display: {% if active_tab == 'otp' %}block{% else %}none{% endif %};">
+                    <div class="auth-header">
+                        <div class="auth-title">Passwordless WhatsApp Sign-In</div>
+                        <div class="auth-desc">Fast 4-second authentication for on-duty field coordinators & night dispatchers.</div>
+                    </div>
+
+                    {% if demo_otp %}
+                    <div class="demo-otp-banner">
+                        <div>
+                            <strong>💬 WhatsApp Simulator Code:</strong> <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #1d4ed8;">{{ demo_otp }}</span>
+                        </div>
+                        <button type="button" onclick="fillDemoOtp('{{ demo_otp }}')" style="background: #2563eb; color: #ffffff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            Auto-Fill
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    {% if not otp_dispatched %}
+                    <!-- Step 1: Request OTP -->
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="send_otp">
+                        <input type="hidden" name="active_tab" value="otp">
+
+                        <div class="form-group">
+                            <label class="form-label">Registered Corporate Mobile Number</label>
+                            <div style="display: flex; gap: 8px;">
+                                <span style="display: flex; align-items: center; padding: 0 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: 700; color: #334155;">
+                                    +91
+                                </span>
+                                <input type="tel" name="phone" id="phoneInput" value="{{ phone_number }}" class="form-input" placeholder="98401 12345" required autofocus maxlength="10">
+                            </div>
+                            <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">
+                                Works with mobile numbers registered in Commuter Manifest or Client Master.
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn-whatsapp-auth">
+                            <span>💬</span> Send Code via WhatsApp & SMS
+                        </button>
+                    </form>
+                    {% else %}
+                    <!-- Step 2: Verify OTP -->
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="verify_otp">
+                        <input type="hidden" name="active_tab" value="otp">
+                        <input type="hidden" name="phone" value="{{ phone_number }}">
+
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label class="form-label" style="margin: 0;">Enter 6-Digit Code sent to +91 {{ phone_number }}</label>
+                                <a href="javascript:void(0)" onclick="resetOtpStep()" style="font-size: 11px; color: #4f46e5; font-weight: 600; text-decoration: none;">
+                                    Change Number
+                                </a>
+                            </div>
+                            <input type="text" name="otp_code" id="otpCodeInput" class="form-input" style="letter-spacing: 6px; font-size: 18px; text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 700;" placeholder="••••••" maxlength="6" required autofocus>
+                        </div>
+
+                        <button type="submit" class="btn-whatsapp-auth" style="margin-bottom: 12px;">
+                            <span>✅</span> Verify & Open Commute Desk
+                        </button>
+
+                        <div style="text-align: center; font-size: 11px; color: #64748b;">
+                            Didn't receive the WhatsApp message? <a href="javascript:void(0)" onclick="resendOtp()" style="color: #059669; font-weight: 700; text-decoration: none;">Resend OTP</a>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b; line-height: 1.5;">
+                    💡 <strong>Internal Dispatcher?</strong> Sign in with your TravelERP operator account to supervise all multi-tenant agreements.
+                </div>
+            </div>
+
+            <!-- Right: 1-Click Tenant Access (High Density Search + Filter) -->
+            <div class="tenant-card">
+                <div class="auth-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <div class="auth-title">1-Click Corporate Tenant Access</div>
+                        <div class="auth-desc">Direct launchpad for facilities managers, transport leads & institutional desks:</div>
+                    </div>
+                    <span style="font-size: 11px; font-weight: 700; color: #059669; background: #ecfdf5; padding: 4px 8px; border-radius: 6px; border: 1px solid #a7f3d0;">
+                        ACTIVE CONTRACTS ({{ contracts|length }})
+                    </span>
+                </div>
+
+                <!-- Recent Workstations Bar -->
+                <div id="recentWorkstationsBar" class="recent-workstations-bar" style="display: none;">
+                    <div class="recent-label">
+                        <span>⭐</span> Recent:
+                    </div>
+                    <div id="recentChipsContainer" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                </div>
+
+                <!-- Search & Sector Filter Toolbar -->
+                <div class="tenant-toolbar">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="tenantSearchInput" class="tenant-search-box" placeholder="Filter by company name, SEZ, or campus... (Press '/' to search)" oninput="filterTenants()">
+                    </div>
+
+                    <div class="filter-chips">
+                        <button type="button" class="chip-btn active" onclick="filterBySector('all', this)">All</button>
+                        <button type="button" class="chip-btn" onclick="filterBySector('corporate', this)">🏢 IT & Tech Parks</button>
+                        <button type="button" class="chip-btn" onclick="filterBySector('hospital', this)">🏥 Healthcare</button>
+                        <button type="button" class="chip-btn" onclick="filterBySector('factory', this)">🏭 Industrial</button>
+                        <button type="button" class="chip-btn" onclick="filterBySector('school', this)">🎒 Educational</button>
+                    </div>
+                </div>
+
+                <!-- Tenant Cards Grid -->
+                <div class="tenant-list" id="tenantGrid">
+                    {% for c in contracts %}
+                    <form method="POST" action="" class="tenant-card-form" data-name="{{ c.name|lower }} {{ c.customer.name|default:''|lower }}" data-category="{{ c.contract_category }}" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="quick_tenant">
+                        <input type="hidden" name="contract_id" value="{{ c.id }}">
+                        <input type="hidden" name="customer_id" value="{{ c.customer_id }}">
+
+                        <button type="submit" class="tenant-item-btn" onclick="saveRecentWorkstation('{{ c.id }}', '{{ c.customer.name|default:c.name|escapejs }}')" title="Sign into {{ c.name }}">
+                            <div style="display: flex; align-items: center; min-width: 0;">
+                                <div class="tenant-logo-bubble {% if c.contract_category == 'hospital' %}hospital{% elif c.contract_category == 'school' %}school{% elif c.contract_category == 'factory' %}factory{% endif %}">
+                                    {{ c.customer.name|default:c.name|slice:":2"|upper }}
+                                </div>
+                                <div class="tenant-meta">
+                                    <div class="tenant-name">{{ c.customer.name|default:c.name }}</div>
+                                    <div class="tenant-sub">
+                                        <span class="live-dot"></span> {{ c.committed_vehicle_count|default:"12" }} Fleet Buses • {{ c.commuters.count }} Commuters
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tenant-enter-icon">➔</div>
+                        </button>
+                    </form>
+                    {% empty %}
+                    <div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">
+                        No active transport contracts configured.
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div id="noResultsMsg" style="display: none; padding: 24px; text-align: center; color: #64748b; font-size: 13px;">
+                    No organizations match your search filter. <a href="javascript:void(0)" onclick="clearFilters()" style="color: #4f46e5; font-weight: 700;">Reset filters</a>
+                </div>
+
+                <div style="margin-top: 18px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 12px; color: #475569; display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <strong>Looking for all corporate accounts?</strong> Browse full directory.
+                    </div>
+                    <a href="{% url 'fleet_commute:client_portal_index' %}" style="color: #4f46e5; font-weight: 700; text-decoration: none;">
+                        Enterprise Directory ➔
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trust Badges & Hotline -->
+        <div class="trust-footer">
+            <div class="trust-item">
+                <span>🛡️</span> Multi-Tenant Data Isolation
+            </div>
+            <div class="trust-item">
+                <span>🔒</span> 256-bit TLS Encryption
+            </div>
+            <div class="trust-item">
+                <span>📋</span> DPDP Act 2023 Audit Logging
+            </div>
+            <div class="trust-item">
+                <span>☎️</span> 24/7 Operations Hotline: +91 44 2450 1234
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Switch Auth Tabs (Credentials vs WhatsApp OTP)
+function switchAuthTab(tabName) {
+    document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('pane-credentials').style.display = 'none';
+    document.getElementById('pane-otp').style.display = 'none';
+
+    if (tabName === 'otp') {
+        document.querySelectorAll('.auth-tab-btn')[1].classList.add('active');
+        document.getElementById('pane-otp').style.display = 'block';
+        const phoneInp = document.getElementById('phoneInput');
+        if (phoneInp) phoneInp.focus();
+    } else {
+        document.querySelectorAll('.auth-tab-btn')[0].classList.add('active');
+        document.getElementById('pane-credentials').style.display = 'block';
+    }
+}
+
+// Demo Helper: Fill OTP
+function fillDemoOtp(code) {
+    const otpInput = document.getElementById('otpCodeInput');
+    if (otpInput) {
+        otpInput.value = code;
+        otpInput.focus();
+    }
+}
+
+// Reset OTP Form to change phone
+function resetOtpStep() {
+    window.location.href = "{% url 'fleet_commute:client_portal_login' %}";
+}
+
+function resendOtp() {
+    const phone = "{{ phone_number }}";
+    if (phone) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '';
+        form.innerHTML = `
+            {% csrf_token %}
+            <input type="hidden" name="action" value="send_otp">
+            <input type="hidden" name="active_tab" value="otp">
+            <input type="hidden" name="phone" value="${phone}">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Client-Side Search and Filter
+let activeSectorFilter = 'all';
+
+function filterTenants() {
+    const q = document.getElementById('tenantSearchInput').value.toLowerCase().trim();
+    const items = document.querySelectorAll('.tenant-card-form');
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const name = item.getAttribute('data-name') || '';
+        const category = item.getAttribute('data-category') || '';
+
+        const matchesQuery = !q || name.includes(q);
+        const matchesCategory = activeSectorFilter === 'all' || category === activeSectorFilter;
+
+        if (matchesQuery && matchesCategory) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    const noResults = document.getElementById('noResultsMsg');
+    if (noResults) {
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+}
+
+function filterBySector(sector, btn) {
+    activeSectorFilter = sector;
+    document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterTenants();
+}
+
+function clearFilters() {
+    document.getElementById('tenantSearchInput').value = '';
+    activeSectorFilter = 'all';
+    document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.chip-btn')[0].classList.add('active');
+    filterTenants();
+}
+
+// Keyboard Shortcut: Press '/' to focus search
+document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        const searchInput = document.getElementById('tenantSearchInput');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+});
+
+// Recent Workstations Management via LocalStorage
+function saveRecentWorkstation(contractId, clientName) {
+    try {
+        let recents = JSON.parse(localStorage.getItem('travelerp_recent_tenants') || '[]');
+        recents = recents.filter(r => r.id !== contractId);
+        recents.unshift({ id: contractId, name: clientName });
+        if (recents.length > 3) recents = recents.slice(0, 3);
+        localStorage.setItem('travelerp_recent_tenants', JSON.stringify(recents));
+    } catch(e) {}
+}
+
+function renderRecentWorkstations() {
+    try {
+        const recents = JSON.parse(localStorage.getItem('travelerp_recent_tenants') || '[]');
+        if (recents.length > 0) {
+            const container = document.getElementById('recentChipsContainer');
+            const bar = document.getElementById('recentWorkstationsBar');
+            container.innerHTML = '';
+            recents.forEach(r => {
+                const btn = document.createElement('a');
+                btn.className = 'recent-chip';
+                btn.href = `/client/portal/${r.id}/`;
+                btn.innerHTML = `<span>🏢</span> ${r.name}`;
+                container.appendChild(btn);
+            });
+            bar.style.display = 'flex';
+        }
+    } catch(e) {}
+}
+
+// Phase 3: Real-Time Enterprise Domain Lookup with Debounce
+let ssoLookupTimer = null;
+function handleEnterpriseDomainLookup(inputVal) {
+    clearTimeout(ssoLookupTimer);
+    const card = document.getElementById('ssoDetectionCard');
+    const pwdGroup = document.getElementById('passwordGroup');
+    const extraOpts = document.getElementById('credentialsExtraOptions');
+    const submitBtn = document.getElementById('credentialsSubmitBtn');
+
+    const trimmed = (inputVal || '').trim().toLowerCase();
+    if (!trimmed.includes('@')) {
+        if (card) card.style.display = 'none';
+        if (pwdGroup) pwdGroup.style.display = 'block';
+        if (extraOpts) extraOpts.style.display = 'flex';
+        if (submitBtn) submitBtn.style.display = 'flex';
+        return;
+    }
+
+    const domainPart = trimmed.split('@')[1];
+    if (!domainPart || !domainPart.includes('.')) {
+        return;
+    }
+
+    ssoLookupTimer = setTimeout(() => {
+        fetch(`{% url 'fleet_commute:api_sso_domain_lookup' %}?email=${encodeURIComponent(trimmed)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.matched) {
+                    if (card) {
+                        card.style.display = 'block';
+                        card.style.borderColor = data.brand_color || '#4f46e5';
+                        const titleEl = document.getElementById('ssoDetectionTitle');
+                        const descEl = document.getElementById('ssoDetectionDesc');
+                        const idpEl = document.getElementById('ssoIdpName');
+                        const btnEl = document.getElementById('ssoDetectionBtn');
+
+                        if (titleEl) titleEl.innerText = `${data.client_name}`;
+                        if (descEl) descEl.innerText = `Enterprise Account Verified (@${data.domain})`;
+                        if (idpEl) idpEl.innerText = data.idp_name;
+                        if (btnEl) {
+                            btnEl.href = `${data.sso_initiate_url}?email=${encodeURIComponent(trimmed)}`;
+                            btnEl.style.backgroundColor = data.brand_color || '#4f46e5';
+                        }
+                    }
+
+                    if (data.enforce_sso_only) {
+                        if (pwdGroup) pwdGroup.style.display = 'none';
+                        if (extraOpts) extraOpts.style.display = 'none';
+                        if (submitBtn) submitBtn.style.display = 'none';
+                    } else {
+                        if (pwdGroup) pwdGroup.style.display = 'block';
+                        if (extraOpts) extraOpts.style.display = 'flex';
+                        if (submitBtn) submitBtn.style.display = 'flex';
+                    }
+                } else {
+                    if (card) card.style.display = 'none';
+                    if (pwdGroup) pwdGroup.style.display = 'block';
+                    if (extraOpts) extraOpts.style.display = 'flex';
+                    if (submitBtn) submitBtn.style.display = 'flex';
+                }
+            })
+            .catch(() => {
+                if (card) card.style.display = 'none';
+            });
+    }, 200);
+}
+
+document.addEventListener('DOMContentLoaded', renderRecentWorkstations);
+</script>
+{% endblock %}

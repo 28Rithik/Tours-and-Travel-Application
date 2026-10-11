@@ -110,6 +110,12 @@ class Inquiry(models.Model):
         verbose_name = 'Inquiry'
         verbose_name_plural = 'Inquiries'
         ordering = ['kanban_order', '-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at'], name='idx_inq_status_created'),
+            models.Index(fields=['status', 'priority'], name='idx_inq_status_priority'),
+            models.Index(fields=['assigned_to', 'status'], name='idx_inq_assigned_status'),
+            models.Index(fields=['tat_deadline', 'status'], name='idx_inq_tat_status'),
+        ]
 
     def __str__(self):
         return f"{self.inquiry_number} - {self.guest_name} ({self.destination})"

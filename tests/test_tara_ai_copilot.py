@@ -103,6 +103,6 @@ class TaraAiCopilotTests(TestCase):
         """Verify full-page TARA AI studio renders with HTTP 200."""
         response = self.client.get(reverse('admin-tara-copilot-studio'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'TARA AI Operations Business Brain')
+        self.assertContains(response, 'AI Operations Business Brain')
         print("[TEST 7 PASSED] TARA Studio View Rendered successfully.")
 

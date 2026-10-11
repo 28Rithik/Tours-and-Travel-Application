@@ -142,6 +142,37 @@ class RosterDispatchEngine:
                     key = (r.route_id, r.shift_id)
                     roster_map[key] = r
 
+                # Pre-fetch all active commuters for this contract in 1 single query (eliminates N+1 queries per route)
+                contract_commuters = list(
+                    CommuterManifest.objects.filter(
+                        contract=contract,
+                        is_active=True
+                    ).select_related('boarding_stop')
+                )
+                route_commuters_map = {}
+                for c in contract_commuters:
+                    if c.boarding_stop and c.boarding_stop.route_id:
+                        route_commuters_map.setdefault(c.boarding_stop.route_id, []).append(c)
+
+                # Pre-fetch existing ContractTripLog records for target date
+                existing_trip_logs = {
+                    log.shift_id: log
+                    for log in ContractTripLog.objects.filter(
+                        date=target_date,
+                        shift__route__contract=contract
+                    ).select_related('vehicle', 'driver')
+                }
+
+                # Pre-fetch existing CommuterBoardingPass keys to avoid thousands of individual get_or_create queries
+                existing_pass_keys = set(
+                    CommuterBoardingPass.objects.filter(
+                        date=target_date,
+                        shift__route__contract=contract
+                    ).values_list('commuter_id', 'shift_id')
+                )
+
+                passes_to_bulk_create = []
+
                 # 2. Iterate through all active routes and shifts for the contract
                 routes = Route.objects.filter(contract=contract, is_active=True).prefetch_related('shifts')
 
@@ -212,33 +243,27 @@ class RosterDispatchEngine:
                                 })
                                 continue
 
-                        # 4. Count expected commuters for this route
-                        assigned_commuters = CommuterManifest.objects.filter(
-                            contract=contract,
-                            is_active=True
-                        ).filter(
-                            boarding_stop__route=route
-                        ).select_related('boarding_stop')
+                        # 4. Instant in-memory commuter lookup for this route
+                        assigned_commuters = route_commuters_map.get(route.id, [])
+                        commuter_count = len(assigned_commuters)
 
-                        commuter_count = assigned_commuters.count()
+                        # 5. Create or retrieve ContractTripLog via pre-fetched map
+                        trip_log = existing_trip_logs.get(shift.id)
 
-                        # 5. Create or retrieve ContractTripLog
-                        trip_log, created = ContractTripLog.objects.get_or_create(
-                            shift=shift,
-                            date=target_date,
-                            defaults={
-                                'vehicle': assigned_vehicle,
-                                'driver': assigned_driver,
-                                'status': 'scheduled',
-                                'scheduled_departure_time': shift.timing,
-                                'passenger_count': commuter_count,
-                                'is_replacement_vehicle': is_replacement,
-                                'replaced_vehicle': roster.primary_vehicle if is_replacement else None,
-                                'delay_reason': replacement_reason
-                            }
-                        )
-
-                        if created:
+                        if trip_log is None:
+                            trip_log = ContractTripLog.objects.create(
+                                shift=shift,
+                                date=target_date,
+                                vehicle=assigned_vehicle,
+                                driver=assigned_driver,
+                                status='scheduled',
+                                scheduled_departure_time=shift.timing,
+                                passenger_count=commuter_count,
+                                is_replacement_vehicle=is_replacement,
+                                replaced_vehicle=roster.primary_vehicle if is_replacement else None,
+                                delay_reason=replacement_reason
+                            )
+                            existing_trip_logs[shift.id] = trip_log
                             trips_created += 1
                         else:
                             trips_existing += 1
@@ -252,26 +277,32 @@ class RosterDispatchEngine:
                                     trip_log.replaced_vehicle = roster.primary_vehicle
                                 trip_log.save(update_fields=['vehicle', 'driver', 'passenger_count', 'scheduled_departure_time', 'is_replacement_vehicle', 'replaced_vehicle'])
 
-                        # 6. Generate CommuterBoardingPass records for each passenger
+                        # 6. Bulk-prepare CommuterBoardingPass records for each passenger
                         for commuter in assigned_commuters:
+                            if (commuter.id, shift.id) in existing_pass_keys:
+                                continue
+
                             is_night = (
                                 shift.direction == 'drop' and
                                 commuter.gender == 'female' and
                                 (shift.timing.hour >= 20 or shift.timing.hour < 6)
                             )
-                            _, pass_created = CommuterBoardingPass.objects.get_or_create(
+                            passes_to_bulk_create.append(CommuterBoardingPass(
                                 commuter=commuter,
                                 date=target_date,
                                 shift=shift,
-                                defaults={
-                                    'trip_log': trip_log,
-                                    'boarded_stop': commuter.boarding_stop,
-                                    'is_isolated_night_drop': is_night,
-                                    'escort_assigned': shift.escort_guard_required or is_night
-                                }
-                            )
-                            if pass_created:
-                                passes_created += 1
+                                trip_log=trip_log,
+                                boarded_stop=commuter.boarding_stop,
+                                is_isolated_night_drop=is_night,
+                                escort_assigned=shift.escort_guard_required or is_night
+                            ))
+                            existing_pass_keys.add((commuter.id, shift.id))
+
+                # Bulk insert all new passes in high-speed batches of 500
+                if passes_to_bulk_create:
+                    CommuterBoardingPass.objects.bulk_create(passes_to_bulk_create, batch_size=500, ignore_conflicts=True)
+                    passes_created += len(passes_to_bulk_create)
+                    passes_to_bulk_create.clear()
 
         return {
             "status": "success",
@@ -287,6 +318,35 @@ class RosterDispatchEngine:
             "roster_gaps": roster_gaps,
             "roster_gaps_count": len(roster_gaps),
         }
+
+    @classmethod
+    def execute_batch_roster_dispatch_async(
+        cls,
+        target_date: Optional[datetime.date] = None,
+        contract_id: Optional[int] = None,
+        direction: Optional[str] = None,
+        force_refresh: bool = False,
+        on_complete: Optional[Any] = None
+    ):
+        """
+        Executes bulk roster dispatch asynchronously in background thread pool,
+        returning a Future immediately to avoid HTTP request timeouts.
+        """
+        from integrations.communication import get_comm_executor
+        executor = get_comm_executor()
+
+        def _task():
+            res = cls.execute_batch_roster_dispatch(
+                target_date=target_date,
+                contract_id=contract_id,
+                direction=direction,
+                force_refresh=force_refresh
+            )
+            if on_complete:
+                on_complete(res)
+            return res
+
+        return executor.submit(_task)
 
 
 def models_q_open_ended(target_date):

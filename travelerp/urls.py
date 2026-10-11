@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
+from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
 from operations.views import (
@@ -122,6 +123,7 @@ from payments_gateway.views import (
 from crm.views import crm_kanban_board_view
 from customer_portal.views import public_landing_view
 from integrations import views as integrations_views
+from fleet_commute import views as fleet_commute_views
 
 urlpatterns = [
     path('', public_landing_view, name='public-landing'),
@@ -181,6 +183,8 @@ urlpatterns = [
     # Phase 5: Petty Cash Float Register & Driver/Tour Manager Cash Wallet Studio
     path('admin/finance/petty-cash-studio/', admin_petty_cash_studio_view, name='admin-petty-cash-studio'),
     path('admin/petty-cash/', admin_petty_cash_studio_view, name='admin-petty-cash-alias'),
+    path('finance/petty-cash-studio/', admin_petty_cash_studio_view, name='finance-petty-cash-studio-alias'),
+    path('finance/petty-cash/', admin_petty_cash_studio_view, name='finance-petty-cash-alias'),
     path('driver/wallet/', driver_mobile_wallet_view, name='driver-mobile-wallet'),
     # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),
@@ -195,6 +199,8 @@ urlpatterns = [
     # Phase 6: Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub
     path('admin/crm/kanban/', crm_kanban_board_view, name='admin-crm-kanban'),
     path('admin/kanban/', crm_kanban_board_view, name='admin-crm-kanban-alias'),
+    path('crm/kanban/', crm_kanban_board_view, name='crm-kanban-portal-alias'),
+    path('kanban/', crm_kanban_board_view, name='kanban-root-alias'),
     # Phase 6: 2D Axle & Tire Health Studio + Fleet PM Engine
     path('admin/maintenance/tire-studio/', tire_studio_view, name='admin-tire-studio'),
     path('admin/tire-studio/', tire_studio_view, name='admin-tire-studio-alias'),
@@ -268,6 +274,7 @@ urlpatterns = [
     path('api/telematics/ping/', api_telematics_ping, name='api_telematics_ping'),
     path('api/telematics/live/<int:vehicle_id>/', api_telematics_live, name='api_telematics_live'),
     path('fleet/live/', fleet_live_mission_control, name='fleet-live'),
+    path('operations/fleet-radar/', fleet_live_mission_control, name='operations-fleet-radar'),
     path('api/fleet/live-feed/', api_fleet_live_feed, name='api-fleet-live-feed'),
     path('api/fleet/simulate-tick/', api_fleet_telematics_tick, name='api-fleet-simulate-tick'),
     path('track/<str:token>/', passenger_live_tracking_view, name='passenger-live-tracking'),
@@ -294,6 +301,46 @@ urlpatterns = [
     path('maintenance/', include('maintenance.urls')),
     path('driver/', include('driver_portal.urls')),
     path('commute/', include('fleet_commute.urls')),
+    path('client/login/', fleet_commute_views.client_portal_login_view, name='client_portal_root_login'),
+    path('client/logout/', fleet_commute_views.client_portal_logout_view, name='client_portal_root_logout'),
+    path('client/api/sso/lookup-domain/', fleet_commute_views.api_sso_domain_lookup, name='client_portal_root_sso_domain_lookup'),
+    path('client/sso/<slug:brand_slug>/login/', fleet_commute_views.client_sso_initiate_view, name='client_portal_root_sso_initiate'),
+    path('client/sso/<slug:brand_slug>/callback/', fleet_commute_views.client_sso_callback_view, name='client_portal_root_sso_callback'),
+    path('client/brand/<slug:brand_slug>/', fleet_commute_views.client_branded_login_view, name='client_portal_root_branded_login'),
+    path('client/portal/', include([
+        path('', fleet_commute_views.client_portal_index_view, name='client_portal_root_index'),
+        path('<int:contract_id>/', fleet_commute_views.client_transparency_portal_view, name='client_portal_root_contract'),
+        path('<int:contract_id>/api/live-fleet/', fleet_commute_views.api_client_portal_live_fleet, name='client_portal_root_live_fleet'),
+        path('<int:contract_id>/roster/add/', fleet_commute_views.api_client_roster_add, name='client_portal_root_roster_add'),
+        path('<int:contract_id>/roster/swap-shift/', fleet_commute_views.api_client_roster_swap, name='client_portal_root_roster_swap'),
+        path('<int:contract_id>/roster/import-csv/', fleet_commute_views.api_client_roster_import_csv, name='client_portal_root_roster_import_csv'),
+        path('<int:contract_id>/roster/export-csv/', fleet_commute_views.client_roster_export_csv, name='client_portal_root_roster_export_csv'),
+        path('<int:contract_id>/sla/dispute/', fleet_commute_views.api_client_dispute_sla_penalty, name='client_portal_root_sla_dispute'),
+        path('<int:contract_id>/invoice/<int:invoice_id>/', fleet_commute_views.client_invoice_pdf_view, name='client_portal_root_invoice_pdf'),
+        path('<int:contract_id>/esg/certificate/', fleet_commute_views.client_esg_certificate_view, name='client_portal_root_esg_certificate'),
+        path('<int:contract_id>/api/switch-role/', fleet_commute_views.api_switch_corporate_role, name='client_portal_root_switch_role'),
+        path('<int:contract_id>/api/unmask-commuter/', fleet_commute_views.api_unmask_commuter_pii, name='client_portal_root_unmask_commuter'),
+    ])),
+    path('client-portal/', include([
+        path('', fleet_commute_views.client_portal_index_view),
+        path('login/', fleet_commute_views.client_portal_login_view),
+        path('logout/', fleet_commute_views.client_portal_logout_view),
+        path('<int:contract_id>/', fleet_commute_views.client_transparency_portal_view),
+        path('<int:contract_id>/invoice/<int:invoice_id>/', fleet_commute_views.client_invoice_pdf_view),
+        path('<int:contract_id>/esg/certificate/', fleet_commute_views.client_esg_certificate_view),
+        path('<int:contract_id>/api/live-fleet/', fleet_commute_views.api_client_portal_live_fleet),
+        path('<int:contract_id>/roster/add/', fleet_commute_views.api_client_roster_add),
+        path('<int:contract_id>/roster/swap-shift/', fleet_commute_views.api_client_roster_swap),
+        path('<int:contract_id>/roster/import-csv/', fleet_commute_views.api_client_roster_import_csv),
+        path('<int:contract_id>/roster/export-csv/', fleet_commute_views.client_roster_export_csv),
+        path('<int:contract_id>/sla/dispute/', fleet_commute_views.api_client_dispute_sla_penalty),
+        path('<int:contract_id>/api/switch-role/', fleet_commute_views.api_switch_corporate_role),
+        path('<int:contract_id>/api/unmask-commuter/', fleet_commute_views.api_unmask_commuter_pii),
+        path('brand/<slug:brand_slug>/', fleet_commute_views.client_branded_login_view),
+        path('sso/<slug:brand_slug>/login/', fleet_commute_views.client_sso_initiate_view),
+        path('sso/<slug:brand_slug>/callback/', fleet_commute_views.client_sso_callback_view),
+        path('api/sso/lookup-domain/', fleet_commute_views.api_sso_domain_lookup),
+    ])),
     path('packages/', include('packages.urls')),
     path('customer-portal/', include('customer_portal.urls')),
     path('payments/', include('payments_gateway.urls')),
@@ -302,6 +349,7 @@ urlpatterns = [
     path('suppliers/', include('suppliers.urls')),
     path('marketing/', include('marketing.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
+    path('favicon.ico', lambda r: HttpResponse(status=204, content_type='image/x-icon')),
 ]
 
 if settings.DEBUG:

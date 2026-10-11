@@ -11,17 +11,17 @@
 
   <style>
     :root {
-      --brand-navy: #090d16;
-      --brand-card: #111827;
+      --brand-navy: #0f172a;
+      --brand-card: #ffffff;
       --brand-cyan: #0284c7;
-      --brand-cyan-light: #38bdf8;
+      --brand-cyan-light: #0284c7;
       --brand-gold: #f59e0b;
       --brand-emerald: #10b981;
-      --brand-rose: #f43f5e;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-glass: rgba(255, 255, 255, 0.1);
-      --border-focus: #38bdf8;
+      --brand-rose: #ef4444;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-glass: #e2e8f0;
+      --border-focus: #0284c7;
     }
 
     * {
@@ -32,7 +32,7 @@
 
     body {
       font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #06090e;
+      background: #f8fafc;
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -48,7 +48,7 @@
       left: -100px;
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, rgba(2, 132, 199, 0.22) 0%, rgba(0, 0, 0, 0) 70%);
+      background: radial-gradient(circle, rgba(2, 132, 199, 0.08) 0%, rgba(248, 250, 252, 0) 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -59,7 +59,7 @@
       right: -100px;
       width: 600px;
       height: 600px;
-      background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(248, 250, 252, 0) 70%);
       pointer-events: none;
       z-index: 0;
     }
@@ -68,8 +68,8 @@
       position: absolute;
       inset: 0;
       background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
       background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
@@ -85,7 +85,8 @@
       padding: 1.25rem 2.5rem;
       border-bottom: 1px solid var(--border-glass);
       backdrop-filter: blur(12px);
-      background: rgba(6, 9, 14, 0.7);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
     }
 
     .brand-group {
@@ -93,7 +94,7 @@
       align-items: center;
       gap: 0.75rem;
       text-decoration: none;
-      color: white;
+      color: #0f172a;
     }
 
     .brand-logo-mark {
@@ -106,7 +107,8 @@
       justify-content: center;
       font-weight: 800;
       font-size: 1.15rem;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
     }
 
     .brand-text h1 {
@@ -116,11 +118,12 @@
       letter-spacing: -0.02em;
       margin: 0;
       line-height: 1.1;
+      color: #0f172a;
     }
 
     .brand-text span {
       font-size: 0.72rem;
-      color: #94a3b8;
+      color: #64748b;
       letter-spacing: 0.06em;
       text-transform: uppercase;
       font-weight: 600;
@@ -133,7 +136,7 @@
     }
 
     .link-quiet {
-      color: #cbd5e1;
+      color: #475569;
       text-decoration: none;
       font-size: 0.84rem;
       font-weight: 600;
@@ -144,7 +147,7 @@
     }
 
     .link-quiet:hover {
-      color: #38bdf8;
+      color: #0284c7;
     }
 
     /* Main Container Split Screen */
@@ -180,11 +183,11 @@
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      background: rgba(2, 132, 199, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
       padding: 0.35rem 0.95rem;
       border-radius: 9999px;
-      color: #7dd3fc;
+      color: #0369a1;
       font-size: 0.78rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -213,16 +216,17 @@
       font-weight: 800;
       line-height: 1.15;
       letter-spacing: -0.02em;
+      color: #0f172a;
     }
 
     .ops-title span {
-      background: linear-gradient(120deg, #38bdf8, #818cf8);
+      background: linear-gradient(120deg, #0284c7, #2563eb);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .ops-desc {
-      color: #94a3b8;
+      color: #475569;
       font-size: 0.98rem;
       line-height: 1.65;
     }
@@ -235,31 +239,32 @@
     }
 
     .metric-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-glass);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
       border-radius: 14px;
       padding: 1.1rem;
-      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
       transition: all 0.2s ease;
     }
 
     .metric-card:hover {
-      border-color: rgba(56, 189, 248, 0.4);
+      border-color: #0284c7;
       transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(2, 132, 199, 0.08);
     }
 
     .metric-num {
       font-family: 'Space Grotesk', sans-serif;
       font-size: 1.6rem;
       font-weight: 800;
-      color: white;
+      color: #0f172a;
       display: block;
       line-height: 1.1;
     }
 
     .metric-label {
       font-size: 0.74rem;
-      color: #94a3b8;
+      color: #64748b;
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.05em;
@@ -275,16 +280,17 @@
     }
 
     .ops-feature-tag {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
       border-radius: 8px;
       padding: 0.4rem 0.75rem;
       font-size: 0.78rem;
-      color: #cbd5e1;
+      color: #334155;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
     }
 
     /* Right Side: The Sign In Card */
@@ -293,12 +299,11 @@
     }
 
     .auth-glass-card {
-      background: rgba(17, 24, 39, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
       border-radius: 20px;
       padding: 2.75rem 2.25rem;
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(2, 132, 199, 0.1);
-      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
       position: relative;
     }
 
@@ -310,21 +315,21 @@
       font-family: 'Space Grotesk', sans-serif;
       font-size: 1.75rem;
       font-weight: 800;
-      color: white;
+      color: #0f172a;
       margin: 0 0 0.4rem;
       letter-spacing: -0.01em;
     }
 
     .auth-card-header p {
-      color: #94a3b8;
+      color: #64748b;
       font-size: 0.88rem;
       line-height: 1.5;
     }
 
     /* Role Quick Helper */
     .role-helper-strip {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       border-radius: 10px;
       padding: 0.6rem 0.85rem;
       margin-bottom: 1.5rem;
@@ -335,13 +340,13 @@
     }
 
     .role-helper-strip span {
-      color: #94a3b8;
+      color: #64748b;
     }
 
     .demo-autofill-btn {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: #e0f2fe;
+      color: #0284c7;
+      border: 1px solid #bae6fd;
       padding: 0.25rem 0.65rem;
       border-radius: 6px;
       font-weight: 700;
@@ -351,21 +356,21 @@
     }
 
     .demo-autofill-btn:hover {
-      background: rgba(56, 189, 248, 0.25);
+      background: #bae6fd;
       transform: translateY(-1px);
     }
 
     /* Error Alert */
     .alert-error {
-      background: rgba(244, 63, 94, 0.12);
-      border: 1px solid rgba(244, 63, 94, 0.35);
+      background: #fef2f2;
+      border: 1px solid #fecaca;
       border-radius: 10px;
       padding: 0.85rem 1rem;
       margin-bottom: 1.5rem;
       display: flex;
       align-items: flex-start;
       gap: 0.75rem;
-      color: #fecdd3;
+      color: #991b1b;
       font-size: 0.84rem;
     }
 
@@ -376,7 +381,7 @@
 
     .alert-text strong {
       display: block;
-      color: #ffffff;
+      color: #7f1d1d;
       margin-bottom: 0.15rem;
     }
 
@@ -389,7 +394,7 @@
       display: block;
       font-size: 0.82rem;
       font-weight: 700;
-      color: #cbd5e1;
+      color: #334155;
       margin-bottom: 0.45rem;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -412,29 +417,28 @@
 
     .form-input {
       width: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 0.85rem 1rem 0.85rem 2.85rem;
       font-family: inherit;
       font-size: 0.95rem;
-      color: white;
+      color: #0f172a;
       outline: none;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .form-input::placeholder {
-      color: #64748b;
+      color: #94a3b8;
     }
 
     .form-input:focus {
-      border-color: var(--brand-cyan-light);
-      background: rgba(15, 23, 42, 0.95);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
     }
 
     .input-icon-wrapper:focus-within .field-icon {
-      color: var(--brand-cyan-light);
+      color: #0284c7;
     }
 
     /* Password Toggle Button */
@@ -443,7 +447,7 @@
       right: 0.85rem;
       background: none;
       border: none;
-      color: #94a3b8;
+      color: #64748b;
       cursor: pointer;
       font-size: 1.1rem;
       padding: 0.35rem;
@@ -455,7 +459,7 @@
     }
 
     .toggle-pwd-btn:hover {
-      color: white;
+      color: #0f172a;
     }
 
     /* Checkbox & Help Row */
@@ -465,7 +469,7 @@
       justify-content: space-between;
       font-size: 0.82rem;
       margin-bottom: 1.75rem;
-      color: #94a3b8;
+      color: #475569;
     }
 
     .remember-check {
@@ -500,8 +504,8 @@
       font-weight: 700;
       font-family: inherit;
       cursor: pointer;
-      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.45);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -509,9 +513,8 @@
     }
 
     .btn-submit-ops:hover {
-      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
       transform: translateY(-2px);
-      box-shadow: 0 15px 30px -5px rgba(2, 132, 199, 0.6);
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
     }
 
     .btn-submit-ops:active {
@@ -543,19 +546,19 @@
       padding: 1.25rem;
       font-size: 0.78rem;
       color: #64748b;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(6, 9, 14, 0.8);
+      border-top: 1px solid #e2e8f0;
+      background: #ffffff;
     }
 
     .login-footer a {
-      color: #94a3b8;
+      color: #64748b;
       text-decoration: none;
       margin: 0 0.5rem;
       transition: color 0.2s;
     }
 
     .login-footer a:hover {
-      color: #38bdf8;
+      color: #0284c7;
     }
 
     /* Responsive */
@@ -665,7 +668,7 @@
           <div class="role-helper-strip">
             <span>🔧 Testing credentials:</span>
             <button type="button" class="demo-autofill-btn" onclick="autofillDemoAdmin()">
-              Autofill Admin (admin / admin)
+              Autofill Admin (admin / admin123)
             </button>
           </div>
 
@@ -779,7 +782,7 @@
       const usernameInput = document.getElementById('id_username');
       const passwordInput = document.getElementById('id_password');
       usernameInput.value = 'admin';
-      passwordInput.value = 'admin';
+      passwordInput.value = 'admin123';
       passwordInput.focus();
     }
   </script>

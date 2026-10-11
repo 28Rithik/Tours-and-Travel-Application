@@ -819,11 +819,11 @@
       var raw = localStorage.getItem('_x_adminTheme');
       if (raw) return JSON.parse(raw);
     } catch(e) {}
-    return localStorage.getItem('theme') || 'auto';
+    return localStorage.getItem('theme') || 'light';
   }
 
   function updateThemeUI(theme) {
-    var isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    var isDark = theme === 'dark';
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {

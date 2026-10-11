@@ -93,6 +93,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -212,6 +213,22 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ==============================================================================
+# WHITENOISE COMPRESSION & 1-YEAR IMMUTABLE CACHE HEADERS (FCP ACCELERATION)
+# ==============================================================================
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+WHITENOISE_MAX_AGE = 31536000  # 1 Year Immutable Cache-Control
+WHITENOISE_USE_FINDERS = True  # Dynamic asset fallback in development
+WHITENOISE_KEEP_ONLY_HASHED_FILES = False
+
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
@@ -630,3 +647,26 @@ FLEET_CONTROL_ROOM_PHONE = os.getenv('FLEET_CONTROL_ROOM_PHONE', '919876543210')
 # ==============================================================================
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
+
+# ==============================================================================
+# HIGH-PERFORMANCE IN-MEMORY CACHING TIER
+# ==============================================================================
+REDIS_URL = os.getenv('REDIS_URL', '')
+
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'TIMEOUT': 300,
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'travelerp-local-memory-cache',
+            'TIMEOUT': 300,
+        }
+    }
+

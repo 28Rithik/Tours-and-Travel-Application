@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tax Invoice {{ invoice.invoice_number }} — {{ contract.name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            margin: 0;
+            padding: 30px 15px;
+        }
+        .invoice-card {
+            max-width: 860px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+            padding: 40px 48px;
+        }
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+        .table-inv {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            font-size: 13px;
+        }
+        .table-inv th {
+            text-align: left;
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            color: #475569;
+        }
+        .table-inv td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .btn-print {
+            background: #0f172a;
+            color: #fff;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        @media print {
+            body { background: #fff; padding: 0; }
+            .invoice-card { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-card">
+        <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <a href="{% url 'fleet_commute:client_transparency_portal' contract.id %}" style="color: #4f46e5; font-size: 13px; text-decoration: none; font-weight: 600;">
+                &larr; Return to Commute Desk
+            </a>
+            <button onclick="window.print()" class="btn-print">🖨️ Print / Save as PDF</button>
+        </div>
+
+        <div class="header-row">
+            <div>
+                <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: #0f172a;">
+                    SIVAGAYATHIRI TOURS & TRAVELS
+                </h1>
+                <div style="font-size: 12px; color: #475569; margin-top: 4px;">
+                    Enterprise Corporate & Staff Transport Division<br>
+                    OMR Tech Corridor Hub, Chennai, Tamil Nadu - 600119<br>
+                    <strong>GSTIN:</strong> 33AAAAA0000A1Z5 • <strong>SAC:</strong> 9964 (Passenger Transport)
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;">
+                    TAX INVOICE
+                </span>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 800; margin-top: 6px;">
+                    {{ invoice.invoice_number }}
+                </div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+                    Billing Month: <strong>{{ invoice.billing_month|date:"F Y" }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billed To / Contract Meta -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; font-size: 13px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px;">Billed Corporate Client</div>
+                <div style="font-size: 15px; font-weight: 800; color: #0f172a;">{{ contract.customer.name }}</div>
+                <div style="color: #475569; margin-top: 2px;">{{ contract.customer.address|default:"Corporate Campus, Chennai SEZ" }}</div>
+                <div style="color: #475569; margin-top: 2px;"><strong>GSTIN:</strong> {{ contract.customer.gst_number|default:"33AABCC1234D1Z2" }}</div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748b; margin-bottom: 4px;">Agreement Details</div>
+                <div><strong>Contract Name:</strong> {{ contract.name }}</div>
+                <div><strong>Operating Period:</strong> {{ invoice.from_date|date:"d-M-Y" }} to {{ invoice.to_date|date:"d-M-Y" }}</div>
+                <div><strong>Total Verified Trips:</strong> {{ invoice.total_trips_completed }} Trips Run</div>
+                <div><strong>Cumulative Distance:</strong> {{ invoice.total_kms_run }} KMs</div>
+            </div>
+        </div>
+
+        <!-- Itemized Line Items -->
+        <table class="table-inv">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>HSN / SAC</th>
+                    <th>Quantity / Metric</th>
+                    <th style="text-align: right;">Amount (INR)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong>Monthly Staff Commute Fleet Services</strong><br>
+                        <span style="font-size: 12px; color: #64748b;">Daily pickup and drop operations across assigned campus routes</span>
+                    </td>
+                    <td>9964</td>
+                    <td>{{ invoice.total_trips_completed }} Trips</td>
+                    <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                        ₹{{ invoice.base_contract_amount|floatformat:2 }}
+                    </td>
+                </tr>
+                {% if invoice.extra_km_amount %}
+                <tr>
+                    <td>Extra KMs Over Agreed Quota</td>
+                    <td>9964</td>
+                    <td>Ad-hoc</td>
+                    <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                        ₹{{ invoice.extra_km_amount|floatformat:2 }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if invoice.toll_parking_amount %}
+                <tr>
+                    <td>Fastag Highway Toll & Campus Parking Reimbursements</td>
+                    <td>9964</td>
+                    <td>Actuals</td>
+                    <td style="text-align: right; font-weight: 700; font-family: 'JetBrains Mono', monospace;">
+                        ₹{{ invoice.toll_parking_amount|floatformat:2 }}
+                    </td>
+                </tr>
+                {% endif %}
+                {% if invoice.sla_penalty_deduction %}
+                <tr style="background: #fef2f2;">
+                    <td style="color: #dc2626;">
+                        <strong>Less: Verified SLA Penalty Deductions</strong><br>
+                        <span style="font-size: 12px; color: #ef4444;">Contractual OTP and service performance penalty credit</span>
+                    </td>
+                    <td>-</td>
+                    <td>Performance SLA</td>
+                    <td style="text-align: right; font-weight: 700; color: #dc2626; font-family: 'JetBrains Mono', monospace;">
+                        -₹{{ invoice.sla_penalty_deduction|floatformat:2 }}
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <!-- Totals Calculation -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 28px;">
+            <div style="width: 320px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span>Net Taxable Value:</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">₹{{ invoice.net_taxable_amount|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span>CGST (2.5%):</span>
+                    <span style="font-family: 'JetBrains Mono', monospace;">₹{{ invoice.gst_amount|default:0|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #e2e8f0;">
+                    <span>SGST (2.5%):</span>
+                    <span style="font-family: 'JetBrains Mono', monospace;">₹{{ invoice.gst_amount|default:0|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 10px 0; font-size: 16px; font-weight: 800; border-bottom: 2px solid #0f172a; color: #0f172a;">
+                    <span>Grand Total:</span>
+                    <span style="font-family: 'JetBrains Mono', monospace;">₹{{ invoice.grand_total|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Banking & Authorization -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #475569;">
+            <div>
+                <strong>Bank Transfer / RTGS Remittance Details:</strong><br>
+                Bank: HDFC Bank Ltd (OMR Special Corporate Branch)<br>
+                Account Name: Sivagayathiri Tours and Travels<br>
+                Account No: 50200012345678 • IFSC: HDFC0001234
+            </div>
+            <div style="text-align: right;">
+                For <strong>Sivagayathiri Tours & Travels</strong><br><br><br>
+                <strong>Authorized Signatory & Finance Controller</strong>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

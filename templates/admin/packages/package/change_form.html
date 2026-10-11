@@ -62,7 +62,7 @@
     <!-- Live Operating Unit Economics & P&L Deck (HTMX Reactive) -->
     <div id="unit-economics-deck"
          hx-get="{% url 'packages:htmx_packages:unit-economics' %}{% if object_id %}?package_id={{ object_id }}{% endif %}"
-         hx-trigger="load, economics-changed from:body, input from:#id_price_with_food delay:150ms, input from:#id_price_without_food delay:150ms, input from:#id_min_pax delay:150ms, input from:#id_cost_hotel_per_pax delay:150ms, input from:#id_cost_coach_per_pax delay:150ms, input from:#id_cost_meals_per_pax delay:150ms, input from:#id_cost_activities_per_pax delay:150ms, input from:#id_cost_misc_per_pax delay:150ms"
+         hx-trigger="load, economics-changed from:body, input from:#id_price_with_food delay:350ms, input from:#id_price_without_food delay:350ms, input from:#id_min_pax delay:350ms, input from:#id_cost_hotel_per_pax delay:350ms, input from:#id_cost_coach_per_pax delay:350ms, input from:#id_cost_meals_per_pax delay:350ms, input from:#id_cost_activities_per_pax delay:350ms, input from:#id_cost_misc_per_pax delay:350ms"
          hx-include="#id_price_with_food, #id_price_without_food, #id_min_pax, #id_base_price, #id_cost_hotel_per_pax, #id_cost_coach_per_pax, #id_cost_meals_per_pax, #id_cost_activities_per_pax, #id_cost_misc_per_pax"
          hx-target="#unit-economics-deck"
          hx-swap="innerHTML">

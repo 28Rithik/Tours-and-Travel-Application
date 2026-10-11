@@ -20,7 +20,7 @@
     <!-- Live Quotation & Financial Summary Container -->
     <div id="quote-htmx-container"
          hx-get="{% url 'htmx_operations:booking-quote-calc' %}"
-         hx-trigger="input from:#id_quoted_price delay:150ms, input from:#id_pax_count delay:150ms, change from:#id_gst_rate, quote-updated from:body"
+         hx-trigger="input from:#id_quoted_price delay:350ms, input from:#id_pax_count delay:350ms, change from:#id_gst_rate, quote-updated from:body"
          hx-include="#id_quoted_price, #id_pax_count, #id_gst_rate">
     </div>
 </div>

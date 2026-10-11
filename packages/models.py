@@ -297,6 +297,12 @@ class Package(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['category', 'is_active'], name='idx_pkg_cat_active'),
+            models.Index(fields=['package_code'], name='idx_pkg_code'),
+        ]
+
     def __str__(self):
         return f"{self.name} ({self.duration_nights}N/{self.duration_days}D)"
 
@@ -412,6 +418,10 @@ class PackageInventory(models.Model):
         verbose_name = 'Tour Bus Departure Batch'
         verbose_name_plural = 'Tour Bus Departure Batches'
         unique_together = ('package', 'departure_date')
+        indexes = [
+            models.Index(fields=['departure_date', 'status'], name='idx_pkginv_dep_status'),
+            models.Index(fields=['package', 'status'], name='idx_pkginv_pkg_status'),
+        ]
 
     def save(self, *args, **kwargs):
         if self.total_seats and self.booked_seats is not None:
@@ -563,6 +573,10 @@ class TourPassengerManifest(models.Model):
     class Meta:
         verbose_name = 'Tour Passenger & Rooming Entry'
         verbose_name_plural = 'Tour Passenger Manifest & Rooming List'
+        indexes = [
+            models.Index(fields=['departure', 'passenger_name'], name='idx_tpm_dep_name'),
+            models.Index(fields=['iv_expedition', 'passenger_name'], name='idx_tpm_iv_name'),
+        ]
 
     def __str__(self):
         seat_str = f" [Seat {self.seat_number}]" if self.seat_number else ""

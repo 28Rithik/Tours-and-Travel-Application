@@ -10,8 +10,8 @@
         (function() {
             try {
                 var raw = localStorage.getItem('_x_adminTheme');
-                var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'auto');
-                var isDark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
+                var isDark = t === 'dark';
                 if (isDark) {
                     document.documentElement.classList.add('dark');
                 } else {

@@ -7,8 +7,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script>
+        (function() {
+            try {
+                var raw = localStorage.getItem('_x_adminTheme');
+                var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
+                var isDark = t === 'dark';
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <style>
         :root {
+            --bg-base: #f8fafc;
+            --bg-card: #ffffff;
+            --border-glass: #e2e8f0;
+            --accent-primary: #0284c7;
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        html.dark {
             --bg-base: #090d16;
             --bg-card: rgba(18, 24, 38, 0.9);
             --border-glass: rgba(255, 255, 255, 0.08);
@@ -50,8 +76,7 @@
         /* Top Brand Bar */
         .top-bar {
             padding: 14px 18px;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
+            background: #ffffff;
             border-bottom: 1px solid var(--border-glass);
             display: flex;
             justify-content: space-between;
@@ -61,10 +86,15 @@
             z-index: 1000;
         }
 
+        html.dark .top-bar {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+        }
+
         .brand-info h1 {
             font-size: 16px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -105,11 +135,16 @@
         /* Proximity Alert Banner */
         .alert-banner {
             padding: 14px 18px;
-            background: linear-gradient(135deg, rgba(14, 116, 144, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%);
-            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+            border-bottom: 1px solid var(--border-glass);
             display: flex;
             align-items: center;
             gap: 14px;
+        }
+
+        html.dark .alert-banner {
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.3) 0%, rgba(15, 23, 42, 0.9) 100%);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
         }
 
         .alert-icon {
@@ -128,12 +163,12 @@
         .alert-text h3 {
             font-size: 15px;
             font-weight: 600;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .alert-text p {
             font-size: 12px;
-            color: #cbd5e1;
+            color: var(--text-muted);
             margin-top: 2px;
         }
 
@@ -154,17 +189,24 @@
             position: absolute;
             bottom: 12px;
             left: 12px;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.92);
             border: 1px solid var(--border-glass);
             border-radius: 8px;
             padding: 6px 12px;
             font-size: 12px;
             font-weight: 600;
-            color: #fff;
+            color: var(--text-main);
             z-index: 999;
             display: flex;
             gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        html.dark .map-telemetry-badge {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            box-shadow: none;
         }
 
         /* Commuter & Stop Info Card */
@@ -178,10 +220,15 @@
 
         .card {
             background: var(--bg-card);
-            backdrop-filter: blur(12px);
             border: 1px solid var(--border-glass);
             border-radius: 14px;
             padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        html.dark .card {
+            backdrop-filter: blur(12px);
+            box-shadow: none;
         }
 
         .card-header {
@@ -196,7 +243,7 @@
         .card-header h3 {
             font-size: 14px;
             font-weight: 600;
-            color: #cbd5e1;
+            color: var(--text-main);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -210,7 +257,7 @@
         }
 
         .detail-label { color: var(--text-muted); }
-        .detail-val { color: #fff; font-weight: 500; }
+        .detail-val { color: var(--text-main); font-weight: 600; }
 
         /* Stepper of Stops */
         .stops-stepper {
@@ -323,14 +370,20 @@
         <header class="top-bar">
             <div class="brand-info">
                 <h1>
-                    <i class="fas fa-bus-alt" style="color: #38bdf8;"></i>
+                    <i class="fas fa-bus-alt" style="color: var(--accent-primary);"></i>
                     Sivagayathiri Commute
                 </h1>
                 <p>{{ contract.name }}</p>
             </div>
-            <div class="live-pulse">
-                <span class="pulse-dot"></span>
-                <span>LIVE RADAR</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button id="btnThemeToggle" onclick="toggleTheme()" title="Toggle Light/Dark Theme" style="background: var(--bg-card); border: 1px solid var(--border-glass); border-radius: 8px; padding: 6px 10px; cursor: pointer; color: var(--text-main); font-size: 13px; display: inline-flex; align-items: center;">
+                    <i class="fas fa-sun" id="themeIconSun" style="display:none; color: #f59e0b;"></i>
+                    <i class="fas fa-moon" id="themeIconMoon" style="color: #64748b;"></i>
+                </button>
+                <div class="live-pulse">
+                    <span class="pulse-dot"></span>
+                    <span>LIVE RADAR</span>
+                </div>
             </div>
         </header>
 
@@ -459,9 +512,13 @@
             attributionControl: false
         }).setView([initialLat, initialLng], 14);
 
-        // OpenStreetMap Dark/Voyager Tiles
+        // High-Performance Resilient Basemap with Buffer Caching
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19
+            maxZoom: 19,
+            subdomains: 'abcd',
+            keepBuffer: 4,
+            updateWhenIdle: true,
+            crossOrigin: true
         }).addTo(map);
 
         // Bus Icon
@@ -515,6 +572,25 @@
         }
 
         setInterval(fetchLiveGPS, 5000);
+
+        function updateThemeIcon() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const sun = document.getElementById('themeIconSun');
+            const moon = document.getElementById('themeIconMoon');
+            if (sun && moon) {
+                sun.style.display = isDark ? 'inline-block' : 'none';
+                moon.style.display = isDark ? 'none' : 'inline-block';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('_x_adminTheme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        document.addEventListener('DOMContentLoaded', updateThemeIcon);
     </script>
 </body>
 </html>

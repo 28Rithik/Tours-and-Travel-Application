@@ -98,6 +98,20 @@ def ingest_telematics_ping(data):
         vehicle.current_km = odometer
     vehicle.save(update_fields=['current_location', 'current_km'])
 
+    # 2b. Cache in-memory for zero-disk latency on 5-second polling loops
+    from core.cache_services import set_cached_latest_telematics
+    set_cached_latest_telematics(vehicle.pk, {
+        'timestamp': ping.timestamp.isoformat(),
+        'latitude': float(lat),
+        'longitude': float(lng),
+        'speed_kmh': float(speed),
+        'heading': heading or 0,
+        'altitude': altitude,
+        'ignition_on': ignition,
+        'fuel_level_pct': float(fuel_pct) if fuel_pct is not None else None,
+        'odometer_km': odometer,
+    })
+
     # 3. Evaluate Driver Behavior & Driving Infractions
     events_triggered = []
     

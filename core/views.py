@@ -7,12 +7,13 @@ from .models import VehicleType, Vehicle
 
 
 def api_get_vehicle_types(request):
+    from .cache_services import get_cached_vehicle_types
     rates = {
         str(vt.id): {
             'default_day_rate': str(vt.default_day_rate),
             'default_km_rate': str(vt.default_km_rate)
         }
-        for vt in VehicleType.objects.all()
+        for vt in get_cached_vehicle_types()
     }
     return JsonResponse(rates)
 

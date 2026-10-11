@@ -85,6 +85,19 @@ class VehicleType(models.Model):
 		return self.name
 
 
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+@receiver([post_save, post_delete], sender=VehicleType)
+def on_vehicletype_changed(sender, **kwargs):
+	try:
+		from .cache_services import invalidate_vehicle_types_cache
+		invalidate_vehicle_types_cache()
+	except Exception:
+		pass
+
+
+
 class LicenseClass(models.Model):
 	code = models.CharField(max_length=20, unique=True, help_text="e.g., LMV-TR")
 	name = models.CharField(max_length=100, help_text="e.g., Light Motor Vehicle - Transport")

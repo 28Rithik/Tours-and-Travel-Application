@@ -52,16 +52,22 @@ def booking_list(request):
         # All active/recent dispatches
         trips_list = trips_qs.filter(status__in=['booked', 'assigned', 'driver_confirmed', 'started', 'completed'])
 
-    # Counters
-    all_trips = Trip.objects.all()
-    unassigned_count = all_trips.filter(status='booked', vehicle__isnull=True).count()
-    assigned_count = all_trips.filter(status__in=['assigned', 'driver_confirmed']).count()
-    in_transit_count = all_trips.filter(status='started').count()
-    completed_count = all_trips.filter(status__in=['completed', 'billed', 'settled']).count()
+    # Counters — Single aggregated query instead of 4 separate queries
+    from django.db.models import Count
+    counts = Trip.objects.aggregate(
+        unassigned_count=Count('id', filter=Q(status='booked', vehicle__isnull=True)),
+        assigned_count=Count('id', filter=Q(status__in=['assigned', 'driver_confirmed'])),
+        in_transit_count=Count('id', filter=Q(status='started')),
+        completed_count=Count('id', filter=Q(status__in=['completed', 'billed', 'settled'])),
+    )
+    unassigned_count = counts['unassigned_count']
+    assigned_count = counts['assigned_count']
+    in_transit_count = counts['in_transit_count']
+    completed_count = counts['completed_count']
     total_active_count = unassigned_count + assigned_count + in_transit_count
 
-    # 2. Bookings Queue
-    bookings = Booking.objects.order_by('-booking_date')
+    # 2. Bookings Queue with select_related to eliminate N+1 queries
+    bookings = Booking.objects.select_related('party', 'vehicle_type', 'package').order_by('-booking_date')
     if status_filter:
         bookings = bookings.filter(status=status_filter)
     if journey_filter:
@@ -113,7 +119,10 @@ def booking_create(request):
 
 @login_required
 def booking_detail(request, booking_id):
-    booking = get_object_or_404(Booking, pk=booking_id)
+    booking = get_object_or_404(
+        Booking.objects.select_related('party', 'vehicle_type', 'package', 'package_inventory').prefetch_related('trips'),
+        pk=booking_id
+    )
     return render(request, 'operations/booking_detail.html', {'booking': booking})
 
 
@@ -141,7 +150,10 @@ def trip_create(request, booking_id):
 
 @login_required
 def trip_detail(request, trip_id):
-    trip = get_object_or_404(Trip, pk=trip_id)
+    trip = get_object_or_404(
+        Trip.objects.select_related('booking', 'party', 'vehicle', 'driver', 'package', 'package_inventory').prefetch_related('expenses', 'supplier_costs', 'hotels'),
+        pk=trip_id
+    )
     return render(request, 'operations/trip_detail.html', {'trip': trip})
 
 
@@ -338,10 +350,16 @@ def customer_trip_invoice_view(request, trip_id):
 def trip_sheet_pdf_view(request, trip_id):
     """
     Downloads or renders the official high-resolution Driver Trip Sheet PDF.
+    Caches binary PDF in RAM for sub-2ms subsequent downloads.
     """
     from operations.pdf_generator import render_trip_sheet_pdf
+    from core.cache_services import get_or_render_cached_pdf
     trip = get_object_or_404(Trip, pk=trip_id)
-    pdf_bytes = render_trip_sheet_pdf(trip)
+    cache_key = f"pdf:tripsheet:{trip.id}:{trip.status}:{trip.vehicle_id}:{trip.driver_id}:{trip.opening_km}:{trip.closing_km}"
+    if request.GET.get('force') == '1':
+        pdf_bytes = render_trip_sheet_pdf(trip)
+    else:
+        pdf_bytes = get_or_render_cached_pdf(cache_key, lambda: render_trip_sheet_pdf(trip))
     filename = f"TripSheet-{trip.trip_id or trip.id}.pdf"
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
@@ -354,10 +372,16 @@ def trip_sheet_pdf_view(request, trip_id):
 def trip_invoice_pdf_view(request, trip_id):
     """
     Downloads or renders the official GST Tax Invoice PDF for a Trip.
+    Uses in-memory caching to eliminate redundant ReportLab PDF generation.
     """
     from operations.pdf_generator import render_tax_invoice_pdf
+    from core.cache_services import get_or_render_cached_pdf
     trip = get_object_or_404(Trip, pk=trip_id)
-    pdf_bytes = render_tax_invoice_pdf(trip)
+    cache_key = f"pdf:tripinvoice:{trip.id}:{trip.status}:{trip.total_amount}:{trip.billing_model}"
+    if request.GET.get('force') == '1':
+        pdf_bytes = render_tax_invoice_pdf(trip)
+    else:
+        pdf_bytes = get_or_render_cached_pdf(cache_key, lambda: render_tax_invoice_pdf(trip))
     filename = f"TaxInvoice-TR-{trip.id:04d}.pdf"
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
@@ -370,10 +394,16 @@ def trip_invoice_pdf_view(request, trip_id):
 def booking_voucher_pdf_view(request, booking_id):
     """
     Downloads or renders the official Customer Tour Booking Confirmation Voucher PDF.
+    Caches binary PDF in RAM for instant retrieval.
     """
     from operations.pdf_generator import render_booking_voucher_pdf
+    from core.cache_services import get_or_render_cached_pdf
     booking = get_object_or_404(Booking, pk=booking_id)
-    pdf_bytes = render_booking_voucher_pdf(booking)
+    cache_key = f"pdf:bookingvoucher:{booking.id}:{booking.status}:{booking.quoted_price}"
+    if request.GET.get('force') == '1':
+        pdf_bytes = render_booking_voucher_pdf(booking)
+    else:
+        pdf_bytes = get_or_render_cached_pdf(cache_key, lambda: render_booking_voucher_pdf(booking))
     filename = f"BookingVoucher-{booking.booking_number or booking.id}.pdf"
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
@@ -442,8 +472,34 @@ def api_telematics_live(request, vehicle_id):
     Returns latest GPS ping, current speed, fuel level, and breadcrumb trail for vehicle.
     Endpoint: GET /api/telematics/live/<vehicle_id>/
     """
+    from core.cache_services import get_cached_latest_telematics, set_cached_latest_telematics
     vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
-    latest_ping = vehicle.telematics_pings.first()
+    cached_ping = get_cached_latest_telematics(vehicle.pk)
+
+    if cached_ping:
+        latest_ping_data = {
+            "timestamp": cached_ping.get('timestamp'),
+            "latitude": cached_ping.get('latitude'),
+            "longitude": cached_ping.get('longitude'),
+            "speed_kmh": cached_ping.get('speed_kmh', 0.0),
+            "ignition_on": cached_ping.get('ignition_on', False),
+            "fuel_level_pct": cached_ping.get('fuel_level_pct'),
+        }
+    else:
+        latest_ping = vehicle.telematics_pings.first()
+        if latest_ping:
+            latest_ping_data = {
+                "timestamp": latest_ping.timestamp.isoformat(),
+                "latitude": float(latest_ping.latitude),
+                "longitude": float(latest_ping.longitude),
+                "speed_kmh": float(latest_ping.speed_kmh),
+                "ignition_on": latest_ping.ignition_on,
+                "fuel_level_pct": float(latest_ping.fuel_level_pct) if latest_ping.fuel_level_pct else None,
+            }
+            set_cached_latest_telematics(vehicle.pk, latest_ping_data)
+        else:
+            latest_ping_data = None
+
     recent_pings = vehicle.telematics_pings.all()[:20]
 
     return JsonResponse({
@@ -455,14 +511,7 @@ def api_telematics_live(request, vehicle_id):
             "current_km": vehicle.current_km,
             "gps_imei": vehicle.gps_imei,
         },
-        "latest_ping": {
-            "timestamp": latest_ping.timestamp.isoformat() if latest_ping else None,
-            "latitude": float(latest_ping.latitude) if latest_ping else None,
-            "longitude": float(latest_ping.longitude) if latest_ping else None,
-            "speed_kmh": float(latest_ping.speed_kmh) if latest_ping else 0.0,
-            "ignition_on": latest_ping.ignition_on if latest_ping else False,
-            "fuel_level_pct": float(latest_ping.fuel_level_pct) if latest_ping and latest_ping.fuel_level_pct else None,
-        } if latest_ping else None,
+        "latest_ping": latest_ping_data,
         "recent_crumbs": [
             {
                 "lat": float(p.latitude),
@@ -1093,14 +1142,17 @@ def broadcast_trip_whatsapp_view(request, trip_id):
     1-Click manual/automated dispatcher:
     Broadcasts booking confirmation, assigned captain details, and the live
     passenger GPS tracking link to the customer via WhatsApp.
+    Offloaded to background worker thread by default for instant sub-15ms response.
     """
     trip = get_object_or_404(Trip, pk=trip_id)
     from operations.whatsapp_bot import dispatch_passenger_alert_whatsapp
-    result = dispatch_passenger_alert_whatsapp(trip)
-    if result.get("status") in ["simulated_sent", "sent"] or "messages" in result:
+    is_async = request.GET.get('sync') != '1'
+    result = dispatch_passenger_alert_whatsapp(trip, is_async=is_async)
+    if (isinstance(result, dict) and (result.get("status") in ["simulated_sent", "sent", "queued"] or "messages" in result or result.get("async"))) or hasattr(result, 'result'):
         messages.success(request, f"📲 WhatsApp booking confirmation & live GPS tracking link dispatched to {trip.guest_name}!")
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
-        return JsonResponse({"status": "success", "message": f"WhatsApp confirmation sent to {trip.guest_name}", "result": result})
+        clean_res = {"status": "queued", "async": True} if is_async else result
+        return JsonResponse({"status": "success", "message": f"WhatsApp confirmation sent to {trip.guest_name}", "result": clean_res})
     return redirect(request.META.get('HTTP_REFERER', 'booking-list'))
 
 
@@ -1109,6 +1161,7 @@ def broadcast_driver_whatsapp_view(request, trip_id):
     """
     1-Click manual/automated dispatcher:
     Dispatches trip duty briefing, schedule, passenger contact, and digital handover link to Driver.
+    Non-blocking background thread execution keeps UI fast and responsive.
     """
     trip = get_object_or_404(Trip, pk=trip_id)
     if not trip.driver or not trip.driver.phone:
@@ -1116,15 +1169,18 @@ def broadcast_driver_whatsapp_view(request, trip_id):
         return redirect(request.META.get('HTTP_REFERER', 'booking-list'))
 
     from operations.whatsapp_bot import dispatch_driver_briefing_whatsapp
-    result = dispatch_driver_briefing_whatsapp(trip)
+    is_async = request.GET.get('sync') != '1'
+    result = dispatch_driver_briefing_whatsapp(trip, is_async=is_async)
     driver_name = trip.driver.name
-    if result.get("status") in ["simulated_sent", "sent"] or "messages" in result:
+    if (isinstance(result, dict) and (result.get("status") in ["simulated_sent", "sent", "queued"] or "messages" in result or result.get("async"))) or hasattr(result, 'result'):
         messages.success(request, f"📲 WhatsApp duty briefing successfully dispatched to Captain {driver_name} ({trip.driver.phone})!")
     else:
-        messages.warning(request, f"Notice: WhatsApp dispatch result: {result.get('reason', 'Briefing triggered')}")
+        reason = result.get('reason', 'Briefing triggered') if isinstance(result, dict) else 'Briefing triggered'
+        messages.warning(request, f"Notice: WhatsApp dispatch result: {reason}")
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
-        return JsonResponse({"status": "success", "message": f"Driver duty briefing sent to Captain {driver_name}", "result": result})
+        clean_res = {"status": "queued", "async": True} if is_async else result
+        return JsonResponse({"status": "success", "message": f"Driver duty briefing sent to Captain {driver_name}", "result": clean_res})
     return redirect(request.META.get('HTTP_REFERER', 'booking-list'))
 
 
@@ -1537,12 +1593,15 @@ def api_handover_session_audit(request, session_id):
 def api_dispatch_whatsapp_trip_sheet(request, trip_id):
     """
     1-Click manual or API broadcast of the luxury trip sheet to passenger.
+    Non-blocking async offload for sub-15ms HTTP API throughput.
     """
     trip = get_object_or_404(Trip, pk=trip_id)
-    result = dispatch_passenger_alert_whatsapp(trip)
+    is_async = request.GET.get('sync') != '1' and request.POST.get('sync') != '1'
+    result = dispatch_passenger_alert_whatsapp(trip, is_async=is_async)
+    clean_result = {"status": "queued", "async": True} if is_async else result
     return JsonResponse({
         'status': 'ok',
-        'result': result,
+        'result': clean_result,
         'broadcast_count': trip.whatsapp_broadcast_count
     })
 

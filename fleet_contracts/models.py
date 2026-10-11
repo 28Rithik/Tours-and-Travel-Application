@@ -162,6 +162,19 @@ class TransportContract(models.Model):
         return f"{self.name} - {self.customer.name}"
 
 
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+@receiver([post_save, post_delete], sender=TransportContract)
+def on_transportcontract_changed(sender, **kwargs):
+    try:
+        from core.cache_services import invalidate_active_contracts_cache
+        invalidate_active_contracts_cache()
+    except Exception:
+        pass
+
+
+
 # ==============================================================================
 # 2. Route & Route Stops
 # ==============================================================================
@@ -401,6 +414,10 @@ class CommuterManifest(models.Model):
     class Meta:
         verbose_name = 'Commuter & Student Passenger'
         verbose_name_plural = 'Commuter & Student Manifest'
+        indexes = [
+            models.Index(fields=['contract', 'is_active'], name='idx_commuter_ct_active'),
+            models.Index(fields=['boarding_stop'], name='idx_commuter_stop'),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.commuter_id}) - {self.contract.name}"
@@ -517,6 +534,11 @@ class ContractTripLog(models.Model):
                 name='contract_trip_toll_parking_non_negative'
             ),
         ]
+        indexes = [
+            models.Index(fields=['date', 'status'], name='idx_ctriplog_date_status'),
+            models.Index(fields=['vehicle', 'date'], name='idx_ctriplog_veh_date'),
+            models.Index(fields=['shift', 'date'], name='idx_ctriplog_shift_date'),
+        ]
 
     def __str__(self):
         return f"{self.shift} on {self.date}"
@@ -567,6 +589,11 @@ class ContractSLAPenalty(models.Model):
     class Meta:
         verbose_name = 'SLA Penalty & Performance Deduction'
         verbose_name_plural = 'SLA Penalties & Deductions'
+        indexes = [
+            models.Index(fields=['contract', '-date'], name='idx_slapen_contract_date'),
+            models.Index(fields=['trip_log'], name='idx_slapen_trip_log'),
+            models.Index(fields=['applied_to_invoice'], name='idx_slapen_invoice'),
+        ]
 
     def __str__(self):
         status_str = " (Waived)" if self.waived else ""

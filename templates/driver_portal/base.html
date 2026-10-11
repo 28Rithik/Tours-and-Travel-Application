@@ -19,7 +19,7 @@
       try {
         var raw = localStorage.getItem('_x_adminTheme');
         var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
-        if (t === 'light' || !t) {
+        if (t !== 'dark') {
           document.documentElement.classList.add('light-mode');
         }
       } catch(e) {}
@@ -323,7 +323,7 @@
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="light-mode">
     <!-- Top Bar -->
     <header class="app-header">
         <a href="{% url 'driver_portal:dashboard' %}" class="header-brand">
@@ -401,7 +401,7 @@
     <!-- PWA Light/Dark Mode Manager -->
     <script>
     function applyDriverTheme(theme) {
-        var isLight = theme === 'light' || !theme;
+        var isLight = theme !== 'dark';
         if (isLight) {
             document.body.classList.add('light-mode');
             document.documentElement.classList.add('light-mode');

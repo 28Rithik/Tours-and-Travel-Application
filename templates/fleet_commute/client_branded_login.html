@@ -1,0 +1,395 @@
+{% extends "unfold/layouts/base.html" %}
+{% load static i18n unfold %}
+
+{% block title %}🏢 {{ client.name }} | Enterprise Commute Portal{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-6 py-3 border-b border-slate-200 bg-white text-xs text-slate-500 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-indigo-600 font-medium">Home</a>
+    <span>/</span>
+    <a href="{% url 'fleet_commute:client_portal_index' %}" class="hover:text-indigo-600 font-medium">Corporate Portals Directory</a>
+    <span>/</span>
+    <span class="text-slate-900 font-bold">🏢 {{ client.name }}</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --brand-accent: {{ config.brand_primary_color|default:"#0033a0" }};
+    --bg-canvas: #f8fafc;
+    --card-surface: #ffffff;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+}
+
+.branded-root {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.branded-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+    position: relative;
+}
+
+.brand-banner-strip {
+    height: 8px;
+    background: var(--brand-accent);
+    width: 100%;
+}
+
+.branded-inner {
+    padding: 36px 32px 32px;
+}
+
+.brand-header-area {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.brand-logo-bubble {
+    width: 68px;
+    height: 68px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--brand-accent);
+    overflow: hidden;
+}
+
+.brand-logo-bubble img {
+    max-width: 85%;
+    max-height: 85%;
+    object-fit: contain;
+}
+
+.brand-org-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.4px;
+    margin-bottom: 6px;
+}
+
+.brand-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+    letter-spacing: 0.3px;
+}
+
+.campus-select-group {
+    margin-bottom: 20px;
+}
+
+.campus-select-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.campus-select-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #f8fafc;
+    color: #0f172a;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.campus-select-input:focus {
+    outline: none;
+    border-color: var(--brand-accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.sso-primary-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    background: var(--brand-accent);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 51, 160, 0.25);
+    transition: all 0.2s ease;
+    margin-bottom: 16px;
+}
+
+.sso-primary-btn:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 51, 160, 0.35);
+}
+
+.idp-pill-sub {
+    font-size: 11px;
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.enforce-policy-callout {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #166534;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.divider-or {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.divider-or::before, .divider-or::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.divider-or span {
+    padding: 0 10px;
+}
+
+.form-group-branded {
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+.form-label-branded {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.form-input-branded {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    background: #f8fafc;
+    color: #0f172a;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.form-input-branded:focus {
+    background: #ffffff;
+    border-color: var(--brand-accent);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.btn-secondary-submit {
+    width: 100%;
+    padding: 11px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-secondary-submit:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.brand-footer-security {
+    border-top: 1px solid #f1f5f9;
+    padding: 16px 24px;
+    background: #f8fafc;
+    text-align: center;
+    font-size: 11px;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+</style>
+
+<div class="branded-root">
+    <div class="branded-card">
+        <div class="brand-banner-strip"></div>
+        <div class="branded-inner">
+            <!-- Header Area -->
+            <div class="brand-header-area">
+                <div class="brand-logo-bubble">
+                    {% if config.brand_logo_url %}
+                    <img src="{{ config.brand_logo_url }}" alt="{{ client.name }} Logo">
+                    {% else %}
+                    <span>{{ client.name|slice:":2"|upper }}</span>
+                    {% endif %}
+                </div>
+                <h1 class="brand-org-name">{{ client.name }}</h1>
+                <div class="brand-badge-pill">
+                    <span>🌐</span> Dedicated Commute Desk • @{{ config.domain }}
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div style="padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 12px; font-weight: 600; margin-bottom: 18px;">
+                ⚠️ {{ error_message }}
+            </div>
+            {% endif %}
+
+            <!-- Campus Branch Selector (if configured) -->
+            {% if campus_branches %}
+            <div class="campus-select-group">
+                <label class="campus-select-label">📍 Select Campus Facility / Branch</label>
+                <select id="campusBranchSelect" class="campus-select-input" onchange="updateSsoUrlWithBranch(this.value)">
+                    {% for branch in campus_branches %}
+                    <option value="{{ branch.id|default:branch.name }}">{{ branch.name }} ({{ branch.id|default:"HQ" }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- Action 1: 1-Click Corporate SSO Sign-In -->
+            <a href="{% url 'fleet_commute:client_sso_initiate' brand_slug=config.brand_subdomain_slug %}" id="ssoActionLink" class="sso-primary-btn">
+                <span>🔐</span>
+                <div>
+                    <div>Sign in with Corporate SSO</div>
+                    <div class="idp-pill-sub">via {{ config.idp_display_name }}</div>
+                </div>
+            </a>
+
+            {% if config.enforce_sso_only %}
+            <div class="enforce-policy-callout">
+                <span>🛡️</span>
+                <div>
+                    <strong>SSO Enforced:</strong> Password authentication is disabled per {{ client.name }} enterprise cybersecurity policy.
+                </div>
+            </div>
+            {% else %}
+            <!-- Action 2: Password Sign-In (when not enforced) -->
+            <div class="divider-or">
+                <span>or standard credentials</span>
+            </div>
+
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="credentials">
+                <input type="hidden" name="campus_branch" id="formCampusBranch" value="">
+
+                <div class="form-group-branded">
+                    <label class="form-label-branded">Username or Corporate Email</label>
+                    <input type="text" name="username" class="form-input-branded" placeholder="username@{{ config.domain }}" required>
+                </div>
+
+                <div class="form-group-branded">
+                    <label class="form-label-branded">Password</label>
+                    <input type="password" name="password" class="form-input-branded" placeholder="••••••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-secondary-submit">
+                    Sign In with Password
+                </button>
+            </form>
+            {% endif %}
+
+            <div style="text-align: center; margin-top: 22px;">
+                <a href="{% url 'fleet_commute:client_portal_login' %}" style="font-size: 12px; font-weight: 600; color: #64748b; text-decoration: none;">
+                    ← Back to General Client Login
+                </a>
+            </div>
+        </div>
+
+        <div class="brand-footer-security">
+            <span>🛡️ SOC-2 Type II Certified</span>
+            <span>•</span>
+            <span>🔒 Encrypted SAML 2.0 / OIDC</span>
+            <span>•</span>
+            <span>🇮🇳 DPDP Compliant</span>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateSsoUrlWithBranch(branchVal) {
+    const ssoLink = document.getElementById('ssoActionLink');
+    if (ssoLink) {
+        const baseUrl = "{% url 'fleet_commute:client_sso_initiate' brand_slug=config.brand_subdomain_slug %}";
+        ssoLink.href = baseUrl + '?campus_branch=' + encodeURIComponent(branchVal);
+    }
+    const formBranch = document.getElementById('formCampusBranch');
+    if (formBranch) {
+        formBranch.value = branchVal;
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('campusBranchSelect');
+    if (select) {
+        updateSsoUrlWithBranch(select.value);
+    }
+});
+</script>
+{% endblock %}
