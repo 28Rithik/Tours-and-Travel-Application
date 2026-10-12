@@ -15,6 +15,13 @@ urlpatterns = [
     path('api/inquiries/<int:inquiry_id>/convert-to-booking/', views.api_inquiry_convert_to_booking, name='api_inquiry_convert_to_booking'),
     path('api/inquiries/<int:inquiry_id>/dispatch-whatsapp/', views.api_inquiry_dispatch_whatsapp, name='api_inquiry_dispatch_whatsapp'),
     path('api/kanban-data/', views.api_crm_kanban_data, name='api_crm_kanban_data'),
+    
+    # Kanban 3.0 High-Velocity Suite APIs
+    path('api/kanban/bulk-action/', views.api_kanban_bulk_action, name='api_kanban_bulk_action'),
+    path('api/kanban/tara-pitch/<int:inquiry_id>/', views.api_kanban_tara_pitch, name='api_kanban_tara_pitch'),
+    path('api/kanban/chat/<int:inquiry_id>/', views.api_kanban_chat_history, name='api_kanban_chat_history'),
+    path('api/kanban/chat/<int:inquiry_id>/send/', views.api_kanban_send_chat, name='api_kanban_send_chat'),
+    path('api/kanban/proposal/<int:inquiry_id>/', views.api_kanban_generate_proposal, name='api_kanban_generate_proposal'),
 
     # Phase 6 Power-Ups: Notification Bell
     path('api/notifications/poll/', views.api_notifications_poll, name='api_notifications_poll'),

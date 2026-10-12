@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ inquiry.guest_name }}'s Exclusive Travel Proposal | Sivagayathiri Travels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #059669;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --gold: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Top Brand Bar */
+    .brand-header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .support-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 99px;
+      color: #065f46;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    /* Hero Section */
+    .hero-container {
+      max-width: 860px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .hero-banner {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 36px 32px;
+      box-shadow: 0 10px 30px rgba(49, 46, 129, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    .hero-title {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .hero-desc {
+      font-size: 14px;
+      color: #cbd5e1;
+      max-width: 600px;
+      margin-bottom: 24px;
+    }
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 16px;
+      border-radius: 12px;
+    }
+    .h-metric-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .h-metric-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 2px;
+    }
+
+    /* Cards Layout */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* Vehicle Showcase */
+    .vehicle-box {
+      display: flex;
+      gap: 20px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 18px;
+      border-radius: 14px;
+    }
+    .vehicle-icon-wrap {
+      width: 64px;
+      height: 64px;
+      background: #e0e7ff;
+      color: #4f46e5;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .vehicle-info h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .vehicle-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .feature-tag {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    /* Inclusions Grid */
+    .inclusions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .inc-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #334155;
+      font-weight: 600;
+    }
+    .inc-item i {
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* Investment Summary & Payment Box */
+    .investment-box {
+      background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+      border: 1px solid #bbf7d0;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+    .fare-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed #cbd5e1;
+      font-size: 14px;
+    }
+    .fare-row.total {
+      border-bottom: none;
+      padding-top: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      color: #065f46;
+    }
+    .advance-box {
+      background: #ffffff;
+      border: 1px solid #86efac;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+    }
+    .advance-tag {
+      background: #dcfce7;
+      color: #166534;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .btn-pay {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #ffffff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+      transition: all 0.2s ease;
+      width: 100%;
+      max-width: 360px;
+      justify-content: center;
+    }
+    .btn-pay:hover {
+      background: linear-gradient(135deg, #047857, #059669);
+      transform: translateY(-1px);
+    }
+
+    /* Paid Success Banner */
+    .success-banner {
+      background: #ecfdf5;
+      border: 2px solid #34d399;
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .success-banner i {
+      font-size: 48px;
+      color: #059669;
+      margin-bottom: 12px;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 30px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="brand-header">
+    <a href="/" class="brand-logo">
+      <div class="brand-badge">S</div>
+      <div>
+        <div class="brand-title">Sivagayathiri Travels & Expeditions</div>
+        <div class="brand-sub">South India Luxury Fleet Operations • Est. 2011</div>
+      </div>
+    </a>
+    <a href="https://wa.me/919842533777" target="_blank" class="support-pill">
+      <i class="fa-brands fa-whatsapp"></i> 24x7 Tour Desk
+    </a>
+  </header>
+
+  <main class="hero-container">
+    
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+      <div class="hero-tag">
+        <i class="fa-solid fa-sparkles"></i> Personalized Expedition Quotation #{{ inquiry.inquiry_number }}
+      </div>
+      <h1 class="hero-title">Exclusive Proposal for {{ inquiry.guest_name }}</h1>
+      <p class="hero-desc">
+        Handcrafted South India luxury itinerary with dedicated senior chauffeur, sanitized private vehicle, and 100% transparent operating fares.
+      </p>
+
+      <div class="hero-metrics">
+        <div>
+          <div class="h-metric-label">Circuit</div>
+          <div class="h-metric-val">{{ inquiry.pickup_location }} ➔ {{ inquiry.destination }}</div>
+        </div>
+        <div>
+          <div class="h-metric-label">Departure Date</div>
+          <div class="h-metric-val">{{ inquiry.pickup_date|date:"D, d M Y" }}</div>
+        </div>
+        <div>
+          <div class="h-metric-label">Travelers</div>
+          <div class="h-metric-val">{{ inquiry.adult_count }} Adults {% if inquiry.child_count %}+ {{ inquiry.child_count }} Kids{% endif %}</div>
+        </div>
+        <div>
+          <div class="h-metric-label">Vehicle Category</div>
+          <div class="h-metric-val">{{ inquiry.vehicle_type.name|default:"AC Outstation Vehicle" }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Sections -->
+    <div class="content-grid">
+      
+      <!-- Vehicle & Chauffeur Privileges -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-van-shuttle" style="color: var(--primary);"></i>
+          Assigned Fleet Category & Chauffeur Privileges
+        </h2>
+        
+        <div class="vehicle-box">
+          <div class="vehicle-icon-wrap">
+            <i class="fa-solid fa-car-side"></i>
+          </div>
+          <div class="vehicle-info">
+            <h4>{{ inquiry.vehicle_type.name|default:"Luxury Toyota Innova Crysta / Outstation MPV" }}</h4>
+            <p>100% guaranteed private allocation. Vehicle will remain exclusively with your family throughout the tour.</p>
+            <div class="feature-tags">
+              <span class="feature-tag"><i class="fa-solid fa-snowflake"></i> Dual-Zone Climate Control</span>
+              <span class="feature-tag"><i class="fa-solid fa-plug"></i> USB Mobile Charging Ports</span>
+              <span class="feature-tag"><i class="fa-solid fa-suitcase"></i> Luggage Roof Carrier</span>
+              <span class="feature-tag"><i class="fa-solid fa-satellite"></i> Live GPS Telematics</span>
+              <span class="feature-tag"><i class="fa-solid fa-user-shield"></i> Hill Ghat Chauffeur Expert</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- All-Inclusive Privileges -->
+      <section class="card">
+        <h2 class="card-title">
+          <i class="fa-solid fa-shield-halved" style="color: var(--accent);"></i>
+          Transparent Trip Inclusions
+        </h2>
+        
+        <div class="inclusions-grid">
+          <div class="inc-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>All vehicle diesel fuel & running mileage</span>
+          </div>
+          <div class="inc-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>National Highway FASTag toll charges</span>
+          </div>
+          <div class="inc-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Senior Chauffeur duty allowance & daily food bata</span>
+          </div>
+          <div class="inc-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Interstate green tax & RTO tourist permits</span>
+          </div>
+          <div class="inc-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Doorstep pickup from {{ inquiry.pickup_location }}</span>
+          </div>
+          <div class="inc-item">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>24x7 Operations Command Center live monitoring</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Commercial Investment & Instant Confirmation -->
+      <section class="investment-box">
+        <h2 class="card-title" style="color: #065f46;">
+          <i class="fa-solid fa-receipt"></i> Commercial Investment Summary
+        </h2>
+
+        <div class="fare-row">
+          <span>Agreed Total Tour Package Fare</span>
+          <span style="font-weight: 700;">₹{{ deal_val|floatformat:0 }}</span>
+        </div>
+        <div class="fare-row">
+          <span>Fleet Lock-in Advance Token Deposit (Refundable per policy)</span>
+          <span style="font-weight: 700; color: var(--accent);">₹{{ advance_amount|floatformat:0 }}</span>
+        </div>
+        <div class="fare-row">
+          <span>Balance Payable Directly to Chauffeur on Boarding</span>
+          <span style="font-weight: 700;">₹{{ balance_amount|floatformat:0 }}</span>
+        </div>
+        <div class="fare-row total">
+          <span>Net Commercial Agreed</span>
+          <span>₹{{ deal_val|floatformat:0 }}</span>
+        </div>
+
+        {% if is_paid %}
+          <!-- Already Confirmed -->
+          <div class="success-banner">
+            <i class="fa-solid fa-circle-check"></i>
+            <h3 style="font-size: 20px; font-weight: 800; color: #065f46;">Expedition Confirmed & Fleet Staged!</h3>
+            <p style="font-size: 14px; color: #334155; margin-top: 6px;">
+              Your advance token has been verified. <strong>Trip #{{ inquiry.converted_trip.trip_id|default:inquiry.inquiry_number }}</strong> is active on our dispatch roster.
+            </p>
+          </div>
+        {% else %}
+          <!-- Instant UPI Token Advance Trigger -->
+          <div class="advance-box">
+            <div class="advance-tag">Instant Fleet Lock-In</div>
+            <h3 style="font-size: 18px; font-weight: 800; color: #0f172a;">Confirm Your Vehicle With Advance Token</h3>
+            <p style="font-size: 13px; color: var(--text-muted); max-width: 440px;">
+              Lock in your vehicle and assigned chauffeur by paying a token advance of <strong>₹{{ advance_amount|floatformat:0 }}</strong> via UPI.
+            </p>
+
+            <button type="button" class="btn-pay" id="btnPayUPI" onclick="confirmUPIAdvance()">
+              <i class="fa-solid fa-bolt"></i> Pay ₹{{ advance_amount|floatformat:0 }} via UPI & Lock In Vehicle
+            </button>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+              Supports Google Pay • PhonePe • Paytm • BHIM • Net Banking
+            </div>
+          </div>
+        {% endif %}
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 Sivagayathiri Tours and Travels. Headquarters: 123 Main Road, Gandhipuram, Coimbatore, Tamil Nadu 641012.</p>
+    <p>GSTIN: 33AABCS1234F1Z8 • 24x7 Operations Support: +91 98425 33777</p>
+  </footer>
+
+  <script>
+    async function confirmUPIAdvance() {
+      const btn = document.getElementById('btnPayUPI');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authorizing UPI Switch...';
+
+      try {
+        const res = await fetch('/quote/{{ inquiry.proposal_token }}/confirm/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: {{ advance_amount }} })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> Payment Confirmed!';
+          btn.style.background = '#059669';
+          setTimeout(() => {
+            window.location.reload();
+          }, 1200);
+        } else {
+          alert('Error processing advance: ' + data.message);
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Pay ₹{{ advance_amount|floatformat:0 }} via UPI';
+        }
+      } catch (e) {
+        alert('Network exception: ' + e.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Pay ₹{{ advance_amount|floatformat:0 }} via UPI';
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lead Management CRM — Drag & Drop Kanban Pipeline | TravelERP</title>
+  <title>CRM Revenue Pipeline 3.0 — Multi-Modal Drag & Drop Hub | TravelERP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
   <script>
     (function() {
@@ -25,23 +26,6 @@
 
   <style>
     :root {
-      --bg: #090d16;
-      --card-bg: rgba(22, 28, 45, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --primary: #6366f1;
-      --primary-hover: #4f46e5;
-      --accent: #10b981;
-      --accent-glow: rgba(16, 185, 129, 0.25);
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --info: #0ea5e9;
-      --purple: #a855f7;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-    }
-
-    /* Light Mode Customizations */
-    html:not(.dark), html.light-mode, body.light-mode {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --card-border: #e2e8f0;
@@ -57,401 +41,225 @@
       --text-muted: #64748b;
     }
 
-    html:not(.dark) body, html.light-mode body, body.light-mode {
-      background: var(--bg);
-      color: var(--text);
-    }
-    html:not(.dark) .top-bar, html.light-mode .top-bar, body.light-mode .top-bar {
-      background: rgba(255, 255, 255, 0.95);
-      border-bottom-color: #e2e8f0;
-    }
-    html:not(.dark) .back-btn, html.light-mode .back-btn, body.light-mode .back-btn {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-      color: #334155;
-    }
-    html:not(.dark) .back-btn:hover, html.light-mode .back-btn:hover, body.light-mode .back-btn:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-    html:not(.dark) .studio-title, html.light-mode .studio-title, body.light-mode .studio-title {
-      color: #0f172a;
-    }
-    html:not(.dark) .btn-outline, html.light-mode .btn-outline, body.light-mode .btn-outline {
-      background: #ffffff;
-      border-color: #cbd5e1;
-      color: #1e293b;
-    }
-    html:not(.dark) .btn-outline:hover, html.light-mode .btn-outline:hover, body.light-mode .btn-outline:hover {
-      background: #f1f5f9;
-      border-color: #94a3b8;
-    }
-    html:not(.dark) .view-toggle, html.light-mode .view-toggle, body.light-mode .view-toggle {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-    }
-    html:not(.dark) .view-toggle-btn, html.light-mode .view-toggle-btn, body.light-mode .view-toggle-btn {
-      color: #475569;
-    }
-    html:not(.dark) .kpi-card, html.light-mode .kpi-card, body.light-mode .kpi-card {
-      background: #ffffff;
-      border-color: #e2e8f0;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-    }
-    html:not(.dark) .kpi-meta .kpi-num, html.light-mode .kpi-meta .kpi-num, body.light-mode .kpi-meta .kpi-num {
-      color: #0f172a;
-    }
-    html:not(.dark) .filter-bar, html.light-mode .filter-bar, body.light-mode .filter-bar {
-      background: #ffffff;
-      border-color: #e2e8f0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-    }
-    html:not(.dark) .filter-select, html:not(.dark) .search-input,
-    html.light-mode .filter-select, html.light-mode .search-input,
-    body.light-mode .filter-select, body.light-mode .search-input {
-      background: #ffffff;
-      border-color: #cbd5e1;
-      color: #0f172a;
-    }
-    html:not(.dark) .kanban-col, html.light-mode .kanban-col, body.light-mode .kanban-col {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
-    }
-    html:not(.dark) .col-header, html.light-mode .col-header, body.light-mode .col-header {
-      background: #e2e8f0;
-      border-bottom-color: #cbd5e1;
-    }
-    html:not(.dark) .col-title, html.light-mode .col-title, body.light-mode .col-title {
-      color: #0f172a;
-    }
-    html:not(.dark) .col-count-badge, html.light-mode .col-count-badge, body.light-mode .col-count-badge {
-      background: #ffffff;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-    }
-    html:not(.dark) .kanban-card, html.light-mode .kanban-card, body.light-mode .kanban-card {
-      background: #ffffff;
-      border-color: #cbd5e1;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    }
-    html:not(.dark) .kanban-card:hover, html.light-mode .kanban-card:hover, body.light-mode .kanban-card:hover {
-      border-color: #94a3b8;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    }
-    html:not(.dark) .card-guest-name, html.light-mode .card-guest-name, body.light-mode .card-guest-name {
-      color: #0f172a;
-    }
-    html:not(.dark) .card-route-box, html.light-mode .card-route-box, body.light-mode .card-route-box {
-      background: #f8fafc;
-      border-color: #e2e8f0;
-    }
-    html:not(.dark) .card-circuit, html.light-mode .card-circuit, body.light-mode .card-circuit {
-      color: #0f172a;
-    }
-    html:not(.dark) .card-btn, html.light-mode .card-btn, body.light-mode .card-btn {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-      color: #334155;
-    }
-    html:not(.dark) .card-btn:hover, html.light-mode .card-btn:hover, body.light-mode .card-btn:hover {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-    html:not(.dark) .card-source-badge, html.light-mode .card-source-badge, body.light-mode .card-source-badge {
-      background: #f1f5f9;
-      color: #475569;
-    }
-    html:not(.dark) .modal-box, html.light-mode .modal-box, body.light-mode .modal-box {
-      background: #ffffff !important;
-      color: #0f172a !important;
-      border: 1px solid #cbd5e1 !important;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
-    }
-    html:not(.dark) .modal-box h3, html.light-mode .modal-box h3, body.light-mode .modal-box h3 {
-      color: #0f172a !important;
-    }
-    html:not(.dark) .form-input, html:not(.dark) .form-select, html:not(.dark) .form-textarea,
-    html.light-mode .form-input, html.light-mode .form-select, html.light-mode .form-textarea,
-    body.light-mode .form-input, body.light-mode .form-select, body.light-mode .form-textarea {
-      background: #ffffff !important;
-      border-color: #cbd5e1 !important;
-      color: #0f172a !important;
-    }
-    html:not(.dark) #toast, html.light-mode #toast, body.light-mode #toast {
-      background: #ffffff;
-      color: #0f172a;
-      border-color: #cbd5e1;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
     }
 
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding-bottom: 50px;
-      overflow-x: auto;
+      overflow-x: hidden;
     }
 
-    /* Ambient background glows */
-    .ambient-glow {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(140px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .glow-1 { top: -100px; left: -100px; width: 500px; height: 500px; background: rgba(99, 102, 241, 0.15); }
-    .glow-2 { bottom: -100px; right: -100px; width: 550px; height: 550px; background: rgba(16, 185, 129, 0.12); }
-
-    /* Top Sticky Navigation Bar */
+    /* Top Navigation Bar */
     .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(9, 13, 22, 0.9);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--card-border);
-      padding: 14px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .brand-section {
+    .top-left, .top-right {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
     .back-btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
+      gap: 6px;
+      padding: 7px 12px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      text-decoration: none;
+      color: #334155;
       font-size: 13px;
-      font-weight: 600;
-      transition: all 0.2s;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.15s;
     }
-    .back-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
-
+    .back-btn:hover { background: #e2e8f0; color: #0f172a; }
     .studio-title {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      color: var(--text);
     }
-    .studio-badge {
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #818cf8;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+    .version-tag {
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
     }
 
-    /* View Mode Switcher Toggle */
-    .view-toggle {
-      display: inline-flex;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--card-border);
+    /* View Mode Switcher Pills */
+    .view-mode-pills {
+      display: flex;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       border-radius: 10px;
       padding: 3px;
-      gap: 4px;
+      gap: 3px;
     }
-    .view-toggle-btn {
-      padding: 6px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-decoration: none;
+    .view-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
+      padding: 6px 14px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-decoration: none;
+      transition: all 0.15s;
     }
-    .view-toggle-btn.active {
-      background: var(--primary);
-      color: #fff;
-      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+    .view-pill:hover { color: #0f172a; }
+    .view-pill.active {
+      background: #ffffff;
+      color: #4f46e5;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     }
 
-    .action-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    /* Action Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 9px 16px;
+      gap: 6px;
+      padding: 7px 14px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.2s ease;
-      border: none;
-      outline: none;
+      border: 1px solid transparent;
+      transition: all 0.15s;
     }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-      color: white;
-      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
-    }
-    .btn-primary:hover { transform: translateY(-1px); }
-    .btn-emerald {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      box-shadow: 0 4px 14px var(--accent-glow);
-    }
-    .btn-emerald:hover { transform: translateY(-1px); }
-    .btn-outline {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-    }
-    .btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
-
-    /* Main Container */
-    .kanban-container {
-      max-width: 1720px;
-      margin: 20px auto;
-      padding: 0 24px;
-      position: relative;
-      z-index: 10;
-    }
+    .btn-primary { background: #4f46e5; color: #ffffff; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-emerald { background: #059669; color: #ffffff; }
+    .btn-emerald:hover { background: #047857; }
+    .btn-outline { background: #ffffff; border-color: #cbd5e1; color: #1e293b; }
+    .btn-outline:hover { background: #f1f5f9; border-color: #94a3b8; }
 
     /* KPI Summary Row */
-    .kpi-grid {
+    .kpi-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 14px;
-      margin-bottom: 20px;
+      padding: 16px 24px;
     }
     .kpi-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 14px;
-      padding: 16px 18px;
-      backdrop-filter: blur(12px);
+      padding: 14px 18px;
       display: flex;
       align-items: center;
       gap: 14px;
-      transition: all 0.2s;
-    }
-    .kpi-card:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
     .kpi-icon {
       width: 44px;
       height: 44px;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 20px;
+      flex-shrink: 0;
     }
     .kpi-meta h3 {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
       font-weight: 700;
-      margin-bottom: 4px;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
     }
     .kpi-meta .kpi-num {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
-      letter-spacing: -0.02em;
+      margin-top: 2px;
+      color: var(--text);
     }
 
     /* Filter Strip */
     .filter-bar {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 12px 18px;
-      margin-bottom: 22px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 10px 24px;
+      margin: 0 24px 16px 24px;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
       gap: 12px;
       flex-wrap: wrap;
     }
     .filter-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .filter-select, .search-input {
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
-      padding: 7px 12px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: var(--text);
+      padding: 6px 12px;
       border-radius: 8px;
       font-size: 12px;
       outline: none;
-      font-family: inherit;
+      font-weight: 600;
     }
-    .filter-select:focus, .search-input:focus {
-      border-color: var(--primary);
-    }
-    .search-input {
-      width: 240px;
-    }
+    .filter-select:focus, .search-input:focus { border-color: #4f46e5; }
+    .search-input { width: 260px; }
 
-    /* Kanban Board Columns Container */
+    /* Board Grid */
+    .board-container {
+      padding: 0 24px 60px 24px;
+    }
     .board-grid {
       display: grid;
       grid-template-columns: repeat(6, minmax(280px, 1fr));
       gap: 16px;
-      align-items: start;
       overflow-x: auto;
-      padding-bottom: 20px;
+      padding-bottom: 24px;
     }
-
-    /* Single Kanban Column */
     .kanban-col {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid var(--card-border);
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
       border-radius: 14px;
       display: flex;
       flex-direction: column;
-      max-height: calc(100vh - 270px);
-      transition: all 0.2s;
+      max-height: calc(100vh - 240px);
+      transition: background 0.15s;
     }
     .kanban-col.drag-over {
-      border-color: var(--primary);
-      background: rgba(99, 102, 241, 0.08);
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+      background: #e0e7ff;
+      border-color: #6366f1;
     }
-
     .col-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--card-border);
+      padding: 12px 14px;
+      border-bottom: 1px solid #cbd5e1;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      background: rgba(15, 23, 42, 0.95);
+      background: rgba(255, 255, 255, 0.7);
       border-radius: 14px 14px 0 0;
-      z-index: 5;
     }
     .col-title-wrap {
       display: flex;
@@ -461,387 +269,807 @@
     .col-title {
       font-size: 13px;
       font-weight: 800;
-      letter-spacing: -0.01em;
+      color: #1e293b;
     }
     .col-count-badge {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 1px 7px;
+      border-radius: 99px;
       font-size: 11px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+      font-weight: 800;
+      color: #475569;
     }
     .col-sum {
       font-size: 12px;
       font-weight: 800;
-      color: #34d399;
-      letter-spacing: -0.01em;
+      color: #059669;
     }
-
     .cards-zone {
-      padding: 12px;
+      padding: 10px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      min-height: 150px;
+      gap: 10px;
+      flex: 1;
     }
 
-    /* Draggable Kanban Card */
+    /* Cards */
     .kanban-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      backdrop-filter: blur(8px);
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
       cursor: grab;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
-      user-select: none;
+      transition: all 0.15s ease;
     }
     .kanban-card:hover {
-      border-color: rgba(255, 255, 255, 0.25);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-    }
-    .kanban-card:active {
-      cursor: grabbing;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
     }
     .kanban-card.dragging {
-      opacity: 0.45;
-      transform: scale(0.97);
-      border-style: dashed;
-      border-color: var(--primary);
+      opacity: 0.4;
+      transform: scale(0.98);
     }
-
-    /* Priority Indicator Strip */
-    .priority-strip-urgent { border-left: 4px solid var(--danger); }
-    .priority-strip-high { border-left: 4px solid var(--warning); }
-    .priority-strip-medium { border-left: 4px solid var(--primary); }
-    .priority-strip-low { border-left: 4px solid #64748b; }
-
+    .kanban-card.keyboard-active {
+      outline: 2.5px solid #4f46e5 !important;
+      outline-offset: 2px !important;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25) !important;
+    }
     .card-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+    }
+    .card-left-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-checkbox {
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+      accent-color: #4f46e5;
     }
     .card-inq-id {
-      font-family: monospace;
-      font-size: 11px;
-      font-weight: 700;
-      color: #818cf8;
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.04em;
+    }
+    .card-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
     }
     .card-source-badge {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       padding: 2px 6px;
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #cbd5e1;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Scarcity, Margin & AI Pills */
+    .scarcity-pill {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .scarcity-available { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .scarcity-tight { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .scarcity-soldout { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    .margin-pill {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .win-prob-pill {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #faf5ff;
+      color: #7e22ce;
+      border: 1px solid #e9d5ff;
+    }
+    .ghost-pill {
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      cursor: pointer;
     }
 
     .card-guest-name {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
-      color: #fff;
-      margin-bottom: 4px;
+      color: #0f172a;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
     }
     .card-phone {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
-    .card-phone a {
-      color: var(--text-muted);
-      text-decoration: none;
-    }
-    .card-phone a:hover { color: #38bdf8; }
+    .card-phone a { color: inherit; text-decoration: none; }
+    .card-phone a:hover { color: #4f46e5; text-decoration: underline; }
 
     .card-route-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 8px 10px;
-      margin-bottom: 10px;
-      font-size: 11px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 7px 9px;
+      border-radius: 7px;
+      margin-bottom: 8px;
     }
     .card-circuit {
+      font-size: 11px;
       font-weight: 700;
-      color: #e2e8f0;
-      margin-bottom: 4px;
+      color: #1e293b;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .card-details-sub {
-      color: var(--text-muted);
       display: flex;
-      justify-content: space-between;
+      gap: 8px;
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
     }
 
     .card-bottom-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      margin-top: 6px;
     }
     .card-deal-val {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 800;
-      color: #34d399;
+      color: #0f172a;
     }
 
-    .card-tat-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    .tat-alert-breached { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .tat-alert-ok { background: rgba(16, 185, 129, 0.12); color: #34d399; }
-
-    /* Action bar on cards */
+    /* Actions Strip */
     .card-actions {
       display: flex;
-      gap: 6px;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      gap: 4px;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed #e2e8f0;
     }
     .card-btn {
       flex: 1;
-      padding: 5px 8px;
-      border-radius: 6px;
-      font-size: 11px;
+      padding: 4px 6px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 10px;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
+      color: #334155;
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
       transition: all 0.15s;
     }
-    .card-btn:hover {
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
+    .card-btn:hover { background: #e2e8f0; color: #0f172a; }
+    .card-btn.wa { color: #15803d; background: #dcfce7; border-color: #bbf7d0; }
+    .card-btn.wa:hover { background: #bbf7d0; }
+    .card-btn.won { color: #047857; background: #ecfdf5; border-color: #a7f3d0; }
+    .card-btn.prop { color: #4338ca; background: #e0e7ff; border-color: #c7d2fe; }
+
+    /* Swimlanes View */
+    .swimlane-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0 24px 60px 24px;
     }
-    .card-btn.wa:hover {
-      background: #25d366;
-      color: #064e3b;
-      border-color: #25d366;
+    .swimlane-row {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
-    .card-btn.won:hover {
-      background: #10b981;
-      color: #fff;
-      border-color: #10b981;
+    .swimlane-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+    }
+    .swimlane-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .swimlane-subtitle {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .swimlane-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+    .swimlane-col-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+      min-height: 120px;
+    }
+    .swimlane-col-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #475569;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
     }
 
-    /* Modal dialog styling */
+    /* Gantt Departures View */
+    .gantt-container {
+      padding: 0 24px 60px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .gantt-bucket {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .gantt-bucket-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gantt-cards-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    /* Circuit Map View */
+    .map-container {
+      padding: 0 24px 60px 24px;
+    }
+    .map-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .map-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .map-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .map-pin-badge {
+      background: #e0e7ff;
+      color: #4338ca;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+    .map-presets {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .preset-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 5px 11px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .preset-btn.active {
+      background: #4f46e5;
+      color: white;
+      border-color: #4338ca;
+    }
+    #circuitMap {
+      width: 100%;
+      height: 640px;
+      border-radius: 16px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Slide-out Omnichannel Chat Drawer */
+    .chat-drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      height: 100vh;
+      background: #ffffff;
+      border-left: 1px solid #cbd5e1;
+      box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .chat-drawer.open { right: 0; }
+    .chat-drawer-header {
+      padding: 16px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+    }
+    .chat-drawer-title h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .chat-drawer-title p {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .chat-drawer-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #64748b;
+    }
+    .chat-timeline {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f8fafc;
+    }
+    .chat-msg {
+      max-width: 82%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .chat-msg.customer {
+      align-self: flex-start;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+    }
+    .chat-msg.agent {
+      align-self: flex-end;
+      background: #dcfce7;
+      color: #064e3b;
+      border: 1px solid #bbf7d0;
+    }
+    .chat-msg.bot {
+      align-self: center;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 11px;
+      border: 1px solid #c7d2fe;
+      text-align: center;
+    }
+    .chat-time {
+      font-size: 9px;
+      opacity: 0.7;
+      margin-top: 3px;
+      display: block;
+    }
+    .quick-templates-strip {
+      padding: 8px 12px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      border-top: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    .template-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 99px;
+      white-space: nowrap;
+      cursor: pointer;
+      color: #334155;
+    }
+    .template-pill:hover { background: #e2e8f0; }
+    .chat-input-box {
+      padding: 12px;
+      border-top: 1px solid #e2e8f0;
+      background: #ffffff;
+      display: flex;
+      gap: 8px;
+    }
+    .chat-input {
+      flex: 1;
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+    }
+    .chat-input:focus { border-color: #4f46e5; }
+    .btn-send-wa {
+      background: #15803d;
+      color: white;
+      border: none;
+      padding: 0 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* Floating Bulk Actions Bar */
+    .bulk-action-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0f172a;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 99px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      z-index: 80;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bulk-action-bar.visible { transform: translateX(-50%) translateY(0); }
+    .bulk-badge {
+      background: #4f46e5;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Command Palette Modal */
+    .palette-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 120;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 100px;
+    }
+    .palette-box {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 540px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+    .palette-input-wrap {
+      padding: 14px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .palette-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .palette-list {
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .palette-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #334155;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .palette-item:hover { background: #f1f5f9; color: #4f46e5; }
+    .palette-key {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      color: #475569;
+    }
+
+    /* Standard Modals */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 110;
       display: none;
-      place-items: center;
-      z-index: 1000;
-      padding: 20px;
+      align-items: center;
+      justify-content: center;
     }
     .modal-box {
-      background: #0f172a;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
       width: 100%;
-      max-width: 520px;
+      max-width: 480px;
       padding: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     }
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
-    .modal-title {
-      font-size: 16px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .modal-close {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-    }
+    .modal-title { font-size: 16px; font-weight: 800; color: #0f172a; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 4px; }
     .form-input, .form-select, .form-textarea {
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #fff;
-      padding: 10px 14px;
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
       font-size: 13px;
-      font-family: inherit;
       outline: none;
+      color: #0f172a;
     }
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: var(--primary);
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    /* Live Sync Pill */
+    .live-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      border-radius: 9999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-left: 10px;
+      transition: all 0.2s ease;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
 
-    /* Toast */
-    #toast {
+    /* Toast Notification System */
+    .toast-container {
       position: fixed;
       bottom: 24px;
       right: 24px;
-      background: #1e293b;
-      color: #fff;
-      padding: 14px 22px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      font-weight: 700;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast-message {
+      pointer-events: auto;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 8px;
       font-size: 13px;
-      display: none;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      display: flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      z-index: 2000;
+      animation: slide-up 0.25s ease-out;
+      border-left: 4px solid #4f46e5;
     }
-    #toast.success { border-color: var(--accent); color: #34d399; }
-    #toast.error { border-color: var(--danger); color: #f87171; }
+    .toast-message.success { border-left-color: #10b981; }
+    .toast-message.error { border-left-color: #ef4444; }
+    @keyframes slide-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
-<body class="light-mode">
-  <div class="ambient-glow glow-1"></div>
-  <div class="ambient-glow glow-2"></div>
+<body>
 
-  <!-- Top Sticky Navigation Bar -->
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Top Navigation Bar -->
   <header class="top-bar">
-    <div class="brand-section">
-      <a href="{% url 'admin:index' %}" class="back-btn">
-        <i class="fa-solid fa-arrow-left"></i> ERP Admin
-      </a>
+    <div class="top-left">
+      <a href="/admin/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> ERP Admin</a>
       <div class="studio-title">
-        <i class="fa-solid fa-layer-group" style="color: #6366f1;"></i>
+        <i class="fa-solid fa-layer-group" style="color: #4f46e5;"></i>
         <span>Lead Management CRM Pipeline</span>
-        <span class="studio-badge">Phase 6 Live</span>
+        <span class="version-tag">KANBAN 3.0</span>
       </div>
-
-      <!-- View Switcher -->
-      <div class="view-toggle">
-        <a href="{% url 'crm:kanban_board' %}" class="view-toggle-btn active">
-          <i class="fa-solid fa-table-columns"></i> Kanban Board
-        </a>
-        <a href="{% url 'crm:inquiry_pipeline' %}" class="view-toggle-btn">
-          <i class="fa-solid fa-list-check"></i> Tabular List
-        </a>
+      <div class="live-status-pill" id="liveSyncStatus" title="Real-time synchronization active">
+        <span class="live-dot"></span> Live
       </div>
     </div>
 
-    <div class="action-group">
-      <button type="button" class="btn btn-outline" id="btnThemeToggle" title="Toggle Theme (Light / Dark)" style="padding: 9px 13px;">
-        <i class="fa-solid fa-sun" id="themeIcon"></i>
-      </button>
-      <button type="button" class="btn btn-emerald" id="btnOpenNewLead">
-        <i class="fa-solid fa-circle-plus"></i> + Log Inquiry
-      </button>
-      <a href="{% url 'crm:quotation_create' %}" class="btn btn-primary" target="_blank">
-        <i class="fa-solid fa-file-invoice"></i> + New Quotation
+    <!-- Multi-Modal View Switcher -->
+    <div class="view-mode-pills">
+      <a href="?view_mode=board" class="view-pill {% if view_mode == 'board' %}active{% endif %}">
+        <i class="fa-solid fa-table-columns"></i> Board
       </a>
-      <a href="/admin/crm/inquiry/" class="btn btn-outline" target="_blank">
-        <i class="fa-solid fa-sliders"></i> Admin Records
+      <a href="?view_mode=swimlanes&swimlane_by={{ swimlane_by }}" class="view-pill {% if view_mode == 'swimlanes' %}active{% endif %}">
+        <i class="fa-solid fa-bars-staggered"></i> Swimlanes
+      </a>
+      <a href="?view_mode=gantt" class="view-pill {% if view_mode == 'gantt' %}active{% endif %}">
+        <i class="fa-solid fa-calendar-days"></i> Departures
+      </a>
+      <a href="?view_mode=map" class="view-pill {% if view_mode == 'map' %}active{% endif %}">
+        <i class="fa-solid fa-map-location-dot"></i> Circuit Map
+      </a>
+    </div>
+
+    <div class="top-right">
+      <button type="button" class="btn btn-outline" onclick="openCommandPalette()" title="Press Ctrl+K">
+        <i class="fa-solid fa-terminal"></i> <span style="font-size: 11px; opacity: 0.7;">Ctrl+K</span>
+      </button>
+      <a href="/admin/crm/inquiry/add/" target="_blank" class="btn btn-emerald">
+        <i class="fa-solid fa-plus"></i> Log Inquiry
       </a>
     </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="kanban-container">
-    <!-- KPI Row -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
-          <i class="fa-solid fa-coins"></i>
-        </div>
-        <div class="kpi-meta">
-          <h3>Total Pipeline Value</h3>
-          <div class="kpi-num" style="color: #818cf8;">₹{{ total_pipeline_value|floatformat:0 }}</div>
-        </div>
+  <!-- KPI Metrics Strip -->
+  <section class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: rgba(79, 70, 229, 0.12); color: #4f46e5;">
+        <i class="fa-solid fa-coins"></i>
       </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
-          <i class="fa-solid fa-fire"></i>
-        </div>
-        <div class="kpi-meta">
-          <h3>Active Leads in Flight</h3>
-          <div class="kpi-num" style="color: #38bdf8;">{{ active_leads_count }}</div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
-          <i class="fa-solid fa-trophy"></i>
-        </div>
-        <div class="kpi-meta">
-          <h3>Converted (Won) Deals</h3>
-          <div class="kpi-num" style="color: #34d399;">{{ won_leads_count }}</div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
-          <i class="fa-solid fa-chart-pie"></i>
-        </div>
-        <div class="kpi-meta">
-          <h3>Conversion Win Rate</h3>
-          <div class="kpi-num" style="color: #c084fc;">{{ win_rate }}%</div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <div class="kpi-meta">
-          <h3>SLA Overdue Alerts</h3>
-          <div class="kpi-num" style="color: {% if overdue_count > 0 %}#f87171{% else %}#34d399{% endif %};">
-            {{ overdue_count }}
-          </div>
-        </div>
+      <div class="kpi-meta">
+        <h3>Total Pipeline Value</h3>
+        <div class="kpi-num" style="color: #4f46e5;">₹{{ total_pipeline_value|floatformat:0 }}</div>
       </div>
     </div>
 
-    <!-- Filter Strip -->
-    <div class="filter-bar">
-      <form method="GET" class="filter-left" id="filterForm">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">
+        <i class="fa-solid fa-fire"></i>
+      </div>
+      <div class="kpi-meta">
+        <h3>Active In Flight</h3>
+        <div class="kpi-num" style="color: #0284c7;">{{ active_leads_count }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: rgba(5, 150, 105, 0.12); color: #059669;">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <div class="kpi-meta">
+        <h3>Won (Converted)</h3>
+        <div class="kpi-num" style="color: #059669;">{{ won_leads_count }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: rgba(147, 51, 234, 0.12); color: #9333ea;">
+        <i class="fa-solid fa-chart-pie"></i>
+      </div>
+      <div class="kpi-meta">
+        <h3>Conversion Win Rate</h3>
+        <div class="kpi-num" style="color: #9333ea;">{{ win_rate }}%</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background: rgba(220, 38, 38, 0.12); color: #dc2626;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div class="kpi-meta">
+        <h3>SLA Overdue Alerts</h3>
+        <div class="kpi-num" style="color: {% if overdue_count > 0 %}#dc2626{% else %}#059669{% endif %};">
+          {{ overdue_count }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filter Strip -->
+  <section class="filter-bar">
+    <form method="GET" class="filter-left" id="filterForm" style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <input type="hidden" name="view_mode" value="{{ view_mode }}">
+        {% if view_mode == 'swimlanes' %}
+          <select name="swimlane_by" class="filter-select" onchange="this.form.submit()">
+            <option value="specialist" {% if swimlane_by == 'specialist' %}selected{% endif %}>🏊 Swimlane: By Specialist</option>
+            <option value="vertical" {% if swimlane_by == 'vertical' %}selected{% endif %}>🏷️ Swimlane: By Travel Vertical</option>
+          </select>
+        {% endif %}
+
         <select name="assigned_to" class="filter-select" onchange="this.form.submit()">
           <option value="">-- All Specialists --</option>
           {% for spec in specialists %}
@@ -864,17 +1092,22 @@
         </select>
 
         {% if selected_specialist or selected_priority or selected_source or search_query %}
-          <a href="?" class="btn btn-outline" style="padding: 5px 10px; font-size: 11px;">Reset</a>
+          <a href="?view_mode={{ view_mode }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;">Reset Filters</a>
         {% endif %}
-      </form>
+      </div>
 
-      <form method="GET" style="display: flex; gap: 8px;">
-        <input type="text" name="q" class="search-input" value="{{ search_query }}" placeholder="Search guest, phone, destination...">
-        <button type="submit" class="btn btn-primary" style="padding: 7px 12px; font-size: 12px;">Search</button>
-      </form>
-    </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="text" name="q" id="lead-search" class="search-input" value="{{ search_query }}" placeholder="Filter cards live or search..." oninput="handleInstantCardSearch(this.value)">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+      </div>
+    </form>
+  </section>
 
-    <!-- Drag-and-Drop Kanban Board Grid -->
+  <!-- ===================================================================== -->
+  <!-- VIEW MODE 1: STANDARD KANBAN BOARD -->
+  <!-- ===================================================================== -->
+  {% if view_mode == 'board' %}
+  <main class="board-container">
     <div class="board-grid">
       {% for col in columns %}
       <div class="kanban-col" data-stage="{{ col.key }}" id="col-{{ col.key }}"
@@ -891,21 +1124,27 @@
 
         <div class="cards-zone" id="zone-{{ col.key }}">
           {% for inq in col.inquiries %}
-          <div class="kanban-card priority-strip-{{ inq.priority }}" 
-               id="card-{{ inq.id }}" 
-               draggable="true" 
-               ondragstart="handleDragStart(event, '{{ inq.id }}')"
-               ondragend="handleDragEnd(event)">
-
+          <div class="kanban-card" id="card-{{ inq.id }}" draggable="true"
+               ondragstart="handleDragStart(event, '{{ inq.id }}')" ondragend="handleDragEnd(event)">
+            
             <div class="card-top">
-              <span class="card-inq-id">{{ inq.inquiry_number }}</span>
-              <span class="card-source-badge">{{ inq.get_source_display }}</span>
+              <div class="card-left-meta">
+                <input type="checkbox" class="card-checkbox" value="{{ inq.id }}" onchange="handleCardCheck(this)">
+                <span class="card-inq-id">{{ inq.inquiry_number }}</span>
+              </div>
+              <div class="card-badges-row">
+                <span class="scarcity-pill {{ inq.scarcity_status.badge_class }}">{{ inq.scarcity_status.label }}</span>
+                <span class="win-prob-pill">✨ {{ inq.ai_win_probability }}%</span>
+                {% if inq.is_ghosted %}
+                  <span class="ghost-pill" onclick="openTaraPitchModal('{{ inq.id }}')" title="Ghosting Detected: Click to generate auto-nudge">❄️ Stale</span>
+                {% endif %}
+              </div>
             </div>
 
             <div class="card-guest-name">
               <span>{{ inq.guest_name }}</span>
               {% if inq.priority == 'urgent' %}
-                <span style="font-size: 10px; color: #ef4444; font-weight: 800;">🔴 VIP</span>
+                <span style="font-size: 10px; color: #dc2626; font-weight: 800;">🔴 VIP</span>
               {% endif %}
             </div>
 
@@ -916,52 +1155,39 @@
 
             <div class="card-route-box">
               <div class="card-circuit" title="{{ inq.pickup_location }} ➔ {{ inq.destination }}">
-                <i class="fa-solid fa-location-dot" style="color: #38bdf8;"></i>
+                <i class="fa-solid fa-location-dot" style="color: #0284c7;"></i>
                 <span>{{ inq.pickup_location }} ➔ {{ inq.destination }}</span>
               </div>
               <div class="card-details-sub">
                 <span><i class="fa-solid fa-calendar-days"></i> {{ inq.pickup_date|date:"d M" }}</span>
-                <span><i class="fa-solid fa-users"></i> {{ inq.adult_count }}A {% if inq.child_count %}+ {{ inq.child_count }}C{% endif %}</span>
                 <span><i class="fa-solid fa-car"></i> {{ inq.vehicle_type.name|default:"AC Car" }}</span>
+                <span><i class="fa-solid fa-users"></i> {{ inq.adult_count }}A</span>
               </div>
             </div>
 
             <div class="card-bottom-row">
               <div class="card-deal-val">₹{{ inq.deal_value|floatformat:0 }}</div>
-              <div>
-                {% if inq.is_overdue %}
-                  <span class="card-tat-badge tat-alert-breached">🚨 SLA Breached</span>
-                {% elif inq.status == 'won' %}
-                  <span class="card-tat-badge tat-alert-ok">🏆 Won</span>
-                {% else %}
-                  <span class="card-tat-badge" style="background: rgba(255,255,255,0.06); color: #cbd5e1;">{{ inq.tat_remaining_hours|default:"24" }}h SLA</span>
-                {% endif %}
+              <div style="display: flex; gap: 4px; align-items: center;">
+                <span class="margin-pill">Margin: {{ inq.estimated_gross_margin }}%</span>
               </div>
             </div>
 
-            {% if inq.converted_trip %}
-              <div style="margin-top: 8px; font-size: 11px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 6px; padding: 4px 8px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: #34d399; font-weight: 700;"><i class="fa-solid fa-van-shuttle"></i> Trip #{{ inq.converted_trip.trip_id }}</span>
-                <a href="/admin/operations/trip/{{ inq.converted_trip.id }}/change/" target="_blank" style="color: #38bdf8; font-weight: 600; text-decoration: none;">View ➔</a>
-              </div>
-            {% endif %}
-
-            <!-- Hover Action Buttons -->
+            <!-- Action Strip -->
             <div class="card-actions">
-              <button type="button" class="card-btn wa" onclick="openWhatsAppModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}', '{{ inq.guest_phone }}')" title="1-Click WhatsApp Proposal">
-                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              <button type="button" class="card-btn wa" onclick="openChatDrawer('{{ inq.id }}', '{{ inq.guest_name|escapejs }}', '{{ inq.guest_phone }}')" title="Slide-Out WhatsApp Conversation">
+                <i class="fa-brands fa-whatsapp"></i> Chat
               </button>
-              <button type="button" class="card-btn" onclick="openFollowUpModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}')" title="Log Call / Interaction">
+              <button type="button" class="card-btn prop" onclick="openProposalModal('{{ inq.id }}')" title="Generate Digital Proposal">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Quote
+              </button>
+              <button type="button" class="card-btn" onclick="openFollowUpModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}')" title="Log Interaction">
                 <i class="fa-solid fa-phone"></i> Log
               </button>
               {% if inq.status != 'won' and not inq.converted_trip %}
-                <button type="button" class="card-btn won" onclick="openConvertModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}', '{{ inq.deal_value|floatformat:0 }}')" title="Convert to Confirmed Trip">
+                <button type="button" class="card-btn won" onclick="openConvertModal('{{ inq.id }}', '{{ inq.guest_name|escapejs }}', '{{ inq.deal_value|floatformat:0 }}')" title="Convert to Trip">
                   <i class="fa-solid fa-bolt"></i> Convert
                 </button>
               {% endif %}
-              <a href="/admin/crm/inquiry/{{ inq.id }}/change/" target="_blank" class="card-btn" style="text-decoration: none;" title="Open in Admin">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-              </a>
             </div>
 
           </div>
@@ -972,337 +1198,817 @@
       {% endfor %}
     </div>
   </main>
+  {% endif %}
 
-  <!-- Modal 1: Quick Interaction Follow-Up Log -->
-  <div class="modal-backdrop" id="followUpModal">
+  <!-- ===================================================================== -->
+  <!-- VIEW MODE 2: AGENT / VERTICAL SWIMLANES -->
+  <!-- ===================================================================== -->
+  {% if view_mode == 'swimlanes' %}
+  <main class="swimlane-container">
+    {% for lane in swimlanes %}
+    <div class="swimlane-row">
+      <div class="swimlane-header">
+        <div>
+          <h3 class="swimlane-title">{{ lane.title }}</h3>
+          <p class="swimlane-subtitle">{{ lane.subtitle }}</p>
+        </div>
+        <span class="col-count-badge">{{ lane.inquiries_count }} Leads</span>
+      </div>
+
+      <div class="swimlane-grid">
+        {% for col in lane.columns %}
+        <div class="swimlane-col-box">
+          <div class="swimlane-col-title">
+            <span>{{ col.title }}</span>
+            <span style="color: #059669;">₹{{ col.total_val|floatformat:0 }}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            {% for inq in col.inquiries %}
+              <div style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; font-size: 11px;">
+                <div style="font-weight: 700; color: #0f172a;">{{ inq.guest_name }} (₹{{ inq.deal_value|floatformat:0 }})</div>
+                <div style="color: #64748b; font-size: 10px;">{{ inq.destination }} • {{ inq.pickup_date|date:"d M" }}</div>
+              </div>
+            {% empty %}
+              <div style="font-size: 10px; color: #94a3b8; font-style: italic; text-align: center; padding: 12px 0;">Empty</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </main>
+  {% endif %}
+
+  <!-- ===================================================================== -->
+  <!-- VIEW MODE 3: DEPARTURE GANTT TIMELINE -->
+  <!-- ===================================================================== -->
+  {% if view_mode == 'gantt' %}
+  <main class="gantt-container">
+    {% for b in gantt_buckets %}
+    <div class="gantt-bucket">
+      <h3 class="gantt-bucket-title">
+        <i class="fa-solid fa-clock" style="color: #4f46e5;"></i>
+        <span>{{ b.label }}</span>
+        <span class="col-count-badge">{{ b.inquiries|length }} Trips</span>
+      </h3>
+      <div class="gantt-cards-row">
+        {% for inq in b.inquiries %}
+        <div style="background: white; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+            <span style="font-weight: 800; color: #4f46e5;">{{ inq.pickup_date|date:"D, d M Y" }}</span>
+            <span class="scarcity-pill {{ inq.scarcity_status.badge_class }}">{{ inq.scarcity_status.label }}</span>
+          </div>
+          <div style="font-size: 13px; font-weight: 800; color: #0f172a;">{{ inq.guest_name }}</div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 2px;">{{ inq.pickup_location }} ➔ {{ inq.destination }}</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; font-weight: 800;">
+            <span>₹{{ inq.deal_value|floatformat:0 }}</span>
+            <span style="font-size: 10px; color: #4338ca; background: #e0e7ff; padding: 2px 6px; border-radius: 4px;">{{ inq.get_status_display }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div style="color: #94a3b8; font-size: 12px; font-style: italic;">No scheduled departures in this window.</div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </main>
+  {% endif %}
+
+  <!-- ===================================================================== -->
+  <!-- VIEW MODE 4: FULL INDIA GEOGRAPHIC RADAR MAP -->
+  <!-- ===================================================================== -->
+  {% if view_mode == 'map' %}
+  <main class="map-container">
+    <div class="map-toolbar">
+      <div class="map-toolbar-left">
+        <span class="map-title"><i class="fa-solid fa-map-location-dot" style="color: #4f46e5;"></i> Full India Fleet & Circuit Radar</span>
+        <span class="map-pin-badge" id="mapPinBadge">Loading Leads...</span>
+      </div>
+      <div class="map-presets">
+        <button type="button" class="preset-btn active" onclick="zoomToRegion('all', this)">🇮🇳 All India</button>
+        <button type="button" class="preset-btn" onclick="zoomToRegion('south', this)">🌴 South Hub (TN, KL, KA)</button>
+        <button type="button" class="preset-btn" onclick="zoomToRegion('golden', this)">👑 Golden Triangle & West</button>
+        <button type="button" class="preset-btn" onclick="zoomToRegion('himalayas', this)">🏔️ North & Himalayas</button>
+        <button type="button" class="preset-btn" onclick="zoomToRegion('pilgrimage', this)">🛕 Temple Circuits</button>
+      </div>
+    </div>
+    <div id="circuitMap"></div>
+  </main>
+  {% endif %}
+
+  <!-- ===================================================================== -->
+  <!-- SLIDE-OUT OMNICHANNEL CHAT DRAWER -->
+  <!-- ===================================================================== -->
+  <aside class="chat-drawer" id="chatDrawer">
+    <div class="chat-drawer-header">
+      <div class="chat-drawer-title">
+        <h3 id="drawerGuestName">Guest Conversation</h3>
+        <p id="drawerPhone">+91-XXXXXXXXXX</p>
+      </div>
+      <button type="button" class="chat-drawer-close" onclick="closeChatDrawer()">&times;</button>
+    </div>
+
+    <!-- Live Messages Timeline -->
+    <div class="chat-timeline" id="drawerTimeline">
+      <div style="text-align: center; color: #94a3b8; font-size: 11px;">Loading messages...</div>
+    </div>
+
+    <!-- Quick Templates Strip -->
+    <div class="quick-templates-strip">
+      <button type="button" class="template-pill" onclick="insertTemplate('Quote Summary')">📋 Quote</button>
+      <button type="button" class="template-pill" onclick="insertTemplate('Hotel Choices')">🏨 Hotels</button>
+      <button type="button" class="template-pill" onclick="insertTemplate('Advance Token')">💳 Advance UPI</button>
+      <button type="button" class="template-pill" onclick="insertTemplate('Captain Assigned')">👨‍✈️ Driver</button>
+    </div>
+
+    <!-- Chat Input Box -->
+    <div class="chat-input-box">
+      <input type="text" class="chat-input" id="drawerInput" placeholder="Type WhatsApp message..." onkeydown="if(event.key==='Enter') sendDrawerMessage()">
+      <button type="button" class="btn-send-wa" onclick="sendDrawerMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- FLOATING BULK ACTIONS BAR -->
+  <!-- ===================================================================== -->
+  <div class="bulk-action-bar" id="bulkActionBar">
+    <span class="bulk-badge" id="bulkCountBadge">0 Selected</span>
+    
+    <select id="bulkReassignSelect" class="form-select" style="padding: 4px 8px; font-size: 12px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 6px;">
+      <option value="">Reassign To Specialist...</option>
+      {% for s in specialists %}
+        <option value="{{ s.id }}">{{ s.username }}</option>
+      {% endfor %}
+    </select>
+    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; background: white; color: black;" onclick="executeBulkAction('reassign')">Apply</button>
+
+    <select id="bulkStageSelect" class="form-select" style="padding: 4px 8px; font-size: 12px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 6px;">
+      <option value="">Move Stage...</option>
+      <option value="in_progress">Contacted</option>
+      <option value="quoted">Proposal Sent</option>
+      <option value="negotiating">Negotiating</option>
+      <option value="won">Won (Converted)</option>
+    </select>
+    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; background: white; color: black;" onclick="executeBulkAction('stage')">Move</button>
+
+    <button type="button" class="btn btn-emerald" style="padding: 4px 10px; font-size: 11px;" onclick="executeBulkAction('broadcast')"><i class="fa-brands fa-whatsapp"></i> Broadcast</button>
+    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; background: transparent; color: #94a3b8; border: none;" onclick="clearBulkSelection()">Cancel</button>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- COMMAND PALETTE MODAL (Ctrl+K) -->
+  <!-- ===================================================================== -->
+  <div class="palette-backdrop" id="commandPalette" onclick="if(event.target === this) closeModals()">
+    <div class="palette-box">
+      <div class="palette-input-wrap">
+        <i class="fa-solid fa-magnifying-glass" style="color: #64748b;"></i>
+        <input type="text" class="palette-input" id="paletteSearch" placeholder="Type a command or navigate (or press B, S, G, M, N)..." autofocus>
+        <span class="palette-key">ESC to close</span>
+      </div>
+      <div class="palette-list" id="paletteList">
+        <a href="?view_mode=board" class="palette-item" data-key="b">
+          <span><i class="fa-solid fa-table-columns" style="color: #4f46e5; margin-right: 8px;"></i> Switch to Board View</span>
+          <span class="palette-key">B</span>
+        </a>
+        <a href="?view_mode=swimlanes" class="palette-item" data-key="s">
+          <span><i class="fa-solid fa-bars-staggered" style="color: #0284c7; margin-right: 8px;"></i> Switch to Agent Swimlanes</span>
+          <span class="palette-key">S</span>
+        </a>
+        <a href="?view_mode=gantt" class="palette-item" data-key="g">
+          <span><i class="fa-solid fa-calendar-days" style="color: #059669; margin-right: 8px;"></i> Switch to Departures Timeline</span>
+          <span class="palette-key">G</span>
+        </a>
+        <a href="?view_mode=map" class="palette-item" data-key="m">
+          <span><i class="fa-solid fa-map-location-dot" style="color: #d97706; margin-right: 8px;"></i> Switch to Circuit Radar Map</span>
+          <span class="palette-key">M</span>
+        </a>
+        <a href="/admin/crm/inquiry/add/" target="_blank" class="palette-item" data-key="n">
+          <span><i class="fa-solid fa-plus" style="color: #dc2626; margin-right: 8px;"></i> Log New Customer Inquiry</span>
+          <span class="palette-key">N</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: DIGITAL PROPOSAL GENERATOR -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop" id="proposalModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-headset" style="color: #38bdf8;"></i> Log Follow-Up Interaction</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-file-invoice-dollar" style="color: #4f46e5;"></i> Luxury Web Proposal Link</h3>
         <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
       </div>
-      <form id="followUpForm">
+      <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+        Share this interactive mobile proposal with the guest. They can review amenities and pay advance deposit via UPI.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Customer Proposal Link</label>
+        <input type="text" id="propLinkInput" class="form-input" readonly>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 14px;">
+        <button type="button" class="btn btn-primary" style="flex: 1;" onclick="copyProposalLink()">
+          <i class="fa-solid fa-copy"></i> Copy Link
+        </button>
+        <a id="propOpenLink" href="#" target="_blank" class="btn btn-outline" style="flex: 1; text-align: center; justify-content: center;">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Proposal
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: TARA AI SMART PITCH -->
+  <!-- ===================================================================== -->
+  <div class="modal-backdrop" id="taraPitchModal" onclick="if(event.target === this) closeModals()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #9333ea;"></i> TARA AI Re-engagement Pitch</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
+        AI personalized message generated for stalled/ghosted lead:
+      </p>
+      <div class="form-group">
+        <textarea id="taraPitchText" class="form-textarea" style="height: 180px; font-size: 12px; line-height: 1.5;"></textarea>
+      </div>
+      <button type="button" class="btn btn-emerald" style="width: 100%; justify-content: center;" onclick="copyTaraPitch()">
+        <i class="fa-solid fa-copy"></i> Copy AI Pitch to Clipboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Quick Interaction Follow-Up Log -->
+  <div class="modal-backdrop" id="followUpModal" onclick="if(event.target === this) closeModals()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fa-solid fa-headset" style="color: #0284c7;"></i> Log Follow-Up Interaction</h3>
+        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="followUpForm" onsubmit="submitFollowUp(event)">
         <input type="hidden" name="inquiry_id" id="fuInquiryId">
         <div class="form-group">
           <label class="form-label">Client / Lead</label>
-          <input type="text" id="fuGuestName" class="form-input" readonly style="opacity: 0.8;">
+          <input type="text" id="fuGuestName" class="form-input" readonly style="opacity: 0.85;">
         </div>
         <div class="form-group">
           <label class="form-label">Interaction Channel</label>
           <select name="interaction_type" class="form-select">
             <option value="phone">📞 Phone Call</option>
             <option value="whatsapp">💬 WhatsApp Message</option>
-            <option value="meeting">🤝 In-Person / Desk Meeting</option>
+            <option value="meeting">🤝 In-Person Meeting</option>
             <option value="email">✉️ Email Exchange</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Discussion Notes & Feedback</label>
-          <textarea name="notes" class="form-textarea" placeholder="e.g. Discussed package options. Client interested in 4-star Ooty resort with private vehicle." required></textarea>
+          <label class="form-label">Discussion Notes</label>
+          <textarea name="notes" class="form-textarea" placeholder="Discussion points, vehicle preference..." required></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Next Action</label>
-          <input type="text" name="next_action" class="form-input" placeholder="e.g. Send revised itinerary with Ooty toy train tickets">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Schedule Next Reminder In</label>
-          <select name="next_followup_days" class="form-select">
-            <option value="1">Tomorrow (+1 Day)</option>
-            <option value="2" selected>In 2 Days</option>
-            <option value="4">In 4 Days</option>
-            <option value="7">In 1 Week</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">
-          <i class="fa-solid fa-check"></i> Save Interaction & Schedule Reminder
-        </button>
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;">Save Interaction</button>
       </form>
     </div>
   </div>
 
-  <!-- Modal 2: 1-Click WhatsApp Proposal Dispatcher -->
-  <div class="modal-backdrop" id="waModal">
+  <!-- Modal: 1-Click Convert to Confirmed Trip -->
+  <div class="modal-backdrop" id="convertModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-brands fa-whatsapp" style="color: #25d366;"></i> Dispatch WhatsApp Proposal</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-bolt" style="color: #059669;"></i> Convert Lead to Confirmed Trip</h3>
         <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
       </div>
-      <form id="waForm">
-        <input type="hidden" name="inquiry_id" id="waInquiryId">
-        <div class="form-group">
-          <label class="form-label">Recipient Phone</label>
-          <input type="text" id="waPhone" class="form-input" readonly>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Personalized Special Note (Optional)</label>
-          <input type="text" name="custom_note" class="form-input" placeholder="e.g. Complimentary airport pickup included if booked today!">
-        </div>
-        <div style="background: rgba(37, 211, 102, 0.1); border: 1px solid rgba(37, 211, 102, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #cbd5e1; line-height: 1.5;">
-          <i class="fa-solid fa-circle-info" style="color: #25d366;"></i>
-          Automatically prepares verified quotation summary, vehicle category, dates, and direct WhatsApp click-to-chat link.
-        </div>
-        <button type="submit" class="btn" style="background: #25d366; color: #064e3b; width: 100%; justify-content: center; padding: 12px; font-weight: 800;">
-          <i class="fa-brands fa-whatsapp"></i> Generate & Open WhatsApp Chat
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal 3: 1-Click Convert to Confirmed Booking & Trip -->
-  <div class="modal-backdrop" id="convertModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-bolt" style="color: #10b981;"></i> Convert Lead to Confirmed Trip</h3>
-        <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
-      </div>
-      <form id="convertForm">
+      <form id="convertForm" onsubmit="submitConvert(event)">
         <input type="hidden" name="inquiry_id" id="convertInquiryId">
         <div class="form-group">
           <label class="form-label">Guest / Client</label>
           <input type="text" id="convertGuestName" class="form-input" readonly style="opacity: 0.85;">
         </div>
         <div class="form-group">
-          <label class="form-label">Agreed Commercial Amount (₹)</label>
+          <label class="form-label">Commercial Deal Amount (₹)</label>
           <input type="number" id="convertDealVal" class="form-input" required>
         </div>
-        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #cbd5e1; line-height: 1.5;">
-          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
-          Instantly creates an active <strong>operations.Booking</strong>, auto-generates <strong>Trip #TR-XXXX</strong>, flags inquiry as <strong>Won</strong>, and enables live GPS tracking & milestone dispatch.
-        </div>
-        <button type="submit" class="btn btn-emerald" style="width: 100%; justify-content: center; padding: 12px; font-weight: 800;">
-          <i class="fa-solid fa-check-double"></i> Confirm & Generate Trip
-        </button>
+        <button type="submit" class="btn btn-emerald" style="width: 100%; justify-content: center; padding: 10px;">Confirm & Spawn Trip</button>
       </form>
     </div>
   </div>
 
-  <!-- Toast Notification -->
-  <div id="toast">
-    <i class="fa-solid fa-circle-check"></i>
-    <span id="toastMessage">Success</span>
-  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
+    let activeChatInquiryId = null;
+    let selectedInquiryIds = new Set();
     let draggedInquiryId = null;
 
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
-      const msg = document.getElementById('toastMessage');
-      toast.className = type;
-      msg.innerText = message;
-      toast.style.display = 'flex';
-      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    // --- Drag and Drop Logic ---
+    function handleDragStart(e, id) {
+      draggedInquiryId = id;
+      e.dataTransfer.setData('text/plain', id);
+      setTimeout(() => e.target.classList.add('dragging'), 0);
     }
-
-    function closeModals() {
-      document.querySelectorAll('.modal-backdrop').forEach(m => m.style.display = 'none');
-    }
-
-    window.onclick = (e) => {
-      if (e.target.classList.contains('modal-backdrop')) {
-        closeModals();
-      }
-    };
-
-    // Drag and Drop Event Handlers
-    function handleDragStart(e, inquiryId) {
-      draggedInquiryId = inquiryId;
-      e.dataTransfer.setData('text/plain', inquiryId);
-      e.dataTransfer.effectAllowed = 'move';
-      const card = document.getElementById(`card-${inquiryId}`);
-      if (card) {
-        setTimeout(() => card.classList.add('dragging'), 10);
-      }
-    }
-
     function handleDragEnd(e) {
-      if (draggedInquiryId) {
-        const card = document.getElementById(`card-${draggedInquiryId}`);
-        if (card) card.classList.remove('dragging');
-      }
+      e.target.classList.remove('dragging');
       document.querySelectorAll('.kanban-col').forEach(c => c.classList.remove('drag-over'));
-      draggedInquiryId = null;
     }
-
     function handleDragOver(e) {
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const col = e.currentTarget;
-      if (!col.classList.contains('drag-over')) {
-        col.classList.add('drag-over');
-      }
+      e.currentTarget.classList.add('drag-over');
     }
-
     function handleDragLeave(e) {
       e.currentTarget.classList.remove('drag-over');
     }
 
-    async function handleDrop(e, newStatus) {
+    // --- Toast Notification Helper ---
+    function showToast(text, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast-message ${type}`;
+      let icon = '<i class="fa-solid fa-circle-info" style="color: #60a5fa;"></i>';
+      if (type === 'success') icon = '<i class="fa-solid fa-circle-check" style="color: #34d399;"></i>';
+      if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation" style="color: #f87171;"></i>';
+      toast.innerHTML = `${icon} <span>${text}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // --- Dynamic Column Count & Value Recalculation ---
+    function updateColumnMetrics() {
+      document.querySelectorAll('.kanban-col').forEach(col => {
+        const stage = col.dataset.stage;
+        if (!stage) return;
+        const allCards = col.querySelectorAll('.kanban-card');
+        const visibleCards = Array.from(allCards).filter(c => c.style.display !== 'none');
+        
+        const countBadge = document.getElementById(`count-${stage}`);
+        if (countBadge) countBadge.innerText = visibleCards.length;
+        
+        let total = 0;
+        visibleCards.forEach(c => {
+          const dealValEl = c.querySelector('.card-deal-val');
+          if (dealValEl) {
+            const val = parseFloat(dealValEl.innerText.replace(/[^0-9.]/g, '')) || 0;
+            total += val;
+          }
+        });
+        const sumEl = document.getElementById(`sum-${stage}`);
+        if (sumEl) sumEl.innerText = '₹' + Math.round(total).toLocaleString('en-IN');
+      });
+    }
+
+    // --- Instant Card Search (Live In-Browser Filter) ---
+    function handleInstantCardSearch(query) {
+      const q = (query || '').trim().toLowerCase();
+      const cards = document.querySelectorAll('.kanban-card');
+      cards.forEach(card => {
+        if (!q) {
+          card.style.display = '';
+          return;
+        }
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(q) ? '' : 'none';
+      });
+      updateColumnMetrics();
+    }
+
+    async function handleDrop(e, targetStage) {
       e.preventDefault();
-      e.currentTarget.classList.remove('drag-over');
-      const inqId = e.dataTransfer.getData('text/plain') || draggedInquiryId;
-      if (!inqId) return;
+      const col = e.currentTarget;
+      col.classList.remove('drag-over');
+      if (!draggedInquiryId) return;
 
-      const card = document.getElementById(`card-${inqId}`);
-      const targetZone = document.getElementById(`zone-${newStatus}`);
-
-      // Optimistic UI move
-      if (card && targetZone) {
-        targetZone.prepend(card);
+      const card = document.getElementById(`card-${draggedInquiryId}`);
+      if (card) {
+        col.querySelector('.cards-zone').appendChild(card);
+        updateColumnMetrics();
       }
 
       try {
-        const res = await fetch(`/crm/api/inquiries/${inqId}/update-stage/`, {
+        const res = await fetch(`/crm/api/inquiries/${draggedInquiryId}/update-stage/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ new_status: newStatus })
+          body: JSON.stringify({ new_status: targetStage })
         });
         const data = await res.json();
         if (data.status === 'success') {
-          showToast(data.message, 'success');
+          showToast(data.message || 'Stage updated successfully', 'success');
         } else {
-          showToast(data.message || 'Error updating status', 'error');
-          setTimeout(() => window.location.reload(), 800);
+          showToast('Could not update stage: ' + data.message, 'error');
+          setTimeout(() => window.location.reload(), 1500);
         }
       } catch (err) {
-        showToast(err.message, 'error');
-        setTimeout(() => window.location.reload(), 800);
+        showToast('Network error moving card: ' + err.message, 'error');
       }
     }
 
-    // Modal Triggers
-    function openFollowUpModal(inqId, guestName) {
-      document.getElementById('fuInquiryId').value = inqId;
-      document.getElementById('fuGuestName').value = guestName;
-      document.getElementById('followUpModal').style.display = 'grid';
+    // --- Bulk Multi-Select ---
+    function handleCardCheck(chk) {
+      const val = parseInt(chk.value);
+      if (chk.checked) selectedInquiryIds.add(val);
+      else selectedInquiryIds.delete(val);
+      updateBulkBar();
+    }
+    function updateBulkBar() {
+      const bar = document.getElementById('bulkActionBar');
+      const badge = document.getElementById('bulkCountBadge');
+      badge.innerText = `${selectedInquiryIds.size} Selected`;
+      if (selectedInquiryIds.size > 0) bar.classList.add('visible');
+      else bar.classList.remove('visible');
+    }
+    function clearBulkSelection() {
+      selectedInquiryIds.clear();
+      document.querySelectorAll('.card-checkbox').forEach(c => c.checked = false);
+      updateBulkBar();
+    }
+    async function executeBulkAction(action) {
+      if (selectedInquiryIds.size === 0) return;
+      let targetVal = '';
+      if (action === 'reassign') targetVal = document.getElementById('bulkReassignSelect').value;
+      if (action === 'stage') targetVal = document.getElementById('bulkStageSelect').value;
+      if (action === 'broadcast') targetVal = prompt('Enter broadcast message template for selected leads:', 'Festival Special 10% Discount on Outstation Cabs!');
+
+      if (!targetVal) return;
+
+      const res = await fetch('/crm/api/kanban/bulk-action/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inquiry_ids: Array.from(selectedInquiryIds),
+          action: action,
+          target_value: targetVal
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        alert('Bulk action error: ' + data.message);
+      }
     }
 
-    function openWhatsAppModal(inqId, guestName, phone) {
-      document.getElementById('waInquiryId').value = inqId;
-      document.getElementById('waPhone').value = phone || 'No phone recorded';
-      document.getElementById('waModal').style.display = 'grid';
+    // --- Omnichannel Slide-Out Chat Drawer ---
+    async function openChatDrawer(inqId, name, phone) {
+      activeChatInquiryId = inqId;
+      document.getElementById('drawerGuestName').innerText = name;
+      document.getElementById('drawerPhone').innerText = phone || 'No Phone';
+      const drawer = document.getElementById('chatDrawer');
+      drawer.classList.add('open');
+      loadDrawerMessages(inqId);
     }
-
-    function openConvertModal(inqId, guestName, dealVal) {
-      document.getElementById('convertInquiryId').value = inqId;
-      document.getElementById('convertGuestName').value = guestName;
-      document.getElementById('convertDealVal').value = dealVal;
-      document.getElementById('convertModal').style.display = 'grid';
+    function closeChatDrawer() {
+      document.getElementById('chatDrawer').classList.remove('open');
+      activeChatInquiryId = null;
     }
-
-    document.getElementById('btnOpenNewLead').onclick = () => {
-      window.open('/admin/crm/inquiry/add/', '_blank');
-    };
-
-    // Submit Follow-Up
-    document.getElementById('followUpForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const inqId = document.getElementById('fuInquiryId').value;
-      const formData = new FormData(e.target);
-
+    async function loadDrawerMessages(inqId) {
+      const timeline = document.getElementById('drawerTimeline');
+      timeline.innerHTML = '<div style="text-align: center; color: #94a3b8; font-size: 11px;">Loading chat history...</div>';
       try {
-        const res = await fetch(`/crm/api/inquiries/${inqId}/quick-followup/`, {
-          method: 'POST',
-          body: formData
-        });
+        const res = await fetch(`/crm/api/kanban/chat/${inqId}/`);
         const data = await res.json();
         if (data.status === 'success') {
-          showToast(data.message, 'success');
-          closeModals();
-        } else {
-          showToast(data.message || 'Error logging follow-up', 'error');
+          timeline.innerHTML = '';
+          data.messages.forEach(m => {
+            const div = document.createElement('div');
+            div.className = `chat-msg ${m.sender_type}`;
+            div.innerHTML = `<strong>${m.sender_name}</strong>: ${m.message}<span class="chat-time">${m.created_at}</span>`;
+            timeline.appendChild(div);
+          });
+          timeline.scrollTop = timeline.scrollHeight;
         }
       } catch (err) {
-        showToast(err.message, 'error');
+        timeline.innerHTML = '<div style="color: red; font-size: 11px;">Error loading messages</div>';
       }
-    };
-
-    // Submit WhatsApp Dispatch
-    document.getElementById('waForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const inqId = document.getElementById('waInquiryId').value;
-      const formData = new FormData(e.target);
+    }
+    async function sendDrawerMessage() {
+      if (!activeChatInquiryId) return;
+      const input = document.getElementById('drawerInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
 
       try {
-        const res = await fetch(`/crm/api/inquiries/${inqId}/dispatch-whatsapp/`, {
+        const res = await fetch(`/crm/api/kanban/chat/${activeChatInquiryId}/send/`, {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
         });
         const data = await res.json();
         if (data.status === 'success') {
-          showToast('WhatsApp quotation prepared!', 'success');
+          const timeline = document.getElementById('drawerTimeline');
+          const div = document.createElement('div');
+          div.className = 'chat-msg agent';
+          div.innerHTML = `<strong>${data.sender_name}</strong>: ${data.message}<span class="chat-time">${data.created_at}</span>`;
+          timeline.appendChild(div);
+          timeline.scrollTop = timeline.scrollHeight;
+        }
+      } catch (err) {
+        alert('Failed to send: ' + err.message);
+      }
+    }
+    function insertTemplate(type) {
+      const input = document.getElementById('drawerInput');
+      if (type === 'Quote Summary') input.value = 'Vanakkam! Here is your official package quotation summary. Let us know if you would like to reserve the vehicle.';
+      if (type === 'Hotel Choices') input.value = 'We have shortlisted 3-star and 4-star mountain view resorts with breakfast included for your dates.';
+      if (type === 'Advance Token') input.value = 'To confirm your vehicle allocation, you can pay a token advance of ₹5,000 via our secure link.';
+      if (type === 'Captain Assigned') input.value = 'Your senior chauffeur has been assigned! Vehicle registration and driver contact will be shared 4 hours prior to departure.';
+      input.focus();
+    }
+
+    // --- Interactive Proposal Modal ---
+    async function openProposalModal(inqId) {
+      try {
+        const res = await fetch(`/crm/api/kanban/proposal/${inqId}/`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          document.getElementById('propLinkInput').value = data.full_url;
+          document.getElementById('propOpenLink').href = data.proposal_url;
+          document.getElementById('proposalModal').style.display = 'flex';
+        }
+      } catch (err) {
+        alert('Error loading proposal: ' + err.message);
+      }
+    }
+    function copyProposalLink() {
+      const inp = document.getElementById('propLinkInput');
+      inp.select();
+      navigator.clipboard.writeText(inp.value);
+      showToast('Proposal link copied to clipboard!', 'success');
+    }
+
+    // --- TARA AI Smart Pitch Modal ---
+    async function openTaraPitchModal(inqId) {
+      try {
+        const res = await fetch(`/crm/api/kanban/tara-pitch/${inqId}/`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          document.getElementById('taraPitchText').value = data.pitch;
+          document.getElementById('taraPitchModal').style.display = 'flex';
+        }
+      } catch (err) {
+        showToast('Error generating pitch: ' + err.message, 'error');
+      }
+    }
+    function copyTaraPitch() {
+      const txt = document.getElementById('taraPitchText');
+      txt.select();
+      navigator.clipboard.writeText(txt.value);
+      showToast('AI Pitch copied to clipboard!', 'success');
+    }
+
+    // --- Modals & Command Palette ---
+    function openCommandPalette() {
+      const palette = document.getElementById('commandPalette');
+      if (palette) palette.style.display = 'flex';
+      const search = document.getElementById('paletteSearch');
+      if (search) {
+        search.value = '';
+        document.querySelectorAll('.palette-item').forEach(i => i.style.display = 'flex');
+        search.focus();
+      }
+    }
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop, .palette-backdrop').forEach(m => m.style.display = 'none');
+    }
+    window.addEventListener('keydown', (e) => {
+      // Don't intercept when user is typing in form controls
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+        if (e.key === 'Escape') {
           closeModals();
-          if (data.wa_url) {
-            window.open(data.wa_url, '_blank');
+          closeChatDrawer();
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCommandPalette();
+        return;
+      }
+      if (e.key === 'Escape') {
+        closeModals();
+        closeChatDrawer();
+        return;
+      }
+
+      // Linear-Grade J / K Card Navigation
+      const cards = Array.from(document.querySelectorAll('.kanban-card'));
+      if (cards.length > 0) {
+        let activeIdx = cards.findIndex(c => c.classList.contains('keyboard-active'));
+
+        if (e.key.toLowerCase() === 'j') {
+          e.preventDefault();
+          if (activeIdx >= 0) cards[activeIdx].classList.remove('keyboard-active');
+          activeIdx = (activeIdx + 1) % cards.length;
+          cards[activeIdx].classList.add('keyboard-active');
+          cards[activeIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          if (activeIdx >= 0) cards[activeIdx].classList.remove('keyboard-active');
+          activeIdx = (activeIdx - 1 + cards.length) % cards.length;
+          cards[activeIdx].classList.add('keyboard-active');
+          cards[activeIdx].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else if (['1', '2', '3', '4', '5', '6'].includes(e.key) && activeIdx >= 0) {
+          e.preventDefault();
+          const stages = ['new', 'in_progress', 'quoted', 'negotiating', 'won', 'lost'];
+          const targetStage = stages[parseInt(e.key) - 1];
+          const activeCard = cards[activeIdx];
+          const inqId = activeCard.id.replace('card-', '');
+          if (inqId && targetStage) {
+            fetch(`/crm/api/inquiries/${inqId}/update-stage/`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ new_status: targetStage })
+            }).then(r => r.json()).then(data => {
+              if (data.status === 'success') {
+                window.location.reload();
+              }
+            });
           }
-        } else {
-          showToast(data.message || 'Error creating WhatsApp message', 'error');
         }
-      } catch (err) {
-        showToast(err.message, 'error');
       }
-    };
+    });
 
-    // Submit 1-Click Convert
-    document.getElementById('convertForm').onsubmit = async (e) => {
+    function openFollowUpModal(id, name) {
+      document.getElementById('fuInquiryId').value = id;
+      document.getElementById('fuGuestName').value = name;
+      document.getElementById('followUpModal').style.display = 'flex';
+    }
+    async function submitFollowUp(e) {
+      e.preventDefault();
+      const form = e.target;
+      const inqId = form.inquiry_id.value;
+      const data = {
+        interaction_type: form.interaction_type.value,
+        notes: form.notes.value
+      };
+      const res = await fetch(`/crm/api/inquiries/${inqId}/quick-followup/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.status === 'success') {
+        showToast(json.message, 'success');
+        closeModals();
+      } else {
+        showToast(json.message || 'Error saving follow-up', 'error');
+      }
+    }
+
+    function openConvertModal(id, name, val) {
+      document.getElementById('convertInquiryId').value = id;
+      document.getElementById('convertGuestName').value = name;
+      document.getElementById('convertDealVal').value = val;
+      document.getElementById('convertModal').style.display = 'flex';
+    }
+    async function submitConvert(e) {
       e.preventDefault();
       const inqId = document.getElementById('convertInquiryId').value;
-      const dealVal = document.getElementById('convertDealVal').value;
-
-      try {
-        const res = await fetch(`/crm/api/inquiries/${inqId}/convert-to-booking/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deal_value: dealVal })
-        });
-        const data = await res.json();
-        if (data.status === 'success') {
-          showToast(data.message, 'success');
-          closeModals();
-          setTimeout(() => {
-            if (data.admin_trip_url) {
-              window.open(data.admin_trip_url, '_blank');
-            }
-            window.location.reload();
-          }, 800);
-        } else {
-          showToast(data.message || 'Error converting inquiry', 'error');
-        }
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
-    };
-
-    // Theme Toggle Controller
-    function updateThemeUI() {
-      let t = 'light';
-      try {
-        var raw = localStorage.getItem('_x_adminTheme');
-        t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
-      } catch(e) {}
-      const isDark = t === 'dark';
-      const isLight = !isDark;
-      if (isLight) {
-        document.documentElement.classList.add('light-mode');
-        document.body.classList.add('light-mode');
+      const res = await fetch(`/crm/api/inquiries/${inqId}/convert-to-booking/`, { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        showToast(data.message, 'success');
+        setTimeout(() => window.location.reload(), 1200);
       } else {
-        document.documentElement.classList.remove('light-mode');
-        document.body.classList.remove('light-mode');
-      }
-      const icon = document.getElementById('themeIcon');
-      if (icon) {
-        icon.className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        showToast('Conversion failed: ' + data.message, 'error');
       }
     }
-    document.getElementById('btnThemeToggle')?.addEventListener('click', () => {
-      const isLight = document.documentElement.classList.contains('light-mode');
-      const newTheme = isLight ? 'dark' : 'light';
-      localStorage.setItem('theme', newTheme);
-      try {
-        localStorage.setItem('_x_adminTheme', JSON.stringify(newTheme));
-      } catch(e) {}
-      updateThemeUI();
+
+    // --- Command Palette Live Filter & Background Polling ---
+    document.addEventListener('DOMContentLoaded', () => {
+      const paletteSearch = document.getElementById('paletteSearch');
+      if (paletteSearch) {
+        paletteSearch.addEventListener('input', (e) => {
+          const q = e.target.value.toLowerCase().trim();
+          document.querySelectorAll('.palette-item').forEach(item => {
+            const text = item.innerText.toLowerCase();
+            item.style.display = text.includes(q) ? 'flex' : 'none';
+          });
+        });
+
+        paletteSearch.addEventListener('keydown', (e) => {
+          const visibleItems = Array.from(document.querySelectorAll('.palette-item')).filter(i => i.style.display !== 'none');
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (visibleItems.length > 0) visibleItems[0].click();
+          } else if (e.key.toLowerCase() === 'b' && !paletteSearch.value) {
+            e.preventDefault();
+            window.location.href = '?view_mode=board';
+          } else if (e.key.toLowerCase() === 's' && !paletteSearch.value) {
+            e.preventDefault();
+            window.location.href = '?view_mode=swimlanes';
+          } else if (e.key.toLowerCase() === 'g' && !paletteSearch.value) {
+            e.preventDefault();
+            window.location.href = '?view_mode=gantt';
+          } else if (e.key.toLowerCase() === 'm' && !paletteSearch.value) {
+            e.preventDefault();
+            window.location.href = '?view_mode=map';
+          } else if (e.key.toLowerCase() === 'n' && !paletteSearch.value) {
+            e.preventDefault();
+            window.open('/admin/crm/inquiry/add/', '_blank');
+          }
+        });
+      }
+
+      // Background Lead Sync Polling (every 45s)
+      const initialCards = document.querySelectorAll('.kanban-card');
+      let lastKnownTotal = initialCards.length;
+      setInterval(async () => {
+        try {
+          const res = await fetch('/crm/api/kanban-data/');
+          const data = await res.json();
+          if (data.status === 'success' && data.board) {
+            let currentTotal = 0;
+            Object.values(data.board).forEach(col => { currentTotal += col.count; });
+            const livePill = document.getElementById('liveSyncStatus');
+            if (currentTotal > lastKnownTotal && livePill) {
+              const diff = currentTotal - lastKnownTotal;
+              livePill.innerHTML = `<span class="live-dot" style="background:#f59e0b;"></span> ${diff} New Leads <a href="" style="color:#b45309; margin-left:4px; text-decoration:underline;">Refresh</a>`;
+              livePill.style.background = '#fef3c7';
+              livePill.style.color = '#b45309';
+              livePill.style.borderColor = '#fde68a';
+            }
+          }
+        } catch (e) {}
+      }, 45000);
     });
-    updateThemeUI();
+
+    // --- Full India Circuit Radar Map Initialization ---
+    {% if view_mode == 'map' %}
+    let radarMapInstance = null;
+    const REGION_BOUNDS = {
+      'all': { center: [21.7679, 78.8718], zoom: 5 },
+      'south': { center: [11.2, 77.5], zoom: 7 },
+      'golden': { center: [26.9, 75.8], zoom: 7 },
+      'himalayas': { center: [31.5, 77.2], zoom: 7 },
+      'pilgrimage': { center: [10.5, 78.5], zoom: 7 },
+    };
+
+    function zoomToRegion(reg, btn) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const r = REGION_BOUNDS[reg] || REGION_BOUNDS['all'];
+      if (radarMapInstance) radarMapInstance.flyTo(r.center, r.zoom, { duration: 1.2 });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const map = L.map('circuitMap', {
+          maxBounds: [[4.0, 65.0], [39.0, 100.0]],
+          maxBoundsViscosity: 0.9,
+          minZoom: 4,
+          maxZoom: 18
+        }).setView([21.7679, 78.8718], 5);
+        radarMapInstance = map;
+
+        // Stream via native high-speed Full India tile proxy
+        L.tileLayer('/gis/tiles/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '© OpenStreetMap | TravelERP Full India GIS'
+        }).addTo(map);
+
+        const pins = {{ map_pins_json|safe }};
+        const badge = document.getElementById('mapPinBadge');
+        if (badge) badge.innerText = `${pins.length} Active Circuit Pins`;
+
+        const markers = [];
+        pins.forEach(p => {
+          const marker = L.circleMarker([p.lat, p.lng], {
+            radius: 8,
+            fillColor: '#4f46e5',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.85
+          }).addTo(map);
+
+          marker.bindPopup(`
+            <div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">
+              <strong style="font-size: 13px; color: #0f172a;">${p.guest}</strong><br>
+              <span style="color: #4f46e5; font-weight: 700;">${p.circuit}</span><br>
+              <span>Vehicle: ${p.vehicle}</span><br>
+              <span>Date: ${p.pickup_date}</span><br>
+              <strong style="color: #059669;">Value: ₹${p.value}</strong>
+            </div>
+          `);
+          markers.push(marker);
+        });
+
+        if (markers.length > 0) {
+          const group = new L.featureGroup(markers);
+          map.fitBounds(group.getBounds().pad(0.15));
+        }
+      } catch (e) {
+        console.warn('Map initialization:', e);
+      }
+    });
+    {% endif %}
   </script>
+
 </body>
 </html>

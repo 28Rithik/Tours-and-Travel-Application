@@ -120,8 +120,13 @@ from payments_gateway.views import (
     api_simulate_payment_webhook,
     api_payment_studio_metrics,
 )
-from crm.views import crm_kanban_board_view
+from crm.views import (
+    crm_kanban_board_view,
+    public_digital_proposal_view,
+    api_proposal_upi_confirm,
+)
 from customer_portal.views import public_landing_view
+from core.gis_views import full_india_tile_proxy_view, api_india_gis_status_view
 from integrations import views as integrations_views
 from fleet_commute import views as fleet_commute_views
 
@@ -201,6 +206,12 @@ urlpatterns = [
     path('admin/kanban/', crm_kanban_board_view, name='admin-crm-kanban-alias'),
     path('crm/kanban/', crm_kanban_board_view, name='crm-kanban-portal-alias'),
     path('kanban/', crm_kanban_board_view, name='kanban-root-alias'),
+    # Interactive Customer Digital Proposal & Dynamic UPI Auto-Conversion
+    path('quote/<str:token>/', public_digital_proposal_view, name='public-digital-proposal'),
+    path('quote/<str:token>/confirm/', api_proposal_upi_confirm, name='api-proposal-upi-confirm'),
+    # Full India Native GIS Tile Engine & Edge Cache
+    path('gis/tiles/<int:z>/<int:x>/<int:y>.png', full_india_tile_proxy_view, name='full-india-tile-proxy'),
+    path('api/gis/status/', api_india_gis_status_view, name='api-india-gis-status'),
     # Phase 6: 2D Axle & Tire Health Studio + Fleet PM Engine
     path('admin/maintenance/tire-studio/', tire_studio_view, name='admin-tire-studio'),
     path('admin/tire-studio/', tire_studio_view, name='admin-tire-studio-alias'),
@@ -233,8 +244,11 @@ urlpatterns = [
     path('api/database-health/maintenance/', api_run_scheduler_maintenance, name='api-database-scheduler-maintenance'),
     path('api/integrations/arattai/webhook/', integrations_views.arattai_inbound_webhook_view, name='api_arattai_webhook_root'),
     path('admin/', admin.site.urls),
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('staff/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('staff/logout/', auth_views.LogoutView.as_view(next_page='/staff/login/'), name='staff_logout'),
+    path('staff-login/', RedirectView.as_view(url='/staff/login/', permanent=False)),
+    path('login/', RedirectView.as_view(url='/staff/login/', permanent=False)),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/staff/login/'), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),
     path('staff/roles-matrix/', staff_roles_matrix_view, name='staff-roles-matrix'),

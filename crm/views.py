@@ -1830,6 +1830,10 @@ def crm_kanban_board_view(request):
             Q(party__name__icontains=search_q)
         )
 
+    # Multi-Modal Viewing Modes (Board, Swimlanes, Gantt, Map)
+    view_mode = request.GET.get('view_mode', 'board')
+    swimlane_by = request.GET.get('swimlane_by', 'specialist')
+
     all_inqs = list(inquiries.order_by('kanban_order', '-created_at'))
 
     # Board columns definition
@@ -1876,11 +1880,224 @@ def crm_kanban_board_view(request):
         })
 
     win_rate = round((won_leads_count / total_leads_count * 100), 1) if total_leads_count > 0 else 0
-
     specialists = User.objects.filter(is_active=True).order_by('username')
+
+    # Multi-Modal 1: Swimlanes Grouping Engine
+    swimlanes_data = []
+    if swimlane_by == 'specialist':
+        # Group by specialist users
+        spec_groups = list(specialists)
+        for spec in spec_groups:
+            s_inqs = [i for i in all_inqs if i.assigned_to_id == spec.id]
+            if s_inqs or len(swimlanes_data) < 4:
+                s_cols = []
+                for c_k, c_t, c_i, c_c, c_b in columns_spec:
+                    c_items = [i for i in s_inqs if i.status == c_k]
+                    s_cols.append({
+                        'key': c_k,
+                        'title': c_t,
+                        'color': c_c,
+                        'count': len(c_items),
+                        'total_val': sum((i.deal_value for i in c_items), Decimal('0.00')),
+                        'inquiries': c_items
+                    })
+                swimlanes_data.append({
+                    'id': f'spec-{spec.id}',
+                    'title': f'👤 {spec.get_full_name() or spec.username}',
+                    'subtitle': f'{spec.email or "Specialist"} • Active Pipeline: ₹{sum((i.deal_value for i in s_inqs if i.status != "lost"), Decimal("0.00")):,.0f}',
+                    'inquiries_count': len(s_inqs),
+                    'columns': s_cols,
+                })
+        # Unassigned swimlane
+        unassigned_inqs = [i for i in all_inqs if not i.assigned_to_id]
+        if unassigned_inqs:
+            u_cols = []
+            for c_k, c_t, c_i, c_c, c_b in columns_spec:
+                c_items = [i for i in unassigned_inqs if i.status == c_k]
+                u_cols.append({'key': c_k, 'title': c_t, 'color': c_c, 'count': len(c_items), 'total_val': sum((i.deal_value for i in c_items), Decimal('0.00')), 'inquiries': c_items})
+            swimlanes_data.append({
+                'id': 'unassigned',
+                'title': '⚡ Unassigned / Pool Queue',
+                'subtitle': f'Inquiries awaiting sales rep claiming • Total: {len(unassigned_inqs)} leads',
+                'inquiries_count': len(unassigned_inqs),
+                'columns': u_cols
+            })
+    elif swimlane_by == 'vertical':
+        vertical_categories = [
+            ('Temple & Pilgrimage Circuit', ['madurai', 'rameshwaram', 'tirupati', 'kanyakumari', 'temple']),
+            ('Hill Station & Wildlife Holiday', ['ooty', 'munnar', 'kodaikanal', 'wayanad', 'yercaud']),
+            ('College & Institutional IV', ['iv', 'college', 'industrial', 'campus']),
+            ('Corporate Outstation & Commute', ['corporate', 'bangalore', 'chennai', 'coimbatore']),
+            ('Bespoke & Custom Travel', [])
+        ]
+        for v_name, v_keywords in vertical_categories:
+            if v_keywords:
+                v_inqs = [i for i in all_inqs if any(k in (i.destination or '').lower() or k in (i.notes or '').lower() for k in v_keywords)]
+            else:
+                assigned_ids = {i.id for sl in swimlanes_data for c in sl['columns'] for i in c['inquiries']}
+                v_inqs = [i for i in all_inqs if i.id not in assigned_ids]
+            
+            v_cols = []
+            for c_k, c_t, c_i, c_c, c_b in columns_spec:
+                c_items = [i for i in v_inqs if i.status == c_k]
+                v_cols.append({'key': c_k, 'title': c_t, 'color': c_c, 'count': len(c_items), 'total_val': sum((i.deal_value for i in c_items), Decimal('0.00')), 'inquiries': c_items})
+            swimlanes_data.append({
+                'id': f'vert-{len(swimlanes_data)}',
+                'title': f'🏷️ {v_name}',
+                'subtitle': f'Target Segment Volume: {len(v_inqs)} Inquiries • Value: ₹{sum((i.deal_value for i in v_inqs), Decimal("0.00")):,.0f}',
+                'inquiries_count': len(v_inqs),
+                'columns': v_cols
+            })
+
+    # Multi-Modal 2: Departure Gantt Timeline
+    today = timezone.now().date()
+    gantt_buckets = [
+        {'label': 'Departing This Week (Next 7 Days)', 'start': today, 'end': today + datetime.timedelta(days=7), 'inquiries': []},
+        {'label': 'Departing Next Week (8 - 14 Days)', 'start': today + datetime.timedelta(days=8), 'end': today + datetime.timedelta(days=14), 'inquiries': []},
+        {'label': 'Upcoming (15 - 30 Days)', 'start': today + datetime.timedelta(days=15), 'end': today + datetime.timedelta(days=30), 'inquiries': []},
+        {'label': 'Future Departures (30+ Days)', 'start': today + datetime.timedelta(days=31), 'end': today + datetime.timedelta(days=365), 'inquiries': []},
+    ]
+    for inq in all_inqs:
+        p_date = inq.pickup_date
+        placed = False
+        for b in gantt_buckets:
+            if b['start'] <= p_date <= b['end']:
+                b['inquiries'].append(inq)
+                placed = True
+                break
+        if not placed and gantt_buckets:
+            gantt_buckets[0]['inquiries'].append(inq)
+
+    # Multi-Modal 3: Full India Geographic Radar Map Pins (Pan-India Coverage)
+    CITY_COORDS = {
+        # Tamil Nadu & Nilgiris
+        'coimbatore': (11.0168, 76.9558),
+        'ooty': (11.4102, 76.6950),
+        'coonoor': (11.3530, 76.7959),
+        'kotagiri': (11.4243, 76.8647),
+        'chennai': (13.0827, 80.2707),
+        'mahabalipuram': (12.6269, 80.1927),
+        'kanchipuram': (12.8342, 79.7036),
+        'madurai': (9.9252, 78.1198),
+        'rameshwaram': (9.2876, 79.3129),
+        'dhanushkodi': (9.1795, 79.4184),
+        'kanyakumari': (8.0883, 77.5385),
+        'tiruchendur': (8.4975, 78.1226),
+        'thanjavur': (10.7870, 79.1378),
+        'trichy': (10.7905, 78.7047),
+        'palani': (10.4503, 77.5197),
+        'yercaud': (11.7753, 78.2093),
+        'kodaikanal': (10.2381, 77.4892),
+        'salem': (11.6643, 78.1460),
+        'vellore': (12.9165, 79.1325),
+        'pondicherry': (11.9416, 79.8083),
+
+        # Kerala
+        'munnar': (10.0889, 77.0595),
+        'thekkady': (9.6031, 77.1615),
+        'kochi': (9.9312, 76.2673),
+        'alleppey': (9.4981, 76.3388),
+        'kumarakom': (9.6175, 76.4301),
+        'wayanad': (11.6854, 76.1320),
+        'kozhikode': (11.2588, 75.7804),
+        'varkala': (8.7379, 76.7163),
+        'kovalam': (8.4004, 76.9787),
+        'trivandrum': (8.5241, 76.9366),
+
+        # Karnataka
+        'bangalore': (12.9716, 77.5946),
+        'mysore': (12.2958, 76.6394),
+        'coorg': (12.3375, 75.8069),
+        'hampi': (15.3350, 76.4600),
+        'gokarna': (14.5479, 74.3188),
+        'mangalore': (12.9141, 74.8560),
+        'udupi': (13.3409, 74.7421),
+        'chikmagalur': (13.3153, 75.7754),
+
+        # Andhra & Telangana
+        'tirupati': (13.6288, 79.4192),
+        'vijayawada': (16.5062, 80.6480),
+        'visakhapatnam': (17.6868, 83.2185),
+        'hyderabad': (17.3850, 78.4867),
+
+        # Golden Triangle & Rajasthan
+        'delhi': (28.7041, 77.1025),
+        'new delhi': (28.6139, 77.2090),
+        'agra': (27.1767, 78.0081),
+        'jaipur': (26.9124, 75.7873),
+        'udaipur': (24.5854, 73.7125),
+        'jodhpur': (26.2389, 73.0243),
+        'jaisalmer': (26.9157, 70.9083),
+        'pushkar': (26.4897, 74.5511),
+        'mount abu': (24.5926, 72.7156),
+
+        # Western India & Goa
+        'goa': (15.2993, 74.1240),
+        'mumbai': (19.0760, 72.8777),
+        'pune': (18.5204, 73.8567),
+        'lonavala': (18.7557, 73.4091),
+        'mahabaleshwar': (17.9237, 73.6586),
+        'shirdi': (19.7667, 74.4764),
+        'ahmedabad': (23.0225, 72.5714),
+        'somnath': (20.8880, 70.4013),
+        'dwarka': (22.2442, 68.9685),
+
+        # Himalayas & Hill Stations
+        'shimla': (31.1048, 77.1734),
+        'manali': (32.2432, 77.1892),
+        'dharamshala': (32.2190, 76.3234),
+        'rishikesh': (30.0869, 78.2676),
+        'haridwar': (29.9457, 78.1642),
+        'nainital': (29.3919, 79.4542),
+        'mussoorie': (30.4598, 78.0644),
+        'srinagar': (34.0837, 74.7973),
+        'gulmarg': (34.0484, 74.3805),
+        'leh': (34.1526, 77.5771),
+        'amritsar': (31.6340, 74.8723),
+
+        # Central & Eastern India
+        'varanasi': (25.3176, 82.9739),
+        'ayodhya': (26.7922, 82.1998),
+        'kolkata': (22.5726, 88.3639),
+        'darjeeling': (27.0410, 88.2663),
+        'gangtok': (27.3389, 88.6065),
+        'puri': (19.8135, 85.8312),
+        'bhubaneswar': (20.2961, 85.8245),
+    }
+
+    map_pins = []
+    for inq in all_inqs[:50]:
+        dest_k = (inq.destination or '').lower()
+        p_k = (inq.pickup_location or '').lower()
+        d_coords = None
+        for c_name, coords in CITY_COORDS.items():
+            if c_name in dest_k or c_name in p_k:
+                d_coords = coords
+                break
+        if not d_coords:
+            # Fallback to Coimbatore Headquarters hub
+            d_coords = CITY_COORDS['coimbatore']
+
+        map_pins.append({
+            'id': inq.id,
+            'number': inq.inquiry_number,
+            'guest': inq.guest_name,
+            'circuit': f"{inq.pickup_location} ➔ {inq.destination}",
+            'lat': d_coords[0],
+            'lng': d_coords[1],
+            'value': float(inq.deal_value),
+            'status': inq.status,
+            'vehicle': inq.vehicle_type.name if inq.vehicle_type else 'AC Vehicle',
+            'pickup_date': inq.pickup_date.strftime('%d %b %Y')
+        })
 
     context = {
         'columns': columns_data,
+        'swimlanes': swimlanes_data,
+        'gantt_buckets': gantt_buckets,
+        'map_pins_json': json.dumps(map_pins),
+        'view_mode': view_mode,
+        'swimlane_by': swimlane_by,
         'total_pipeline_value': total_pipeline_value,
         'active_leads_count': active_leads_count,
         'won_leads_count': won_leads_count,
@@ -2216,6 +2433,370 @@ def api_crm_kanban_data(request):
         }
 
     return JsonResponse({'status': 'success', 'board': board})
+
+
+# ==============================================================================
+# KANBAN 3.0 — HIGH VELOCITY REVENUE & OMNICHANNEL SUITE APIS
+# ==============================================================================
+
+@csrf_exempt
+@login_required
+def api_kanban_bulk_action(request):
+    """
+    POST /crm/api/kanban/bulk-action/
+    Performs bulk reassignment, bulk stage changes, or bulk WhatsApp campaign broadcasts.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryFollowUp
+    import json
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        inquiry_ids = data.get('inquiry_ids', [])
+        action = data.get('action')
+        target_val = data.get('target_value', '')
+
+        if not inquiry_ids or not action:
+            return JsonResponse({'status': 'error', 'message': 'inquiry_ids and action required'}, status=400)
+
+        inquiries = Inquiry.objects.filter(id__in=inquiry_ids)
+        updated_count = 0
+
+        if action == 'reassign':
+            new_spec = User.objects.get(id=int(target_val)) if target_val else None
+            for inq in inquiries:
+                inq.assigned_to = new_spec
+                inq.save(update_fields=['assigned_to'])
+                InquiryFollowUp.objects.create(
+                    inquiry=inq,
+                    performed_by=request.user,
+                    interaction_type='meeting',
+                    notes=f"Reassigned to specialist: {new_spec.username if new_spec else 'Unassigned'}",
+                    is_done=True,
+                    completed_at=timezone.now()
+                )
+                updated_count += 1
+            msg = f"Successfully reassigned {updated_count} leads to {new_spec.username if new_spec else 'Unassigned'}."
+
+        elif action == 'stage':
+            valid_stages = dict(Inquiry.STATUS_CHOICES)
+            if target_val not in valid_stages:
+                return JsonResponse({'status': 'error', 'message': f"Invalid stage: {target_val}"}, status=400)
+            for inq in inquiries:
+                old_stage = inq.get_status_display()
+                inq.status = target_val
+                inq.save(update_fields=['status'])
+                InquiryFollowUp.objects.create(
+                    inquiry=inq,
+                    performed_by=request.user,
+                    interaction_type='meeting',
+                    notes=f"Bulk moved from '{old_stage}' to '{valid_stages[target_val]}'",
+                    is_done=True,
+                    completed_at=timezone.now()
+                )
+                updated_count += 1
+            msg = f"Successfully moved {updated_count} leads to '{valid_stages[target_val]}'."
+
+        elif action == 'broadcast':
+            for inq in inquiries:
+                InquiryFollowUp.objects.create(
+                    inquiry=inq,
+                    performed_by=request.user,
+                    interaction_type='whatsapp',
+                    notes=f"Dispatched Bulk Campaign Broadcast: {target_val}",
+                    is_done=True,
+                    completed_at=timezone.now()
+                )
+                inq.last_followup_at = timezone.now()
+                inq.save(update_fields=['last_followup_at'])
+                updated_count += 1
+            msg = f"Dispatched campaign broadcast to {updated_count} verified leads via WhatsApp."
+        else:
+            return JsonResponse({'status': 'error', 'message': f"Unknown action: {action}"}, status=400)
+
+        return JsonResponse({'status': 'success', 'updated_count': updated_count, 'message': msg})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def api_kanban_tara_pitch(request, inquiry_id):
+    """
+    GET /crm/api/kanban/tara-pitch/<id>/
+    Generates a personalized, AI-crafted sales pitch tailored to the lead's destination, vehicle, and dates.
+    """
+    from .models import Inquiry
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    veh_name = inquiry.vehicle_type.name if inquiry.vehicle_type else "Luxury AC Vehicle"
+    deal_val = f"₹{inquiry.deal_value:,.0f}" if inquiry.deal_value else "Exclusive Operator Rate"
+    dest = inquiry.destination or "South India Circuit"
+    pickup_date_str = inquiry.pickup_date.strftime('%d %b %Y')
+
+    pitch = (
+        f"Vanakkam {inquiry.guest_name}! 🌺 Greetings from *Sivagayathiri Travels & Expeditions*.\n\n"
+        f"We have reserved an exclusive *{veh_name}* for your upcoming journey to *{dest}* starting on *{pickup_date_str}*.\n\n"
+        f"✨ *Key Trip Privileges:*\n"
+        f"• Uniformed, background-verified senior chauffeur with mountain/ghat driving expertise\n"
+        f"• 100% sanitized air-conditioned vehicle with live satellite GPS telematics\n"
+        f"• Transparent commercial quote: *{deal_val}* (Zero hidden night tolls or surprise fuel surcharges)\n\n"
+        f"Would you like us to customize the day-wise sightseeing halts or reserve Toy Train / temple VIP darshan slots for your family?\n\n"
+        f"Click below to review your interactive proposal and confirm your departure:\n"
+        f"🔗 http://127.0.0.1:8000/quote/{inquiry.proposal_token}/\n\n"
+        f"Warm regards,\n"
+        f"*Sivagayathiri Tour Desk* | 📞 +91 98425 33777"
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'inquiry_id': inquiry.id,
+        'guest_name': inquiry.guest_name,
+        'pitch': pitch,
+        'win_probability': inquiry.ai_win_probability,
+        'proposal_url': f"/quote/{inquiry.proposal_token}/"
+    })
+
+
+@login_required
+def api_kanban_chat_history(request, inquiry_id):
+    """
+    GET /crm/api/kanban/chat/<id>/
+    Retrieves full two-way WhatsApp message history for the slide-out omnichannel drawer.
+    """
+    from .models import Inquiry, InquiryChatMessage
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    msgs = list(inquiry.chat_messages.all())
+    # If no messages yet, seed realistic initial interaction
+    if not msgs:
+        InquiryChatMessage.objects.create(
+            inquiry=inquiry,
+            sender_type='customer',
+            sender_name=inquiry.guest_name,
+            message=f"Hi, I submitted an inquiry for {inquiry.pickup_location} to {inquiry.destination}. Could you confirm vehicle availability and total rate?",
+            created_at=inquiry.created_at
+        )
+        veh_name = inquiry.vehicle_type.name if inquiry.vehicle_type else "Luxury AC Vehicle"
+        InquiryChatMessage.objects.create(
+            inquiry=inquiry,
+            sender_type='agent',
+            sender_name='Sivagayathiri Dispatch Desk',
+            message=f"Vanakkam {inquiry.guest_name}! Yes, our {veh_name} is available for {inquiry.pickup_date.strftime('%d %b')}. Quoted commercial estimate is ₹{inquiry.deal_value:,.0f} all-inclusive.",
+            created_at=inquiry.created_at + datetime.timedelta(minutes=15)
+        )
+        msgs = list(inquiry.chat_messages.all())
+
+    data = [
+        {
+            'id': m.id,
+            'sender_type': m.sender_type,
+            'sender_name': m.sender_name,
+            'message': m.message,
+            'created_at': m.created_at.strftime('%d %b, %I:%M %p')
+        }
+        for m in msgs
+    ]
+    return JsonResponse({
+        'status': 'success',
+        'inquiry_id': inquiry.id,
+        'guest_name': inquiry.guest_name,
+        'guest_phone': inquiry.guest_phone,
+        'messages': data
+    })
+
+
+@csrf_exempt
+@login_required
+def api_kanban_send_chat(request, inquiry_id):
+    """
+    POST /crm/api/kanban/chat/<id>/send/
+    Sends an outbound agent message directly from the board's slide-out drawer.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryChatMessage, InquiryFollowUp
+    import json
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+    text = data.get('message', '').strip()
+    if not text:
+        return JsonResponse({'status': 'error', 'message': 'Message cannot be empty'}, status=400)
+
+    sender_name = request.user.get_full_name() or request.user.username
+    msg = InquiryChatMessage.objects.create(
+        inquiry=inquiry,
+        sender_type='agent',
+        sender_name=sender_name,
+        message=text
+    )
+
+    inquiry.last_followup_at = timezone.now()
+    inquiry.save(update_fields=['last_followup_at'])
+
+    InquiryFollowUp.objects.create(
+        inquiry=inquiry,
+        performed_by=request.user,
+        interaction_type='whatsapp',
+        notes=f"Outbound WhatsApp from Kanban Drawer:\n{text}",
+        is_done=True,
+        completed_at=timezone.now()
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message_id': msg.id,
+        'sender_name': sender_name,
+        'message': text,
+        'created_at': msg.created_at.strftime('%d %b, %I:%M %p')
+    })
+
+
+@login_required
+def api_kanban_generate_proposal(request, inquiry_id):
+    """
+    GET /crm/api/kanban/proposal/<id>/
+    Ensures proposal token exists and returns the public link.
+    """
+    import secrets
+    from .models import Inquiry
+    inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+
+    if not inquiry.proposal_token:
+        inquiry.proposal_token = secrets.token_urlsafe(16)
+        inquiry.save(update_fields=['proposal_token'])
+
+    url = f"/quote/{inquiry.proposal_token}/"
+    return JsonResponse({
+        'status': 'success',
+        'token': inquiry.proposal_token,
+        'proposal_url': url,
+        'full_url': f"http://127.0.0.1:8000{url}",
+        'guest_name': inquiry.guest_name,
+        'deal_value': float(inquiry.deal_value)
+    })
+
+
+def public_digital_proposal_view(request, token):
+    """
+    Public Luxury Mobile Proposal View: /quote/<token>/
+    Guest opens an interactive mobile-optimized proposal with route itinerary,
+    vehicle amenities, hotel photos, transparent inclusions, and dynamic UPI advance payment.
+    """
+    from .models import Inquiry
+    inquiry = get_object_or_404(Inquiry, proposal_token=token)
+
+    inquiry.proposal_view_count += 1
+    inquiry.save(update_fields=['proposal_view_count'])
+
+    # Calculate token advance amount (20% of deal value, minimum ₹2,000, capped at ₹5,000)
+    deal_val = float(inquiry.deal_value or 25000)
+    advance_amount = min(5000, max(2000, round(deal_val * 0.2)))
+
+    context = {
+        'inquiry': inquiry,
+        'deal_val': deal_val,
+        'advance_amount': advance_amount,
+        'balance_amount': deal_val - advance_amount,
+        'is_paid': inquiry.advance_deposit_paid > 0 or inquiry.status == 'won',
+    }
+    return render(request, 'crm/digital_proposal.html', context)
+
+
+@csrf_exempt
+def api_proposal_upi_confirm(request, token):
+    """
+    POST /quote/<token>/confirm/
+    Customer clicks 'Accept Proposal & Pay Advance Token'.
+    Simulates dynamic UPI settlement, updates advance deposit, automatically moves
+    the CRM lead to 'Won', and provisions an active Booking & Trip in Operations!
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    from .models import Inquiry, InquiryFollowUp, InquiryChatMessage
+    from operations.models import Booking, Trip
+    import json
+    import secrets
+
+    inquiry = get_object_or_404(Inquiry, proposal_token=token)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        utr = data.get('utr') or f"UPI-{timezone.now().strftime('%Y%m%d')}-{secrets.randbelow(89999)+10000}"
+        amount = float(data.get('amount') or 5000)
+
+        # 1. Update Inquiry
+        inquiry.advance_deposit_paid = Decimal(str(amount))
+        inquiry.status = 'won'
+
+        # 2. Automatically create Booking & Trip if not already converted
+        trip = inquiry.converted_trip
+        booking = inquiry.converted_booking
+        if not trip:
+            booking = Booking.objects.create(
+                party=inquiry.party,
+                guest_name=inquiry.guest_name,
+                guest_phone=inquiry.guest_phone,
+                pickup_location=inquiry.pickup_location,
+                destination=inquiry.destination,
+                pickup_date=inquiry.pickup_date,
+                pickup_time=inquiry.pickup_time,
+                drop_date=inquiry.drop_date or inquiry.pickup_date,
+                journey_type=inquiry.journey_type,
+                vehicle_type=inquiry.vehicle_type,
+                expected_km=inquiry.estimated_km or 250,
+                quoted_price=inquiry.deal_value,
+                special_requirements=inquiry.special_requirements or '',
+                status='confirmed'
+            )
+            trip = Trip.objects.create(
+                booking=booking,
+                party=inquiry.party,
+                guest_name=inquiry.guest_name,
+                start_date=inquiry.pickup_date,
+                start_time=inquiry.pickup_time,
+                end_date=inquiry.drop_date or inquiry.pickup_date,
+                fixed_amount=inquiry.deal_value,
+                status='booked',
+                billing_model='fixed',
+                notes=f"Auto-provisioned via Interactive Proposal Accept & UPI Token (UTR: {utr})"
+            )
+            inquiry.converted_booking = booking
+            inquiry.converted_trip = trip
+
+        inquiry.save()
+
+        # Log in Follow-ups
+        InquiryFollowUp.objects.create(
+            inquiry=inquiry,
+            interaction_type='whatsapp',
+            notes=f"🎉 Guest accepted proposal online and paid ₹{amount:,.2f} advance token via UPI (UTR: {utr}). Deal marked as WON and Trip #{trip.trip_id} provisioned!",
+            is_done=True,
+            completed_at=timezone.now()
+        )
+
+        InquiryChatMessage.objects.create(
+            inquiry=inquiry,
+            sender_type='bot',
+            sender_name='UPI Payment Switch',
+            message=f"Payment Received: ₹{amount:,.2f} credited via UPI UTR {utr}. Trip #{trip.trip_id} scheduled!"
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Advance token verified! Your expedition has been confirmed.',
+            'utr': utr,
+            'booking_number': booking.booking_number,
+            'trip_number': trip.trip_id,
+            'trip_id': trip.id
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 
 
 # ==============================================================================

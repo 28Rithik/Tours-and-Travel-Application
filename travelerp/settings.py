@@ -232,9 +232,9 @@ WHITENOISE_USE_FINDERS = True  # Dynamic asset fallback in development
 WHITENOISE_KEEP_ONLY_HASHED_FILES = False
 
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/staff/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/staff/login/'
 
 COMPANY_NAME = 'Sivagayathiri Tours and Travels'
 COMPANY_LOCATION = 'Coimbatore, Tamil Nadu'
