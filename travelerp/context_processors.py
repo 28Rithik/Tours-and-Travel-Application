@@ -1,4 +1,4 @@
-﻿"""
+"""
 Enterprise Role-Based Access Control (RBAC) Context Processor
 Provides comprehensive role flags, staff profiles, and active persona info across all templates.
 """
@@ -49,131 +49,216 @@ def rbac_context(request):
     is_super = user.is_superuser
     is_admin = is_super or (role == 'admin') or ('Super_Admins' in group_names)
     is_manager = is_admin or (role == 'manager') or ('General_Managers' in group_names)
-    is_sales_exec = is_admin or is_manager or (role == 'sales_executive') or ('Sales_Executives' in group_names) or ('Booking_Managers' in group_names)
-    is_sales = is_sales_exec or (role == 'sales') or ('Corporate_Sales' in group_names)
-    is_ops = is_admin or is_manager or (role == 'operations') or ('Operations_Dispatch' in group_names) or ('Fleet_Managers' in group_names)
-    is_acct = is_admin or is_manager or (role == 'operation_account') or ('Accounts_Finance' in group_names) or ('Finance_Team' in group_names)
+    is_sales_exec = is_admin or is_manager or (role in ('sales_executive', 'tour_designer_lead')) or ('Sales_Executives' in group_names) or ('Booking_Managers' in group_names)
+    is_sales = is_sales_exec or (role in ('sales', 'b2b_corporate_lead')) or ('Corporate_Sales' in group_names)
+    is_ops = is_admin or is_manager or (role in ('operations', 'night_dispatcher', 'workshop_manager')) or ('Operations_Dispatch' in group_names) or ('Fleet_Managers' in group_names)
+    is_acct = is_admin or is_manager or (role in ('operation_account', 'finance_controller', 'treasury_petty_cashier')) or ('Accounts_Finance' in group_names) or ('Finance_Team' in group_names)
     is_driver = (role == 'driver') or ('Chauffeur_Drivers' in group_names)
     is_cust_service = is_admin or is_manager or (role == 'customer_service') or ('Guest_Support' in group_names)
 
+    # Specialized Role Flags
+    is_tour_designer = is_admin or is_manager or (role == 'tour_designer_lead')
+    is_b2b_corporate = is_admin or is_manager or (role in ('b2b_corporate_lead', 'sales'))
+    is_workshop = is_admin or is_manager or (role == 'workshop_manager') or ('Workshop_Maintenance' in group_names)
+    is_compliance = is_admin or is_manager or (role == 'compliance_rto_officer') or ('Compliance_RTO' in group_names)
+    is_night_dispatcher = is_admin or (role == 'night_dispatcher')
+    is_finance_controller = is_admin or (role == 'finance_controller')
+    is_petty_cash = is_admin or is_manager or (role == 'treasury_petty_cashier') or ('Treasury_Cashiers' in group_names)
+
     # Legacy flags for template and test backwards-compatibility
-    is_fleet = ('Fleet_Managers' in group_names) or (role in ('operations', 'admin', 'manager')) or is_super
-    is_booking = ('Booking_Managers' in group_names) or (role in ('sales_executive', 'sales', 'customer_service', 'admin', 'manager')) or is_super
-    is_finance = ('Finance_Team' in group_names) or (role in ('operation_account', 'admin', 'manager')) or is_super
+    is_fleet = ('Fleet_Managers' in group_names) or (role in ('operations', 'admin', 'manager', 'workshop_manager', 'night_dispatcher')) or is_super
+    is_booking = ('Booking_Managers' in group_names) or (role in ('sales_executive', 'tour_designer_lead', 'sales', 'b2b_corporate_lead', 'customer_service', 'admin', 'manager')) or is_super
+    is_finance = ('Finance_Team' in group_names) or (role in ('operation_account', 'finance_controller', 'treasury_petty_cashier', 'admin', 'manager')) or is_super
+
+    # Simulation HUD Detection
+    is_simulating_persona = bool(request.session.get('simulating_persona'))
 
     # Role meta dictionary
     role_meta = {
-        'admin': ('System Director / Admin', '👑', '#e11d48'),
-        'manager': ('General Manager', '🏢', '#8b5cf6'),
-        'sales_executive': ('Senior Sales Executive', '📑', '#10b981'),
-        'sales': ('Corporate Sales', '💼', '#059669'),
-        'operations': ('Fleet & Dispatch Operations', '🚛', '#0284c7'),
-        'operation_account': ('Operations Accounts & Billing', '💰', '#d97706'),
-        'driver': ('Senior Chauffeur', '👨‍✈️', '#f97316'),
-        'customer_service': ('Guest Experience & Concierge', '🎧', '#06b6d4'),
+        'admin': ('System Director / Admin', 'fa-solid fa-crown', '#e11d48'),
+        'manager': ('General / Branch Manager', 'fa-solid fa-building-user', '#8b5cf6'),
+        'tour_designer_lead': ('Senior Tour Designer & Package Architect', 'fa-solid fa-compass-drafting', '#0ea5e9'),
+        'b2b_corporate_lead': ('Corporate Mobility & Key Accounts Lead', 'fa-solid fa-briefcase', '#4f46e5'),
+        'sales_executive': ('Senior Sales Executive & Proposal Designer', 'fa-solid fa-file-signature', '#10b981'),
+        'sales': ('Corporate Sales Representative', 'fa-solid fa-handshake', '#059669'),
+        'operations': ('Fleet & Dispatch Operations Lead', 'fa-solid fa-truck-ramp-box', '#0284c7'),
+        'night_dispatcher': ('Night Shift & SOS Emergency Dispatcher', 'fa-solid fa-moon', '#312e81'),
+        'workshop_manager': ('Fleet Maintenance & Workshop Supervisor', 'fa-solid fa-wrench', '#ea580c'),
+        'compliance_rto_officer': ('Safety, Compliance & RTO Liaison Officer', 'fa-solid fa-shield-halved', '#0369a1'),
+        'finance_controller': ('Chief Financial Controller & Tax Lead', 'fa-solid fa-vault', '#7c3aed'),
+        'operation_account': ('Operations Accounts & Billing Officer', 'fa-solid fa-file-invoice-dollar', '#d97706'),
+        'treasury_petty_cashier': ('Depot Petty Cash & Fastag Custodian', 'fa-solid fa-money-bill-transfer', '#ca8a04'),
+        'driver': ('Senior Fleet Chauffeur', 'fa-solid fa-id-badge', '#f97316'),
+        'customer_service': ('Guest Experience & WhatsApp Concierge', 'fa-solid fa-headset', '#06b6d4'),
     }
 
     if is_admin and not profile:
-        role_label, role_icon, role_color = ('Superuser Admin', '👑', '#e11d48')
+        role_label, role_icon, role_color = ('Superuser Admin', 'fa-solid fa-crown', '#e11d48')
     elif profile and profile.role in role_meta:
         role_label, role_icon, role_color = role_meta[profile.role]
     elif 'Fleet_Managers' in group_names and len(group_names) == 1:
-        role_label, role_icon, role_color = ('Fleet Manager', '🚛', '#0284c7')
+        role_label, role_icon, role_color = ('Fleet Manager', 'fa-solid fa-truck-ramp-box', '#0284c7')
     elif 'Booking_Managers' in group_names and len(group_names) == 1:
-        role_label, role_icon, role_color = ('Booking & Dispatch', '📋', '#10b981')
+        role_label, role_icon, role_color = ('Booking & Dispatch', 'fa-solid fa-calendar-check', '#10b981')
     elif 'Finance_Team' in group_names and len(group_names) == 1:
-        role_label, role_icon, role_color = ('Finance & Accounts', '💰', '#d97706')
+        role_label, role_icon, role_color = ('Finance & Accounts', 'fa-solid fa-file-invoice-dollar', '#d97706')
     else:
-        role_label, role_icon, role_color = ('Enterprise Staff', '👤', '#64748b')
+        role_label, role_icon, role_color = ('Enterprise Staff', 'fa-solid fa-user', '#64748b')
 
-    # Demo personas for instant 1-click evaluation switching
+    # Demo personas for instant 1-click evaluation switching (All 14 Enterprise Roles)
     demo_personas = [
         {
             'username': 'admin_rajesh',
             'name': 'Rajesh Kannan',
-            'role_label': 'System Director / Admin',
+            'role_label': 'System Director / Super Admin',
             'role_code': 'admin',
             'empid': 'SGT-EXEC-001',
             'badge_color': '#e11d48',
-            'icon': '👑',
-            'branch': 'Chennai HQ',
+            'icon_class': 'fa-solid fa-crown',
+            'branch': 'Chennai Central HQ',
             'focus': 'Full Root Governance & Master Audit',
         },
         {
             'username': 'mgr_vikram',
             'name': 'Vikram Sundaram',
-            'role_label': 'General Manager',
+            'role_label': 'General / Branch Manager',
             'role_code': 'manager',
             'empid': 'SGT-MGR-002',
             'badge_color': '#8b5cf6',
-            'icon': '🏢',
+            'icon_class': 'fa-solid fa-building-user',
             'branch': 'Coimbatore Hub',
             'focus': 'Discount Approvals & P&L Margins',
         },
         {
-            'username': 'sales_priya',
-            'name': 'Priya Natarajan',
-            'role_label': 'Senior Sales Executive',
-            'role_code': 'sales_executive',
-            'empid': 'SGT-SLS-003',
-            'badge_color': '#10b981',
-            'icon': '📑',
-            'branch': 'Chennai HQ',
-            'focus': 'Tour Quotations & Itinerary Proposals',
+            'username': 'tour_ananya',
+            'name': 'Ananya Deshmukh',
+            'role_label': 'Tour Designer & Package Architect',
+            'role_code': 'tour_designer_lead',
+            'empid': 'SGT-TRN-003',
+            'badge_color': '#0ea5e9',
+            'icon_class': 'fa-solid fa-compass-drafting',
+            'branch': 'Chennai Central HQ',
+            'focus': 'Bespoke Itineraries & Tour Tariffs',
         },
         {
             'username': 'sales_arun',
             'name': 'Arun Kumar',
-            'role_label': 'Corporate Sales',
-            'role_code': 'sales',
-            'empid': 'SGT-SLS-004',
-            'badge_color': '#059669',
-            'icon': '💼',
+            'role_label': 'Corporate Mobility & Key Accounts',
+            'role_code': 'b2b_corporate_lead',
+            'empid': 'SGT-B2B-004',
+            'badge_color': '#4f46e5',
+            'icon_class': 'fa-solid fa-briefcase',
             'branch': 'Bengaluru Station',
-            'focus': 'Corporate B2B Contracts & College IV',
+            'focus': 'Corporate B2B Commute & SEZ Shuttles',
+        },
+        {
+            'username': 'sales_priya',
+            'name': 'Priya Natarajan',
+            'role_label': 'Senior Sales Executive & Proposals',
+            'role_code': 'sales_executive',
+            'empid': 'SGT-SLS-005',
+            'badge_color': '#10b981',
+            'icon_class': 'fa-solid fa-file-signature',
+            'branch': 'Chennai Central HQ',
+            'focus': 'CRM Kanban & Digital Proposals',
         },
         {
             'username': 'ops_suresh',
             'name': 'Suresh Balaji',
-            'role_label': 'Fleet & Dispatch Operations',
+            'role_label': 'Fleet & Dispatch Operations Lead',
             'role_code': 'operations',
-            'empid': 'SGT-OPS-005',
+            'empid': 'SGT-OPS-006',
             'badge_color': '#0284c7',
-            'icon': '🚛',
+            'icon_class': 'fa-solid fa-truck-ramp-box',
             'branch': 'Coimbatore Hub',
             'focus': 'Live Radar, Driver Rosters & Standby',
         },
         {
+            'username': 'night_arvind',
+            'name': 'Arvind Swaminathan',
+            'role_label': 'Night Shift & SOS Dispatcher',
+            'role_code': 'night_dispatcher',
+            'empid': 'SGT-NIT-007',
+            'badge_color': '#312e81',
+            'icon_class': 'fa-solid fa-moon',
+            'branch': 'Central Control Room',
+            'focus': 'Graveyard Supervision & Panic Triggers',
+        },
+        {
+            'username': 'workshop_karthik',
+            'name': 'Karthik Raghavan',
+            'role_label': 'Maintenance & Workshop Supervisor',
+            'role_code': 'workshop_manager',
+            'empid': 'SGT-MNT-008',
+            'badge_color': '#ea580c',
+            'icon_class': 'fa-solid fa-wrench',
+            'branch': 'Madurai Depo',
+            'focus': 'Preventive Service & Tire Audits',
+        },
+        {
+            'username': 'compliance_bala',
+            'name': 'Balasubramanian S',
+            'role_label': 'Safety, RTO & Compliance Officer',
+            'role_code': 'compliance_rto_officer',
+            'empid': 'SGT-RTO-009',
+            'badge_color': '#0369a1',
+            'icon_class': 'fa-solid fa-shield-halved',
+            'branch': 'Chennai Central HQ',
+            'focus': 'RTO Fitness (FC), Permits & Insurance',
+        },
+        {
+            'username': 'tax_srinivas',
+            'name': 'Srinivas V',
+            'role_label': 'Chief Financial Controller & Tax',
+            'role_code': 'finance_controller',
+            'empid': 'SGT-TAX-010',
+            'badge_color': '#7c3aed',
+            'icon_class': 'fa-solid fa-vault',
+            'branch': 'Chennai Central HQ',
+            'focus': 'GST INV-1, E-Way Bills & Tally Export',
+        },
+        {
             'username': 'acct_meena',
             'name': 'Meenakshi Raman',
-            'role_label': 'Accounts & Billing Officer',
+            'role_label': 'Trip Settlement & Billing Officer',
             'role_code': 'operation_account',
-            'empid': 'SGT-FIN-006',
+            'empid': 'SGT-FIN-011',
             'badge_color': '#d97706',
-            'icon': '💰',
-            'branch': 'Chennai HQ',
-            'focus': 'GST Tax Invoices, TDS & Driver Settlements',
+            'icon_class': 'fa-solid fa-file-invoice-dollar',
+            'branch': 'Chennai Central HQ',
+            'focus': 'Driver Bata, Fuel Slips & Toll Claims',
+        },
+        {
+            'username': 'cash_ramesh',
+            'name': 'Ramesh Chandran',
+            'role_label': 'Depot Petty Cash & Fastag Custodian',
+            'role_code': 'treasury_petty_cashier',
+            'empid': 'SGT-CSH-012',
+            'badge_color': '#ca8a04',
+            'icon_class': 'fa-solid fa-money-bill-transfer',
+            'branch': 'Coimbatore Hub',
+            'focus': 'Driver Cash Advances & Fastag Vault',
         },
         {
             'username': 'driver_muthu',
             'name': 'Muthukumar S',
-            'role_label': 'Senior Chauffeur',
+            'role_label': 'Senior Fleet Chauffeur',
             'role_code': 'driver',
-            'empid': 'SGT-DRV-007',
+            'empid': 'SGT-DRV-013',
             'badge_color': '#f97316',
-            'icon': '👨‍✈️',
+            'icon_class': 'fa-solid fa-id-badge',
             'branch': 'Madurai Depo',
-            'focus': 'Mobile Digital Handover & Fuel Slips',
+            'focus': 'Mobile PWA Handover & Duty Roster',
         },
         {
             'username': 'support_divya',
             'name': 'Divya Selvam',
-            'role_label': 'Guest Support Specialist',
+            'role_label': 'Guest Experience & Concierge',
             'role_code': 'customer_service',
-            'empid': 'SGT-SUP-008',
+            'empid': 'SGT-SUP-014',
             'badge_color': '#06b6d4',
-            'icon': '🎧',
-            'branch': 'Chennai HQ',
+            'icon_class': 'fa-solid fa-headset',
+            'branch': 'Chennai Central HQ',
             'focus': 'Passenger Care, SOS & Concierge',
         },
     ]
@@ -188,6 +273,14 @@ def rbac_context(request):
         'is_operation_account': is_acct,
         'is_driver': is_driver,
         'is_customer_service': is_cust_service,
+        # Specialized flags
+        'is_tour_designer': is_tour_designer,
+        'is_b2b_corporate': is_b2b_corporate,
+        'is_workshop': is_workshop,
+        'is_compliance': is_compliance,
+        'is_night_dispatcher': is_night_dispatcher,
+        'is_finance_controller': is_finance_controller,
+        'is_petty_cash': is_petty_cash,
         # Legacy backward-compatible keys
         'is_fleet_manager': is_fleet,
         'is_booking_manager': is_booking,
@@ -203,4 +296,5 @@ def rbac_context(request):
         'user_groups': group_names,
         'staff_profile': profile,
         'demo_personas': demo_personas,
+        'is_simulating_persona': is_simulating_persona,
     }

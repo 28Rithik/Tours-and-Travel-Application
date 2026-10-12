@@ -540,7 +540,7 @@
           <div class="unfold-profile-menu-wrap" id="unfold-profile-menu-wrap">
             <button type="button" class="btn-profile-pill" onclick="toggleProfileDropdown(event)" aria-expanded="false" title="Staff Profile, Clearance & Switcher">
               <span class="profile-avatar-badge" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}44;">
-                {{ user_role_icon }}
+                {% if "fa-" in user_role_icon %}<i class="{{ user_role_icon }}"></i>{% else %}{{ user_role_icon }}{% endif %}
               </span>
               <div class="profile-pill-meta">
                 <span class="profile-pill-name">{{ user.first_name|default:user.username }}</span>
@@ -555,7 +555,7 @@
               <!-- Active User Bio Header -->
               <div class="profile-dropdown-card">
                 <div class="profile-card-avatar" style="background: {{ user_role_color }}22; color: {{ user_role_color }}; border: 1px solid {{ user_role_color }}44;">
-                  {{ user_role_icon }}
+                  {% if "fa-" in user_role_icon %}<i class="{{ user_role_icon }}"></i>{% else %}{{ user_role_icon }}{% endif %}
                 </div>
                 <div class="profile-card-details">
                   <div class="profile-card-name">{{ user.get_full_name|default:user.username }}</div>
@@ -599,7 +599,7 @@
                 {% for p in demo_personas %}
                 <a href="/auth/switch-persona/{{ p.username }}/?next={{ request.path }}" class="profile-persona-item {% if user.username == p.username %}is-current{% endif %}">
                   <div class="profile-persona-icon" style="background: {{ p.badge_color }}20; color: {{ p.badge_color }}; border: 1px solid {{ p.badge_color }}44;">
-                    {{ p.icon }}
+                    {% if p.icon_class %}<i class="{{ p.icon_class }}"></i>{% elif "fa-" in p.icon %}<i class="{{ p.icon }}"></i>{% else %}{{ p.icon }}{% endif %}
                   </div>
                   <div class="profile-persona-info">
                     <div class="profile-persona-row">

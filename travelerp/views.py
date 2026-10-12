@@ -355,6 +355,12 @@ def switch_persona_view(request, username):
     # Perform direct session login without requiring re-entering passwords
     login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
     
+    # Track simulation state
+    if target_user.is_superuser and target_user.username in ('admin', 'admin_rajesh'):
+        request.session['simulating_persona'] = False
+    else:
+        request.session['simulating_persona'] = True
+    
     role_name = getattr(target_user, 'staff_profile', None)
     role_label = role_name.get_role_display() if role_name else ('Superuser' if target_user.is_superuser else 'Staff')
     messages.success(
@@ -372,107 +378,181 @@ def staff_roles_matrix_view(request):
     """
     staff_members = StaffProfile.objects.select_related('user', 'linked_driver').order_by('employee_id')
     
-    # Granular Enterprise Capability Matrix
-    # Capabilities mapped to which role has access
+    # Granular Enterprise Capability Matrix (15 capabilities mapped across 14 roles)
     capabilities_matrix = [
         {
             'module': 'Fleet Dispatch & Live Telematics',
             'capability': 'Real-Time Fleet Radar Map & GPS Telematics Tick',
-            'roles': ['admin', 'manager', 'operations'],
+            'desc': 'Stream sub-second vehicle telemetry, geofence ingress/egress, and overspeed alerts.',
+            'roles': ['admin', 'manager', 'operations', 'night_dispatcher', 'workshop_manager', 'compliance_rto_officer', 'b2b_corporate_lead', 'customer_service'],
         },
         {
             'module': 'Fleet Dispatch & Live Telematics',
             'capability': 'Dispatch Standby Replacement Vehicle & Roster Allocation',
-            'roles': ['admin', 'manager', 'operations'],
+            'desc': 'Reassign trips, allocate backup luxury coaches, and manage driver duty manifests.',
+            'roles': ['admin', 'manager', 'operations', 'night_dispatcher', 'b2b_corporate_lead'],
         },
         {
             'module': 'Fleet Dispatch & Live Telematics',
             'capability': 'Digital Handover Inspection & 2D Damage Studio',
-            'roles': ['admin', 'operations', 'driver'],
+            'desc': 'Mark pre-trip cosmetic blemishes, odometer captures, and fuel tank levels.',
+            'roles': ['admin', 'manager', 'operations', 'night_dispatcher', 'driver', 'workshop_manager', 'compliance_rto_officer'],
+        },
+        {
+            'module': 'Asset Maintenance & Workshop',
+            'capability': 'Maintenance Work Orders & Mechanical Defect Job Cards',
+            'desc': 'Create defect tickets, allocate garage mechanics, and authorize OEM spare parts.',
+            'roles': ['admin', 'manager', 'workshop_manager', 'compliance_rto_officer'],
+        },
+        {
+            'module': 'Asset Maintenance & Workshop',
+            'capability': 'Preventative Service Schedules & Tire Tread Mileage Audit',
+            'desc': 'Track 10,000 km oil intervals, tire tread depth thresholds, and scheduled overhauls.',
+            'roles': ['admin', 'manager', 'workshop_manager'],
+        },
+        {
+            'module': 'Safety, RTO Compliance & SOS',
+            'capability': 'Emergency SOS Panic Trigger & Incident Escalation Desk',
+            'desc': '24/7 emergency response console with AIS-140 panic feed and city police liaison.',
+            'roles': ['admin', 'manager', 'operations', 'night_dispatcher', 'driver', 'customer_service', 'compliance_rto_officer', 'b2b_corporate_lead'],
+        },
+        {
+            'module': 'Safety, RTO Compliance & SOS',
+            'capability': 'RTO Fitness (FC), Border Permits & Insurance Ledger',
+            'desc': 'Monitor All India Tourist Permit expiries, speed governor certs, and PUC renewals.',
+            'roles': ['admin', 'manager', 'compliance_rto_officer', 'workshop_manager'],
         },
         {
             'module': 'Commercial, CRM & Itineraries',
-            'capability': 'Create Bespoke Quotation Proposal & Day-by-Day Itineraries',
-            'roles': ['admin', 'manager', 'sales_executive', 'sales'],
+            'capability': 'Bespoke Itinerary Architect & Multi-Day Tariff Engine',
+            'desc': 'Design day-by-day tour itineraries with hotel voucher costing and route calculations.',
+            'roles': ['admin', 'manager', 'tour_designer_lead', 'sales_executive', 'sales', 'b2b_corporate_lead'],
         },
         {
             'module': 'Commercial, CRM & Itineraries',
-            'capability': 'Manage B2B Corporate Master Contracts & FTO Tariff Cards',
-            'roles': ['admin', 'manager', 'sales_executive'],
+            'capability': 'CRM Leads Pipeline, Kanban Board & Digital Proposals',
+            'desc': 'Manage inquiry stages, follow-up reminders, and digital customer proposals.',
+            'roles': ['admin', 'manager', 'sales_executive', 'tour_designer_lead', 'sales', 'b2b_corporate_lead'],
         },
         {
-            'module': 'Commercial, CRM & Itineraries',
-            'capability': 'Customer Grievances, WhatsApp Broadcast & SOS Response',
-            'roles': ['admin', 'manager', 'customer_service', 'operations'],
+            'module': 'B2B Corporate Commute Contracts',
+            'capability': 'Manage Corporate Master Contracts & Employee Roster Studio',
+            'desc': 'Corporate client tariff matrices, multi-shift route rosters, and SEZ transport hubs.',
+            'roles': ['admin', 'manager', 'b2b_corporate_lead', 'operations', 'night_dispatcher'],
         },
         {
-            'module': 'Finance, GST & Settlements',
+            'module': 'B2B Corporate Commute Contracts',
+            'capability': 'SLA Delay Penalty Audits & Night Escort Safe-Drop Index',
+            'desc': 'Reconcile on-time trip penalties, escort sign-offs, and automated client billing.',
+            'roles': ['admin', 'manager', 'b2b_corporate_lead', 'compliance_rto_officer'],
+        },
+        {
+            'module': 'Billing, GST Invoicing & Tax',
             'capability': 'Issue Tax Invoices (GST INV-1) & NIC E-Way Bill Exports',
-            'roles': ['admin', 'manager', 'operation_account'],
+            'desc': 'Generate statutory B2B GST tax invoices, calculate SGST/CGST/IGST, and push JSON to NIC.',
+            'roles': ['admin', 'manager', 'finance_controller', 'operation_account'],
         },
         {
-            'module': 'Finance, GST & Settlements',
-            'capability': 'Driver Bata, Diesel Fuel Slips Audit & Outstation Settlements',
-            'roles': ['admin', 'manager', 'operation_account'],
-        },
-        {
-            'module': 'Finance, GST & Settlements',
+            'module': 'Billing, GST Invoicing & Tax',
             'capability': 'Tally Prime / Zoho Books Export & TDS Section 194C Filing',
-            'roles': ['admin', 'operation_account'],
+            'desc': 'Export XML ledgers for Tally Prime and reconcile 1% / 2% transport contractor TDS.',
+            'roles': ['admin', 'finance_controller'],
+        },
+        {
+            'module': 'Driver Bata, Fuel & Cash Custody',
+            'capability': 'Driver Bata, Diesel Fuel Slips Audit & Trip Settlements',
+            'desc': 'Audit HPCL/IOCL fleet fuel receipts, toll slips, and calculate driver night batas.',
+            'roles': ['admin', 'manager', 'operation_account', 'finance_controller', 'treasury_petty_cashier', 'operations'],
+        },
+        {
+            'module': 'Driver Bata, Fuel & Cash Custody',
+            'capability': 'Depot Petty Cash Disbursements & Fastag Wallet Top-Ups',
+            'desc': 'Manage branch cash vaults, driver trip advances, and toll Fastag balance top-ups.',
+            'roles': ['admin', 'manager', 'treasury_petty_cashier', 'operation_account', 'finance_controller'],
         },
         {
             'module': 'Executive Governance & Approvals',
-            'capability': 'High-Value Discount Overrides (>15%) & Margin Waiver',
+            'capability': 'Commercial Margin Waiver & High-Value Discount (>15%)',
+            'desc': 'Sign off on non-standard client discounts, credit terms, and low-margin contracts.',
             'roles': ['admin', 'manager'],
         },
         {
             'module': 'Executive Governance & Approvals',
-            'capability': 'Staff Provisioning, RBAC Clearance & Master Audit Logs',
+            'capability': 'Staff Provisioning, RBAC Clearance Matrix & Master Audit Log',
+            'desc': 'Provision employee profiles, adjust approval ceilings, and review forensic system logs.',
             'roles': ['admin'],
         },
     ]
 
+    # Department and Depot aggregates
+    total_staff = staff_members.count()
+    depots = sorted(list(set(s.branch for s in staff_members if s.branch)))
+    departments = sorted(list(set(s.department for s in staff_members if s.department)))
+
     # Recent Audit Log Activity
     recent_audit_logs = [
         {
-            'time': '10 mins ago',
-            'actor': 'Suresh Balaji',
-            'role': 'Fleet & Dispatch Lead',
-            'action': 'Dispatched Toyota Innova Crysta (TN 38 AA 7788) with Captain Muthukumar for Ooty Hill Station Tour #TRP-4098.',
-            'category': 'Dispatch',
-            'badge': '#0284c7',
+            'time': '5 mins ago',
+            'actor': 'Arvind Swaminathan',
+            'role': 'Night Shift & SOS Dispatcher',
+            'action': 'Acknowledged AIS-140 Safe-Drop Confirmation for 14 Cognizant Tech Park female associates on Route CR-12.',
+            'category': 'Night SOS',
+            'badge': '#312e81',
+            'icon': 'fa-solid fa-moon',
+        },
+        {
+            'time': '18 mins ago',
+            'actor': 'Karthik Raghavan',
+            'role': 'Workshop Supervisor',
+            'action': 'Approved 40,000 km Tire Rotation & Wheel Alignment work order #WO-2026-441 for BharatBenz Glider (TN 58 BB 1100).',
+            'category': 'Maintenance',
+            'badge': '#ea580c',
+            'icon': 'fa-solid fa-wrench',
         },
         {
             'time': '34 mins ago',
             'actor': 'Meenakshi Raman',
-            'role': 'Accounts Officer',
+            'role': 'Trip Settlement Officer',
             'action': 'Generated Form GST INV-1 #INV-26-8812 for Cognizant Solutions Coimbatore (Taxable: ₹40,000 + GST 5%).',
             'category': 'Billing',
             'badge': '#d97706',
+            'icon': 'fa-solid fa-file-invoice-dollar',
+        },
+        {
+            'time': '52 mins ago',
+            'actor': 'Balasubramanian S',
+            'role': 'Safety & RTO Officer',
+            'action': 'Uploaded renewed All India Tourist Permit (AITP) & Speed Governor Certificate for Volvo 9600 (TN 01 AZ 9900).',
+            'category': 'Compliance',
+            'badge': '#0369a1',
+            'icon': 'fa-solid fa-shield-halved',
         },
         {
             'time': '1 hour ago',
-            'actor': 'Priya Natarajan',
-            'role': 'Senior Sales Executive',
-            'action': 'Finalized 5-Day Kerala College IV proposal #QT-2026-904 with 2x Volvo Multi-Axle coaches for PSG Tech.',
-            'category': 'Sales',
-            'badge': '#10b981',
+            'actor': 'Ananya Deshmukh',
+            'role': 'Tour Designer Lead',
+            'action': 'Published customized 7-Day Tamil Nadu Heritage Circuit #PKG-TN-07 with Sterling Ooty & Madurai Heritage tie-ups.',
+            'category': 'Tour Design',
+            'badge': '#0ea5e9',
+            'icon': 'fa-solid fa-compass-drafting',
         },
         {
             'time': '2 hours ago',
             'actor': 'Vikram Sundaram',
             'role': 'General Manager',
-            'action': 'Approved 12% Special Corporate Tariff Discount for TVS Motors 30-day employee shuttle contract.',
-            'category': 'Approval',
+            'action': 'Authorized ₹50,000 Fastag Fleet Wallet Top-up via ICICI Corporate Banking for Coimbatore Outstation Depo.',
+            'category': 'Treasury',
             'badge': '#8b5cf6',
+            'icon': 'fa-solid fa-building-user',
         },
         {
             'time': '3 hours ago',
             'actor': 'Divya Selvam',
-            'role': 'Guest Support',
-            'action': 'Sent live flight delay update and WhatsApp driver tracking link to Mr. Sundar Pichai at Coimbatore CJB.',
-            'category': 'Support',
+            'role': 'Guest Support Specialist',
+            'action': 'Broadcasted live flight delay notification and rescheduled chauffeur pickup for VIP guest at Chennai MAA T2.',
+            'category': 'Concierge',
             'badge': '#06b6d4',
+            'icon': 'fa-solid fa-headset',
         },
     ]
 
@@ -480,6 +560,9 @@ def staff_roles_matrix_view(request):
         'staff_members': staff_members,
         'capabilities_matrix': capabilities_matrix,
         'recent_audit_logs': recent_audit_logs,
+        'total_staff': total_staff,
+        'depots': depots,
+        'departments': departments,
     })
 
 

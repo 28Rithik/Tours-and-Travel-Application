@@ -505,12 +505,19 @@ class StaffProfile(models.Model):
 	ROLE_CHOICES = [
 		('admin', 'System Director / Super Admin'),
 		('manager', 'General / Branch Manager'),
-		('sales_executive', 'Senior Sales Executive & Tour Designer'),
+		('tour_designer_lead', 'Senior Tour Designer & Package Architect'),
+		('b2b_corporate_lead', 'Corporate Mobility & Key Accounts Lead'),
+		('sales_executive', 'Senior Sales Executive & Proposal Designer'),
 		('sales', 'Corporate Sales Representative'),
 		('operations', 'Fleet & Dispatch Operations Lead'),
+		('night_dispatcher', 'Night Shift & SOS Emergency Dispatcher'),
+		('workshop_manager', 'Fleet Maintenance & Workshop Supervisor'),
+		('compliance_rto_officer', 'Safety, Compliance & RTO Liaison Officer'),
+		('finance_controller', 'Chief Financial Controller & Tax Lead'),
 		('operation_account', 'Operations Accounts & Billing Officer'),
+		('treasury_petty_cashier', 'Depot Petty Cash & Fastag Custodian'),
 		('driver', 'Senior Fleet Chauffeur'),
-		('customer_service', 'Guest Experience & Support Specialist'),
+		('customer_service', 'Guest Experience & WhatsApp Concierge'),
 	]
 
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
@@ -546,25 +553,61 @@ class StaffProfile(models.Model):
 		colors = {
 			'admin': '#e11d48',
 			'manager': '#8b5cf6',
+			'tour_designer_lead': '#0ea5e9',
+			'b2b_corporate_lead': '#4f46e5',
 			'sales_executive': '#10b981',
 			'sales': '#059669',
 			'operations': '#0284c7',
+			'night_dispatcher': '#312e81',
+			'workshop_manager': '#ea580c',
+			'compliance_rto_officer': '#0369a1',
+			'finance_controller': '#7c3aed',
 			'operation_account': '#d97706',
+			'treasury_petty_cashier': '#ca8a04',
 			'driver': '#f97316',
 			'customer_service': '#06b6d4',
 		}
 		return colors.get(self.role, '#64748b')
 
 	@property
+	def role_icon_class(self):
+		classes = {
+			'admin': 'fa-solid fa-crown',
+			'manager': 'fa-solid fa-building-user',
+			'tour_designer_lead': 'fa-solid fa-compass-drafting',
+			'b2b_corporate_lead': 'fa-solid fa-briefcase',
+			'sales_executive': 'fa-solid fa-file-signature',
+			'sales': 'fa-solid fa-handshake',
+			'operations': 'fa-solid fa-truck-ramp-box',
+			'night_dispatcher': 'fa-solid fa-moon',
+			'workshop_manager': 'fa-solid fa-wrench',
+			'compliance_rto_officer': 'fa-solid fa-shield-halved',
+			'finance_controller': 'fa-solid fa-vault',
+			'operation_account': 'fa-solid fa-file-invoice-dollar',
+			'treasury_petty_cashier': 'fa-solid fa-money-bill-transfer',
+			'driver': 'fa-solid fa-id-badge',
+			'customer_service': 'fa-solid fa-headset',
+		}
+		return classes.get(self.role, 'fa-solid fa-user')
+
+	@property
 	def role_icon(self):
 		icons = {
 			'admin': '👑',
 			'manager': '🏢',
+			'tour_designer_lead': '🗺️',
+			'b2b_corporate_lead': '💼',
 			'sales_executive': '📑',
-			'sales': '💼',
+			'sales': '🤝',
 			'operations': '🚛',
+			'night_dispatcher': '🌙',
+			'workshop_manager': '🔧',
+			'compliance_rto_officer': '🛡️',
+			'finance_controller': '🏛️',
 			'operation_account': '💰',
+			'treasury_petty_cashier': '💵',
 			'driver': '👨‍✈️',
 			'customer_service': '🎧',
 		}
 		return icons.get(self.role, '👤')
+

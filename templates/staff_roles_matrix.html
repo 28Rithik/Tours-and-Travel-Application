@@ -8,23 +8,82 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
 /* ─────────────────────────────────────────────────────────────
    Authentic Enterprise Staff & RBAC Matrix Styling
-   Crisp Light Mode First, tactile legibility, and zero AI-slop aesthetics.
+   Crisp Light Mode First, tactile legibility, zero AI-slop aesthetics.
    ───────────────────────────────────────────────────────────── */
 .rbac-container {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #0f172a;
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding-bottom: 3rem;
+  padding-bottom: 3.5rem;
 }
 
 .mono-val {
   font-family: 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
+}
+
+/* Simulation HUD Banner */
+.simulation-hud-banner {
+  background: linear-gradient(135deg, #1e1b4b, #312e81);
+  border: 1px solid #4338ca;
+  border-radius: 14px;
+  padding: 14px 22px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  box-shadow: 0 4px 18px rgba(49, 46, 129, 0.25);
+  animation: fadeInDown 0.3s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sim-hud-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sim-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.btn-exit-sim {
+  background: #ffffff;
+  color: #312e81;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+}
+
+.btn-exit-sim:hover {
+  background: #e0e7ff;
+  transform: translateY(-1px);
 }
 
 /* Header Strip */
@@ -34,7 +93,7 @@
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   border-radius: 14px;
   padding: 1.5rem 1.75rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -52,12 +111,13 @@
   width: 52px;
   height: 52px;
   border-radius: 12px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
+  color: #4f46e5;
 }
 
 .rbac-title {
@@ -100,6 +160,7 @@
   border-bottom: 2px solid #e2e8f0;
   margin-bottom: 1.5rem;
   padding-bottom: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .rbac-tab-btn {
@@ -124,16 +185,106 @@
 }
 
 .rbac-tab-btn.is-active {
-  color: #0284c7;
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+/* Search and Filter Bar */
+.roster-toolbar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+.toolbar-top-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.roster-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.roster-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.roster-search-box {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.roster-search-box:focus {
+  background: #ffffff;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.depot-select {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  background: #f8fafc;
+  outline: none;
+  cursor: pointer;
+}
+
+.department-chips-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dept-chip-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dept-chip-btn:hover, .dept-chip-btn.active {
+  background: #4f46e5;
+  color: #ffffff;
+  border-color: #4f46e5;
 }
 
 /* Staff Directory Grid */
 .staff-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.15rem;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.25rem;
   margin-bottom: 2.25rem;
 }
 
@@ -141,7 +292,7 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -157,23 +308,23 @@
 }
 
 .staff-card-current {
-  border: 2px solid #0284c7;
-  box-shadow: 0 0 20px rgba(2, 132, 199, 0.12);
+  border: 2px solid #4f46e5;
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.15);
 }
 
 .staff-current-tag {
   position: absolute;
   top: 10px;
   right: 12px;
-  background: #e0f2fe;
-  color: #0284c7;
-  border: 1px solid #bae6fd;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
   font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 .staff-card-header {
@@ -184,16 +335,17 @@
 }
 
 .staff-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #fff;
+  color: #ffffff;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .staff-info {
@@ -210,10 +362,10 @@
 }
 
 .staff-name {
-  font-size: 1.02rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 2px;
+  margin: 0 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -223,22 +375,22 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.2rem 0.55rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 6px;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
 .staff-card-details {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  padding: 0.85rem;
   margin: 0.75rem 0 1rem;
   font-size: 0.8rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .staff-detail-item {
@@ -251,7 +403,7 @@
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  margin-bottom: 1px;
+  margin-bottom: 2px;
 }
 
 .staff-detail-val {
@@ -277,7 +429,7 @@
   background: #f1f5f9;
   color: #0f172a;
   border: 1px solid #cbd5e1;
-  padding: 0.55rem 0.85rem;
+  padding: 0.6rem 0.85rem;
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 700;
@@ -286,15 +438,16 @@
 }
 
 .btn-impersonate:hover {
-  background: #0284c7;
-  border-color: #0284c7;
-  color: #fff;
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 .btn-impersonate.is-active-user {
-  background: #dcfce7;
-  border-color: #86efac;
-  color: #15803d;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
   cursor: default;
 }
 
@@ -320,7 +473,7 @@
 }
 
 .matrix-title {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: #0f172a;
   margin: 0 0 0.2rem;
@@ -334,6 +487,7 @@
 
 .matrix-table-wrap {
   overflow-x: auto;
+  max-width: 100%;
 }
 
 .matrix-table {
@@ -347,16 +501,16 @@
   background: #f1f5f9;
   color: #334155;
   font-weight: 800;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 0.75rem;
   border-bottom: 2px solid #cbd5e1;
   white-space: nowrap;
 }
 
 .matrix-table td {
-  padding: 0.85rem 1rem;
+  padding: 0.85rem 0.75rem;
   border-bottom: 1px solid #e2e8f0;
   color: #0f172a;
 }
@@ -372,173 +526,164 @@
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: #dcfce7;
-  color: #15803d;
+  background: #ecfdf5;
+  color: #059669;
   font-weight: 800;
   font-size: 0.85rem;
-  border: 1px solid #86efac;
+  border: 1px solid #a7f3d0;
 }
 
 .cap-badge-no {
   color: #cbd5e1;
-  font-size: 0.9rem;
-  text-align: center;
-  display: inline-block;
-  width: 24px;
+  font-weight: 700;
 }
 
-/* Activity Audit Feed */
+/* Ceilings Tab Cards */
+.ceilings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.ceiling-tier-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  position: relative;
+}
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.tier-amount {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.tier-desc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.tier-roles-list {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  font-size: 11px;
+  color: #334155;
+}
+
+/* Operational Audit Log Feed */
 .audit-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
   border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2.25rem;
 }
 
 .audit-feed-list {
+  margin-top: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  margin-top: 1rem;
 }
 
 .audit-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
-  padding: 0.85rem 1rem;
+  padding: 1rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.audit-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
 }
 
 .audit-tag {
-  padding: 0.2rem 0.55rem;
-  border-radius: 5px;
-  font-size: 0.7rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .audit-body {
   flex: 1;
+  min-width: 0;
 }
 
 .audit-actor {
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
 }
 
 .audit-action {
-  color: #334155;
+  color: #475569;
   font-size: 0.82rem;
   margin-top: 2px;
 }
 
 .audit-time {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #64748b;
   flex-shrink: 0;
-}
-
-/* ── Dark Mode Adaptation (Synced with Unfold) ── */
-html.dark .rbac-container {
-  color: var(--text-main);
-}
-html.dark .rbac-header-card,
-html.dark .staff-card,
-html.dark .matrix-card,
-html.dark .audit-card {
-  background: var(--surface-card);
-  border-color: var(--border-color);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-}
-html.dark .rbac-gov-icon {
-  background: var(--surface-subtle);
-  border-color: var(--border-strong);
-}
-html.dark .rbac-title,
-html.dark .staff-name,
-html.dark .matrix-title,
-html.dark .audit-actor,
-html.dark .staff-detail-val {
-  color: var(--text-main);
-}
-html.dark .rbac-subtitle,
-html.dark .matrix-subtitle,
-html.dark .staff-empid,
-html.dark .staff-detail-label,
-html.dark .audit-action {
-  color: var(--text-muted);
-}
-html.dark .header-meta-pill {
-  background: var(--surface-subtle);
-  border-color: var(--border-color);
-  color: var(--text-muted);
-}
-html.dark .header-meta-pill strong {
-  color: var(--text-main);
-}
-html.dark .rbac-tabs-nav {
-  border-bottom-color: var(--border-color);
-}
-html.dark .rbac-tab-btn {
-  color: var(--text-muted);
-}
-html.dark .rbac-tab-btn:hover {
-  color: var(--text-main);
-  background: var(--surface-subtle);
-}
-html.dark .rbac-tab-btn.is-active {
-  color: var(--primary);
-  background: rgba(2, 132, 199, 0.15);
-  border-color: rgba(2, 132, 199, 0.3);
-}
-html.dark .staff-card-details {
-  background: var(--surface-subtle);
-  border-color: var(--border-color);
-}
-html.dark .btn-impersonate {
-  background: var(--surface-subtle);
-  border-color: var(--border-strong);
-  color: var(--text-main);
-}
-html.dark .btn-impersonate:hover {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
-}
-html.dark .matrix-card-header {
-  background: var(--surface-subtle);
-  border-bottom-color: var(--border-color);
-}
-html.dark .matrix-table th {
-  background: var(--surface-subtle);
-  color: var(--text-muted);
-  border-bottom-color: var(--border-strong);
-}
-html.dark .matrix-table td {
-  border-bottom-color: var(--border-color);
-  color: var(--text-main);
-}
-html.dark .matrix-table tr:hover td {
-  background: rgba(255, 255, 255, 0.04);
-}
-html.dark .audit-item {
-  background: var(--surface-subtle);
-  border-color: var(--border-color);
 }
 </style>
 
 <div class="rbac-container">
+  <!-- Simulation HUD Banner -->
+  {% if is_simulating_persona %}
+  <div class="simulation-hud-banner">
+    <div class="sim-hud-left">
+      <span class="sim-pulse-dot"></span>
+      <div>
+        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #a5b4fc; font-weight: 700;">Active Persona Simulation Engine</span>
+        <div style="font-size: 14px; font-weight: 800; color: #ffffff;">
+          Simulating: {{ user.get_full_name|default:user.username }} ({{ user_role_label }}) — Base Depot: {{ user_branch }}
+        </div>
+      </div>
+    </div>
+    <a href="{% url 'auth-switch-persona' 'admin_rajesh' %}?next={% url 'staff-roles-matrix' %}" class="btn-exit-sim">
+      <i class="fa-solid fa-arrow-rotate-left"></i> Exit Simulation &amp; Return to Super Admin
+    </a>
+  </div>
+  {% endif %}
+
   <!-- Header Card -->
   <div class="rbac-header-card">
     <div class="rbac-header-left">
-      <div class="rbac-gov-icon">🛡️</div>
+      <div class="rbac-gov-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
       <div>
         <h1 class="rbac-title">Staff Directory &amp; RBAC Clearance Matrix</h1>
         <p class="rbac-subtitle">Role-Based Access Control, Departmental Governance &amp; Multi-Persona Simulation Hub</p>
@@ -557,40 +702,82 @@ html.dark .audit-item {
         <span>Depot:</span>
         <strong>{{ user_branch }}</strong>
       </div>
+      <div class="header-meta-pill">
+        <span>Ceiling:</span>
+        <strong class="mono-val">
+          {% if staff_profile.approval_limit_inr > 0 %}₹ {{ staff_profile.approval_limit_inr|floatformat:0 }}{% else %}Master{% endif %}
+        </strong>
+      </div>
     </div>
   </div>
 
   <!-- Tab Switcher -->
   <div class="rbac-tabs-nav">
     <button class="rbac-tab-btn is-active" onclick="switchRbacTab('roster', this)">
-      <span>👥</span> Staff Directory ({{ staff_members.count }})
+      <i class="fa-solid fa-users"></i> Staff Directory ({{ total_staff|default:staff_members.count }})
     </button>
     <button class="rbac-tab-btn" onclick="switchRbacTab('matrix', this)">
-      <span>🔐</span> Permissions Clearance Matrix
+      <i class="fa-solid fa-shield-halved"></i> Permissions Clearance Matrix ({{ capabilities_matrix|length }})
+    </button>
+    <button class="rbac-tab-btn" onclick="switchRbacTab('ceilings', this)">
+      <i class="fa-solid fa-scale-balanced"></i> Financial Approval Ceilings
     </button>
     <button class="rbac-tab-btn" onclick="switchRbacTab('audit', this)">
-      <span>📜</span> Operational Audit Log
+      <i class="fa-solid fa-clock-rotate-left"></i> Operational Audit Log ({{ recent_audit_logs|length }})
     </button>
   </div>
 
   <!-- SECTION 1: Staff Directory Roster -->
   <div id="tab-roster">
-    <div class="staff-cards-grid">
+    <!-- Toolbar: Search & Filters -->
+    <div class="roster-toolbar">
+      <div class="toolbar-top-row">
+        <div class="roster-search-wrap">
+          <i class="fa-solid fa-magnifying-glass roster-search-icon"></i>
+          <input type="text" id="rosterSearchInput" class="roster-search-box" placeholder="Search by name, employee ID, designation, or department..." oninput="filterStaffRoster()">
+        </div>
+        <select id="depotFilterSelect" class="depot-select" onchange="filterStaffRoster()">
+          <option value="all">All Depots &amp; Stations</option>
+          <option value="chennai">Chennai Central HQ</option>
+          <option value="coimbatore">Coimbatore Hub</option>
+          <option value="madurai">Madurai Depo</option>
+          <option value="bengaluru">Bengaluru Station</option>
+          <option value="control">Central Control Room</option>
+        </select>
+      </div>
+
+      <div class="department-chips-row">
+        <span style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Department:</span>
+        <button type="button" class="dept-chip-btn active" onclick="filterByDepartment('all', this)">All</button>
+        <button type="button" class="dept-chip-btn" onclick="filterByDepartment('executive', this)">Executive Management</button>
+        <button type="button" class="dept-chip-btn" onclick="filterByDepartment('commercial', this)">Commercial &amp; Tours</button>
+        <button type="button" class="dept-chip-btn" onclick="filterByDepartment('operations', this)">Fleet Operations</button>
+        <button type="button" class="dept-chip-btn" onclick="filterByDepartment('maintenance', this)">Maintenance &amp; Workshop</button>
+        <button type="button" class="dept-chip-btn" onclick="filterByDepartment('accounts', this)">Accounts &amp; Treasury</button>
+        <button type="button" class="dept-chip-btn" onclick="filterByDepartment('concierge', this)">Guest Concierge</button>
+      </div>
+    </div>
+
+    <!-- Staff Cards Grid -->
+    <div class="staff-cards-grid" id="staffCardsGrid">
       {% for member in staff_members %}
-      <div class="staff-card {% if member.user == user %}staff-card-current{% endif %}">
+      <div class="staff-card {% if member.user == user %}staff-card-current{% endif %}" 
+           data-name="{{ member.display_name|lower }} {{ member.employee_id|lower }} {{ member.designation|lower }}"
+           data-dept="{{ member.department|lower }}"
+           data-branch="{{ member.branch|lower }}">
         {% if member.user == user %}
-        <span class="staff-current-tag">Active Session</span>
+        <span class="staff-current-tag"><i class="fa-solid fa-circle-check"></i> Active Session</span>
         {% endif %}
         <div>
           <div class="staff-card-header">
             <div class="staff-avatar" style="background: {{ member.avatar_color }};">
-              {{ member.role_icon }}
+              <i class="{{ member.role_icon_class }}"></i>
             </div>
             <div class="staff-info">
               <div class="staff-empid mono-val">{{ member.employee_id }}</div>
-              <h3 class="staff-name">{{ member.display_name }}</h3>
-              <span class="staff-role-badge" style="background: {{ member.role_badge_color }}22; color: {{ member.role_badge_color }}; border: 1px solid {{ member.role_badge_color }}55;">
-                {{ member.get_role_display }}
+              <h3 class="staff-name" title="{{ member.display_name }}">{{ member.display_name }}</h3>
+              <span class="staff-role-badge" style="background: {{ member.role_badge_color }}18; color: {{ member.role_badge_color }}; border: 1px solid {{ member.role_badge_color }}44;">
+                <i class="{{ member.role_icon_class }}"></i> {{ member.get_role_display }}
               </span>
             </div>
           </div>
@@ -598,11 +785,11 @@ html.dark .audit-item {
           <div class="staff-card-details">
             <div class="staff-detail-item">
               <span class="staff-detail-label">Department</span>
-              <span class="staff-detail-val">{{ member.department }}</span>
+              <span class="staff-detail-val" title="{{ member.department }}">{{ member.department }}</span>
             </div>
             <div class="staff-detail-item">
               <span class="staff-detail-label">Base Depot</span>
-              <span class="staff-detail-val">{{ member.branch }}</span>
+              <span class="staff-detail-val" title="{{ member.branch }}">{{ member.branch }}</span>
             </div>
             <div class="staff-detail-item">
               <span class="staff-detail-label">Mobile Hotline</span>
@@ -610,7 +797,7 @@ html.dark .audit-item {
             </div>
             <div class="staff-detail-item">
               <span class="staff-detail-label">Approval Ceiling</span>
-              <span class="staff-detail-val mono-val">
+              <span class="staff-detail-val mono-val" style="color: {% if member.approval_limit_inr >= 500000 %}#15803d{% elif member.approval_limit_inr >= 100000 %}#4338ca{% else %}#0f172a{% endif %};">
                 {% if member.approval_limit_inr > 0 %}₹ {{ member.approval_limit_inr|floatformat:0 }}{% else %}—{% endif %}
               </span>
             </div>
@@ -620,16 +807,22 @@ html.dark .audit-item {
         <div class="staff-card-actions">
           {% if member.user == user %}
           <button class="btn-impersonate is-active-user" disabled>
-            <span>✓ Current Persona</span>
+            <i class="fa-solid fa-user-check"></i> Current Persona
           </button>
           {% else %}
           <a class="btn-impersonate" href="{% url 'auth-switch-persona' member.user.username %}?next={% url 'staff-roles-matrix' %}">
-            <span>⚡ Switch to this Persona</span>
+            <i class="fa-solid fa-bolt" style="color: #4f46e5;"></i> Switch to this Persona
           </a>
           {% endif %}
         </div>
       </div>
       {% endfor %}
+    </div>
+
+    <div id="noStaffMatches" style="display: none; padding: 48px 24px; text-align: center; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 14px; color: #64748b;">
+      <i class="fa-solid fa-user-slash" style="font-size: 32px; color: #94a3b8; margin-bottom: 12px; display: block;"></i>
+      <div style="font-weight: 700; font-size: 15px; color: #0f172a;">No staff members match the selected filters.</div>
+      <div style="font-size: 12px; margin-top: 4px;">Try clearing your search query or selecting "All Departments".</div>
     </div>
   </div>
 
@@ -641,9 +834,9 @@ html.dark .audit-item {
           <h2 class="matrix-title">Departmental Capability Clearance Matrix</h2>
           <p class="matrix-subtitle">Defines exact access privileges and operational clearances granted to each organizational role</p>
         </div>
-        <div style="font-size: 0.8rem; color: #475569; display: flex; gap: 1rem;">
-          <span><strong style="color: #15803d;">✓</strong> Authorized</span>
-          <span><strong style="color: #94a3b8;">—</strong> Restricted</span>
+        <div style="font-size: 0.8rem; color: #475569; display: flex; gap: 1rem; align-items: center;">
+          <span><span class="cap-badge-yes" style="width: 20px; height: 20px; font-size: 11px;"><i class="fa-solid fa-check"></i></span> Authorized</span>
+          <span><strong style="color: #cbd5e1;">—</strong> Restricted</span>
         </div>
       </div>
 
@@ -653,52 +846,89 @@ html.dark .audit-item {
             <tr>
               <th style="min-width: 170px;">Operational Module</th>
               <th style="min-width: 280px;">System Capability</th>
-              <th style="text-align: center;">Director (Admin)</th>
-              <th style="text-align: center;">General Mgr</th>
+              <th style="text-align: center;">Director</th>
+              <th style="text-align: center;">Branch Mgr</th>
+              <th style="text-align: center;">Tour Arch</th>
+              <th style="text-align: center;">B2B Lead</th>
               <th style="text-align: center;">Sales Exec</th>
-              <th style="text-align: center;">Corp Sales</th>
               <th style="text-align: center;">Fleet Ops</th>
-              <th style="text-align: center;">Accounts</th>
+              <th style="text-align: center;">Night SOS</th>
+              <th style="text-align: center;">Workshop</th>
+              <th style="text-align: center;">Safety RTO</th>
+              <th style="text-align: center;">Finance Lead</th>
+              <th style="text-align: center;">Billing Acct</th>
+              <th style="text-align: center;">Petty Cash</th>
               <th style="text-align: center;">Chauffeur</th>
-              <th style="text-align: center;">Support</th>
+              <th style="text-align: center;">Concierge</th>
             </tr>
           </thead>
           <tbody>
             {% for item in capabilities_matrix %}
             <tr>
-              <td><strong style="color: #475569;">{{ item.module }}</strong></td>
-              <td><span style="color: #0f172a; font-weight: 700;">{{ item.capability }}</span></td>
-              <!-- Admin -->
-              <td style="text-align: center;">
-                {% if 'admin' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              <td>
+                <span style="display: inline-block; padding: 2px 8px; border-radius: 4px; background: #f1f5f9; font-size: 11px; font-weight: 700; color: #475569;">
+                  {{ item.module }}
+                </span>
               </td>
-              <!-- Manager -->
-              <td style="text-align: center;">
-                {% if 'manager' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              <td>
+                <div style="font-weight: 700; color: #0f172a;">{{ item.capability }}</div>
+                {% if item.desc %}<div style="font-size: 11px; color: #64748b; margin-top: 2px;">{{ item.desc }}</div>{% endif %}
               </td>
-              <!-- Sales Executive -->
+              <!-- 1. Admin -->
               <td style="text-align: center;">
-                {% if 'sales_executive' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+                {% if 'admin' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
               </td>
-              <!-- Corporate Sales -->
+              <!-- 2. Manager -->
               <td style="text-align: center;">
-                {% if 'sales' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+                {% if 'manager' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
               </td>
-              <!-- Operations -->
+              <!-- 3. Tour Designer -->
               <td style="text-align: center;">
-                {% if 'operations' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+                {% if 'tour_designer_lead' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
               </td>
-              <!-- Accounts -->
+              <!-- 4. B2B Lead -->
               <td style="text-align: center;">
-                {% if 'operation_account' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+                {% if 'b2b_corporate_lead' in item.roles or 'sales' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
               </td>
-              <!-- Driver -->
+              <!-- 5. Sales Exec -->
               <td style="text-align: center;">
-                {% if 'driver' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+                {% if 'sales_executive' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
               </td>
-              <!-- Customer Support -->
+              <!-- 6. Fleet Ops -->
               <td style="text-align: center;">
-                {% if 'customer_service' in item.roles %}<span class="cap-badge-yes">✓</span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+                {% if 'operations' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 7. Night SOS -->
+              <td style="text-align: center;">
+                {% if 'night_dispatcher' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 8. Workshop -->
+              <td style="text-align: center;">
+                {% if 'workshop_manager' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 9. Safety RTO -->
+              <td style="text-align: center;">
+                {% if 'compliance_rto_officer' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 10. Finance Lead -->
+              <td style="text-align: center;">
+                {% if 'finance_controller' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 11. Billing Acct -->
+              <td style="text-align: center;">
+                {% if 'operation_account' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 12. Petty Cash -->
+              <td style="text-align: center;">
+                {% if 'treasury_petty_cashier' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 13. Chauffeur -->
+              <td style="text-align: center;">
+                {% if 'driver' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
+              </td>
+              <!-- 14. Support -->
+              <td style="text-align: center;">
+                {% if 'customer_service' in item.roles %}<span class="cap-badge-yes"><i class="fa-solid fa-check"></i></span>{% else %}<span class="cap-badge-no">—</span>{% endif %}
               </td>
             </tr>
             {% endfor %}
@@ -708,19 +938,90 @@ html.dark .audit-item {
     </div>
   </div>
 
-  <!-- SECTION 3: Activity Audit Log -->
+  <!-- SECTION 3: Financial Ceilings -->
+  <div id="tab-ceilings" style="display: none;">
+    <div class="matrix-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+      <h2 class="matrix-title">Multi-Tier Financial Governance &amp; Commercial Authority</h2>
+      <p class="matrix-subtitle">Prevents margin leakages, enforces mandatory executive discount authorizations, and audits emergency roadside expenses.</p>
+    </div>
+
+    <div class="ceilings-grid">
+      <!-- Tier 1 -->
+      <div class="ceiling-tier-card">
+        <div class="tier-badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
+          <i class="fa-solid fa-shield"></i> Tier 1 • Field &amp; Concierge
+        </div>
+        <div class="tier-amount mono-val">Up to ₹ 10,000</div>
+        <div class="tier-desc">
+          Emergency en-route vehicle fuel top-up, toll cash, passenger goodwill credits, and flight delay refreshments.
+        </div>
+        <div class="tier-roles-list">
+          <strong>Authorized Personas:</strong> Chauffeur Captains (₹5K), Concierge Specialists (₹10K).
+        </div>
+      </div>
+
+      <!-- Tier 2 -->
+      <div class="ceiling-tier-card">
+        <div class="tier-badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+          <i class="fa-solid fa-user-shield"></i> Tier 2 • Operations Leads
+        </div>
+        <div class="tier-amount mono-val">Up to ₹ 1,00,000</div>
+        <div class="tier-desc">
+          Sales quotation discounts (up to 5%), branch petty cash disbursements, Fastag fleet top-ups, and roadside towing.
+        </div>
+        <div class="tier-roles-list">
+          <strong>Authorized Personas:</strong> Sales Execs (₹50K), Fleet Ops (₹1L), Night Dispatchers (₹50K), Petty Cashiers (₹50K).
+        </div>
+      </div>
+
+      <!-- Tier 3 -->
+      <div class="ceiling-tier-card">
+        <div class="tier-badge" style="background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;">
+          <i class="fa-solid fa-building-user"></i> Tier 3 • Branch Leadership
+        </div>
+        <div class="tier-amount mono-val">Up to ₹ 5,00,000</div>
+        <div class="tier-desc">
+          Commercial margin waivers up to 15%, workshop engine overhaul orders, corporate escrow billing reconciliations.
+        </div>
+        <div class="tier-roles-list">
+          <strong>Authorized Personas:</strong> Workshop Leads (₹1.5L), B2B Commute Leads (₹2L), Trip Settlement Officers (₹2.5L), Branch Managers (₹5L).
+        </div>
+      </div>
+
+      <!-- Tier 4 -->
+      <div class="ceiling-tier-card">
+        <div class="tier-badge" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">
+          <i class="fa-solid fa-crown"></i> Tier 4 • Executive Directorate
+        </div>
+        <div class="tier-amount mono-val">Above ₹ 5,00,000</div>
+        <div class="tier-desc">
+          Unrestricted capital expenditure, new vehicle asset purchases, annual corporate contracts (>₹25L), and bank settlements.
+        </div>
+        <div class="tier-roles-list">
+          <strong>Authorized Personas:</strong> Finance Controller (₹10L), System Director / Managing Director (₹25L+).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Activity Audit Log -->
   <div id="tab-audit" style="display: none;">
     <div class="audit-card">
-      <div>
-        <h2 class="matrix-title">Multi-Department Operational Audit Trail</h2>
-        <p class="matrix-subtitle">Immutable chronological log of system actions taken by active staff personas</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h2 class="matrix-title">Multi-Department Operational Audit Trail</h2>
+          <p class="matrix-subtitle">Immutable chronological log of system actions taken by active staff personas</p>
+        </div>
+        <span style="font-size: 11px; font-weight: 700; color: #4338ca; background: #eef2ff; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe;">
+          <i class="fa-solid fa-lock"></i> Cryptographically Verified
+        </span>
       </div>
 
       <div class="audit-feed-list">
         {% for log in recent_audit_logs %}
         <div class="audit-item">
-          <span class="audit-tag" style="background: {{ log.badge }}22; color: {{ log.badge }}; border: 1px solid {{ log.badge }}55;">
-            {{ log.category }}
+          <span class="audit-tag" style="background: {{ log.badge }}18; color: {{ log.badge }}; border: 1px solid {{ log.badge }}44;">
+            <i class="{{ log.icon|default:'fa-solid fa-bolt' }}"></i> {{ log.category }}
           </span>
           <div class="audit-body">
             <div>
@@ -741,10 +1042,66 @@ html.dark .audit-item {
 function switchRbacTab(tabId, btn) {
   document.getElementById('tab-roster').style.display = tabId === 'roster' ? 'block' : 'none';
   document.getElementById('tab-matrix').style.display = tabId === 'matrix' ? 'block' : 'none';
+  document.getElementById('tab-ceilings').style.display = tabId === 'ceilings' ? 'block' : 'none';
   document.getElementById('tab-audit').style.display = tabId === 'audit' ? 'block' : 'none';
 
   document.querySelectorAll('.rbac-tab-btn').forEach(b => b.classList.remove('is-active'));
   btn.classList.add('is-active');
+}
+
+let activeDepartmentFilter = 'all';
+
+function filterByDepartment(deptKey, btn) {
+  activeDepartmentFilter = deptKey;
+  document.querySelectorAll('.dept-chip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterStaffRoster();
+}
+
+function filterStaffRoster() {
+  const query = (document.getElementById('rosterSearchInput').value || '').toLowerCase().trim();
+  const depotVal = document.getElementById('depotFilterSelect').value.toLowerCase();
+  const cards = document.querySelectorAll('.staff-card');
+  let matchCount = 0;
+
+  cards.forEach(card => {
+    const nameData = card.getAttribute('data-name') || '';
+    const deptData = card.getAttribute('data-dept') || '';
+    const branchData = card.getAttribute('data-branch') || '';
+
+    const matchesQuery = !query || nameData.includes(query);
+    
+    let matchesDept = true;
+    if (activeDepartmentFilter !== 'all') {
+      if (activeDepartmentFilter === 'executive' && !deptData.includes('executive') && !deptData.includes('regional')) matchesDept = false;
+      if (activeDepartmentFilter === 'commercial' && !deptData.includes('commercial') && !deptData.includes('tour') && !deptData.includes('sales') && !deptData.includes('proposals')) matchesDept = false;
+      if (activeDepartmentFilter === 'operations' && !deptData.includes('fleet') && !deptData.includes('dispatch') && !deptData.includes('field')) matchesDept = false;
+      if (activeDepartmentFilter === 'maintenance' && !deptData.includes('maintenance') && !deptData.includes('workshop') && !deptData.includes('safety') && !deptData.includes('rto')) matchesDept = false;
+      if (activeDepartmentFilter === 'accounts' && !deptData.includes('account') && !deptData.includes('tax') && !deptData.includes('treasury') && !deptData.includes('settlement')) matchesDept = false;
+      if (activeDepartmentFilter === 'concierge' && !deptData.includes('guest') && !deptData.includes('concierge')) matchesDept = false;
+    }
+
+    let matchesDepot = true;
+    if (depotVal !== 'all') {
+      if (depotVal === 'chennai' && !branchData.includes('chennai')) matchesDepot = false;
+      if (depotVal === 'coimbatore' && !branchData.includes('coimbatore')) matchesDepot = false;
+      if (depotVal === 'madurai' && !branchData.includes('madurai')) matchesDepot = false;
+      if (depotVal === 'bengaluru' && !branchData.includes('bengaluru')) matchesDepot = false;
+      if (depotVal === 'control' && !branchData.includes('control')) matchesDepot = false;
+    }
+
+    if (matchesQuery && matchesDept && matchesDepot) {
+      card.style.display = 'flex';
+      matchCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const noMatchesEl = document.getElementById('noStaffMatches');
+  if (noMatchesEl) {
+    noMatchesEl.style.display = matchCount === 0 ? 'block' : 'none';
+  }
 }
 </script>
 {% endblock %}
