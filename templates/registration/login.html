@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <style>
     :root {
@@ -651,11 +652,11 @@
 
         <!-- Operational Modules -->
         <div class="ops-features-list">
-          <span class="ops-feature-tag">🛰️ Live GPS Fleet Radar</span>
-          <span class="ops-feature-tag">📋 Trip Sheets & Handovers</span>
-          <span class="ops-feature-tag">🧾 GST e-Way Bill Automation</span>
-          <span class="ops-feature-tag">💬 WhatsApp Dispatch Studio</span>
-          <span class="ops-feature-tag">💰 Party Ledgers & Petty Cash</span>
+          <span class="ops-feature-tag"><i class="fa-solid fa-satellite-dish" style="color: #0284c7;"></i> Live GPS Fleet Radar</span>
+          <span class="ops-feature-tag"><i class="fa-solid fa-clipboard-check" style="color: #059669;"></i> Trip Sheets & Handovers</span>
+          <span class="ops-feature-tag"><i class="fa-solid fa-file-invoice-dollar" style="color: #7c3aed;"></i> GST e-Way Bill Automation</span>
+          <span class="ops-feature-tag"><i class="fa-brands fa-whatsapp" style="color: #16a34a;"></i> WhatsApp Dispatch Studio</span>
+          <span class="ops-feature-tag"><i class="fa-solid fa-vault" style="color: #d97706;"></i> Party Ledgers & Petty Cash</span>
         </div>
       </section>
 
@@ -667,18 +668,10 @@
             <p>Enter your authorized staff username and password to access the operations command center.</p>
           </div>
 
-          <!-- Quick Autofill Demo Assistant for Testing -->
-          <div class="role-helper-strip">
-            <span>🔧 Testing credentials:</span>
-            <button type="button" class="demo-autofill-btn" onclick="autofillDemoAdmin()">
-              Autofill Admin (admin / admin123)
-            </button>
-          </div>
-
           <!-- Error Alert Banner -->
           {% if form.errors %}
           <div class="alert-error" role="alert">
-            <span class="alert-icon">⚠️</span>
+            <span class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
             <div class="alert-text">
               <strong>Authentication Failed</strong>
               <span>Invalid staff username or password. Please verify your credentials and try again.</span>
@@ -695,7 +688,7 @@
             <div class="form-group">
               <label for="id_username" class="form-label">Staff Username / ID</label>
               <div class="input-icon-wrapper">
-                <span class="field-icon">👤</span>
+                <span class="field-icon"><i class="fa-solid fa-user"></i></span>
                 <input 
                   type="text" 
                   name="username" 
@@ -712,9 +705,12 @@
 
             <!-- Password Field -->
             <div class="form-group">
-              <label for="id_password" class="form-label">Password</label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label for="id_password" class="form-label" style="margin-bottom: 0;">Password</label>
+                <a href="mailto:it-support@sivagayathiri.com?subject=Password%20Reset%20Request" style="font-size: 11px; color: #0284c7; text-decoration: none; font-weight: 600;">Forgot Password?</a>
+              </div>
               <div class="input-icon-wrapper">
-                <span class="field-icon">🔒</span>
+                <span class="field-icon"><i class="fa-solid fa-lock"></i></span>
                 <input 
                   type="password" 
                   name="password" 
@@ -725,7 +721,7 @@
                   autocomplete="current-password"
                 >
                 <button type="button" class="toggle-pwd-btn" onclick="togglePasswordVisibility()" title="Show/Hide Password" aria-label="Toggle password visibility">
-                  <span id="pwd-eye-icon">👁️</span>
+                  <span id="pwd-eye-icon"><i class="fa-solid fa-eye"></i></span>
                 </button>
               </div>
             </div>
@@ -734,20 +730,33 @@
             <div class="form-meta-row">
               <label class="remember-check">
                 <input type="checkbox" name="remember_terminal" checked>
-                <span>Remember this terminal</span>
+                <span>Remember this workstation</span>
               </label>
-              <span class="it-desk-hint">IT Helpdesk: Ext 104</span>
+              <span class="it-desk-hint"><i class="fa-solid fa-headset" style="margin-right: 4px;"></i> IT Helpdesk: Ext 104</span>
             </div>
 
             <!-- Submit Button -->
             <button type="submit" class="btn-submit-ops">
               <span>Sign In to Operations Console</span>
-              <span>→</span>
+              <i class="fa-solid fa-arrow-right"></i>
             </button>
 
-            <!-- Security Badge -->
+            <!-- Collapsible Developer Sandbox Quickfill (Non-intrusive) -->
+            <details style="margin-top: 14px; font-size: 11px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px;">
+              <summary style="cursor: pointer; font-weight: 600; color: #475569;">
+                <i class="fa-solid fa-terminal" style="font-size: 10px; margin-right: 4px;"></i> Testing Sandbox Quickfill (Dev Mode)
+              </summary>
+              <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <span>Autofill local administrator:</span>
+                <button type="button" class="demo-autofill-btn" onclick="autofillDemoAdmin()">
+                  Fill admin / admin123
+                </button>
+              </div>
+            </details>
+
+            <!-- Security & Compliance Badge -->
             <div class="security-badge-footer">
-              <span>●</span> 256-Bit TLS Encrypted Session • Authorized Personnel Only
+              <span style="color: #10b981;"><i class="fa-solid fa-shield-check"></i></span> 256-Bit TLS 1.3 Encrypted • ISO 27001 Aligned • Authorized Personnel Only
             </div>
           </form>
         </div>
@@ -774,10 +783,10 @@
       const eyeIcon = document.getElementById('pwd-eye-icon');
       if (pwdInput.type === 'password') {
         pwdInput.type = 'text';
-        eyeIcon.textContent = '🔒';
+        eyeIcon.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
       } else {
         pwdInput.type = 'password';
-        eyeIcon.textContent = '👁️';
+        eyeIcon.innerHTML = '<i class="fa-solid fa-eye"></i>';
       }
     }
 

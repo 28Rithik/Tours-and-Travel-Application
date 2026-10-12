@@ -210,15 +210,15 @@
 
         <!-- Portal Branding Badge -->
         <div style="text-align: center; margin-bottom: 1.75rem;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: white; font-size: 2rem; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4); margin-bottom: 1rem;">
-                🚌
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 20px; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: white; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4); margin-bottom: 1rem;">
+                <i class="fa-solid fa-compass" style="font-size: 1.85rem; color: #ffffff;"></i>
             </div>
             <h1 style="font-size: 1.75rem; font-weight: 800; color: #0f172a; margin: 0 0 0.5rem 0; letter-spacing: -0.02em;">Customer & Guest Access</h1>
             <p style="color: #64748b; font-size: 0.95rem; margin: 0;">Access your live radar trips, e-tickets, and GST tax invoices.</p>
         </div>
 
         <!-- Card Container -->
-        <div class="glass-card" style="padding: 2rem; border-radius: 1.25rem; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);">
+        <div class="glass-card" style="padding: 2.25rem 2rem; border-radius: 1.25rem; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.9); box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05);">
             
             <!-- Dual Mode Navigation Tabs -->
             <div class="tab-pill-container">
@@ -226,24 +226,25 @@
                     class="tab-pill-btn" 
                     :class="{ 'active': activeTab === 'otp' }"
                     @click="activeTab = 'otp'">
-                    <span>⚡ Mobile OTP</span>
-                    <span style="background: #10b981; color: white; font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 800; letter-spacing: 0.02em;">FAST</span>
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                    <span>Instant Mobile OTP</span>
                 </button>
                 <button type="button" 
                     class="tab-pill-btn" 
                     :class="{ 'active': activeTab === 'password' }"
                     @click="activeTab = 'password'">
-                    <span>🔑 Password Login</span>
+                    <i class="fa-solid fa-key"></i>
+                    <span>Password Sign In</span>
                 </button>
             </div>
 
             <!-- Dynamic Alert Messages -->
             <div x-show="errorMessage" x-cloak style="background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>⚠️</span>
+                <i class="fa-solid fa-triangle-exclamation"></i>
                 <span x-text="errorMessage"></span>
             </div>
             <div x-show="successMessage" x-cloak style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span>✅</span>
+                <i class="fa-solid fa-circle-check"></i>
                 <span x-text="successMessage"></span>
             </div>
 
@@ -255,7 +256,7 @@
                         Registered Mobile Number
                     </label>
                     <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem;">
-                        <span style="display: inline-flex; align-items: center; padding: 0.75rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; color: #475569; font-weight: 600; font-size: 0.95rem;">
+                        <span style="display: inline-flex; align-items: center; padding: 0.75rem 0.85rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; color: #475569; font-weight: 700; font-size: 0.95rem;">
                             🇮🇳 +91
                         </span>
                         <input type="tel" x-model="phone" maxlength="10" placeholder="98425 33777" autofocus
@@ -264,18 +265,23 @@
                             onfocus="this.style.borderColor='#0284c7'" onblur="this.style.borderColor='#cbd5e1'">
                     </div>
 
-                    <!-- Quick Demo Numbers Pills -->
-                    <div style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; color: #64748b;">Try demo numbers:</span>
-                        <button type="button" @click="phone = '9842533888'" style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 4px; padding: 0.15rem 0.45rem; cursor: pointer; font-weight: 600;">9842533888 (Kavitha)</button>
-                        <button type="button" @click="phone = '9842533777'" style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 4px; padding: 0.15rem 0.45rem; cursor: pointer; font-weight: 600;">9842533777 (VIP)</button>
-                    </div>
-
                     <button type="button" @click="requestOtp" :disabled="isLoading"
                         class="portal-btn-primary">
-                        <span x-show="!isLoading">⚡ Send Instant Verification Code</span>
+                        <i class="fa-solid fa-paper-plane" x-show="!isLoading"></i>
+                        <span x-show="!isLoading">Send Verification Code via SMS / WhatsApp</span>
                         <span x-show="isLoading" x-cloak>Sending OTP...</span>
                     </button>
+
+                    <!-- Collapsible Demo Sandbox Quickfill -->
+                    <details style="margin-top: 1.25rem; font-size: 0.75rem; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.4rem 0.65rem;">
+                        <summary style="cursor: pointer; font-weight: 600; color: #475569;">
+                            <i class="fa-solid fa-code" style="margin-right: 4px;"></i> Demo Test Numbers (Sandbox Mode)
+                        </summary>
+                        <div style="margin-top: 6px; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;">
+                            <button type="button" @click="phone = '9842533888'" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 4px; padding: 0.15rem 0.45rem; cursor: pointer; font-weight: 600;">9842533888 (Kavitha)</button>
+                            <button type="button" @click="phone = '9842533777'" style="font-size: 0.72rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 4px; padding: 0.15rem 0.45rem; cursor: pointer; font-weight: 600;">9842533777 (VIP Lead)</button>
+                        </div>
+                    </details>
                 </div>
 
                 <!-- Step 2: OTP Verification -->
@@ -328,10 +334,10 @@
                             Username or Mobile Number
                         </label>
                         <div class="portal-input-group">
-                            <span class="portal-input-prefix">👤</span>
+                            <span class="portal-input-prefix"><i class="fa-solid fa-user"></i></span>
                             <input type="text" id="username" name="username" required
                                 class="portal-input-inner"
-                                placeholder="Enter username or mobile number">
+                                placeholder="Enter username or registered phone">
                         </div>
                     </div>
                     <div style="margin-bottom: 1.5rem;">
@@ -339,15 +345,15 @@
                             Password
                         </label>
                         <div class="portal-input-group">
-                            <span class="portal-input-prefix">🔒</span>
+                            <span class="portal-input-prefix"><i class="fa-solid fa-lock"></i></span>
                             <input type="password" id="password" name="password" required
                                 class="portal-input-inner"
                                 placeholder="Enter your password">
                         </div>
                     </div>
                     <button type="submit" class="portal-btn-primary">
-                        <span>Sign In with Password</span>
-                        <span>&rarr;</span>
+                        <span>Sign In to Customer Console</span>
+                        <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </form>
             </div>
@@ -356,18 +362,18 @@
             <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid #e2e8f0; text-align: center; font-size: 0.85rem; color: #64748b;">
                 <span>Have a quick booking reference?</span>
                 <a href="{% url 'customer_portal:home' %}#track-booking-section" style="color: #0284c7; font-weight: 700; text-decoration: none; margin-left: 0.25rem;">
-                    Quick Reference Search &rarr;
+                    Track Live Trip &rarr;
                 </a>
             </div>
         </div>
 
         <!-- Privacy & Trust Badges -->
-        <div style="margin-top: 1.75rem; display: flex; justify-content: center; align-items: center; gap: 1.5rem; color: #64748b; font-size: 0.8rem;">
-            <span>🔒 256-Bit SSL Encrypted</span>
+        <div style="margin-top: 1.75rem; display: flex; justify-content: center; align-items: center; gap: 1.25rem; color: #64748b; font-size: 0.78rem; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-shield-halved" style="color: #059669;"></i> 256-Bit SSL Encrypted</span>
             <span>•</span>
-            <span>📱 Zero Password Friction</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-fingerprint" style="color: #0284c7;"></i> DPDP Act 2023 Compliant</span>
             <span>•</span>
-            <span>🛡️ AIS-140 Compliant</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-satellite" style="color: #7c3aed;"></i> AIS-140 GPS Telematics Verified</span>
         </div>
     </div>
 </div>

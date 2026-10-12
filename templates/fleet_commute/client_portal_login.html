@@ -1,7 +1,7 @@
 {% extends "unfold/layouts/base.html" %}
 {% load static i18n unfold %}
 
-{% block title %}🏢 Corporate Client B2B Portal Login | Sivagayathiri TravelERP{% endblock %}
+{% block title %}Corporate Client B2B Portal Login | Sivagayathiri TravelERP{% endblock %}
 
 {% block breadcrumbs %}
 <div class="px-6 py-3 border-b border-slate-200 bg-white text-xs text-slate-500 flex items-center gap-2">
@@ -9,13 +9,14 @@
     <span>/</span>
     <a href="{% url 'fleet_commute:client_portal_index' %}" class="hover:text-indigo-600 font-medium">Corporate Portals Directory</a>
     <span>/</span>
-    <span class="text-slate-900 font-bold">🏢 Client Sign-In</span>
+    <span class="text-slate-900 font-bold"><i class="fa-solid fa-building-user text-indigo-600 mr-1.5"></i> Client Sign-In</span>
 </div>
 {% endblock %}
 
 {% block content %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
 :root {
@@ -626,7 +627,7 @@
         <!-- Hero Header -->
         <div class="login-hero">
             <div class="portal-badge">
-                <span>🛡️</span> Sivagayathiri TravelERP • B2B Commute Cloud
+                <i class="fa-solid fa-shield-halved" style="color: #4f46e5;"></i> Sivagayathiri TravelERP • B2B Commute Cloud
             </div>
             <h1 class="login-title">Corporate Client Commute Portal</h1>
             <p class="login-subtitle">
@@ -636,8 +637,9 @@
 
         {% if active_session_client %}
         <div style="padding: 10px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; color: #15803d; font-size: 12px; font-weight: 600; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <strong>Active Organization:</strong> Signed into <strong>{{ active_session_client }}</strong>.
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-circle-check" style="color: #16a34a;"></i>
+                <span><strong>Active Organization:</strong> Signed into <strong>{{ active_session_client }}</strong>.</span>
             </div>
             <a href="{% url 'fleet_commute:client_portal_logout' %}" style="color: #b91c1c; text-decoration: underline; font-size: 12px; font-weight: 700;">
                 Clear & Sign Out
@@ -647,27 +649,27 @@
 
         {% if error_message %}
         <div class="alert-box alert-error">
-            <span>⚠️</span> {{ error_message }}
+            <i class="fa-solid fa-triangle-exclamation"></i> <span>{{ error_message }}</span>
         </div>
         {% endif %}
 
         {% if success_message %}
         <div class="alert-box alert-success">
-            <span>✅</span> {{ success_message }}
+            <i class="fa-solid fa-circle-check"></i> <span>{{ success_message }}</span>
         </div>
         {% endif %}
 
-        <!-- Split Grid: Multi-Mode Sign-In & 1-Click Tenant Access -->
+        <!-- Split Grid: Multi-Mode Sign-In & Enterprise Governance Architecture -->
         <div class="login-split-grid">
             <!-- Left: Sign-In Box (Credentials vs WhatsApp OTP) -->
             <div class="auth-card">
                 <!-- Tab Controls -->
                 <div class="auth-mode-tabs">
                     <button type="button" class="auth-tab-btn {% if active_tab != 'otp' %}active{% endif %}" onclick="switchAuthTab('credentials')">
-                        🔐 Corporate Credentials
+                        <i class="fa-solid fa-key" style="margin-right: 5px;"></i> Corporate Credentials
                     </button>
                     <button type="button" class="auth-tab-btn {% if active_tab == 'otp' %}active{% endif %}" onclick="switchAuthTab('otp')">
-                        💬 WhatsApp / SMS OTP
+                        <i class="fa-brands fa-whatsapp" style="margin-right: 5px; color: #16a34a;"></i> WhatsApp / SMS OTP
                     </button>
                 </div>
 
@@ -681,14 +683,14 @@
                     <!-- Real-Time SSO Detection Card -->
                     <div id="ssoDetectionCard" class="sso-detection-card">
                         <div class="sso-detection-header">
-                            <div id="ssoDetectionIcon" class="sso-detection-icon">🏢</div>
+                            <div id="ssoDetectionIcon" class="sso-detection-icon"><i class="fa-solid fa-building-circle-check"></i></div>
                             <div>
                                 <div id="ssoDetectionTitle" class="sso-detection-title">Enterprise Account Detected</div>
                                 <div id="ssoDetectionDesc" class="sso-detection-desc">Single Sign-On Available</div>
                             </div>
                         </div>
                         <a href="#" id="ssoDetectionBtn" class="sso-detection-btn">
-                            <span>🔐</span> Continue with SSO (<span id="ssoIdpName">Azure AD</span>)
+                            <i class="fa-solid fa-arrow-right-to-bracket"></i> Continue with SSO (<span id="ssoIdpName">Azure AD</span>)
                         </a>
                     </div>
 
@@ -720,14 +722,14 @@
                         </div>
 
                         <button type="submit" id="credentialsSubmitBtn" class="btn-primary-auth">
-                            <span>🔐</span> Secure Corporate Sign In
+                            <i class="fa-solid fa-lock"></i> Secure Corporate Sign In
                         </button>
                     </form>
 
                     {% if sso_configs %}
                     <div class="sso-partners-row">
                         <div class="sso-partners-label">
-                            <span>🏢 Enterprise SSO Portals</span>
+                            <span><i class="fa-solid fa-building" style="margin-right: 4px;"></i> Enterprise SSO Portals</span>
                             <span style="font-size: 10px; color: #94a3b8; font-weight: 600;">SAML 2.0 / OIDC</span>
                         </div>
                         <div class="sso-partners-chips">
@@ -746,15 +748,15 @@
                 <div id="pane-otp" style="display: {% if active_tab == 'otp' %}block{% else %}none{% endif %};">
                     <div class="auth-header">
                         <div class="auth-title">Passwordless WhatsApp Sign-In</div>
-                        <div class="auth-desc">Fast 4-second authentication for on-duty field coordinators & night dispatchers.</div>
+                        <div class="auth-desc">Instant 4-second authentication for on-duty field coordinators & night dispatchers.</div>
                     </div>
 
                     {% if demo_otp %}
-                    <div class="demo-otp-banner">
-                        <div>
-                            <strong>💬 WhatsApp Simulator Code:</strong> <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #1d4ed8;">{{ demo_otp }}</span>
+                    <div class="demo-otp-banner" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 12px; color: #1e40af;">
+                            <i class="fa-solid fa-flask" style="margin-right: 4px;"></i> <strong>WhatsApp Simulator Code:</strong> <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #1d4ed8; margin-left: 4px;">{{ demo_otp }}</span>
                         </div>
-                        <button type="button" onclick="fillDemoOtp('{{ demo_otp }}')" style="background: #2563eb; color: #ffffff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                        <button type="button" onclick="fillDemoOtp('{{ demo_otp }}')" style="background: #2563eb; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;">
                             Auto-Fill
                         </button>
                     </div>
@@ -781,7 +783,7 @@
                         </div>
 
                         <button type="submit" class="btn-whatsapp-auth">
-                            <span>💬</span> Send Code via WhatsApp & SMS
+                            <i class="fa-brands fa-whatsapp"></i> Send Code via WhatsApp & SMS
                         </button>
                     </form>
                     {% else %}
@@ -803,7 +805,7 @@
                         </div>
 
                         <button type="submit" class="btn-whatsapp-auth" style="margin-bottom: 12px;">
-                            <span>✅</span> Verify & Open Commute Desk
+                            <i class="fa-solid fa-circle-check"></i> Verify & Open Commute Desk
                         </button>
 
                         <div style="text-align: center; font-size: 11px; color: #64748b;">
@@ -814,105 +816,165 @@
                 </div>
 
                 <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; font-size: 11px; color: #64748b; line-height: 1.5;">
-                    💡 <strong>Internal Dispatcher?</strong> Sign in with your TravelERP operator account to supervise all multi-tenant agreements.
+                    <i class="fa-solid fa-circle-info" style="color: #6366f1; margin-right: 4px;"></i> <strong>Internal Dispatcher?</strong> Sign in with your TravelERP operator account to supervise all multi-tenant agreements.
                 </div>
             </div>
 
-            <!-- Right: 1-Click Tenant Access (High Density Search + Filter) -->
+            <!-- Right: Enterprise Mobility Governance & Evaluation Sandbox -->
             <div class="tenant-card">
                 <div class="auth-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                     <div>
-                        <div class="auth-title">1-Click Corporate Tenant Access</div>
-                        <div class="auth-desc">Direct launchpad for facilities managers, transport leads & institutional desks:</div>
+                        <div class="auth-title">Transit Governance & Security Cloud</div>
+                        <div class="auth-desc">Enterprise mobility standards for corporate commute fleets:</div>
                     </div>
-                    <span style="font-size: 11px; font-weight: 700; color: #059669; background: #ecfdf5; padding: 4px 8px; border-radius: 6px; border: 1px solid #a7f3d0;">
-                        ACTIVE CONTRACTS ({{ contracts|length }})
+                    <span style="font-size: 11px; font-weight: 700; color: #4338ca; background: #eef2ff; padding: 4px 10px; border-radius: 6px; border: 1px solid #c7d2fe; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-shield-halved"></i> SOC 2 / ISO 27001
                     </span>
                 </div>
 
-                <!-- Recent Workstations Bar -->
-                <div id="recentWorkstationsBar" class="recent-workstations-bar" style="display: none;">
-                    <div class="recent-label">
-                        <span>⭐</span> Recent:
-                    </div>
-                    <div id="recentChipsContainer" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
-                </div>
-
-                <!-- Search & Sector Filter Toolbar -->
-                <div class="tenant-toolbar">
-                    <div class="search-input-wrapper">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="tenantSearchInput" class="tenant-search-box" placeholder="Filter by company name, SEZ, or campus... (Press '/' to search)" oninput="filterTenants()">
-                    </div>
-
-                    <div class="filter-chips">
-                        <button type="button" class="chip-btn active" onclick="filterBySector('all', this)">All</button>
-                        <button type="button" class="chip-btn" onclick="filterBySector('corporate', this)">🏢 IT & Tech Parks</button>
-                        <button type="button" class="chip-btn" onclick="filterBySector('hospital', this)">🏥 Healthcare</button>
-                        <button type="button" class="chip-btn" onclick="filterBySector('factory', this)">🏭 Industrial</button>
-                        <button type="button" class="chip-btn" onclick="filterBySector('school', this)">🎒 Educational</button>
-                    </div>
-                </div>
-
-                <!-- Tenant Cards Grid -->
-                <div class="tenant-list" id="tenantGrid">
-                    {% for c in contracts %}
-                    <form method="POST" action="" class="tenant-card-form" data-name="{{ c.name|lower }} {{ c.customer.name|default:''|lower }}" data-category="{{ c.contract_category }}" style="margin: 0;">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="quick_tenant">
-                        <input type="hidden" name="contract_id" value="{{ c.id }}">
-                        <input type="hidden" name="customer_id" value="{{ c.customer_id }}">
-
-                        <button type="submit" class="tenant-item-btn" onclick="saveRecentWorkstation('{{ c.id }}', '{{ c.customer.name|default:c.name|escapejs }}')" title="Sign into {{ c.name }}">
-                            <div style="display: flex; align-items: center; min-width: 0;">
-                                <div class="tenant-logo-bubble {% if c.contract_category == 'hospital' %}hospital{% elif c.contract_category == 'school' %}school{% elif c.contract_category == 'factory' %}factory{% endif %}">
-                                    {{ c.customer.name|default:c.name|slice:":2"|upper }}
-                                </div>
-                                <div class="tenant-meta">
-                                    <div class="tenant-name">{{ c.customer.name|default:c.name }}</div>
-                                    <div class="tenant-sub">
-                                        <span class="live-dot"></span> {{ c.committed_vehicle_count|default:"12" }} Fleet Buses • {{ c.commuters.count }} Commuters
-                                    </div>
-                                </div>
+                <!-- 4 High Impact Architecture Pillar Cards -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="width: 28px; height: 28px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 13px;">
+                                <i class="fa-solid fa-satellite-dish"></i>
                             </div>
-                            <div class="tenant-enter-icon">➔</div>
-                        </button>
-                    </form>
-                    {% empty %}
-                    <div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">
-                        No active transport contracts configured.
+                            <div style="font-size: 12px; font-weight: 800; color: #0f172a;">AIS-140 Telemetry</div>
+                        </div>
+                        <p style="font-size: 11px; color: #64748b; line-height: 1.45; margin: 0;">Sub-second GPS positional tracking with panic SOS & overspeed alerts.</p>
                     </div>
-                    {% endfor %}
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="width: 28px; height: 28px; border-radius: 8px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 13px;">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 800; color: #0f172a;">Digital Safe-Drop</div>
+                        </div>
+                        <p style="font-size: 11px; color: #64748b; line-height: 1.45; margin: 0;">Geo-fenced OTP boarding validation & night escort confirmation.</p>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="width: 28px; height: 28px; border-radius: 8px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 13px;">
+                                <i class="fa-solid fa-leaf"></i>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 800; color: #0f172a;">ESG Scope 3 Ledger</div>
+                        </div>
+                        <p style="font-size: 11px; color: #64748b; line-height: 1.45; margin: 0;">Audit-ready corporate carbon-offset ledger for EV & CNG transit.</p>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <div style="width: 28px; height: 28px; border-radius: 8px; background: #eef2ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 13px;">
+                                <i class="fa-solid fa-file-contract"></i>
+                            </div>
+                            <div style="font-size: 12px; font-weight: 800; color: #0f172a;">SLA Auto-Audits</div>
+                        </div>
+                        <p style="font-size: 11px; color: #64748b; line-height: 1.45; margin: 0;">Automated delay penalty credits & contractual on-time index.</p>
+                    </div>
                 </div>
 
-                <div id="noResultsMsg" style="display: none; padding: 24px; text-align: center; color: #64748b; font-size: 13px;">
-                    No organizations match your search filter. <a href="javascript:void(0)" onclick="clearFilters()" style="color: #4f46e5; font-weight: 700;">Reset filters</a>
+                <!-- Enterprise Support & SLA Hotline Card -->
+                <div style="padding: 12px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Corporate Mobility Priority Hotline</div>
+                            <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-top: 2px;">
+                                <i class="fa-solid fa-headset" style="color: #4f46e5; margin-right: 6px;"></i> +91 44 2450 1234
+                            </div>
+                        </div>
+                        <div style="font-size: 11px; color: #059669; font-weight: 700; background: #ecfdf5; padding: 4px 10px; border-radius: 6px; border: 1px solid #a7f3d0;">
+                            <i class="fa-solid fa-stopwatch" style="margin-right: 4px;"></i> 15-Min Breakdown Backup SLA
+                        </div>
+                    </div>
                 </div>
 
-                <div style="margin-top: 18px; padding: 12px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 12px; color: #475569; display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <strong>Looking for all corporate accounts?</strong> Browse full directory.
+                <!-- Discreet Developer / Evaluator Sandbox Drawer -->
+                <details style="border-top: 1px solid #f1f5f9; padding-top: 14px;">
+                    <summary style="font-size: 12px; font-weight: 700; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none;">
+                        <i class="fa-solid fa-flask" style="color: #6366f1;"></i>
+                        <span>Evaluation Sandbox: Instant Tenant Workstations</span>
+                        <span style="font-size: 10px; color: #94a3b8; font-weight: 400; margin-left: auto;">(Click to expand {{ contracts|length }} demo accounts)</span>
+                    </summary>
+
+                    <div style="margin-top: 14px;">
+                        <!-- Recent Workstations Bar -->
+                        <div id="recentWorkstationsBar" class="recent-workstations-bar" style="display: none;">
+                            <div class="recent-label">
+                                <i class="fa-solid fa-star" style="color: #f59e0b; margin-right: 4px;"></i> Recent:
+                            </div>
+                            <div id="recentChipsContainer" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                        </div>
+
+                        <!-- Search & Sector Filter Toolbar -->
+                        <div class="tenant-toolbar">
+                            <div class="search-input-wrapper">
+                                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                                <input type="text" id="tenantSearchInput" class="tenant-search-box" placeholder="Filter by company name, SEZ, or campus..." oninput="filterTenants()">
+                            </div>
+
+                            <div class="filter-chips">
+                                <button type="button" class="chip-btn active" onclick="filterBySector('all', this)">All</button>
+                                <button type="button" class="chip-btn" onclick="filterBySector('corporate', this)"><i class="fa-solid fa-building" style="margin-right: 4px;"></i> IT & Tech</button>
+                                <button type="button" class="chip-btn" onclick="filterBySector('hospital', this)"><i class="fa-solid fa-hospital" style="margin-right: 4px;"></i> Healthcare</button>
+                                <button type="button" class="chip-btn" onclick="filterBySector('factory', this)"><i class="fa-solid fa-industry" style="margin-right: 4px;"></i> Industrial</button>
+                                <button type="button" class="chip-btn" onclick="filterBySector('school', this)"><i class="fa-solid fa-graduation-cap" style="margin-right: 4px;"></i> Educational</button>
+                            </div>
+                        </div>
+
+                        <!-- Tenant Cards Grid -->
+                        <div class="tenant-list" id="tenantGrid" style="max-height: 240px;">
+                            {% for c in contracts %}
+                            <form method="POST" action="" class="tenant-card-form" data-name="{{ c.name|lower }} {{ c.customer.name|default:''|lower }}" data-category="{{ c.contract_category }}" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="quick_tenant">
+                                <input type="hidden" name="contract_id" value="{{ c.id }}">
+                                <input type="hidden" name="customer_id" value="{{ c.customer_id }}">
+
+                                <button type="submit" class="tenant-item-btn" onclick="saveRecentWorkstation('{{ c.id }}', '{{ c.customer.name|default:c.name|escapejs }}')" title="Sign into {{ c.name }}">
+                                    <div style="display: flex; align-items: center; min-width: 0;">
+                                        <div class="tenant-logo-bubble {% if c.contract_category == 'hospital' %}hospital{% elif c.contract_category == 'school' %}school{% elif c.contract_category == 'factory' %}factory{% endif %}">
+                                            {{ c.customer.name|default:c.name|slice:":2"|upper }}
+                                        </div>
+                                        <div class="tenant-meta">
+                                            <div class="tenant-name">{{ c.customer.name|default:c.name }}</div>
+                                            <div class="tenant-sub">
+                                                <span class="live-dot"></span> {{ c.committed_vehicle_count|default:"12" }} Fleet Buses • {{ c.commuters.count }} Commuters
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tenant-enter-icon"><i class="fa-solid fa-arrow-right"></i></div>
+                                </button>
+                            </form>
+                            {% empty %}
+                            <div style="padding: 24px; text-align: center; color: #94a3b8; font-size: 13px;">
+                                No active transport contracts configured.
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div id="noResultsMsg" style="display: none; padding: 24px; text-align: center; color: #64748b; font-size: 13px;">
+                            No organizations match your search filter. <a href="javascript:void(0)" onclick="clearFilters()" style="color: #4f46e5; font-weight: 700;">Reset filters</a>
+                        </div>
                     </div>
-                    <a href="{% url 'fleet_commute:client_portal_index' %}" style="color: #4f46e5; font-weight: 700; text-decoration: none;">
-                        Enterprise Directory ➔
-                    </a>
-                </div>
+                </details>
             </div>
         </div>
 
         <!-- Trust Badges & Hotline -->
         <div class="trust-footer">
             <div class="trust-item">
-                <span>🛡️</span> Multi-Tenant Data Isolation
+                <i class="fa-solid fa-shield-halved" style="color: #4f46e5;"></i> Multi-Tenant Data Isolation
             </div>
             <div class="trust-item">
-                <span>🔒</span> 256-bit TLS Encryption
+                <i class="fa-solid fa-lock" style="color: #059669;"></i> 256-Bit TLS 1.3 Encryption
             </div>
             <div class="trust-item">
-                <span>📋</span> DPDP Act 2023 Audit Logging
+                <i class="fa-solid fa-file-shield" style="color: #0284c7;"></i> DPDP Act 2023 & ISO 27001 Aligned
             </div>
             <div class="trust-item">
-                <span>☎️</span> 24/7 Operations Hotline: +91 44 2450 1234
+                <i class="fa-solid fa-headset" style="color: #d97706;"></i> 24/7 Operations Desk: +91 44 2450 1234
             </div>
         </div>
     </div>

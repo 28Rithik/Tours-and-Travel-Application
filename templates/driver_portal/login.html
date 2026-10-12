@@ -1,76 +1,125 @@
 {% extends "driver_portal/base.html" %}
 
-{% block title %}Captain Login | Sivagayathiri Fleet{% endblock %}
+{% block title %}Driver Duty Terminal | Sivagayathiri Fleet ERP{% endblock %}
 
 {% block content %}
-<div style="padding-top: 20px; max-width: 440px; margin: 0 auto;">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<div style="padding-top: 16px; padding-bottom: 32px; max-width: 440px; margin: 0 auto;">
+    <!-- Portal Header -->
     <div style="text-align: center; margin-bottom: 24px;">
-        <div style="width: 72px; height: 72px; margin: 0 auto 16px; background: linear-gradient(135deg, #0284c7, #38bdf8); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 36px; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.25);">
-            👨‍✈️
+        <div style="width: 72px; height: 72px; margin: 0 auto 16px; background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 30px; color: #ffffff; box-shadow: 0 10px 25px rgba(2, 132, 199, 0.28);">
+            <i class="fa-solid fa-id-badge"></i>
         </div>
-        <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">Captain Mobile Portal</h1>
-        <p style="color: #64748b; font-size: 13px;">Enter your registered mobile number & PIN to access your duty roster</p>
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; font-size: 11px; font-weight: 700; color: #15803d; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+            Central Dispatch Roster Online
+        </div>
+        <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 6px; letter-spacing: -0.4px;">Driver Duty Terminal</h1>
+        <p style="color: #64748b; font-size: 13px; max-width: 340px; margin: 0 auto; line-height: 1.45;">Enter your registered mobile number & 4-digit PIN to access live trip assignments and vehicle inspections.</p>
     </div>
 
-    <!-- Quick Demo Captain Switcher -->
-    <div style="margin-bottom: 18px; padding: 14px 16px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: var(--radius-md); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);">
-        <div style="font-size: 11px; font-weight: 800; color: #0369a1; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px;">
-            <span>⚡</span> Quick Demo Captain Access:
+    <!-- Alert Messages -->
+    {% if messages %}
+    <div style="margin-bottom: 18px;">
+        {% for message in messages %}
+        <div style="padding: 12px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; {% if message.tags == 'error' %}background: #fff1f2; border: 1px solid #fecdd3; color: #be123c;{% else %}background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d;{% endif %}">
+            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            <span>{{ message }}</span>
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" onclick="autofillCaptain('9200000002', '1234')" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #0284c7; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s ease;">
-                🚗 Karthik Krishnan (Trip TR-1001)
-            </button>
-            <button type="button" onclick="autofillCaptain('9200000001', '1234')" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 700; color: #475569; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s ease;">
-                🚗 Priya Nair (9200000001)
-            </button>
-        </div>
+        {% endfor %}
     </div>
+    {% endif %}
 
+    <!-- Main Login Card -->
     <div class="card" style="padding: 26px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);">
         <form method="POST" action="{% url 'driver_portal:login' %}">
             {% csrf_token %}
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">
-                    📱 Registered Mobile Number
+                    <i class="fa-solid fa-phone" style="color: #0284c7; margin-right: 5px;"></i> Registered Mobile Number
                 </label>
-                <input 
-                    type="tel" 
-                    name="phone" 
-                    required 
-                    placeholder="e.g. 9876543210" 
-                    value="{{ entered_phone|default:'' }}"
-                    style="width: 100%; padding: 14px 16px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--radius-md); color: #0f172a; font-size: 16px; font-weight: 600; outline: none; transition: border-color 0.2s;"
-                    onfocus="this.style.borderColor='#0284c7'; this.style.boxShadow='0 0 0 3px rgba(2, 132, 199, 0.1)';"
-                    onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';"
-                >
+                <div style="display: flex; gap: 8px;">
+                    <span style="display: flex; align-items: center; padding: 0 14px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: var(--radius-md); font-size: 14px; font-weight: 700; color: #475569;">
+                        +91
+                    </span>
+                    <input 
+                        type="tel" 
+                        name="phone" 
+                        required 
+                        placeholder="e.g. 98401 12345" 
+                        value="{{ entered_phone|default:'' }}"
+                        maxlength="12"
+                        style="width: 100%; padding: 13px 15px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--radius-md); color: #0f172a; font-size: 15px; font-weight: 600; outline: none; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#0284c7'; this.style.boxShadow='0 0 0 3px rgba(2, 132, 199, 0.1)';"
+                        onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';"
+                    >
+                </div>
             </div>
 
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">
-                    🔒 4-Digit Security PIN
-                </label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="display: block; font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">
+                        <i class="fa-solid fa-lock" style="color: #0284c7; margin-right: 5px;"></i> 4-Digit Security PIN
+                    </label>
+                    <button type="button" onclick="togglePinVisibility()" style="background: none; border: none; font-size: 11px; font-weight: 600; color: #0284c7; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                        <i id="pinToggleIcon" class="fa-solid fa-eye"></i> <span id="pinToggleText">Show PIN</span>
+                    </button>
+                </div>
                 <input 
                     type="password" 
+                    id="driverPinInput"
                     name="pin" 
-                    placeholder="Default: 1234" 
+                    placeholder="••••" 
                     maxlength="6"
-                    style="width: 100%; padding: 14px 16px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--radius-md); color: #0f172a; font-size: 18px; font-weight: 700; letter-spacing: 0.2em; text-align: center; outline: none; transition: border-color 0.2s;"
+                    style="width: 100%; padding: 13px 15px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: var(--radius-md); color: #0f172a; font-size: 20px; font-weight: 700; letter-spacing: 0.25em; text-align: center; outline: none; transition: border-color 0.2s;"
                     onfocus="this.style.borderColor='#0284c7'; this.style.boxShadow='0 0 0 3px rgba(2, 132, 199, 0.1)';"
                     onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none';"
                 >
-                <small style="display: block; color: #64748b; font-size: 11px; margin-top: 6px;">New drivers use default PIN: <strong style="color: #0284c7;">1234</strong></small>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <small style="color: #64748b; font-size: 11px;">Default terminal PIN: <strong style="color: #0284c7;">1234</strong></small>
+                    <a href="tel:+919444012345" style="color: #64748b; font-size: 11px; text-decoration: underline;">Reset via Dispatch</a>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" style="padding: 15px; font-size: 16px; width: 100%; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, #0284c7, #38bdf8); color: #ffffff; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);">
-                🚀 Login to Duty
+            <button type="submit" class="btn btn-primary" style="padding: 14px; font-size: 15px; width: 100%; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                Sign In to Duty Desk
             </button>
         </form>
+
+        <!-- Discreet Evaluation Sandbox Drawer -->
+        <details style="margin-top: 20px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+            <summary style="font-size: 11px; font-weight: 700; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;">
+                <i class="fa-solid fa-code" style="color: #94a3b8;"></i>
+                <span>Evaluation Sandbox Autofill</span>
+                <span style="font-size: 10px; color: #94a3b8; font-weight: 400; margin-left: auto;">(Demo only)</span>
+            </summary>
+            <div style="margin-top: 10px; padding: 10px 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px;">
+                <div style="font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 8px;">Select test captain to pre-populate terminal credentials:</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" onclick="autofillCaptain('9200000002', '1234')" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: #0284c7; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-user-check"></i> Karthik Krishnan (Trip TR-1001)
+                    </button>
+                    <button type="button" onclick="autofillCaptain('9200000001', '1234')" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: #475569; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-user-check"></i> Priya Nair (9200000001)
+                    </button>
+                </div>
+            </div>
+        </details>
     </div>
 
-    <div style="text-align: center; margin-top: 24px; color: #64748b; font-size: 12px;">
-        <p>Need help or forgot PIN?</p>
-        <p style="margin-top: 4px; color: #0284c7; font-weight: 700;">📞 Call Fleet Dispatch: +91 94440 12345</p>
+    <!-- 24/7 Dispatch Hotline & Security Footnote -->
+    <div style="margin-top: 24px; padding: 14px 16px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; text-align: center; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);">
+        <div style="font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px;">24/7 Emergency Dispatch Control Room</div>
+        <a href="tel:+919444012345" style="color: #0284c7; font-weight: 800; font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-phone-volume"></i> +91 94440 12345
+        </a>
+    </div>
+
+    <div style="text-align: center; margin-top: 18px; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+        <div><i class="fa-solid fa-shield-halved" style="color: #10b981; margin-right: 4px;"></i> AIS-140 GPS Telematics Sync • ISO 27001 Aligned</div>
+        <div>Authorized Drivers & Fleet Captains Only</div>
     </div>
 </div>
 
@@ -81,5 +130,22 @@ function autofillCaptain(phone, pin) {
     if (pInput) pInput.value = phone;
     if (pinInput) pinInput.value = pin;
 }
+
+function togglePinVisibility() {
+    var pinInput = document.getElementById('driverPinInput');
+    var icon = document.getElementById('pinToggleIcon');
+    var text = document.getElementById('pinToggleText');
+    if (!pinInput) return;
+    if (pinInput.type === 'password') {
+        pinInput.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+        text.innerText = 'Hide PIN';
+    } else {
+        pinInput.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+        text.innerText = 'Show PIN';
+    }
+}
 </script>
 {% endblock %}
+

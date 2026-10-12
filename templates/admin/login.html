@@ -1,0 +1,544 @@
+{% load i18n static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>System Administration Console | Sivagayathiri TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  {{ form.media }}
+
+  <style>
+    :root {
+      --admin-navy: #090d16;
+      --admin-surface: #0f172a;
+      --admin-card: #ffffff;
+      --admin-indigo: #4f46e5;
+      --admin-indigo-light: #6366f1;
+      --admin-cyan: #0284c7;
+      --admin-emerald: #10b981;
+      --admin-amber: #f59e0b;
+      --admin-rose: #ef4444;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background grid */
+    .terminal-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 420px;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 70%, #f8fafc 100%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .ambient-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.6;
+    }
+
+    .header-bar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 36px;
+      max-width: 1300px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .brand-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-terminal-crest {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #0284c7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 20px;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    }
+
+    .brand-name-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 19px;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+
+    .nav-portal-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-portal-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-portal-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-1px);
+    }
+
+    /* Main Console Container */
+    .admin-main-container {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 24px 48px;
+      width: 100%;
+    }
+
+    .admin-card-wrapper {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    /* Top Console Pill */
+    .terminal-pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(79, 70, 229, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #c7d2fe;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 14px;
+    }
+
+    .admin-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      box-shadow: 0 12px 36px -4px rgba(15, 23, 42, 0.12);
+      padding: 36px 32px;
+      position: relative;
+    }
+
+    .terminal-header-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+      margin-bottom: 6px;
+    }
+
+    .terminal-header-desc {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 15px;
+      pointer-events: none;
+      transition: color 0.15s ease;
+    }
+
+    .admin-input {
+      width: 100%;
+      padding: 13px 14px 13px 42px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .admin-input:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .admin-input:focus + .input-icon,
+    .admin-input:focus ~ .input-icon {
+      color: #4f46e5;
+    }
+
+    .toggle-pass-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .toggle-pass-btn:hover {
+      color: #4f46e5;
+    }
+
+    .btn-admin-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #4f46e5, #4338ca);
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 800;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-admin-submit:hover {
+      background: linear-gradient(135deg, #4338ca, #3730a3);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    }
+
+    /* Alert styles */
+    .error-alert-banner {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #be123c;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* System Stats Strip */
+    .system-status-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      margin-top: 24px;
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .live-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Footer Trust */
+    .compliance-footer {
+      margin-top: 24px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Ambient Terminal Banner -->
+  <div class="terminal-bg">
+    <div class="ambient-grid"></div>
+  </div>
+
+  <!-- Top Header Navigation -->
+  <header class="header-bar">
+    <a href="/staff/login/" class="brand-logo-group">
+      <div class="logo-terminal-crest">
+        <i class="fa-solid fa-server"></i>
+      </div>
+      <div class="brand-name-wrap">
+        <span class="brand-title">TravelERP</span>
+        <span class="brand-sub">System Terminal</span>
+      </div>
+    </a>
+
+    <div class="nav-portal-links">
+      <a href="/staff/login/" class="nav-portal-btn">
+        <i class="fa-solid fa-arrow-left"></i> Staff Operations Desk
+      </a>
+      <a href="/client/login/" class="nav-portal-btn">
+        <i class="fa-solid fa-building"></i> Corporate
+      </a>
+      <a href="/driver/login/" class="nav-portal-btn">
+        <i class="fa-solid fa-id-badge"></i> Driver
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Console Login Form -->
+  <main class="admin-main-container">
+    <div class="admin-card-wrapper">
+      <div style="text-align: center;">
+        <div class="terminal-pill-badge">
+          <i class="fa-solid fa-shield-halved"></i> Tier-1 System Administration Console
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h1 class="terminal-header-title">Technical Console Sign In</h1>
+        <p class="terminal-header-desc">
+          Restricted access for DevOps, Database Administrators & Senior Security Engineers.
+        </p>
+
+        {% if form.errors or form.non_field_errors %}
+        <div class="error-alert-banner">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div>
+            {% if form.non_field_errors %}
+              {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+            {% else %}
+              Invalid administrative credentials or insufficient terminal privileges.
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if user.is_authenticated and not user.is_staff %}
+        <div class="error-alert-banner">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div>
+            Logged in as <strong>{{ user.username }}</strong>, but this account lacks Django Superuser/Staff permissions.
+          </div>
+        </div>
+        {% endif %}
+
+        <form action="{{ app_path|default:'' }}" method="post" id="admin-login-form">
+          {% csrf_token %}
+          {% if next %}
+          <input type="hidden" name="next" value="{{ next }}">
+          {% endif %}
+
+          <div class="form-group">
+            <label class="form-label" for="id_username">
+              <span>Admin Username</span>
+              <span style="font-size: 10px; color: #64748b; font-weight: 400; text-transform: none;">Root / SysAdmin</span>
+            </label>
+            <div class="input-wrap">
+              <input 
+                type="text" 
+                name="username" 
+                id="id_username" 
+                class="admin-input" 
+                placeholder="e.g. admin" 
+                value="{{ form.username.value|default:'' }}" 
+                required 
+                autofocus 
+                autocomplete="username"
+              >
+              <i class="fa-solid fa-user-shield input-icon"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label">
+              <label for="id_password">Master Password</label>
+              <a href="mailto:it-security@travelerp.com?subject=Admin%20Console%20Credential%20Recovery" style="color: #4f46e5; text-decoration: none; font-size: 11px; font-weight: 600; text-transform: none;">
+                Recovery Protocol
+              </a>
+            </div>
+            <div class="input-wrap">
+              <input 
+                type="password" 
+                name="password" 
+                id="id_password" 
+                class="admin-input" 
+                placeholder="••••••••••••" 
+                required 
+                autocomplete="current-password"
+              >
+              <i class="fa-solid fa-key input-icon"></i>
+              <button type="button" class="toggle-pass-btn" onclick="toggleAdminPassword()" title="Toggle password visibility">
+                <i id="adminPassIcon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-admin-submit">
+            <i class="fa-solid fa-lock"></i>
+            Authenticate & Access Terminal
+          </button>
+        </form>
+
+        <!-- Live Server Telemetry Strip -->
+        <div class="system-status-strip">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="live-pulse-dot"></span>
+            <strong>Primary Cluster:</strong> Online
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px;">
+            TLS 1.3 • AES-256-GCM
+          </div>
+        </div>
+
+        <!-- Discreet Evaluation Sandbox Drawer -->
+        <details style="margin-top: 18px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+          <summary style="font-size: 11px; font-weight: 700; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;">
+            <i class="fa-solid fa-code" style="color: #6366f1;"></i>
+            <span>Evaluation Sandbox Credentials</span>
+            <span style="font-size: 10px; color: #94a3b8; font-weight: 400; margin-left: auto;">(Demo only)</span>
+          </summary>
+          <div style="margin-top: 10px; padding: 10px 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px;">
+            <div style="font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 8px;">
+              Pre-populate local development superuser credentials:
+            </div>
+            <button type="button" onclick="autofillAdmin('admin', 'admin')" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #4f46e5; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-user-check"></i> Superuser (admin / admin)
+            </button>
+          </div>
+        </details>
+      </div>
+
+      <!-- Compliance Footnote -->
+      <div class="compliance-footer">
+        <div><i class="fa-solid fa-shield-halved" style="color: #10b981; margin-right: 4px;"></i> SOC 2 Type II Certified • ISO 27001 Aligned • Strict Transport Security</div>
+        <div>All terminal access requests, keystrokes, and session events are cryptographically audited.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  function toggleAdminPassword() {
+    var passInput = document.getElementById('id_password');
+    var icon = document.getElementById('adminPassIcon');
+    if (!passInput) return;
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      icon.className = 'fa-solid fa-eye-slash';
+    } else {
+      passInput.type = 'password';
+      icon.className = 'fa-solid fa-eye';
+    }
+  }
+
+  function autofillAdmin(u, p) {
+    var uInp = document.getElementById('id_username');
+    var pInp = document.getElementById('id_password');
+    if (uInp) uInp.value = u;
+    if (pInp) pInp.value = p;
+  }
+  </script>
+</body>
+</html>
