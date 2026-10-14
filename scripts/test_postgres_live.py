@@ -79,6 +79,8 @@ endpoints = [
     ('/finance/accounting/', 'Finance Accounting Export'),
     ('/finance/payments/', 'Payment Gateway Studio'),
     ('/maintenance/compliance/', 'Fleet Maintenance & Compliance'),
+    ('/admin/operations/rathasarathi-ai/', 'Rathasārathi AI Operations Studio'),
+    ('/api/rathasarathi/quick-stats/', 'Rathasārathi AI Quick Stats API'),
 ]
 
 all_passed = True

@@ -222,10 +222,10 @@ class Phase5TelematicsGisTaraWhatsAppTests(TestCase):
         self.assertEqual(comp_data['status'], 'success')
         self.assertIn('reply', comp_data)
 
-        # 4. TARA Copilot Full Studio View
+        # 4. Rathasārathi Copilot Full Studio View
         res_studio = self.client.get(reverse('admin-tara-copilot-studio'))
         self.assertEqual(res_studio.status_code, 200)
-        self.assertContains(res_studio, 'TARA AI Operations Business Brain')
+        self.assertContains(res_studio, 'Rathas')
 
     # -------------------------------------------------------------------------
     # 4. WhatsApp Business Bot Studio, Dispatch Alerts & SOS Broadcast
@@ -266,7 +266,7 @@ class Phase5TelematicsGisTaraWhatsAppTests(TestCase):
 
         # 6. 1-Click Passenger WhatsApp Dispatch Endpoint
         dispatch_url = reverse('api-whatsapp-trip-dispatch', kwargs={'trip_id': self.trip.id})
-        res_dispatch = self.client.post(dispatch_url)
+        res_dispatch = self.client.post(dispatch_url, {'sync': '1'})
         self.assertEqual(res_dispatch.status_code, 200)
         self.assertIn(res_dispatch.json()['status'], ['ok', 'success'])
         self.trip.refresh_from_db()

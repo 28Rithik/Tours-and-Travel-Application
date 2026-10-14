@@ -436,7 +436,7 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">🛰️ Control Room</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">📋 Dispatch Control</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'admin-whatsapp-bot-studio' %}">📱 Handover &amp; Bot Studio</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'admin-rathasarathi-copilot-studio' or request.resolver_match.url_name == 'admin-tara-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-rathasarathi-copilot-studio' %}" style="color: #0284c7; font-weight: 700;">☸️ Rathasārathi AI Copilot</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-rathasarathi-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-rathasarathi-copilot-studio' %}" style="color: #0284c7; font-weight: 700;">☸️ Rathasārathi AI Copilot</a>
 
         <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
         {% if is_fleet_manager or is_workshop or is_superuser %}
