@@ -44,6 +44,7 @@ urlpatterns = [
     # Workshop Mechanic Studio & QR Barcode Spare Parts Checkout
     path('workshop-studio/', workshop_mechanic_studio_view, name='workshop_mechanic_studio'),
     path('job-card/<int:pk>/print/', job_card_work_order_print_view, name='job_card_work_order_print'),
+    path('job-cards/<int:pk>/print/', job_card_work_order_print_view, name='job_cards_work_order_print_alias'),
     path('api/parts/scan/', api_scan_spare_part, name='api_scan_spare_part'),
     path('api/parts/checkout/', api_checkout_spare_part, name='api_checkout_spare_part'),
     path('api/parts/restock/', api_part_quick_restock, name='api_part_quick_restock'),

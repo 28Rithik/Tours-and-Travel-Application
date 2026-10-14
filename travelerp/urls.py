@@ -188,6 +188,9 @@ urlpatterns = [
     # Unfold Admin Dynamic UPI & Payment Gateway Studio
     path('admin/finance/payment-studio/', admin_payment_studio_view, name='admin-payment-studio'),
     path('admin/payments/studio/', admin_payment_studio_view, name='admin-payments-studio-alias'),
+    path('finance/payments/', admin_payment_studio_view, name='finance-payments-studio'),
+    path('finance/payments-studio/', admin_payment_studio_view, name='finance-payments-studio-alias'),
+    path('payments/', admin_payment_studio_view, name='payments-root-alias'),
     path('api/payments/dynamic-upi/generate/', api_generate_dynamic_upi, name='api-dynamic-upi-generate'),
     path('api/payments/direct-upi/confirm/', api_direct_upi_confirm, name='api-direct-upi-confirm'),
     path('api/payments/simulate-webhook/', api_simulate_payment_webhook, name='api-simulate-payment-webhook'),
@@ -281,6 +284,8 @@ urlpatterns = [
     path('staff-login/', RedirectView.as_view(url='/staff/login/', permanent=False)),
     path('login/', RedirectView.as_view(url='/staff/login/', permanent=False)),
     path('logout/', auth_views.LogoutView.as_view(next_page='/staff/login/'), name='logout'),
+    path('core/vehicles/', RedirectView.as_view(url='/fleet/vehicles/', permanent=False)),
+    path('corporate/', RedirectView.as_view(url='/client/portal/', permanent=False)),
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),
     path('staff/roles-matrix/', staff_roles_matrix_view, name='staff-roles-matrix'),

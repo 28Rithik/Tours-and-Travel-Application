@@ -1,10 +1,12 @@
 from django.urls import path, include
+from django.views.generic import RedirectView
 from . import views
 from .manifest_import import download_manifest_template_csv, upload_manifest_csv_view
 
 app_name = 'packages'
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/admin/packages/package/', permanent=False), name='packages-catalog-redirect'),
     path('htmx/', include('packages.htmx_urls', namespace='htmx_packages')),
     path('quote/preview/', views.preview_tour_quotation, name='preview_tour_quotation'),
     path('quote/<int:package_id>/', views.generate_tour_quotation, name='quotation_proposal'),

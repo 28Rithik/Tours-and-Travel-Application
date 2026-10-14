@@ -428,7 +428,7 @@
 <body>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">S</span><span>Sivagayathiri</span></a>
+      <a class="brand" href="/admin/" title="Go to TravelERP Admin Workspace"><span class="brand-mark">S</span><span>Sivagayathiri</span></a>
       <nav class="nav-list" aria-label="Main navigation">
         <!-- 1. Universal Operations Desk (All Staff) -->
         <p class="nav-section-title"><span>⚡</span> Operations Desk</p>
@@ -442,8 +442,8 @@
         {% if is_fleet_manager or is_workshop or is_superuser %}
         <p class="nav-section-title"><span>🚛</span> Fleet &amp; Telematics</p>
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live Fleet Map</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-vehicles-roster' %}is-active{% endif %}" href="{% url 'fleet-vehicles-roster' %}">🚗 Vehicle Assets</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-drivers-roster' %}is-active{% endif %}" href="{% url 'fleet-drivers-roster' %}">👨‍✈️ Chauffeurs &amp; Drivers</a>
+        <a class="nav-link" href="/admin/core/vehicle/">🚗 Vehicle Assets (Admin)</a>
+        <a class="nav-link" href="/admin/core/driver/">👨‍✈️ Chauffeurs &amp; Drivers (Admin)</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">🚗 2D Vehicle Damage Studio</a>
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">🛞 2D Axle &amp; Tire Health Studio</a>
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance &amp; Maint.</a>
@@ -491,11 +491,11 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">📈 Party Profitability</a>
         {% endif %}
 
-        <!-- 5. System Administration (Superusers only) -->
-        {% if is_superuser %}
+        <!-- 5. System Administration (Superusers & Staff) -->
+        {% if is_superuser or request.user.is_staff %}
         <p class="nav-section-title"><span>⚙️</span> Administration</p>
         <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">🏨 Tariffs &amp; Master Data</a>
-        <a class="nav-link" href="{% url 'admin:index' %}">Admin workspace</a>
+        <a class="nav-link" href="{% url 'admin:index' %}" style="font-weight: 700; color: #0284c7;">👑 Unfold Admin Workspace</a>
         {% endif %}
       </nav>
       <div class="sidebar-footer">
@@ -518,6 +518,12 @@
         </div>
 
         <div class="topbar-actions-cluster">
+          <!-- 👑 Direct Switch to Unfold Admin Workspace -->
+          <a href="/admin/" class="btn-topbar-admin" title="Open Full Django Unfold Enterprise Admin" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 9999px; background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #ffffff; font-size: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35); transition: all 0.2s ease;">
+            <i class="fa-solid fa-crown"></i>
+            <span>Unfold Admin</span>
+          </a>
+
           <!-- ☀️/🌙/💻 Adaptive Theme Switcher (Syncs with Unfold Admin) -->
           <div class="theme-switch-pill" id="theme-switch-pill" title="Toggle Theme (Light / Dark / System)">
             <button type="button" class="theme-switch-btn" data-theme-val="light" onclick="setAppTheme('light')" title="Light Theme">

@@ -313,6 +313,8 @@ UNFOLD = {
                         "icon": "dashboard",
                         "link": reverse_lazy("admin:index"),
                     },
+                    {"title": "🛡️ Staff & RBAC Matrix", "icon": "badge", "link": "/staff/roles-matrix/"},
+                    {"title": "🛰️ Control Room Radar", "icon": "satellite_alt", "link": "/dashboard/"},
                 ],
             },
             {
@@ -320,6 +322,8 @@ UNFOLD = {
                 "icon": "handshake",
                 "collapsible": True,
                 "items": [
+                    {"title": "🗂️ Real-Time CRM Kanban", "icon": "view_kanban", "link": "/crm/kanban/"},
+                    {"title": "📑 Quotation Studio", "icon": "calculate", "link": "/crm/quotations/new/"},
                     {"title": "⚡ Agent Sales Cockpit", "icon": "dashboard_customize", "link": "/admin/integrations/agent-dashboard/"},
                     {"title": "🛡️ Manager Approvals", "icon": "verified_user", "link": "/admin/integrations/approvals/"},
                     {"title": "Inquiries", "icon": "campaign", "link": reverse_lazy("admin:crm_inquiry_changelist")},
@@ -351,6 +355,7 @@ UNFOLD = {
                 "icon": "directions_car",
                 "collapsible": True,
                 "items": [
+                    {"title": "📋 Dispatch Control Desk", "icon": "assignment", "link": "/dispatch/"},
                     {"title": "🧠 TARA AI Copilot", "icon": "psychology", "link": "/admin/operations/tara-ai/"},
                     {"title": "Bookings", "icon": "event", "link": reverse_lazy("admin:operations_booking_changelist")},
                     {"title": "Trips", "icon": "route", "link": reverse_lazy("admin:operations_trip_changelist")},
@@ -373,6 +378,7 @@ UNFOLD = {
                 "icon": "luggage",
                 "collapsible": True,
                 "items": [
+                    {"title": "➕ Design & Add Package", "icon": "add_circle", "link": "/admin/packages/package/add/"},
                     {"title": "Packages", "icon": "beach_access", "link": reverse_lazy("admin:packages_package_changelist")},
                     {"title": "Seasonal Rates", "icon": "calendar_month", "link": reverse_lazy("admin:packages_packageseasonalrate_changelist")},
                     {"title": "Hotel Allotments", "icon": "hotel", "link": reverse_lazy("admin:packages_packagehotelallotment_changelist")},
@@ -472,6 +478,7 @@ UNFOLD = {
                 "icon": "build",
                 "collapsible": True,
                 "items": [
+                    {"title": "🔧 Workshop Mechanic Studio & Spares", "icon": "home_repair_service", "link": "/maintenance/workshop-studio/"},
                     {"title": "🎨 2D Damage Marker Studio", "icon": "brush", "link": "/maintenance/damage-marker/"},
                     {"title": "🛞 2D Axle & Tire Health Studio", "icon": "tire_repair", "link": "/maintenance/tire-studio/"},
                     {"title": "Damage Inspections", "icon": "car_crash", "link": reverse_lazy("admin:maintenance_vehicledamageinspection_changelist")},
@@ -684,5 +691,13 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
+# ==============================================================================
+# DEFAULT WORKSPACE ROUTING (ADMIN-FIRST FOR ENTERPRISE STAFF)
+# ==============================================================================
+LOGIN_REDIRECT_URL = '/admin/'
+LOGOUT_REDIRECT_URL = '/staff/login/'
+LOGIN_URL = '/staff/login/'
+
 
 

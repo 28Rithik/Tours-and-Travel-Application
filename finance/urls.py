@@ -1,4 +1,6 @@
 from django.urls import path
+from django.views.generic import RedirectView
+from payments_gateway.views import admin_payment_studio_view
 from .views import (
     accounting_export_dashboard,
     export_tally_sales_view,
@@ -30,6 +32,11 @@ from .views import (
 )
 
 urlpatterns = [
+    path('', RedirectView.as_view(url='/finance/accounting/', permanent=False)),
+    path('payments/', admin_payment_studio_view, name='finance-payments'),
+    path('payments-studio/', admin_payment_studio_view, name='finance-payments-studio-subalias'),
+    path('invoices/', RedirectView.as_view(url='/crm/invoices/', permanent=False)),
+    path('export/', RedirectView.as_view(url='/finance/accounting/', permanent=False)),
     path('accounting/', accounting_export_dashboard, name='accounting-export'),
     path('export/tally/sales/', export_tally_sales_view, name='export-tally-sales'),
     path('export/tally/expenses/', export_tally_expenses_view, name='export-tally-expenses'),

@@ -85,6 +85,7 @@ urlpatterns = [
     path('roster-dispatcher/', roster_dispatcher_studio_view, name='roster_dispatcher_studio'),
     path('roster-studio/', roster_dispatcher_studio_view, name='roster_dispatcher_studio_alias_1'),
     path('roster/studio/', roster_dispatcher_studio_view, name='roster_dispatcher_studio_alias_2'),
+    path('roster/', roster_dispatcher_studio_view, name='roster_dispatcher_studio_alias_3'),
     path('api/roster-dispatcher/generate/', api_execute_roster_dispatch, name='api_execute_roster_dispatch'),
 
     # Phase 8: Parent & Employee Real-Time Live Bus Tracking Portal & Telematics API

@@ -367,7 +367,7 @@ def switch_persona_view(request, username):
         request,
         f"Switched persona to {target_user.get_full_name() or target_user.username} ({role_label}) — Branch: {role_name.branch if role_name else 'HQ'}"
     )
-    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/dashboard/'
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER') or '/admin/'
     return redirect(next_url)
 
 

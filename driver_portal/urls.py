@@ -5,6 +5,7 @@ app_name = 'driver_portal'
 
 urlpatterns = [
     path('', views.driver_dashboard, name='dashboard'),
+    path('portal/', views.driver_dashboard, name='portal'),
     path('login/', views.driver_login, name='login'),
     path('logout/', views.driver_logout, name='logout'),
     path('inspection/', views.driver_inspection, name='inspection'),
