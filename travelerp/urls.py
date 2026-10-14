@@ -183,8 +183,6 @@ urlpatterns = [
     # Rathasārathi AI Operations Copilot (Powered by Groq / LLM) Studio
     path('admin/operations/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='admin-rathasarathi-copilot-studio'),
     path('admin/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='admin-rathasarathi-copilot-studio-alias'),
-    path('admin/operations/tara-ai/', admin_rathasarathi_copilot_studio_view, name='admin-tara-copilot-studio'),
-    path('admin/tara-ai/', admin_rathasarathi_copilot_studio_view, name='admin-tara-copilot-studio-alias'),
     # 2D Interactive Vehicle Damage Marker & Inspection Studio
     path('admin/maintenance/damage-marker/', damage_marker_studio_view, name='admin-damage-marker-studio'),
     # Unfold Admin Telematics GPS Radar Map
@@ -352,9 +350,6 @@ urlpatterns = [
     path('api/rathasarathi/chat/', api_rathasarathi_chat, name='api-rathasarathi-chat'),
     path('api/rathasarathi/quick-stats/', api_rathasarathi_quick_stats, name='api-rathasarathi-quick-stats'),
     path('api/rathasarathi/set-key/', api_rathasarathi_set_key, name='api-rathasarathi-set-key'),
-    path('api/tara/chat/', api_rathasarathi_chat, name='api-tara-chat'),
-    path('api/tara/quick-stats/', api_rathasarathi_quick_stats, name='api-tara-quick-stats'),
-    path('api/tara/set-key/', api_rathasarathi_set_key, name='api-tara-set-key'),
     path('incidents/<int:incident_id>/dispatch-standby/', dispatch_standby_replacement, name='dispatch-standby-replacement'),
     path('api/incidents/<str:incident_id>/acknowledge/', api_acknowledge_incident, name='api-acknowledge-incident'),
     path('api/fleet/geofence-alarms/', api_active_geofence_alarms, name='api-active-geofence-alarms'),

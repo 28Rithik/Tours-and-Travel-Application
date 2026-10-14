@@ -19,7 +19,6 @@ urlpatterns = [
     # Kanban 3.0 High-Velocity Suite APIs
     path('api/kanban/bulk-action/', views.api_kanban_bulk_action, name='api_kanban_bulk_action'),
     path('api/kanban/rathasarathi-pitch/<int:inquiry_id>/', views.api_kanban_rathasarathi_pitch, name='api_kanban_rathasarathi_pitch'),
-    path('api/kanban/tara-pitch/<int:inquiry_id>/', views.api_kanban_rathasarathi_pitch, name='api_kanban_tara_pitch'),
     path('api/kanban/chat/<int:inquiry_id>/', views.api_kanban_chat_history, name='api_kanban_chat_history'),
     path('api/kanban/chat/<int:inquiry_id>/send/', views.api_kanban_send_chat, name='api_kanban_send_chat'),
     path('api/kanban/proposal/<int:inquiry_id>/', views.api_kanban_generate_proposal, name='api_kanban_generate_proposal'),

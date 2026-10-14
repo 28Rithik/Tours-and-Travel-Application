@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
                         choices=[
                             ("customer", "Guest / Customer"),
                             ("agent", "Sales Specialist / Agent"),
-                            ("bot", "TARA / System Bot"),
+                            ("bot", "Rathasārathi / System Bot"),
                         ],
                         default="agent",
                         max_length=20,

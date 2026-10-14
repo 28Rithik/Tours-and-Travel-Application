@@ -920,9 +920,3 @@ def ask_rathasarathi(user_message, conversation_history=None, custom_api_key=Non
 
     # Fallback to local semantic engine
     return execute_local_semantic_copilot(user_message)
-
-
-# Backward compatibility aliases
-ask_tara = ask_rathasarathi
-TARA_SYSTEM_PROMPT = RATHASARATHI_SYSTEM_PROMPT
-TARA_TOOLS_MAP = RATHASARATHI_TOOLS_MAP

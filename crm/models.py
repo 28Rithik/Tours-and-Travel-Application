@@ -201,7 +201,7 @@ class InquiryChatMessage(models.Model):
     SENDER_CHOICES = [
         ('customer', 'Guest / Customer'),
         ('agent', 'Sales Specialist / Agent'),
-        ('bot', 'TARA / System Bot'),
+        ('bot', 'Rathasārathi / System Bot'),
     ]
     inquiry = models.ForeignKey(Inquiry, on_delete=models.CASCADE, related_name='chat_messages')
     sender_type = models.CharField(max_length=20, choices=SENDER_CHOICES, default='agent')
