@@ -1,0 +1,5 @@
+﻿Seasonal Rate ID,Package ID,Package Code,Package Name,Season Name,Season Type,Start Date,End Date,Surge Percentage (%),Price With Food Override (INR),Price Without Food Override (INR),Vehicle Tariff Surge (%),Notes,Is Active
+1,1,PKG-MY-CRG-03D,2 Nights 3 Days Tour Plan (Mysore - Coorg - Chikmangalur),Summer Vacation Peak Surge 2025,peak,2025-05-01,2025-06-15,20.0,0.0,0.0,15.0,High demand period; resort room rates increase by 25%.,Active
+2,1,PKG-MY-CRG-03D,2 Nights 3 Days Tour Plan (Mysore - Coorg - Chikmangalur),Diwali & Deepavali Long Weekend Surge,festival,2025-10-18,2025-10-26,15.0,0.0,0.0,10.0,Peak festival transit window.,Active
+3,10159,,E2E Test Ooty Expedition 3N4D,May Summer Vacation Peak,peak,2025-05-01,2025-06-15,20.0,0.0,0.0,0.0,,Active
+4,10162,,E2E Grand Kerala Backwaters & Munnar 5D,December Winter Carnival,peak,2025-12-15,2026-01-05,25.0,0.0,0.0,0.0,,Active

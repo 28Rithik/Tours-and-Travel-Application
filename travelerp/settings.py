@@ -134,11 +134,12 @@ WSGI_APPLICATION = 'travelerp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-USE_POSTGRES = os.environ.get('USE_POSTGRES', '').lower() in ['1', 'true', 'yes']
+USE_POSTGRES = os.environ.get('USE_POSTGRES', '1').lower() in ['1', 'true', 'yes']
 POSTGRES_DEFAULT_URL = os.environ.get(
     'DATABASE_URL',
     'postgres://travel_gis_user:travel_gis_pass@127.0.0.1:5434/travel_erp_gis'
 )
+
 
 if USE_POSTGRES:
     DATABASES = {
@@ -160,16 +161,35 @@ else:
 # ==============================================================================
 # IN-MEMORY HIGH PERFORMANCE CACHE SUBSYSTEM
 # ==============================================================================
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'travelerp-local-cache',
-        'TIMEOUT': 600,  # 10 minutes default
-        'OPTIONS': {
-            'MAX_ENTRIES': 3000,
+USE_REDIS = os.environ.get('USE_REDIS', '').lower() in ['1', 'true', 'yes'] or USE_POSTGRES
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
+
+if USE_REDIS:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'TIMEOUT': 600,  # 10 minutes default
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'IGNORE_EXCEPTIONS': True,  # Fallback gracefully if Redis is temporarily offline
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+            }
         }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'travelerp-local-cache',
+            'TIMEOUT': 600,  # 10 minutes default
+            'OPTIONS': {
+                'MAX_ENTRIES': 3000,
+            }
+        }
+    }
+
 
 
 # Password validation
@@ -356,7 +376,7 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {"title": "📋 Dispatch Control Desk", "icon": "assignment", "link": "/dispatch/"},
-                    {"title": "🧠 TARA AI Copilot", "icon": "psychology", "link": "/admin/operations/tara-ai/"},
+                    {"title": "☸️ Rathasārathi AI Copilot", "icon": "psychology", "link": "/admin/operations/rathasarathi-ai/"},
                     {"title": "Bookings", "icon": "event", "link": reverse_lazy("admin:operations_booking_changelist")},
                     {"title": "Trips", "icon": "route", "link": reverse_lazy("admin:operations_trip_changelist")},
                     {"title": "Live Fleet Radar Map", "icon": "satellite_alt", "link": "/admin/operations/fleet-radar/"},
@@ -656,7 +676,7 @@ WHATSAPP_BUSINESS_PHONE = os.getenv('WHATSAPP_BUSINESS_PHONE', '+91 94431 23456'
 FLEET_CONTROL_ROOM_PHONE = os.getenv('FLEET_CONTROL_ROOM_PHONE', '919876543210')
 
 # ==============================================================================
-# TARA AI BUSINESS COPILOT (POWERED BY GROQ / LLM)
+# RATHASĀRATHI AI BUSINESS COPILOT (POWERED BY GROQ / LLM)
 # ==============================================================================
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')

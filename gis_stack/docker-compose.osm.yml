@@ -141,8 +141,24 @@ services:
       - RABBITMQ_DEFAULT_USER=travelerp
       - RABBITMQ_DEFAULT_PASS=travelerp
 
+  # ============================================================================
+  # 9. Redis High-Speed In-Memory Cache & Session Accelerator
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: travelerp_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgis_data:
     driver: local
   nginx_cache:
     driver: local
+  redis_data:
+    driver: local
+

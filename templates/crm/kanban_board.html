@@ -1136,7 +1136,7 @@
                 <span class="scarcity-pill {{ inq.scarcity_status.badge_class }}">{{ inq.scarcity_status.label }}</span>
                 <span class="win-prob-pill">✨ {{ inq.ai_win_probability }}%</span>
                 {% if inq.is_ghosted %}
-                  <span class="ghost-pill" onclick="openTaraPitchModal('{{ inq.id }}')" title="Ghosting Detected: Click to generate auto-nudge">❄️ Stale</span>
+                  <span class="ghost-pill" onclick="openRathasarathiPitchModal('{{ inq.id }}')" title="Ghosting Detected: Click to generate auto-nudge">❄️ Stale</span>
                 {% endif %}
               </div>
             </div>
@@ -1419,21 +1419,21 @@
   </div>
 
   <!-- ===================================================================== -->
-  <!-- MODAL: TARA AI SMART PITCH -->
+  <!-- MODAL: RATHASĀRATHI AI SMART PITCH -->
   <!-- ===================================================================== -->
-  <div class="modal-backdrop" id="taraPitchModal" onclick="if(event.target === this) closeModals()">
+  <div class="modal-backdrop" id="rathasarathiPitchModal" onclick="if(event.target === this) closeModals()">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #9333ea;"></i> TARA AI Re-engagement Pitch</h3>
+        <h3 class="modal-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #9333ea;"></i> ☸️ Rathasārathi AI Re-engagement Pitch</h3>
         <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
       </div>
       <p style="font-size: 12px; color: #64748b; margin-bottom: 10px;">
         AI personalized message generated for stalled/ghosted lead:
       </p>
       <div class="form-group">
-        <textarea id="taraPitchText" class="form-textarea" style="height: 180px; font-size: 12px; line-height: 1.5;"></textarea>
+        <textarea id="rathasarathiPitchText" class="form-textarea" style="height: 180px; font-size: 12px; line-height: 1.5;"></textarea>
       </div>
-      <button type="button" class="btn btn-emerald" style="width: 100%; justify-content: center;" onclick="copyTaraPitch()">
+      <button type="button" class="btn btn-emerald" style="width: 100%; justify-content: center;" onclick="copyRathasarathiPitch()">
         <i class="fa-solid fa-copy"></i> Copy AI Pitch to Clipboard
       </button>
     </div>
@@ -1740,25 +1740,28 @@
       showToast('Proposal link copied to clipboard!', 'success');
     }
 
-    // --- TARA AI Smart Pitch Modal ---
-    async function openTaraPitchModal(inqId) {
+    // --- RATHASĀRATHI AI Smart Pitch Modal ---
+    async function openRathasarathiPitchModal(inqId) {
       try {
-        const res = await fetch(`/crm/api/kanban/tara-pitch/${inqId}/`);
+        const res = await fetch(`/crm/api/kanban/rathasarathi-pitch/${inqId}/`);
         const data = await res.json();
         if (data.status === 'success') {
-          document.getElementById('taraPitchText').value = data.pitch;
-          document.getElementById('taraPitchModal').style.display = 'flex';
+          document.getElementById('rathasarathiPitchText').value = data.pitch;
+          document.getElementById('rathasarathiPitchModal').style.display = 'flex';
         }
       } catch (err) {
         showToast('Error generating pitch: ' + err.message, 'error');
       }
     }
-    function copyTaraPitch() {
-      const txt = document.getElementById('taraPitchText');
+    function copyRathasarathiPitch() {
+      const txt = document.getElementById('rathasarathiPitchText');
       txt.select();
       navigator.clipboard.writeText(txt.value);
       showToast('AI Pitch copied to clipboard!', 'success');
     }
+    // Backward compatibility aliases
+    window.openTaraPitchModal = openRathasarathiPitchModal;
+    window.copyTaraPitch = copyRathasarathiPitch;
 
     // --- Modals & Command Palette ---
     function openCommandPalette() {

@@ -1797,17 +1797,17 @@ def api_telemetry_pipeline_ingest_view(request):
 
 
 # ==============================================================================
-# TARA AI BUSINESS COPILOT (POWERED BY GROQ / LLM) VIEWS
+# RATHASĀRATHI AI BUSINESS COPILOT (POWERED BY GROQ / LLM) VIEWS
 # ==============================================================================
 
 @csrf_exempt
-def api_tara_chat(request):
+def api_rathasarathi_chat(request):
     """
-    TARA AI Chat Endpoint.
+    Rathasārathi AI Chat Endpoint.
     Accepts natural language user queries, runs tool calling against Django ORM,
     and returns rich markdown responses, KPI cards, and operational actions.
     """
-    from operations.tara_copilot import ask_tara
+    from operations.rathasarathi_copilot import ask_rathasarathi
     import json
 
     if request.method != 'POST':
@@ -1824,7 +1824,7 @@ def api_tara_chat(request):
         custom_key = data.get('api_key') or request.session.get('groq_api_key') or request.headers.get('X-Groq-Api-Key')
         custom_model = data.get('model')
 
-        result = ask_tara(
+        result = ask_rathasarathi(
             user_message=user_message,
             conversation_history=history,
             custom_api_key=custom_key,
@@ -1833,15 +1833,15 @@ def api_tara_chat(request):
         return JsonResponse(result)
 
     except Exception as e:
-        logger.exception("Error in TARA chat view")
+        logger.exception("Error in Rathasārathi chat view")
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
-def api_tara_quick_stats(request):
+def api_rathasarathi_quick_stats(request):
     """
-    Returns quick operational counters for the TARA AI floating widget badge.
+    Returns quick operational counters for the Rathasārathi AI floating widget badge.
     """
-    from operations.tara_copilot import get_active_tours_summary, get_compliance_expiry_alerts, get_financial_revenue_overview
+    from operations.rathasarathi_copilot import get_active_tours_summary, get_compliance_expiry_alerts, get_financial_revenue_overview
     import os
 
     try:
@@ -1868,7 +1868,7 @@ def api_tara_quick_stats(request):
 
 
 @csrf_exempt
-def api_tara_set_key(request):
+def api_rathasarathi_set_key(request):
     """
     Saves or validates a Groq API Key into user session and runtime environment.
     """
@@ -1909,11 +1909,11 @@ def api_tara_set_key(request):
 
 
 @login_required
-def admin_tara_copilot_studio_view(request):
+def admin_rathasarathi_copilot_studio_view(request):
     """
-    Full-Page TARA AI Business Brain Command Center View.
+    Full-Page Rathasārathi AI Business Brain Command Center View.
     """
-    from operations.tara_copilot import get_active_tours_summary, get_compliance_expiry_alerts, get_financial_revenue_overview
+    from operations.rathasarathi_copilot import get_active_tours_summary, get_compliance_expiry_alerts, get_financial_revenue_overview
     tours = get_active_tours_summary()
     compliance = get_compliance_expiry_alerts(days_ahead=30)
     finance = get_financial_revenue_overview()
@@ -1925,14 +1925,21 @@ def admin_tara_copilot_studio_view(request):
     )
 
     context = {
-        "title": "TARA AI Business Brain",
+        "title": "Rathasārathi AI Business Brain",
         "active_tours": tours,
         "compliance": compliance,
         "finance": finance,
         "has_groq_key": has_groq_key,
         "groq_model": getattr(settings, 'GROQ_MODEL', 'llama-3.3-70b-versatile'),
     }
-    return render(request, 'operations/tara_copilot_studio.html', context)
+    return render(request, 'operations/rathasarathi_copilot_studio.html', context)
+
+
+# Aliases for backward compatibility
+api_tara_chat = api_rathasarathi_chat
+api_tara_quick_stats = api_rathasarathi_quick_stats
+api_tara_set_key = api_rathasarathi_set_key
+admin_tara_copilot_studio_view = admin_rathasarathi_copilot_studio_view
 
 
 # ==============================================================================

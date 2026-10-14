@@ -285,8 +285,8 @@ class ArattaiBusinessService:
 
         else:
             # Route natural language query directly to Rathasārathi AI with RAG
-            from operations.tara_copilot import ask_tara
-            ai_res = ask_tara(text)
+            from operations.rathasarathi_copilot import ask_rathasarathi
+            ai_res = ask_rathasarathi(text)
             reply_text = ai_res.get('reply', '')
             if len(reply_text) > 1200:
                 # Arattai message limit formatting

@@ -2712,9 +2712,9 @@ def api_kanban_bulk_action(request):
 
 
 @login_required
-def api_kanban_tara_pitch(request, inquiry_id):
+def api_kanban_rathasarathi_pitch(request, inquiry_id):
     """
-    GET /crm/api/kanban/tara-pitch/<id>/
+    GET /crm/api/kanban/rathasarathi-pitch/<id>/
     Generates a personalized, AI-crafted sales pitch tailored to the lead's destination, vehicle, and dates.
     """
     from .models import Inquiry
@@ -2747,6 +2747,10 @@ def api_kanban_tara_pitch(request, inquiry_id):
         'win_probability': inquiry.ai_win_probability,
         'proposal_url': f"/quote/{inquiry.proposal_token}/"
     })
+
+
+# Alias for backward compatibility
+api_kanban_tara_pitch = api_kanban_rathasarathi_pitch
 
 
 @login_required

@@ -1,8 +1,9 @@
 @echo off
-title TravelERP PostgreSQL Launcher & Data Migrator
+title "TravelERP PostgreSQL Launcher and Data Migrator"
 echo ======================================================================
-echo 🐘 SIVAGAYATHRI TRAVEL ERP — POSTGRESQL STACK LAUNCHER & MIGRATOR
+echo SIVAGAYATHRI TRAVEL ERP -- POSTGRESQL STACK LAUNCHER AND MIGRATOR
 echo ======================================================================
+
 echo.
 echo [*] Step 1: Starting PostGIS container on port 5434...
 docker compose -f gis_stack\docker-compose.osm.yml up -d postgis

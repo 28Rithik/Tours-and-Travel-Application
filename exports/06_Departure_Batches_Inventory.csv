@@ -1,0 +1,61 @@
+﻿Batch ID,Package ID,Package Code,Package Name,Departure Date,Return Date,Assigned Vehicle,Assigned Driver,Total Seats,Available Seats,Booked Seats,Price Override (INR),Status
+1,1,PKG-MY-CRG-03D,2 Nights 3 Days Tour Plan (Mysore - Coorg - Chikmangalur),2026-10-01,2026-10-04,Unassigned,Unassigned,54,54,0,5700.0,open
+4,5830,SGT-SG-001,Bali Tropical Escape — 5 Nights 6 Days,2026-10-16,2026-10-21,Unassigned,Unassigned,15,15,0,42999.0,open
+5,5857,SGT-SG-028,Vietnam Discovery Tour — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,49999.0,open
+6,5856,SGT-SG-027,Vietnam Classic Discovery Tour — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,46999.0,open
+7,5855,SGT-SG-026,"Velankanni, Rameshwaram & Madurai Pilgrimage Tour — 4 Nights 5 Days",2026-10-30,2026-11-03,Unassigned,Unassigned,15,15,0,18999.0,open
+8,5854,SGT-SG-025,Turkey Grand Discovery Tour — 8 Nights 9 Days,2026-10-30,2026-11-07,Unassigned,Unassigned,15,15,0,89999.0,open
+9,5853,SGT-SG-024,Tirupati & Kanchipuram Pilgrimage Tour — 3 Nights 4 Days,2026-10-30,2026-11-02,Unassigned,Unassigned,15,15,0,14999.0,open
+10,5852,SGT-SG-023,Thailand Delight Tour — 7 Nights 8 Days,2026-10-30,2026-11-06,Unassigned,Unassigned,15,15,0,54999.0,open
+11,5851,SGT-SG-022,Thailand Classic Tour — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,32999.0,open
+12,5850,SGT-SG-021,Switzerland & Italy Grand European Tour — 9 Nights 10 Days,2026-10-30,2026-11-08,Unassigned,Unassigned,15,15,0,169999.0,open
+13,5849,SGT-SG-020,Sri Lanka Grand Heritage & Beach Tour — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,39999.0,open
+14,5848,SGT-SG-019,Sri Lanka Discovery Tour — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,34999.0,open
+15,5847,SGT-SG-018,South India Temple Circuit — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,22999.0,open
+16,5846,SGT-SG-017,Singapore & Malaysia Discovery Tour — 7 Nights 8 Days,2026-10-30,2026-11-06,Unassigned,Unassigned,15,15,0,64999.0,open
+17,5845,SGT-SG-016,Royal Rajasthan Tour — 7 Nights 8 Days,2026-10-30,2026-11-06,Unassigned,Unassigned,15,15,0,36999.0,open
+18,5844,SGT-SG-015,Nepal Himalayan Escape — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,29999.0,open
+19,5843,SGT-SG-014,Maldives Honeymoon Escape — 4 Nights 5 Days,2026-10-30,2026-11-03,Unassigned,Unassigned,15,15,0,74999.0,open
+20,5842,SGT-SG-013,Kerala Honeymoon Escape — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,27999.0,open
+21,5841,SGT-SG-012,Kerala Highlands & Backwaters Tour — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,24999.0,open
+22,5840,SGT-SG-011,Kashmir Paradise Tour — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,29999.0,open
+23,5839,SGT-SG-010,Japan Highlights Tour — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,119999.0,open
+24,5838,SGT-SG-009,Himachal Pradesh Hill Station Tour — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,26999.0,open
+25,5837,SGT-SG-008,Europe Grand Tour — 12 Nights 13 Days,2026-10-30,2026-11-11,Unassigned,Unassigned,15,15,0,219999.0,open
+26,5836,SGT-SG-007,Dubai Explorer Tour — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,49999.0,open
+27,5835,SGT-SG-006,Dubai & Abu Dhabi Explorer — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,44999.0,open
+28,5834,SGT-SG-005,Cordelia Cruise Holiday — 4 Nights 5 Days,2026-10-30,2026-11-03,Unassigned,Unassigned,15,15,0,34999.0,open
+29,5833,SGT-SG-004,Char Dham Yatra — 11 Night 12 Days,2026-10-30,2026-11-10,Unassigned,Unassigned,15,15,0,54999.0,open
+30,5832,SGT-SG-003,Bali Family Special — 6 Nights 7 Days,2026-10-30,2026-11-05,Unassigned,Unassigned,15,15,0,49999.0,open
+31,5831,SGT-SG-002,Andaman Islands Paradise Tour — 5 Nights 6 Days,2026-10-30,2026-11-04,Unassigned,Unassigned,15,15,0,24999.0,open
+32,5857,SGT-SG-028,Vietnam Discovery Tour — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,49999.0,fast_filling
+33,5856,SGT-SG-027,Vietnam Classic Discovery Tour — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,46999.0,fast_filling
+34,5855,SGT-SG-026,"Velankanni, Rameshwaram & Madurai Pilgrimage Tour — 4 Nights 5 Days",2026-12-19,2026-12-23,Unassigned,Unassigned,15,15,0,18999.0,fast_filling
+35,5854,SGT-SG-025,Turkey Grand Discovery Tour — 8 Nights 9 Days,2026-12-19,2026-12-27,Unassigned,Unassigned,15,15,0,89999.0,fast_filling
+36,5853,SGT-SG-024,Tirupati & Kanchipuram Pilgrimage Tour — 3 Nights 4 Days,2026-12-19,2026-12-22,Unassigned,Unassigned,15,15,0,14999.0,fast_filling
+37,5852,SGT-SG-023,Thailand Delight Tour — 7 Nights 8 Days,2026-12-19,2026-12-26,Unassigned,Unassigned,15,15,0,54999.0,fast_filling
+38,5851,SGT-SG-022,Thailand Classic Tour — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,32999.0,fast_filling
+39,5850,SGT-SG-021,Switzerland & Italy Grand European Tour — 9 Nights 10 Days,2026-12-19,2026-12-28,Unassigned,Unassigned,15,15,0,169999.0,fast_filling
+40,5849,SGT-SG-020,Sri Lanka Grand Heritage & Beach Tour — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,39999.0,fast_filling
+41,5848,SGT-SG-019,Sri Lanka Discovery Tour — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,34999.0,fast_filling
+42,5847,SGT-SG-018,South India Temple Circuit — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,22999.0,fast_filling
+43,5846,SGT-SG-017,Singapore & Malaysia Discovery Tour — 7 Nights 8 Days,2026-12-19,2026-12-26,Unassigned,Unassigned,15,15,0,64999.0,fast_filling
+44,5845,SGT-SG-016,Royal Rajasthan Tour — 7 Nights 8 Days,2026-12-19,2026-12-26,Unassigned,Unassigned,15,15,0,36999.0,fast_filling
+45,5844,SGT-SG-015,Nepal Himalayan Escape — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,29999.0,fast_filling
+46,5843,SGT-SG-014,Maldives Honeymoon Escape — 4 Nights 5 Days,2026-12-19,2026-12-23,Unassigned,Unassigned,15,15,0,74999.0,fast_filling
+47,5842,SGT-SG-013,Kerala Honeymoon Escape — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,27999.0,fast_filling
+48,5841,SGT-SG-012,Kerala Highlands & Backwaters Tour — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,24999.0,fast_filling
+49,5840,SGT-SG-011,Kashmir Paradise Tour — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,29999.0,fast_filling
+50,5839,SGT-SG-010,Japan Highlights Tour — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,119999.0,fast_filling
+51,5838,SGT-SG-009,Himachal Pradesh Hill Station Tour — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,26999.0,fast_filling
+52,5837,SGT-SG-008,Europe Grand Tour — 12 Nights 13 Days,2026-12-19,2026-12-31,Unassigned,Unassigned,15,15,0,219999.0,fast_filling
+53,5836,SGT-SG-007,Dubai Explorer Tour — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,49999.0,fast_filling
+54,5835,SGT-SG-006,Dubai & Abu Dhabi Explorer — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,44999.0,fast_filling
+55,5834,SGT-SG-005,Cordelia Cruise Holiday — 4 Nights 5 Days,2026-12-19,2026-12-23,Unassigned,Unassigned,15,15,0,34999.0,fast_filling
+56,5833,SGT-SG-004,Char Dham Yatra — 11 Night 12 Days,2026-12-19,2026-12-30,Unassigned,Unassigned,15,15,0,54999.0,fast_filling
+57,5832,SGT-SG-003,Bali Family Special — 6 Nights 7 Days,2026-12-19,2026-12-25,Unassigned,Unassigned,15,15,0,49999.0,fast_filling
+58,5831,SGT-SG-002,Andaman Islands Paradise Tour — 5 Nights 6 Days,2026-12-19,2026-12-24,Unassigned,Unassigned,15,15,0,24999.0,fast_filling
+59,5830,SGT-SG-001,Bali Tropical Escape — 5 Nights 6 Days,2026-12-22,2026-12-27,Unassigned,Unassigned,15,10,5,42999.0,fast_filling
+60,10160,PKG-P4-TEST-01,Phase4 Nilgiris Scenic Tour,2026-10-08,,Unassigned,Unassigned,30,30,0,4200.0,open
+61,10161,,Nilgiris Tea Mist Explorer (3D/2N),2026-10-04,,Unassigned,Unassigned,20,20,0,0.0,open
+64,10160,PKG-P4-TEST-01,Phase4 Nilgiris Scenic Tour,2026-10-09,,Unassigned,Unassigned,30,30,0,4200.0,open
