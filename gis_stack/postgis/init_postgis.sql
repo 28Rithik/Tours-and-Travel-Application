@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS postgis_topology;
 CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
 CREATE EXTENSION IF NOT EXISTS postgis_tiger_geocoder;
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- 2. Create Schema for TravelERP Spatial Telemetry
 CREATE SCHEMA IF NOT EXISTS telemetry;

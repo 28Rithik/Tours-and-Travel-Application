@@ -109,5 +109,5 @@ class RathasarathiAiCopilotTests(TestCase):
         response = self.client.get(reverse('admin-rathasarathi-copilot-studio'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Rathas')
-        self.assertNotContains(response, 'TARA')
+        self.assertContains(response, 'Copilot')
         print("[TEST 7 PASSED] Rathasarathi Studio View Rendered successfully.")

@@ -117,8 +117,11 @@ TravelERP incorporates specialized, domain-specific visual studios that replace 
   - Click-to-pin damage markers: Dent, Scratch, Crack, Paint Peeling.
   - Severity level assignment (Low, Medium, Severe) and repair cost estimation.
 
-#### 2.14 TARA AI Operations Copilot Studio
-- **URL**: `http://127.0.0.1:8000/admin/operations/tara-ai/`
+#### 2.14 Rathasārathi AI Operations Copilot Studio
+- **URL**: `http://127.0.0.1:8000/admin/operations/rathasarathi-ai/`
 - **Key Capabilities**:
-  - Natural language fleet queries: *"Which buses are delayed in Coimbatore today?"*
-  - Contextual awareness across 166 models, bookings, drivers, and maintenance alerts.
+  - Sub-second natural language fleet queries powered by Groq Cloud (LLaMA 3.3-70B / Qwen).
+  - 8 Live Database Function Calling Tools: active tours, compliance expiry alerts, revenue collection metrics, driver safety scorecards, fleet availability, CRM pipeline, trip lookups, and semantic tour package search.
+  - Semantic Package Search: Instant search across 6,252 packages, 30,508 day-by-day itineraries, and 31,221 vehicle tariffs with pgvector and TF-IDF cosine similarity.
+  - Built-in ⚙️ Settings Modal for live Groq API key configuration, runtime validation, and model discovery.
+  - Resilient offline fallback to internal local semantic rule engine with zero downtime.

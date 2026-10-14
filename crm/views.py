@@ -2749,10 +2749,6 @@ def api_kanban_rathasarathi_pitch(request, inquiry_id):
     })
 
 
-# Alias for backward compatibility
-api_kanban_tara_pitch = api_kanban_rathasarathi_pitch
-
-
 @login_required
 def api_kanban_chat_history(request, inquiry_id):
     """

@@ -1883,25 +1883,48 @@ def api_rathasarathi_set_key(request):
         if not key:
             return JsonResponse({"status": "error", "message": "API key cannot be empty"}, status=400)
 
-        # Quick validation ping to Groq
+        # Validate key by querying Groq models endpoint
         headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
-        test_payload = {
-            "model": "llama-3.1-8b-instant",
-            "messages": [{"role": "user", "content": "ping"}],
-            "max_tokens": 5
-        }
-        res = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=test_payload, timeout=8)
+        res = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=8)
         if res.status_code == 200:
             request.session['groq_api_key'] = key
             os.environ['GROQ_API_KEY'] = key
+
+            # Discover available chat models
+            models_data = res.json().get('data', [])
+            model_ids = [m['id'] for m in models_data]
+
+            # Persist to .env if possible
+            try:
+                from django.conf import settings
+                env_file = getattr(settings, 'BASE_DIR', None)
+                if env_file:
+                    env_path = env_file / '.env'
+                    env_content = ""
+                    if env_path.exists():
+                        with open(env_path, 'r', encoding='utf-8') as f:
+                            env_content = f.read()
+                    
+                    if 'GROQ_API_KEY=' in env_content:
+                        import re
+                        env_content = re.sub(r'GROQ_API_KEY=.*', f'GROQ_API_KEY={key}', env_content)
+                    else:
+                        env_content += f"\nGROQ_API_KEY={key}\n"
+
+                    with open(env_path, 'w', encoding='utf-8') as f:
+                        f.write(env_content)
+            except Exception as env_err:
+                pass
+
             return JsonResponse({
                 "status": "success",
-                "message": "Groq API Key validated and activated successfully!"
+                "message": "Groq API Key validated and activated successfully!",
+                "models": model_ids
             })
         else:
             return JsonResponse({
                 "status": "error",
-                "message": f"Groq validation failed: HTTP {res.status_code} - {res.text}"
+                "message": f"Groq validation failed: HTTP {res.status_code} - Invalid or inactive key."
             }, status=400)
 
     except Exception as e:
@@ -1934,12 +1957,6 @@ def admin_rathasarathi_copilot_studio_view(request):
     }
     return render(request, 'operations/rathasarathi_copilot_studio.html', context)
 
-
-# Aliases for backward compatibility
-api_tara_chat = api_rathasarathi_chat
-api_tara_quick_stats = api_rathasarathi_quick_stats
-api_tara_set_key = api_rathasarathi_set_key
-admin_tara_copilot_studio_view = admin_rathasarathi_copilot_studio_view
 
 
 # ==============================================================================

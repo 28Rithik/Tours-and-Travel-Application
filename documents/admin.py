@@ -1,5 +1,5 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import CustomerDocument, KnowledgeDocument, KnowledgeChunk
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -16,7 +16,7 @@ class CustomerDocumentAdmin(ModelAdmin):
         return False
 
 
-class KnowledgeChunkInline(admin.TabularInline):
+class KnowledgeChunkInline(TabularInline):
     from .models import KnowledgeChunk
     model = KnowledgeChunk
     extra = 0

@@ -3,7 +3,10 @@ services:
   # 1. PostgreSQL 15 + PostGIS 3.4 Spatial Database (Tuned & Partitioned)
   # ============================================================================
   postgis:
-    image: postgis/postgis:15-3.4-alpine
+    build:
+      context: ./postgis
+      dockerfile: Dockerfile
+    image: travelerp_postgis:15-pgvector
     container_name: travelerp_postgis
     restart: unless-stopped
     ports:

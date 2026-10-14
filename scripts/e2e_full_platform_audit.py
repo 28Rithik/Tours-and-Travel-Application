@@ -395,9 +395,9 @@ def run_full_platform_audit():
         record("DOMAIN 6.2", "ESG Certificate Screenshot", "PASS", str(shot_15.name))
 
         # ─────────────────────────────────────────────────────────────────────
-        # DOMAIN 7: Operations Command, Live Radar, GIS Control Center & TARA AI
+        # DOMAIN 7: Operations Command, Live Radar, GIS Control Center & Rathasārathi AI
         # ─────────────────────────────────────────────────────────────────────
-        print("\n--- DOMAIN 7: Operations Command, Live Radar, GIS Control Center & TARA AI ---")
+        print("\n--- DOMAIN 7: Operations Command, Live Radar, GIS Control Center & Rathasārathi AI ---")
         # 7.1 Fleet Live Mission Control
         url_fleet_live = f"{BASE_URL}/fleet/live/"
         resp = page.goto(url_fleet_live, wait_until="networkidle")
@@ -437,23 +437,23 @@ def run_full_platform_audit():
         page.screenshot(path=str(shot_18), full_page=False)
         record("DOMAIN 7.3", "GIS Control Center Screenshot", "PASS", str(shot_18.name))
 
-        # 7.4 TARA AI Conversational Fleet Copilot Studio
-        url_tara = f"{BASE_URL}/admin/operations/tara-ai/"
-        resp = page.goto(url_tara, wait_until="networkidle")
+        # 7.4 Rathasārathi AI Conversational Fleet Copilot Studio
+        url_rathasarathi = f"{BASE_URL}/admin/operations/rathasarathi-ai/"
+        resp = page.goto(url_rathasarathi, wait_until="networkidle")
         if resp and resp.status == 200:
-            record("DOMAIN 7.4", "TARA AI Copilot Studio HTTP 200", "PASS", f"Status: {resp.status}")
+            record("DOMAIN 7.4", "Rathasārathi AI Copilot Studio HTTP 200", "PASS", f"Status: {resp.status}")
         else:
-            record("DOMAIN 7.4", "TARA AI Copilot Studio HTTP 200", "FAIL", f"Status: {resp.status if resp else 'None'}")
+            record("DOMAIN 7.4", "Rathasārathi AI Copilot Studio HTTP 200", "FAIL", f"Status: {resp.status if resp else 'None'}")
 
         page.wait_for_timeout(600)
         # Check chat prompt input
-        tara_input = page.locator("#tara-user-input, input[placeholder*='Ask TARA'], textarea")
-        if tara_input.count() > 0:
-            record("DOMAIN 7.4", "TARA Copilot Chat Interface Ready", "PASS", "Input field interactive")
+        rathasarathi_input = page.locator("#rathasarathi-user-input, input[placeholder*='Ask Rathas'], textarea")
+        if rathasarathi_input.count() > 0:
+            record("DOMAIN 7.4", "Rathasārathi Copilot Chat Interface Ready", "PASS", "Input field interactive")
 
-        shot_19 = SCREENSHOTS_DIR / "19_tara_ai_copilot_studio_light.png"
+        shot_19 = SCREENSHOTS_DIR / "19_rathasarathi_ai_copilot_studio_light.png"
         page.screenshot(path=str(shot_19), full_page=False)
-        record("DOMAIN 7.4", "TARA AI Copilot Screenshot", "PASS", str(shot_19.name))
+        record("DOMAIN 7.4", "Rathasārathi AI Copilot Screenshot", "PASS", str(shot_19.name))
 
         # 7.5 Database & Infrastructure Health Dashboard
         url_db_health = f"{BASE_URL}/admin/operations/database-health/"

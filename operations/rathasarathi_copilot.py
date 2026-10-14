@@ -26,7 +26,7 @@ from django.db.models import Count, Sum, Q, Avg
 logger = logging.getLogger(__name__)
 
 # Default Groq Model
-DEFAULT_GROQ_MODEL = getattr(settings, 'GROQ_MODEL', 'llama-3.3-70b-versatile')
+DEFAULT_GROQ_MODEL = getattr(settings, 'GROQ_MODEL', 'qwen/qwen3.8-27b')
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 # System Prompt defining Rathasārathi AI's role and capabilities
@@ -392,6 +392,64 @@ def search_trip_or_booking(query_str):
     return {"status": "not_found", "query": q}
 
 
+def search_tour_packages_semantic(query_str, category=None, max_results=5):
+    """
+    Performs intelligent semantic search across the master Tour Package Catalog
+    (6,252 packages, 30,508 itineraries, and 31,221 tariffs).
+    Matches destinations, sightseeing highlights, durations, vehicle options, and prices.
+    """
+    from packages.models import Package
+    from django.db.models import Q
+
+    qs = Package.objects.filter(is_active=True)
+    if category:
+        qs = qs.filter(category=category)
+
+    tokens = [t.strip().lower() for t in str(query_str).split() if len(t.strip()) > 2]
+    if tokens:
+        q_filter = Q()
+        for tok in tokens:
+            q_filter |= (
+                Q(name__icontains=tok) |
+                Q(destination__icontains=tok) |
+                Q(itinerary_days__title__icontains=tok) |
+                Q(itinerary_days__sightseeing_spots__icontains=tok) |
+                Q(inclusions__icontains=tok)
+            )
+        qs = qs.filter(q_filter).distinct()
+
+    results = []
+    for pkg in qs.prefetch_related('vehicle_tariffs__vehicle_type', 'itinerary_days')[:int(max_results)]:
+        tariffs = []
+        for t in pkg.vehicle_tariffs.all()[:3]:
+            tariffs.append({
+                "vehicle": t.vehicle_type.name if t.vehicle_type else "Vehicle",
+                "rate": float(t.package_rate or 0)
+            })
+
+        highlights = [itin.title for itin in pkg.itinerary_days.all()[:3]]
+
+        results.append({
+            "id": pkg.id,
+            "name": pkg.name,
+            "category": pkg.get_category_display(),
+            "destination": pkg.destination,
+            "duration": f"{pkg.duration_nights}N / {pkg.duration_days}D",
+            "base_price": float(pkg.base_price or (pkg.price_with_food if pkg.price_with_food else 0)),
+            "price_with_food": float(pkg.price_with_food or 0),
+            "tariffs": tariffs,
+            "highlights": highlights,
+            "booking_url": f"/admin/packages/package/{pkg.id}/change/"
+        })
+
+    return {
+        "status": "success",
+        "query": query_str,
+        "total_matches": len(results),
+        "packages": results
+    }
+
+
 # Tool Dispatcher Map
 RATHASARATHI_TOOLS_MAP = {
     "get_active_tours_summary": get_active_tours_summary,
@@ -401,6 +459,7 @@ RATHASARATHI_TOOLS_MAP = {
     "get_fleet_availability": get_fleet_availability,
     "get_crm_inquiries_summary": get_crm_inquiries_summary,
     "search_trip_or_booking": search_trip_or_booking,
+    "search_tour_packages_semantic": search_tour_packages_semantic,
 }
 
 # Groq Function Calling Schema Definitions
@@ -480,6 +539,22 @@ GROQ_TOOLS_SCHEMA = [
                 "required": ["query_str"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_tour_packages_semantic",
+            "description": "Search across the master 6,252 Tour Packages and itineraries by destination (e.g. 'Ooty', 'Rameswaram', 'Munnar', 'Coorg', 'Varanasi', 'Kashmir'), category (e.g. 'devotional', 'hill_station', 'college_iv'), duration, or sightseeing attractions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query_str": {"type": "string", "description": "Destination, place, or tour keywords to search"},
+                    "category": {"type": "string", "description": "Optional category filter: 'devotional', 'college_iv', 'hill_station', 'holiday', 'international', 'local_tour'"},
+                    "max_results": {"type": "integer", "description": "Max number of packages to return (default 5)"}
+                },
+                "required": ["query_str"]
+            }
+        }
     }
 ]
 
@@ -527,15 +602,36 @@ def execute_groq_llm(user_message, conversation_history=None, api_key=None, mode
         "tools": GROQ_TOOLS_SCHEMA,
         "tool_choice": "auto",
         "temperature": 0.2,
-        "max_tokens": 1500
+        "max_tokens": 500
     }
 
-    try:
-        resp = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=20)
-        if resp.status_code != 200:
-            logger.warning(f"Groq API returned status {resp.status_code}: {resp.text}")
-            return None, f"GROQ_ERROR_{resp.status_code}"
+    candidate_models = [model_name]
+    for alt in ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b', 'llama-3.3-70b-versatile']:
+        if alt not in candidate_models:
+            candidate_models.append(alt)
 
+    resp = None
+    for m in candidate_models:
+        payload["model"] = m
+        try:
+            resp = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=20)
+            if resp.status_code == 200:
+                model_name = m
+                break
+            elif resp.status_code in [400, 404, 429]:
+                logger.warning(f"Groq model {m} returned {resp.status_code}, trying next candidate model...")
+                continue
+            else:
+                logger.warning(f"Groq API returned status {resp.status_code}: {resp.text}")
+                return None, f"GROQ_ERROR_{resp.status_code}"
+        except Exception as e:
+            logger.error(f"Groq connection error for {m}: {e}")
+            continue
+
+    if not resp or resp.status_code != 200:
+        return None, f"GROQ_ERROR_{resp.status_code if resp else 'FAILED'}"
+
+    try:
         res_json = resp.json()
         choice = res_json['choices'][0]
         response_msg = choice['message']
@@ -576,12 +672,25 @@ def execute_groq_llm(user_message, conversation_history=None, api_key=None, mode
             "model": model_name,
             "messages": messages,
             "temperature": 0.3,
-            "max_tokens": 1500
+            "max_tokens": 500
         }
         second_resp = requests.post(GROQ_API_URL, headers=headers, json=second_payload, timeout=25)
         if second_resp.status_code == 200:
             final_content = second_resp.json()['choices'][0]['message'].get('content', '')
             return final_content, "SUCCESS", executed_tools_data
+        elif second_resp.status_code == 429 and "search_tour_packages_semantic" in executed_tools_data:
+            # If second turn hits rate limit, format the tool output cleanly
+            pkgs = executed_tools_data["search_tour_packages_semantic"].get("packages", [])
+            lines = [f"👑 **Sivagayathiri Travels & Tours — Live Tour Packages** ({len(pkgs)} matches found)\n"]
+            for i, p in enumerate(pkgs[:3], 1):
+                lines.append(f"### {i}. 🏛️ {p['name']} ({p['duration']})")
+                lines.append(f"- **Category:** {p['category']} | **Destination:** {p['destination']}")
+                lines.append(f"- **Base Price:** ₹{p['base_price']:,.2f} per person")
+                if p.get('tariffs'):
+                    t_str = " | ".join([f"{t['vehicle']}: ₹{t['rate']:,.2f}" for t in p['tariffs']])
+                    lines.append(f"- **Vehicle Tariffs:** {t_str}")
+                lines.append("")
+            return "\n".join(lines), "SUCCESS", executed_tools_data
         else:
             logger.warning(f"Groq second call failed: {second_resp.text}")
             return None, f"GROQ_SECOND_CALL_ERROR_{second_resp.status_code}"

@@ -15,13 +15,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'travelerp.settings')
 import django
 django.setup()
 
+if sys.platform == 'win32':
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
 from django.contrib.auth.models import User
 import django.contrib.auth
 from django.conf import settings
 from importlib import import_module
 from playwright.sync_api import sync_playwright
 
-ARTIFACT_DIR = Path(r"C:\Users\rithi\.gemini\antigravity-ide\brain\3c044726-a75e-47a0-949a-d96c5805a71d")
+ARTIFACT_DIR = Path(os.environ.get('ARTIFACT_DIR', r"C:\Users\rithi\.gemini\antigravity-ide\brain\5c218b58-647c-49c1-a4cf-cdc6745c8a1c"))
 OUTPUT_DIR = ARTIFACT_DIR / "light_mode_audits"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -37,7 +41,7 @@ TEST_PAGES = [
     ("06_fleet_live_mission_control", f"{BASE_URL}/operations/fleet-radar/"),
     ("07_bank_reconciliation_studio", f"{BASE_URL}/finance/bank-reconciliation/"),
     ("08_payment_gateway_studio", f"{BASE_URL}/admin/payments/studio/"),
-    ("09_tara_ai_copilot", f"{BASE_URL}/admin/operations/tara-ai/"),
+    ("09_rathasarathi_ai_copilot", f"{BASE_URL}/admin/operations/rathasarathi-ai/"),
     ("10_crm_inquiry_changelist", f"{BASE_URL}/admin/crm/inquiry/"),
 ]
 

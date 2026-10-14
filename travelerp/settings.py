@@ -18,8 +18,15 @@ from django.urls import reverse_lazy
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
 
-# Quick-start development settings - unsuitable for production
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -141,7 +148,21 @@ POSTGRES_DEFAULT_URL = os.environ.get(
 )
 
 
-if USE_POSTGRES:
+def _is_database_reachable(db_url):
+    try:
+        import socket
+        parsed = dj_database_url.parse(db_url)
+        host = parsed.get('HOST', '127.0.0.1') or '127.0.0.1'
+        port = int(parsed.get('PORT', 5434) or 5434)
+        s = socket.create_connection((host, port), timeout=0.5)
+        s.close()
+        return True
+    except Exception:
+        return False
+
+POSTGRES_AVAILABLE = USE_POSTGRES and _is_database_reachable(POSTGRES_DEFAULT_URL)
+
+if POSTGRES_AVAILABLE:
     DATABASES = {
         'default': dj_database_url.parse(
             POSTGRES_DEFAULT_URL,
@@ -151,11 +172,11 @@ if USE_POSTGRES:
     }
 else:
     DATABASES = {
-        'default': dj_database_url.config(
-            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'CONN_MAX_AGE': 600,
+        }
     }
 
 # ==============================================================================
@@ -718,6 +739,12 @@ CHANNEL_LAYERS = {
 LOGIN_REDIRECT_URL = '/admin/'
 LOGOUT_REDIRECT_URL = '/staff/login/'
 LOGIN_URL = '/staff/login/'
+
+# ==============================================================================
+# RATHASĀRATHI AI OPERATIONS COPILOT (GROQ CLOUD CONFIGURATION)
+# ==============================================================================
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'qwen/qwen3.8-27b')
 
 
 

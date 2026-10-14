@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.urls import reverse
 
 from operations.rag_engine import RAGKnowledgeEngine
-from operations.tara_copilot import ask_tara
+from operations.rathasarathi_copilot import ask_rathasarathi
 from operations.scheduler_engine import TravelERPScheduler
 from integrations.models import IntegrationSettings, ArattaiMessageLog
 from integrations.arattai_service import ArattaiBusinessService
@@ -46,9 +46,9 @@ class RathasarathiRAGAndSchedulerTestCase(TestCase):
         self.assertIn("cancellation", top['document_title'].lower())
         self.assertGreater(top['score'], 0.1)
 
-    def test_02_ask_tara_rag_grounded_response(self):
+    def test_02_ask_rathasarathi_rag_grounded_response(self):
         """Validates that Rathasārathi AI returns grounded knowledge for policies."""
-        res = ask_tara("What is the driver night bata rate and cancellation policy?")
+        res = ask_rathasarathi("What is the driver night bata rate and cancellation policy?")
         self.assertEqual(res['status'], 'success')
         self.assertIn("Customer Booking, Cancellation, Night Bata", res['reply'])
         self.assertTrue(len(res.get('kpi_cards', [])) >= 2)

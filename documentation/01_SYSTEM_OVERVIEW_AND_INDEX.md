@@ -18,10 +18,10 @@ Operating across Tamil Nadu, Karnataka, Kerala, Andhra Pradesh, and All-India to
 | **Backend Core** | Python 3.12, Django 6.0, Django REST Framework | Core business logic, ORM, security, session management |
 | **Theme & UI Shell** | Django Unfold, Tailwind CSS, Heroicons, FontAwesome 6 | Enterprise navigation, command palette, high-contrast layouts |
 | **Reactivity** | HTMX 1.9, Vanilla JavaScript (ES6+), Alpine.js | Reactive sub-second UI updates without heavy SPA build overhead |
-| **Database & GIS** | SQLite 3 (Production-optimized WAL) / PostgreSQL + PostGIS | Geometries, telemetry logging, partitioning, multi-tenant tables |
+| **Database & GIS** | PostgreSQL 15 + PostGIS 3.4 + pgvector (with SQLite 3 fallback) | Geometries, vector embeddings for package search, telemetry logging |
 | **Cartography & Maps**| Leaflet.js 1.9, OpenStreetMap, OSRM India Routing Engine | Live fleet radars, passenger bus tracking, TSP route optimization |
 | **Mobile & PWA** | Web App Manifest, Service Workers, Offline Caching | Driver PWA, QR Boarding Scanner, Mobile Passenger Web Pass |
-| **AI & Telephony** | Groq LLM (TARA AI Copilot), Twilio / Exotel DTMF IVR Webhook | Natural language fleet copilot, automated night shift safety calls |
+| **AI & Telephony** | Groq Cloud LLaMA 3.3 / Qwen (Rathasārathi AI Copilot) | Natural language fleet copilot, semantic tour search, WhatsApp pitches |
 | **Aesthetics** | High-Contrast Sunlight Light Mode + Dark Mode Synchronization | Daylight visibility for field managers, persistent `localStorage` sync |
 
 ---
@@ -41,7 +41,8 @@ documentation/
 ├── 07_LIGHT_MODE_AND_AESTHETICS_SYSTEM.md   # High-contrast daylight tokens, anti-FOUC, design guidelines
 ├── 08_API_AND_INTEGRATION_REFERENCE.md      # REST APIs, HTMX endpoints, WhatsApp Cloud, Arattai, OSRM
 ├── 09_AUDIT_INTEGRITY_AND_DEDUPLICATION.md  # Deduplication report, zero model collision, test inventory
-└── 10_FUTURE_PHASES_ROADMAP.md              # Strategic roadmap for Phases 8, 9, 10, 11, and 12
+├── 10_FUTURE_PHASES_ROADMAP.md              # Strategic roadmap for Phases 8, 9, 10, 11, and 12
+└── 11_PRODUCTION_DEPLOYMENT_AND_HARDENING.md # Production Docker stack, Nginx SSL, Daphne ASGI, backups
 ```
 
 ---

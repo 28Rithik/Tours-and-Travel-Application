@@ -249,9 +249,12 @@
           </div>
         </div>
       </div>
-      <div>
+      <div style="display: flex; gap: 8px;">
+        <button onclick="openSettingsModal()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #0284c7; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 6px;">
+          ⚙️ Settings
+        </button>
         <button onclick="clearStudioChat()" style="background: #ffffff; border: 1px solid #cbd5e1; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s ease;">
-          🗑️ Clear Conversation
+          🗑️ Clear
         </button>
       </div>
     </div>
@@ -435,5 +438,103 @@
       container.appendChild(errDiv);
     }
   }
+
+  function openSettingsModal() {
+    const modal = document.getElementById('rsSettingsModal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeSettingsModal() {
+    const modal = document.getElementById('rsSettingsModal');
+    if (modal) modal.style.display = 'none';
+    const alert = document.getElementById('settingsAlert');
+    if (alert) alert.style.display = 'none';
+  }
+
+  async function saveGroqKey() {
+    const keyInput = document.getElementById('inputGroqKey');
+    const alertBox = document.getElementById('settingsAlert');
+    const saveBtn = document.getElementById('btnSaveKey');
+    const key = (keyInput ? keyInput.value : '').trim();
+
+    if (!key) {
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#fef2f2';
+      alertBox.style.color = '#b91c1c';
+      alertBox.style.border = '1px solid #fecaca';
+      alertBox.textContent = 'Please enter a valid Groq API key.';
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Verifying with Groq...';
+
+    try {
+      const res = await fetch('/api/rathasarathi/set-key/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: key })
+      });
+      const data = await res.json();
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Verify & Activate Key';
+
+      alertBox.style.display = 'block';
+      if (res.ok && data.status === 'success') {
+        alertBox.style.background = '#f0fdf4';
+        alertBox.style.color = '#15803d';
+        alertBox.style.border = '1px solid #bbf7d0';
+        alertBox.innerHTML = `<strong>Success!</strong> ${data.message}`;
+        setTimeout(() => {
+          location.reload();
+        }, 1200);
+      } else {
+        alertBox.style.background = '#fef2f2';
+        alertBox.style.color = '#b91c1c';
+        alertBox.style.border = '1px solid #fecaca';
+        alertBox.textContent = data.message || 'Validation failed. Check your API key.';
+      }
+    } catch (err) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Verify & Activate Key';
+      alertBox.style.display = 'block';
+      alertBox.style.background = '#fef2f2';
+      alertBox.style.color = '#b91c1c';
+      alertBox.style.border = '1px solid #fecaca';
+      alertBox.textContent = 'Network error: ' + err.message;
+    }
+  }
 </script>
+
+<!-- Groq API Key & Model Configuration Modal -->
+<div id="rsSettingsModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
+  <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); border: 1px solid #e2e8f0; overflow: hidden; margin: 16px;">
+    <div style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 20px 24px; color: #ffffff; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 22px;">⚙️</span>
+        <div>
+          <div style="font-size: 16px; font-weight: 800;">Rathasārathi AI Cloud Settings</div>
+          <div style="font-size: 11px; opacity: 0.9;">Configure Groq LLaMA 3.3 Function Calling &amp; Semantic Engines</div>
+        </div>
+      </div>
+      <button onclick="closeSettingsModal()" style="background: transparent; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+    </div>
+    <div style="padding: 24px;">
+      <label style="display: block; font-size: 12px; font-weight: 800; color: #334155; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em;">Groq Cloud API Key</label>
+      <input type="password" id="inputGroqKey" placeholder="gsk_..." value="{% if has_groq_key %}gsk_your_groq_api_key_here{% endif %}" style="width: 100%; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-family: monospace; outline: none; box-sizing: border-box;" />
+      <div style="font-size: 11.5px; color: #64748b; margin-top: 6px; line-height: 1.4;">
+        Key is validated live with Groq Cloud and enables sub-second LLaMA 3.3-70B function-calling across all 6,252 tour packages and fleet tools.
+      </div>
+
+      <div id="settingsAlert" style="display: none; margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+        <button onclick="closeSettingsModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 9px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
+        <button onclick="saveGroqKey()" id="btnSaveKey" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #ffffff; padding: 9px 20px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);">
+          Verify &amp; Activate Key
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

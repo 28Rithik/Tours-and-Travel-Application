@@ -4,7 +4,7 @@ Written from scratch to rigorously validate:
   1. Admin authentication & session security
   2. Multi-Modal Board View: Scarcity Beacons, Margins, AI Win Prob, J/K Navigation, Command Palette
   3. Slide-Out Omnichannel WhatsApp Drawer: Two-way chat history & in-drawer response dispatch
-  4. TARA AI Smart Pitch Generator: Context-aware sales copy generation
+  4. Rathasārathi AI Smart Pitch Generator: Context-aware sales copy generation
   5. Swimlane View by Specialist & Travel Vertical
   6. Departure Gantt Timeline
   7. South India Geographic Circuit Radar Map (Leaflet)
@@ -244,29 +244,29 @@ def run_suite():
             failed_tests.append(f"Omnichannel Slide-Out Chat Drawer ({e})")
 
         # ----------------------------------------------------------------------
-        # TEST 4: TARA AI Smart Pitch Modal
+        # TEST 4: Rathasārathi AI Smart Pitch Modal
         # ----------------------------------------------------------------------
-        log("Testing TARA AI Smart Pitch Modal...", "STEP")
+        log("Testing Rathasārathi AI Smart Pitch Modal...", "STEP")
         try:
             # Trigger via javascript for targeted test inquiry
-            page.evaluate(f"openTaraPitchModal({test_inquiry.id})")
-            page.wait_for_selector("#taraPitchModal", state="visible", timeout=4000)
-            pitch_text = page.input_value("#taraPitchText")
+            page.evaluate(f"openRathasarathiPitchModal({test_inquiry.id})")
+            page.wait_for_selector("#rathasarathiPitchModal", state="visible", timeout=4000)
+            pitch_text = page.input_value("#rathasarathiPitchText")
             assert "Vanakkam" in pitch_text or "Greetings" in pitch_text, "Pitch text missing polite greeting"
             assert f"/quote/{test_inquiry.proposal_token}/" in pitch_text, "Pitch text missing proposal URL"
             log(f"Generated AI sales pitch ({len(pitch_text)} chars) with dynamic vehicle and proposal token.", "PASS")
 
             # Screenshot
-            tara_shot = ARTIFACTS_DIR / "kanban_3_03_tara_pitch.png"
-            page.screenshot(path=str(tara_shot))
-            log(f"Saved TARA Pitch Modal screenshot to {tara_shot.name}", "PASS")
+            rathasarathi_shot = ARTIFACTS_DIR / "kanban_3_03_rathasarathi_pitch.png"
+            page.screenshot(path=str(rathasarathi_shot))
+            log(f"Saved Rathasārathi Pitch Modal screenshot to {rathasarathi_shot.name}", "PASS")
 
             page.keyboard.press("Escape")
-            page.wait_for_selector("#taraPitchModal", state="hidden", timeout=3000)
-            passed_tests.append("TARA AI Smart Pitch Modal")
+            page.wait_for_selector("#rathasarathiPitchModal", state="hidden", timeout=3000)
+            passed_tests.append("Rathasārathi AI Smart Pitch Modal")
         except Exception as e:
-            log(f"TARA AI Pitch test failed: {e}", "FAIL")
-            failed_tests.append(f"TARA AI Smart Pitch Modal ({e})")
+            log(f"Rathasārathi AI Pitch test failed: {e}", "FAIL")
+            failed_tests.append(f"Rathasārathi AI Smart Pitch Modal ({e})")
 
         # ----------------------------------------------------------------------
         # TEST 5: Swimlanes View (By Specialist)

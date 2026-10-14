@@ -111,7 +111,7 @@ graph TD
 #### Daily Workflow:
 1. **Pipeline Tracking in Kanban 3.0:** Opens the [Real-Time CRM Kanban Board](http://127.0.0.1:8000/crm/kanban/) to monitor incoming inquiries across *New Lead* → *Contacted* → *Quoted* → *Negotiation* → *Won*.
 2. **Bespoke Quotations:** Uses the [Quotation Studio](http://127.0.0.1:8000/crm/quotations/new/) to draft customized multi-day tour quotes with vehicle tariffs and hotel options.
-3. **WhatsApp Sales Pitch Dispatch:** Sends Tara AI-generated WhatsApp pitch messages with direct PDF brochure download links.
+3. **WhatsApp Sales Pitch Dispatch:** Sends Rathasārathi AI-generated WhatsApp pitch messages with direct PDF brochure download links.
 4. **Lead Conversion:** Converts won quotations into live bookings in 1 click, auto-generating passenger manifests and trigger emails.
 
 #### Primary URLs & Consoles:

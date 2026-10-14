@@ -32,14 +32,15 @@ TravelERP is a single-user Django website for cab and travel operations. It repl
 
 ## Project Layout & Documentation
 
-Detailed system documentation and architectural roadmaps are organized in the [`docs/`](docs/) directory:
-- [System Architecture & Capabilities](docs/PROJECT_DOCUMENTATION.md)
-- [Sivagayathiri Travel Platform Master Plan](docs/Sivagayathiri_Travel_Platform_Master_Plan.md)
+Detailed system documentation and architectural roadmaps are organized in the [`documentation/`](documentation/) directory:
+- [System Overview & Index](documentation/01_SYSTEM_OVERVIEW_AND_INDEX.md)
+- [Operational Studios & Consoles](documentation/02_OPERATIONAL_STUDIOS_AND_CONSOLES.md)
+- [User Roles & Operations Manual](documentation/USER_ROLES_AND_OPERATIONS_MANUAL.md)
 
 ```text
 travelerp/               Django core configuration, routing, and shared views
 core/                    Party, Driver, Vehicle registry, and RateCard pricing
-operations/              Trip dispatch, 7-milestone lifecycle, OSRM routing, Tara AI copilot
+operations/              Trip dispatch, 7-milestone lifecycle, OSRM routing, Rathasārathi AI copilot
 finance/                 Expenses, corporate GST invoices, e-Way bills, petty cash, ledger
 finance_fleet/           Fleet CPK (Cost-Per-KM) optimization radar studio
 finance_payroll/         Driver & staff payroll processing
@@ -54,7 +55,7 @@ package_tours/           Group tour departures, college industrial visits (IVs),
 customer_portal/         Public landing page, self-service package booking, live radar
 driver_portal/           Driver PWA mobile hub, handover inspection, offline wallet, SOS
 gis_stack/               Dockerized PostGIS, TileServer-GL, and OSRM routing machine
-docs/                    Project architecture guides and platform master plans
+documentation/           Comprehensive 10-phase enterprise manuals and operational blueprints
 templates/               Responsive Django HTML UI templates
 static/                  Application styles, JavaScript, and PWA assets
 media/                   Uploaded trip documents, odometer photos, and vaults
@@ -138,20 +139,18 @@ python manage.py makemigrations --check
 python manage.py test -v 1
 ```
 
-The current suite covers billing, rate-card fallback, numbering, driver advances, ledger reconciliation, authentication redirects, UI route rendering, statement filters, PDF/Excel output, reports, and a complete mock operations flow.
+The platform runs on enterprise-grade PostgreSQL 15 + PostGIS with real tour packages (6,252 packages, 30,508 itineraries, 31,221 vehicle tariffs) across South India, North India, and International destinations.
 
-Seed 1,000 realistic bookings and trips, plus large related datasets across the application:
+Verify platform health and live endpoints:
 
 ```powershell
-python manage.py seed_mock_data
+python scripts/test_postgres_live.py
 ```
 
-The command is repeatable and keeps records with the `DEMO-` prefix. It creates Sivagayathiri Tours and Travels in Coimbatore, realistic customer names and locations, corporate/individual/travel-agency/hotel parties, partner travel suppliers, owned and outsourced vehicles, drivers, bookings, trips, expenses, fuel, advances, settlements, payments, supplier costs, adjustments, and statement history from 2024 through 2026.
-
-Remove only the seeded demo records later, while preserving the company and non-demo records:
+Run test suite with preserved test database:
 
 ```powershell
-python manage.py remove_mock_data
+python manage.py test tests.test_rathasarathi_ai_copilot --keepdb
 ```
 
 Collect static assets before deployment:

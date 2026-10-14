@@ -408,9 +408,9 @@ def run_brand_new_sentinel_audit():
         watchdog.record_pass("MODULE 10", "Screenshot Captured", shot_10.name)
 
         # ─────────────────────────────────────────────────────────────────────
-        # MODULE 11: Operations Command, Live Radar, GIS Control Center & TARA AI
+        # MODULE 11: Operations Command, Live Radar, GIS Control Center & Rathasārathi AI
         # ─────────────────────────────────────────────────────────────────────
-        print("\n🔹 MODULE 11: Operations Command, Live Radar, GIS Control Center & TARA AI")
+        print("\n[MODULE 11] Operations Command, Live Radar, GIS Control Center & Rathasārathi AI")
         page.goto(f"{BASE_URL}/fleet/live/", wait_until="networkidle")
         watchdog.record_pass("MODULE 11", "Fleet Live Mission Control HTTP 200", "/fleet/live/")
 
@@ -420,13 +420,13 @@ def run_brand_new_sentinel_audit():
         page.goto(f"{BASE_URL}/gis/control-center/", wait_until="networkidle")
         watchdog.record_pass("MODULE 11", "GIS Control Center HTTP 200", "/gis/control-center/")
 
-        page.goto(f"{BASE_URL}/admin/operations/tara-ai/", wait_until="networkidle")
-        watchdog.record_pass("MODULE 11", "TARA AI Copilot Studio HTTP 200", "/admin/operations/tara-ai/")
+        page.goto(f"{BASE_URL}/admin/operations/rathasarathi-ai/", wait_until="networkidle")
+        watchdog.record_pass("MODULE 11", "Rathasārathi AI Copilot Studio HTTP 200", "/admin/operations/rathasarathi-ai/")
 
         page.goto(f"{BASE_URL}/admin/operations/database-health/", wait_until="networkidle")
         watchdog.record_pass("MODULE 11", "Database Health Dashboard HTTP 200", "/admin/operations/database-health/")
 
-        shot_11 = SCREENSHOTS_DIR / "11_operations_command_gis_and_tara_ai.png"
+        shot_11 = SCREENSHOTS_DIR / "11_operations_command_gis_and_rathasarathi_ai.png"
         page.screenshot(path=str(shot_11), full_page=False)
         watchdog.record_pass("MODULE 11", "Screenshot Captured", shot_11.name)
 
