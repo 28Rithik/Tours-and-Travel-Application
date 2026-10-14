@@ -14,12 +14,12 @@
     <!-- Top Command Strip -->
     <header class="mc-header">
         <div class="mc-title-group">
-            <div class="mc-badge-live">
-                <span class="mc-pulse-dot"></span>
-                <span>LIVE TELEMETRY</span>
+            <div class="mc-badge-live" id="mcConnBadge">
+                <span class="mc-pulse-dot" id="mcPulseDot"></span>
+                <span id="mcConnStatus">CONNECTING WS...</span>
             </div>
             <h1 class="mc-main-title">🛰️ Fleet Operations Command</h1>
-            <span class="mc-last-sync" id="mcLastSyncText">Syncing...</span>
+            <span class="mc-last-sync" id="mcLastSyncText">Connecting telemetry stream...</span>
         </div>
 
         <!-- Quick KPI Counters -->
@@ -108,6 +108,27 @@
         <div class="mc-map-toggles">
             <button id="btnFitBounds" class="mc-toggle-btn" title="Fit all fleet on map">⛶ Fit All</button>
             <button id="btnToggleDepot" class="mc-toggle-btn" title="Focus HQ Depot">📍 Depot Yard</button>
+        </div>
+
+        <!-- Enterprise Multi-Hub Depot Clearance Selector -->
+        <div class="mc-depot-scope-wrap" style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+            <span style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">
+                Hub:
+            </span>
+            {% if can_change_depot %}
+            <select id="mcDepotSelect" onchange="switchFleetDepot(this.value)" style="background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; color: #38bdf8; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+                <option value="all" {% if not current_depot %}selected{% endif %}>🌐 All Hubs (Global Fleet)</option>
+                <option value="Chennai Central HQ" {% if current_depot == 'Chennai Central HQ' %}selected{% endif %}>🏢 Chennai Central HQ</option>
+                <option value="Coimbatore Hub" {% if current_depot == 'Coimbatore Hub' %}selected{% endif %}>🏭 Coimbatore Hub</option>
+                <option value="Madurai Depo" {% if current_depot == 'Madurai Depo' %}selected{% endif %}>🏛️ Madurai Depo</option>
+                <option value="Bengaluru Station" {% if current_depot == 'Bengaluru Station' %}selected{% endif %}>🚀 Bengaluru Station</option>
+                <option value="Central Control Room" {% if current_depot == 'Central Control Room' %}selected{% endif %}>🛡️ Central Control Room</option>
+            </select>
+            {% else %}
+            <span style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                🔒 {{ depot_scope.display_label }}
+            </span>
+            {% endif %}
         </div>
     </div>
 
@@ -273,6 +294,20 @@
                         </div>
                     </div>
 
+                    <!-- Inter-Depot Asset Relocation Action -->
+                    <div class="mc-section-card" id="detailRelocateCard">
+                        <div class="card-section-title">
+                            <span>🔄 Depot Station</span>
+                            <span class="badge-depot-current" id="detailBaseDepotBadge" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">Coimbatore Hub</span>
+                        </div>
+                        <div style="font-size: 11px; color: #94a3b8; margin: 4px 0 10px; line-height: 1.4;">
+                            Reallocate vehicle custody to another operational hub for seasonal peaks, wedding convoys, or overhaul.
+                        </div>
+                        <button id="btnOpenRelocateModal" class="mc-btn mc-btn-sm" style="width: 100%; background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; font-weight: 700; border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            ⇄ Relocate to Another Depot
+                        </button>
+                    </div>
+
                     <!-- Emergency Alert Box (If present) -->
                     <div class="mc-incident-alert-box" id="detailIncidentBox" style="display: none;">
                         <div class="incident-alert-head">
@@ -353,6 +388,77 @@
             <div class="mc-modal-footer">
                 <button type="button" id="btnCancelModal" class="mc-btn mc-btn-secondary">Cancel</button>
                 <button type="submit" class="mc-btn mc-btn-danger">Confirm Standby Dispatch</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Inter-Depot Asset Relocation Modal -->
+<div id="interDepotTransferModal" class="mc-modal-backdrop" style="display: none;">
+    <div class="mc-modal-card">
+        <div class="mc-modal-header">
+            <h3>🔄 Inter-Depot Asset Relocation</h3>
+            <button id="btnCloseRelocateModal" class="mc-modal-close">&times;</button>
+        </div>
+        <form id="interDepotTransferForm">
+            {% csrf_token %}
+            <input type="hidden" id="relocateVehicleId" name="vehicle_id" value="" />
+            <div class="mc-modal-body">
+                <p class="modal-sub">Transfer vehicle custody and base station across operational hubs with full audit tracking.</p>
+
+                <div class="form-group">
+                    <label>Selected Vehicle</label>
+                    <div id="relocateVehicleInfo" style="padding: 10px 14px; background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 8px; font-weight: 700; color: #f8fafc; font-size: 13px;">
+                        TN-38-BZ-1234 (Coimbatore Hub)
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Target Destination Depot</label>
+                        <select id="relocateDestDepot" name="destination_depot" required class="mc-select">
+                            <option value="Chennai Central HQ">🏢 Chennai Central HQ</option>
+                            <option value="Coimbatore Hub">🏭 Coimbatore Hub</option>
+                            <option value="Madurai Depo">🏛️ Madurai Depo</option>
+                            <option value="Bengaluru Station">🚀 Bengaluru Station</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label>Transfer Reason</label>
+                        <select id="relocateReason" name="reason" required class="mc-select">
+                            <option value="fleet_rebalance">Routine Network Rebalancing</option>
+                            <option value="seasonal_peak">Seasonal Peak (Ooty / Kodaikanal)</option>
+                            <option value="wedding_contract">Wedding / Conclave Convoy</option>
+                            <option value="maintenance_overhaul">Major Workshop Overhaul</option>
+                            <option value="breakdown_replacement">Emergency Breakdown Swap</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Odometer at Dispatch (km)</label>
+                        <input type="number" id="relocateOdometer" name="odometer_at_dispatch" class="mc-input" placeholder="Current km" />
+                    </div>
+                    <div class="form-group half">
+                        <label>Dispatch Authorization</label>
+                        <select id="relocateDispatchNow" name="dispatch_immediately" class="mc-select">
+                            <option value="true">Authorize & Dispatch En-Route Immediately</option>
+                            <option value="false">Save as Pending Dispatch Request</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Transfer Notes / Special Instructions</label>
+                    <textarea id="relocateNotes" name="notes" class="mc-textarea" rows="2" placeholder="Driver escort details, permit notes, return expectations..."></textarea>
+                </div>
+            </div>
+            <div class="mc-modal-footer">
+                <button type="button" id="btnCancelRelocateModal" class="mc-btn mc-btn-secondary">Cancel</button>
+                <button type="submit" id="btnSubmitRelocate" class="mc-btn mc-btn-primary" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none;">
+                    🚀 Confirm Relocation Order
+                </button>
             </div>
         </form>
     </div>
@@ -1437,7 +1543,283 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         L.control.layers(baseMaps, null, { position: 'topright', collapsed: true }).addTo(map);
     }
 
-    // --- Fetch Live Telematics Feed ---
+    // =========================================================================
+    // ⚡ ZERO-POLLING WEBSOCKET LIVE RADAR & SOS COMMAND ENGINE
+    // =========================================================================
+    let radarSocket = null;
+    let isWsConnected = false;
+    let wsReconnectTimeout = null;
+
+    function updateConnectionBadge(connected, modeText) {
+        const badge = document.getElementById('mcConnBadge');
+        const dot = document.getElementById('mcPulseDot');
+        const status = document.getElementById('mcConnStatus');
+        if (!badge || !dot || !status) return;
+
+        if (connected) {
+            badge.style.background = 'rgba(16, 185, 129, 0.18)';
+            badge.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+            badge.style.color = '#34d399';
+            dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 12px #10b981';
+            status.innerText = modeText || '⚡ WEBSOCKET (0ms)';
+        } else {
+            badge.style.background = 'rgba(245, 158, 11, 0.18)';
+            badge.style.borderColor = 'rgba(245, 158, 11, 0.6)';
+            badge.style.color = '#fbbf24';
+            dot.style.background = '#f59e0b';
+            dot.style.boxShadow = '0 0 10px #f59e0b';
+            status.innerText = modeText || '🛰️ HTTP FALLBACK';
+        }
+    }
+
+    function applyFleetSnapshot(data) {
+        if (!data) return;
+        fleetData = data.vehicles || [];
+        updateSummaryCounters(data.summary || {});
+        renderVehicleMarkers(fleetData);
+        renderGeofences(data.geofences || []);
+        renderRosterList(fleetData);
+        renderSafetyEvents(data.recent_violations || [], data.active_incidents || []);
+        checkSosAlerts(data.active_incidents || []);
+
+        const syncText = document.getElementById('mcLastSyncText');
+        if (syncText) {
+            const now = new Date();
+            syncText.innerText = isWsConnected ? `⚡ Synced (0ms WS) ${now.toLocaleTimeString()}` : `Synced ${now.toLocaleTimeString()}`;
+        }
+
+        // If a vehicle was selected, refresh its details
+        if (selectedVehicleId) {
+            const v = fleetData.find(x => x.id === selectedVehicleId);
+            if (v) selectVehicle(v, false);
+        }
+    }
+
+    function handleLiveTelemetryPing(telemetry) {
+        if (!telemetry || !telemetry.id) return;
+
+        let existing = fleetData.find(x => x.id === telemetry.id);
+        if (existing) {
+            Object.assign(existing, telemetry);
+        } else {
+            fleetData.push(telemetry);
+            existing = telemetry;
+        }
+
+        // Live smooth update on Leaflet marker
+        if (vehicleMarkers[telemetry.id]) {
+            const marker = vehicleMarkers[telemetry.id];
+            marker.setLatLng([telemetry.lat, telemetry.lng]);
+        } else {
+            renderVehicleMarkers(fleetData);
+        }
+
+        // If this vehicle is currently selected, update its speedometer & gauges immediately
+        if (selectedVehicleId === telemetry.id) {
+            updateSpeedometerAndGauges(existing);
+        }
+
+        // Recalculate top counter totals
+        recalculateCounters();
+
+        const syncText = document.getElementById('mcLastSyncText');
+        if (syncText) {
+            syncText.innerText = `⚡ Live Ping ${telemetry.registration_number || ''} (${new Date().toLocaleTimeString()})`;
+        }
+    }
+
+    function updateSpeedometerAndGauges(v) {
+        const speed = Math.round(v.speed_kmh || 0);
+        const speedLarge = document.getElementById('detailSpeedLarge');
+        if (speedLarge) speedLarge.innerText = speed;
+
+        const needle = document.getElementById('detailSpeedNeedle');
+        if (needle) {
+            const deg = Math.min(90, Math.max(-90, -90 + (speed / 140) * 180));
+            needle.style.transform = `rotate(${deg}deg)`;
+        }
+
+        const overspeedPill = document.getElementById('detailOverspeedPill');
+        if (overspeedPill) {
+            overspeedPill.style.display = speed > 80 ? 'block' : 'none';
+        }
+
+        const ignTag = document.getElementById('detailIgnitionTag');
+        if (ignTag) {
+            ignTag.innerText = v.ignition_on ? 'ENGINE ON' : 'ENGINE OFF';
+            ignTag.style.background = v.ignition_on ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)';
+            ignTag.style.color = v.ignition_on ? '#34d399' : '#94a3b8';
+            ignTag.style.borderColor = v.ignition_on ? '#10b981' : '#64748b';
+        }
+
+        const fuelEl = document.getElementById('detailFuel');
+        if (fuelEl) fuelEl.innerHTML = `${v.fuel_level_pct || 75} <small>%</small>`;
+        const fuelBar = document.getElementById('detailFuelBar');
+        if (fuelBar) fuelBar.style.width = `${v.fuel_level_pct || 75}%`;
+
+        const odoEl = document.getElementById('detailOdometer');
+        if (odoEl) odoEl.innerHTML = `${(v.current_km || 0).toLocaleString()} <small>km</small>`;
+
+        const locEl = document.getElementById('detailLocationName');
+        if (locEl && v.location_name) locEl.innerText = v.location_name;
+
+        const pingEl = document.getElementById('detailPingTime');
+        if (pingEl) pingEl.innerText = `Updated: ${v.last_ping_time || 'Just now'}`;
+    }
+
+    function recalculateCounters() {
+        let active = 0, standby = 0, workshop = 0, idle = 0, sos = 0;
+        fleetData.forEach(v => {
+            if (v.status_code === 'sos_alert') sos++;
+            else if (v.status_code === 'workshop') workshop++;
+            else if (v.status_code === 'on_trip') active++;
+            else if (v.status_code === 'idle') idle++;
+            else standby++;
+        });
+        updateSummaryCounters({
+            total_vehicles: fleetData.length,
+            active_count: active,
+            standby_count: standby,
+            workshop_count: workshop,
+            idle_count: idle,
+            sos_count: sos,
+        });
+    }
+
+    function playSosAudioAlert() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {}
+    }
+
+    function handleLiveSosAlert(incident) {
+        if (!incident) return;
+        playSosAudioAlert();
+
+        const banner = document.getElementById('mcSosBanner');
+        if (banner) {
+            activeAlertIncidentId = incident.incident_id || incident.id;
+            const titleEl = document.getElementById('sosBannerTitle');
+            const descEl = document.getElementById('sosBannerDesc');
+            if (titleEl) {
+                titleEl.innerText = `🚨 CRITICAL SOS: ${incident.incident_id || 'ALARM'} (${incident.vehicle_reg || 'FLEET'})`;
+            }
+            if (descEl) {
+                descEl.innerText = `${incident.incident_type || 'Emergency'} at ${incident.location || 'Live Location'}. ${incident.description || ''}`;
+            }
+            banner.style.display = 'flex';
+        }
+
+        const kpiSos = document.getElementById('kpiSosCount');
+        if (kpiSos) {
+            kpiSos.innerText = (parseInt(kpiSos.innerText) || 0) + 1;
+        }
+
+        if (incident.vehicle_id) {
+            const v = fleetData.find(x => x.id === incident.vehicle_id);
+            if (v) {
+                v.status_code = 'sos_alert';
+                v.status_label = `🔴 SOS: ${incident.incident_type || 'Alert'}`;
+                v.status_color = '#ef4444';
+                renderVehicleMarkers(fleetData);
+            }
+        }
+    }
+
+    function handleLiveSosAck(ack) {
+        if (ack && ack.incident_id === activeAlertIncidentId) {
+            const descEl = document.getElementById('sosBannerDesc');
+            if (descEl) {
+                descEl.innerText = `✓ Acknowledged by ${ack.acknowledged_by || 'Operations'} at ${ack.timestamp || 'just now'}. Standby unit dispatched.`;
+            }
+        }
+    }
+
+    function connectFleetRadarWebSocket() {
+        if (radarSocket && (radarSocket.readyState === WebSocket.OPEN || radarSocket.readyState === WebSocket.CONNECTING)) {
+            return;
+        }
+
+        const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socketUrl = `${wsProto}//${window.location.host}/ws/fleet/live-radar/${window.location.search}`;
+
+        try {
+            radarSocket = new WebSocket(socketUrl);
+
+            radarSocket.onopen = () => {
+                isWsConnected = true;
+                updateConnectionBadge(true, '⚡ WEBSOCKET (0ms)');
+                console.log('[TravelERP Radar] WebSocket live telemetry connected.');
+
+                if (autoRefreshTimer) {
+                    clearInterval(autoRefreshTimer);
+                    autoRefreshTimer = null;
+                }
+            };
+
+            radarSocket.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'fleet_snapshot') {
+                        applyFleetSnapshot(msg.data);
+                    } else if (msg.type === 'telemetry_ping') {
+                        handleLiveTelemetryPing(msg.data);
+                    } else if (msg.type === 'sos_alert') {
+                        handleLiveSosAlert(msg.data);
+                    } else if (msg.type === 'sos_acknowledged') {
+                        handleLiveSosAck(msg.data);
+                    } else if (msg.type === 'tick_simulation_result') {
+                        const syncText = document.getElementById('mcLastSyncText');
+                        if (syncText) syncText.innerText = `⚡ Sim Step: ${msg.ticks_count} vehicles moved`;
+                    }
+                } catch (err) {
+                    console.error('[TravelERP Radar] Error parsing WebSocket message:', err);
+                }
+            };
+
+            radarSocket.onerror = (err) => {
+                console.warn('[TravelERP Radar] WebSocket issue, falling back to HTTP:', err);
+                isWsConnected = false;
+                updateConnectionBadge(false, '⚠️ HTTP FALLBACK');
+            };
+
+            radarSocket.onclose = () => {
+                isWsConnected = false;
+                updateConnectionBadge(false, '⚠️ HTTP FALLBACK (10s)');
+                console.log('[TravelERP Radar] WebSocket disconnected. Starting HTTP recovery and reconnect loop.');
+
+                if (!autoRefreshTimer && !isDevMapPaused) {
+                    autoRefreshTimer = setInterval(fetchLiveFeed, 10000);
+                }
+
+                clearTimeout(wsReconnectTimeout);
+                wsReconnectTimeout = setTimeout(() => {
+                    if (!isDevMapPaused) connectFleetRadarWebSocket();
+                }, 4000);
+            };
+        } catch (err) {
+            console.error('[TravelERP Radar] Failed to create WebSocket:', err);
+            isWsConnected = false;
+            updateConnectionBadge(false, '⚠️ HTTP FALLBACK');
+            if (!autoRefreshTimer && !isDevMapPaused) {
+                autoRefreshTimer = setInterval(fetchLiveFeed, 10000);
+            }
+        }
+    }
+
+    // --- Fetch Live Telematics Feed (HTTP Fallback / Initial) ---
     async function fetchLiveFeed() {
         if (isFetching) return;
         isFetching = true;
@@ -1445,31 +1827,14 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         if (icon) icon.classList.add('spin');
 
         try {
-            const resp = await fetch('/api/fleet/live-feed/', {
+            const depotParam = new URLSearchParams(window.location.search).get('depot');
+            const feedUrl = depotParam ? `/api/fleet/live-feed/?depot=${encodeURIComponent(depotParam)}` : '/api/fleet/live-feed/';
+            const resp = await fetch(feedUrl, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const data = await resp.json();
-
-            fleetData = data.vehicles || [];
-            updateSummaryCounters(data.summary || {});
-            renderVehicleMarkers(fleetData);
-            renderGeofences(data.geofences || []);
-            renderRosterList(fleetData);
-            renderSafetyEvents(data.recent_violations || [], data.active_incidents || []);
-            checkSosAlerts(data.active_incidents || []);
-
-            const syncText = document.getElementById('mcLastSyncText');
-            if (syncText) {
-                const now = new Date();
-                syncText.innerText = `Synced ${now.toLocaleTimeString()}`;
-            }
-
-            // If a vehicle was selected, refresh its details
-            if (selectedVehicleId) {
-                const v = fleetData.find(x => x.id === selectedVehicleId);
-                if (v) selectVehicle(v, false);
-            }
+            applyFleetSnapshot(data);
         } catch (err) {
             console.error('Error fetching live fleet feed:', err);
         } finally {
@@ -1477,6 +1842,16 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
             if (icon) icon.classList.remove('spin');
         }
     }
+
+    window.switchFleetDepot = function(depotVal) {
+        const url = new URL(window.location.href);
+        if (depotVal && depotVal !== 'all') {
+            url.searchParams.set('depot', depotVal);
+        } else {
+            url.searchParams.delete('depot');
+        }
+        window.location.href = url.toString();
+    };
 
     // --- Update Counters ---
     function updateSummaryCounters(summary) {
@@ -1799,6 +2174,11 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         document.getElementById('detailLocationName').innerText = v.location_name;
         document.getElementById('detailPingTime').innerText = `Updated: ${v.last_ping_time}`;
 
+        const depotBadge = document.getElementById('detailBaseDepotBadge');
+        if (depotBadge) {
+            depotBadge.innerText = v.base_depot || 'HQ Base';
+        }
+
         // Trip Info & Route Polyline
         const tripCard = document.getElementById('detailTripCard');
         if (v.trip) {
@@ -1852,6 +2232,191 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
 
         if (panToMap && map) {
             map.flyTo([v.lat, v.lng], 14, { duration: 1.2 });
+        }
+    }
+
+    // --- Phase 4 / Option D: Real-Time WebSocket Telemetry & SOS Handlers ---
+    function handleLiveTelemetryPing(data) {
+        if (!data || !data.id) return;
+
+        // 1. Update or create Leaflet marker
+        if (vehicleMarkers[data.id]) {
+            const marker = vehicleMarkers[data.id];
+            marker.setLatLng([data.lat, data.lng]);
+            const el = marker.getElement();
+            if (el) {
+                const innerPin = el.querySelector('.marker-pin-inner');
+                if (innerPin && data.heading_degrees !== undefined) {
+                    innerPin.style.transform = `rotate(${data.heading_degrees}deg)`;
+                    innerPin.style.transition = 'transform 0.4s ease';
+                }
+            }
+        }
+
+        // 2. If this is the currently inspected vehicle in the telemetry sidebar, update live gauges
+        if (selectedVehicleId === data.id) {
+            const spd = Math.round(data.speed_kmh || 0);
+            const needleAngle = -90 + (Math.min(spd, 140) / 140) * 180;
+            const needle = document.getElementById('detailSpeedNeedle');
+            if (needle) needle.style.transform = `rotate(${needleAngle}deg)`;
+            const spdLarge = document.getElementById('detailSpeedLarge');
+            if (spdLarge) spdLarge.innerText = spd;
+
+            if (data.fuel_level_pct !== undefined) {
+                const fuelEl = document.getElementById('detailFuel');
+                if (fuelEl) fuelEl.innerHTML = `${data.fuel_level_pct} <small>%</small>`;
+                const fuelBar = document.getElementById('detailFuelBar');
+                if (fuelBar) fuelBar.style.width = `${data.fuel_level_pct}%`;
+            }
+
+            if (data.odometer_km !== undefined) {
+                const odoEl = document.getElementById('detailOdometer');
+                if (odoEl) odoEl.innerHTML = `${Number(data.odometer_km).toLocaleString()} <small>km</small>`;
+            }
+
+            if (data.last_ping_time) {
+                const pingEl = document.getElementById('detailPingTime');
+                if (pingEl) pingEl.innerText = `Updated: ${data.last_ping_time}`;
+            }
+
+            const ignTag = document.getElementById('detailIgnitionTag');
+            if (ignTag && data.ignition_on !== undefined) {
+                ignTag.innerText = data.ignition_on ? 'ENGINE ON' : 'ENGINE OFF';
+                ignTag.style.background = data.ignition_on ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)';
+                ignTag.style.color = data.ignition_on ? '#34d399' : '#94a3b8';
+                ignTag.style.borderColor = data.ignition_on ? '#10b981' : '#64748b';
+            }
+        }
+
+        // 3. Update top command strip with subtle live telemetry ticker
+        const syncText = document.getElementById('mcLastSyncText');
+        if (syncText) {
+            syncText.innerHTML = `<span style="color:#10b981;">⚡ Live Ping:</span> <strong>${data.registration_number}</strong> (${data.speed_kmh || 0} km/h, ${data.last_ping_time || 'Just now'})`;
+        }
+    }
+
+    function playSosAudioAlarm() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const now = ctx.currentTime;
+            
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.setValueAtTime(659, now + 0.15);
+            osc.frequency.setValueAtTime(880, now + 0.3);
+            
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.45);
+        } catch (e) {
+            console.warn('[TravelERP Audio] Audio notification bypassed:', e);
+        }
+    }
+
+    function handleLiveSosAlert(data) {
+        if (!data) return;
+        playSosAudioAlarm();
+
+        const banner = document.getElementById('mcSosBanner');
+        if (banner) {
+            activeAlertIncidentId = data.incident_id || data.id;
+            const titleEl = document.getElementById('sosBannerTitle');
+            const descEl = document.getElementById('sosBannerDesc');
+            if (titleEl) {
+                titleEl.innerText = `🚨 CRITICAL SOS: ${data.incident_id || 'EMERGENCY'} (${data.vehicle_reg || 'Fleet Unit'})`;
+            }
+            if (descEl) {
+                descEl.innerText = `${data.incident_type || 'Incident'}: ${data.description || 'Assistance requested immediately.'} - Location: ${data.location || 'Reported via GPS'}`;
+            }
+            banner.style.display = 'flex';
+        }
+
+        const kpiSos = document.getElementById('kpiSosCount');
+        if (kpiSos) {
+            const current = parseInt(kpiSos.innerText) || 0;
+            kpiSos.innerText = current + 1;
+            const kpiWrapper = document.getElementById('kpiSosWrapper');
+            if (kpiWrapper) kpiWrapper.style.display = 'flex';
+        }
+
+        const container = document.getElementById('safetyEventsFeed');
+        if (container) {
+            const card = document.createElement('div');
+            card.className = 'safety-event-card is-sos';
+            card.innerHTML = `
+                <div class="event-top">
+                    <strong>🚨 ${data.incident_id || 'SOS'} (${data.vehicle_reg || 'Vehicle'})</strong>
+                    <span>${data.reported_at || 'Just Now'}</span>
+                </div>
+                <div class="event-body">
+                    <strong>${data.incident_type || 'Emergency'}:</strong> ${data.description || 'Critical incident reported.'}
+                </div>
+            `;
+            container.insertBefore(card, container.firstChild);
+        }
+
+        if (data.lat && data.lng && map) {
+            map.flyTo([data.lat, data.lng], 15, { duration: 1.5 });
+        }
+    }
+
+    function handleLiveSosAck(data) {
+        if (!data) return;
+        const banner = document.getElementById('mcSosBanner');
+        if (banner) {
+            banner.style.display = 'none';
+        }
+        activeAlertIncidentId = null;
+
+        const kpiSos = document.getElementById('kpiSosCount');
+        if (kpiSos) {
+            const current = parseInt(kpiSos.innerText) || 0;
+            kpiSos.innerText = Math.max(0, current - 1);
+        }
+
+        const syncText = document.getElementById('mcLastSyncText');
+        if (syncText) {
+            syncText.innerHTML = `<span style="color:#f59e0b;">✓ Incident #${data.incident_id} acknowledged by ${data.acknowledged_by || 'Operations Desk'}</span>`;
+        }
+    }
+
+    let simInterval = null;
+    function toggleGpsSimulation() {
+        const statusSpan = document.getElementById('simStatus');
+        const btn = document.getElementById('btnSimulateTick');
+        if (simInterval) {
+            clearInterval(simInterval);
+            simInterval = null;
+            if (statusSpan) statusSpan.innerText = 'OFF';
+            if (btn) btn.classList.remove('is-active');
+            console.log('[TravelERP Simulation] Background GPS tick stopped.');
+        } else {
+            if (radarSocket && radarSocket.readyState === WebSocket.OPEN) {
+                radarSocket.send(JSON.stringify({ action: 'simulate_tick' }));
+                simInterval = setInterval(() => {
+                    if (radarSocket && radarSocket.readyState === WebSocket.OPEN) {
+                        radarSocket.send(JSON.stringify({ action: 'simulate_tick' }));
+                    }
+                }, 3000);
+                if (statusSpan) statusSpan.innerText = 'ON (3s)';
+                if (btn) btn.classList.add('is-active');
+                console.log('[TravelERP Simulation] Background GPS tick active over WebSocket.');
+            } else {
+                fetch('/api/fleet/telematics/tick/')
+                    .then(r => r.json())
+                    .then(res => {
+                        fetchLiveFeed();
+                        alert(`📡 GPS Step Simulated: ${res.count || 0} vehicles moved.`);
+                    });
+            }
         }
     }
 
@@ -1962,10 +2527,8 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         const placeholder = document.getElementById('devMapPlaceholder');
         if (placeholder) placeholder.style.display = 'none';
         initMap();
+        connectFleetRadarWebSocket();
         fetchLiveFeed();
-        if (!autoRefreshTimer) {
-            autoRefreshTimer = setInterval(fetchLiveFeed, 12000);
-        }
         updateDevPauseUI();
     }
 
@@ -2020,6 +2583,12 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
             if (!isMapLoaded) activateMapNow();
             else fetchLiveFeed();
         });
+
+        // Simulate Live GPS Tick Button
+        const simTickBtn = document.getElementById('btnSimulateTick');
+        if (simTickBtn) {
+            simTickBtn.addEventListener('click', toggleGpsSimulation);
+        }
 
         // Filter Pills
         document.querySelectorAll('.filter-pill').forEach(pill => {
@@ -2080,6 +2649,10 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         }
         // Simulation Trigger
         async function triggerSimTick() {
+            if (radarSocket && radarSocket.readyState === WebSocket.OPEN) {
+                radarSocket.send(JSON.stringify({ action: 'simulate_tick' }));
+                return;
+            }
             try {
                 const resp = await fetch('/api/fleet/simulate-tick/', {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -2118,6 +2691,92 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         document.getElementById('btnCloseModal').addEventListener('click', closeModal);
         document.getElementById('btnCancelModal').addEventListener('click', closeModal);
         document.getElementById('standbyDispatchForm').addEventListener('submit', handleStandbySubmit);
+
+        // --- Inter-Depot Asset Relocation Handlers ---
+        function openRelocateModal() {
+            if (!selectedVehicleId) {
+                alert('Please select a vehicle from the fleet roster or map first.');
+                return;
+            }
+            const v = fleetData.find(x => x.id === selectedVehicleId);
+            if (!v) return;
+
+            document.getElementById('relocateVehicleId').value = v.id;
+            document.getElementById('relocateVehicleInfo').innerText = `${v.registration_number} - ${v.model_name} (Current Base: ${v.base_depot || 'Coimbatore Hub'})`;
+            document.getElementById('relocateOdometer').value = v.current_km || '';
+
+            // Filter out current depot from target select
+            const select = document.getElementById('relocateDestDepot');
+            if (select) {
+                for (let opt of select.options) {
+                    opt.disabled = (opt.value === v.base_depot);
+                }
+                for (let opt of select.options) {
+                    if (!opt.disabled) { opt.selected = true; break; }
+                }
+            }
+
+            document.getElementById('interDepotTransferModal').style.display = 'flex';
+        }
+
+        function closeRelocateModal() {
+            document.getElementById('interDepotTransferModal').style.display = 'none';
+        }
+
+        async function handleRelocateSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitRelocate');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Creating Relocation Order...';
+            }
+
+            const payload = {
+                vehicle_id: document.getElementById('relocateVehicleId').value,
+                destination_depot: document.getElementById('relocateDestDepot').value,
+                reason: document.getElementById('relocateReason').value,
+                odometer_at_dispatch: document.getElementById('relocateOdometer').value,
+                dispatch_immediately: document.getElementById('relocateDispatchNow').value === 'true',
+                notes: document.getElementById('relocateNotes').value,
+            };
+
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const resp = await fetch('/api/fleet/transfer/request/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await resp.json();
+                if (data.status === 'success') {
+                    alert(data.message);
+                    closeRelocateModal();
+                    fetchLiveFeed();
+                } else {
+                    alert(data.message || data.detail || 'Relocation request failed.');
+                }
+            } catch(err) {
+                alert('Error initiating transfer: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = '🚀 Confirm Relocation Order';
+                }
+            }
+        }
+
+        const btnRelocate = document.getElementById('btnOpenRelocateModal');
+        if (btnRelocate) btnRelocate.addEventListener('click', openRelocateModal);
+        const btnCloseRelocate = document.getElementById('btnCloseRelocateModal');
+        if (btnCloseRelocate) btnCloseRelocate.addEventListener('click', closeRelocateModal);
+        const btnCancelRelocate = document.getElementById('btnCancelRelocateModal');
+        if (btnCancelRelocate) btnCancelRelocate.addEventListener('click', closeRelocateModal);
+        const relocateForm = document.getElementById('interDepotTransferForm');
+        if (relocateForm) relocateForm.addEventListener('submit', handleRelocateSubmit);
     });
 })();
 </script>

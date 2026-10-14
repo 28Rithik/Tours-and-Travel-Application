@@ -474,6 +474,7 @@ class DriverAdmin(ModelAdmin):
 
 	list_display = (
 		'name',
+		'base_depot',
 		'driver_type_badge',
 		'phone_display',
 		'license_status_badge',
@@ -481,8 +482,8 @@ class DriverAdmin(ModelAdmin):
 		'skills_display',
 		'status_badge',
 	)
-	list_filter = ('driver_type', 'status', LicenseExpiryFilter, 'is_volvo_certified', 'hill_station_experience')
-	search_fields = ('name', 'phone', 'license_number', 'employer_party__name', 'aadhar_number', 'badge_number')
+	list_filter = ('base_depot', 'driver_type', 'status', LicenseExpiryFilter, 'is_volvo_certified', 'hill_station_experience')
+	search_fields = ('name', 'phone', 'license_number', 'employer_party__name', 'aadhar_number', 'badge_number', 'base_depot')
 	actions = ['mark_active', 'mark_inactive', 'mark_on_leave']
 
 	class Media:
@@ -493,7 +494,7 @@ class DriverAdmin(ModelAdmin):
 
 	fieldsets = (
 		('Basic Info', {
-			'fields': ('name', 'driver_type', 'employer_party', 'phone', 'address', 'joining_date', 'status')
+			'fields': ('name', 'base_depot', 'driver_type', 'employer_party', 'phone', 'address', 'joining_date', 'status')
 		}),
 		('Identity & Background', {
 			'fields': ('date_of_birth', 'father_or_spouse_name', 'aadhar_number', 'profile_picture')
@@ -514,7 +515,9 @@ class DriverAdmin(ModelAdmin):
 
 	def get_queryset(self, request):
 		qs = super().get_queryset(request)
+		from core.depot_scoping import get_scoped_drivers
 		from operations.models import Trip
+		qs = get_scoped_drivers(request.user, request.GET.get('base_depot'), base_qs=qs)
 		today = timezone.localdate()
 		active_trips_prefetch = Prefetch(
 			'trips',
@@ -801,6 +804,7 @@ class VehicleAdmin(ModelAdmin):
 	list_display = (
 		'registration_number_display',
 		'vehicle_type',
+		'base_depot',
 		'ownership_badge',
 		'assigned_driver_display',
 		'compliance_alerts_display',
@@ -809,8 +813,8 @@ class VehicleAdmin(ModelAdmin):
 		'status_toggle_display',
 		'live_map_link',
 	)
-	list_filter = ('ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
-	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name')
+	list_filter = ('base_depot', 'ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
+	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name', 'base_depot')
 
 	class Media:
 		css = {
@@ -822,7 +826,7 @@ class VehicleAdmin(ModelAdmin):
 
 	fieldsets = (
 		('Basic Info', {
-			'fields': ('registration_number', 'vehicle_type', 'ownership_type', 'owner_party', 'status', 'current_location')
+			'fields': ('registration_number', 'vehicle_type', 'base_depot', 'ownership_type', 'owner_party', 'status', 'current_location')
 		}),
 		('Vehicle Overview', {
 			'fields': ('brand', 'model', 'seating_capacity', 'has_ac', 'fuel_type'),
@@ -874,6 +878,8 @@ class VehicleAdmin(ModelAdmin):
 
 	def get_queryset(self, request):
 		qs = super().get_queryset(request)
+		from core.depot_scoping import get_scoped_vehicles
+		qs = get_scoped_vehicles(request.user, request.GET.get('base_depot'), base_qs=qs)
 		from operations.models import Trip
 		today = timezone.localdate()
 		active_trips_prefetch = Prefetch(
@@ -1171,3 +1177,42 @@ class StaffProfileAdmin(ModelAdmin):
 			obj.role_badge_color, obj.role_badge_color, obj.role_badge_color, obj.role_icon, obj.get_role_display()
 		)
 	role_badge.short_description = "Role & Clearance"
+
+
+from .models import InterDepotTransferLog
+
+@admin.register(InterDepotTransferLog)
+class InterDepotTransferLogAdmin(ModelAdmin):
+	list_display = ('transfer_id', 'vehicle', 'route_display', 'reason_badge', 'status_badge', 'requested_by', 'created_at')
+	list_filter = ('origin_depot', 'destination_depot', 'status', 'reason')
+	search_fields = ('transfer_id', 'vehicle__registration_number', 'requested_by__username', 'notes')
+
+	@admin.display(description='Route & Depots')
+	def route_display(self, obj):
+		return format_html(
+			'<span style="font-weight:700; color:#0284c7;">{}</span> '
+			'<i class="fa-solid fa-arrow-right" style="color:#94a3b8; font-size:11px; margin:0 4px;"></i> '
+			'<span style="font-weight:700; color:#10b981;">{}</span>',
+			obj.origin_depot, obj.destination_depot
+		)
+
+	@admin.display(description='Reason')
+	def reason_badge(self, obj):
+		return format_html(
+			'<span style="background:rgba(2,132,199,0.12); color:#0284c7; border:1px solid rgba(2,132,199,0.3); padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">{}</span>',
+			obj.get_reason_display()
+		)
+
+	@admin.display(description='Status')
+	def status_badge(self, obj):
+		colors = {
+			'requested': ('#fef3c7', '#b45309', '#fde68a'),
+			'in_transit': ('#e0f2fe', '#0369a1', '#bae6fd'),
+			'completed': ('#dcfce7', '#15803d', '#bbf7d0'),
+			'cancelled': ('#fee2e2', '#b91c1c', '#fecaca'),
+		}
+		bg, fg, border = colors.get(obj.status, ('#f1f5f9', '#475569', '#cbd5e1'))
+		return format_html(
+			'<span style="background:{}; color:{}; border:1px solid {}; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700;">{}</span>',
+			bg, fg, border, obj.get_status_display()
+		)

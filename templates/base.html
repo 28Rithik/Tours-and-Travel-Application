@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="{% static 'app.css' %}">
   <script>
     /* Immediate Anti-FOUC Theme Detection (Matches Django Unfold) */
@@ -438,18 +439,30 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-tara-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-tara-copilot-studio' %}" style="color: #0284c7; font-weight: 700;">☸️ Rathasārathi AI Copilot</a>
 
         <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
-        {% if is_fleet_manager or is_superuser %}
+        {% if is_fleet_manager or is_workshop or is_superuser %}
         <p class="nav-section-title"><span>🚛</span> Fleet &amp; Telematics</p>
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live Fleet Map</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-vehicles-roster' %}is-active{% endif %}" href="{% url 'fleet-vehicles-roster' %}">🚗 Vehicle Assets</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-drivers-roster' %}is-active{% endif %}" href="{% url 'fleet-drivers-roster' %}">👨‍✈️ Chauffeurs &amp; Drivers</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">🚗 2D Vehicle Damage Studio</a>
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">🛞 2D Axle &amp; Tire Health Studio</a>
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance &amp; Maint.</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">📊 Fleet Analytics &amp; CPK</a>
-        <a class="nav-link" href="{% url 'admin:core_vehicle_changelist' %}">🚗 Vehicle Assets</a>
-        <a class="nav-link" href="{% url 'admin:core_driver_changelist' %}">👨‍✈️ Chauffeurs &amp; Drivers</a>
         {% endif %}
 
-        <!-- 3. Sales, CRM & DMC Packages (Booking Managers & Superusers) -->
+        <!-- 3. Tour Packages & Holiday Architect (Tour Designers, Booking Managers & Superusers) -->
+        {% if is_booking_manager or is_tour_designer or is_superuser %}
+        <p class="nav-section-title"><span>🌴</span> Tour Packages &amp; Architect</p>
+        <a class="nav-link" href="/admin/packages/package/">🗺️ Tour Packages Catalog</a>
+        <a class="nav-link" href="/admin/packages/package/add/" style="color: #0284c7; font-weight: 700; background: rgba(2, 132, 199, 0.08); border-radius: 6px;">➕ Design &amp; Add Package</a>
+        <a class="nav-link" href="/admin/packages/packagetemplate/">📐 Package Templates Master</a>
+        <a class="nav-link" href="/admin/packages/collegeivexpedition/">🎓 College IV Expeditions</a>
+        <a class="nav-link" href="/admin/packages/packageseasonalrate/">📈 Seasonal Rates &amp; Surges</a>
+        <a class="nav-link" href="/admin/packages/packagehotelallotment/">🏨 Hotel Allotments &amp; Rooms</a>
+        <a class="nav-link" href="/admin/packages/packagevehicletariff/">🚗 Vehicle-Wise Tariffs</a>
+        {% endif %}
+
+        <!-- 4. Sales, CRM & DMC Pipelines (Booking Managers, Sales & Superusers) -->
         {% if is_booking_manager or is_superuser %}
         <p class="nav-section-title"><span>💼</span> Sales &amp; CRM</p>
         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">📊 DMC Executive Board</a>

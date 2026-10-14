@@ -1915,27 +1915,79 @@
         });
       }
 
-      // Background Lead Sync Polling (every 45s)
-      const initialCards = document.querySelectorAll('.kanban-card');
-      let lastKnownTotal = initialCards.length;
-      setInterval(async () => {
+      // Phase 4 / Option D: Real-Time Zero-Polling WebSocket Kanban Stream
+      let kanbanSocket = null;
+      function connectKanbanWebSocket() {
+        const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socketUrl = `${wsProto}//${window.location.host}/ws/crm/kanban/`;
+        
         try {
-          const res = await fetch('/crm/api/kanban-data/');
-          const data = await res.json();
-          if (data.status === 'success' && data.board) {
-            let currentTotal = 0;
-            Object.values(data.board).forEach(col => { currentTotal += col.count; });
+          kanbanSocket = new WebSocket(socketUrl);
+          
+          kanbanSocket.onopen = () => {
             const livePill = document.getElementById('liveSyncStatus');
-            if (currentTotal > lastKnownTotal && livePill) {
-              const diff = currentTotal - lastKnownTotal;
-              livePill.innerHTML = `<span class="live-dot" style="background:#f59e0b;"></span> ${diff} New Leads <a href="" style="color:#b45309; margin-left:4px; text-decoration:underline;">Refresh</a>`;
-              livePill.style.background = '#fef3c7';
-              livePill.style.color = '#b45309';
-              livePill.style.borderColor = '#fde68a';
+            if (livePill) {
+              livePill.innerHTML = `<span class="live-dot" style="background:#10b981;"></span> ⚡ Live Sync (0ms)`;
+              livePill.style.background = '#ecfdf5';
+              livePill.style.color = '#047857';
+              livePill.style.borderColor = '#a7f3d0';
             }
+          };
+
+          kanbanSocket.onmessage = (event) => {
+            try {
+              const msg = JSON.parse(event.data);
+              if (msg.type === 'kanban_card_moved' && msg.data) {
+                handleRemoteCardMove(msg.data);
+              }
+            } catch (err) {
+              console.error('Error handling Kanban WS message:', err);
+            }
+          };
+
+          kanbanSocket.onclose = () => {
+            const livePill = document.getElementById('liveSyncStatus');
+            if (livePill) {
+              livePill.innerHTML = `<span class="live-dot" style="background:#64748b;"></span> Reconnecting...`;
+              livePill.style.background = '#f1f5f9';
+              livePill.style.color = '#475569';
+              livePill.style.borderColor = '#cbd5e1';
+            }
+            setTimeout(connectKanbanWebSocket, 5000);
+          };
+        } catch (e) {
+          console.warn('Kanban WebSocket connection error:', e);
+        }
+      }
+
+      function handleRemoteCardMove(data) {
+        if (!data || !data.inquiry_id) return;
+        // Skip if this client is actively dragging this card
+        if (draggedInquiryId && draggedInquiryId == data.inquiry_id) return;
+
+        const card = document.getElementById(`card-${data.inquiry_id}`);
+        const targetCol = document.getElementById(`col-${data.new_status}`);
+        
+        if (card && targetCol) {
+          const zone = targetCol.querySelector('.cards-zone');
+          if (zone) {
+            card.style.transition = 'all 0.4s ease';
+            card.style.transform = 'scale(1.03)';
+            card.style.boxShadow = '0 0 0 2px #38bdf8';
+            zone.insertBefore(card, zone.firstChild);
+            
+            setTimeout(() => {
+              card.style.transform = '';
+              card.style.boxShadow = '';
+            }, 1200);
+
+            updateColumnMetrics();
+            showToast(`⚡ ${data.user_name || 'Team member'} moved "${data.customer_name}" to ${data.new_status_display}`, 'info');
           }
-        } catch (e) {}
-      }, 45000);
+        }
+      }
+
+      connectKanbanWebSocket();
     });
 
     // --- Full India Circuit Radar Map Initialization ---

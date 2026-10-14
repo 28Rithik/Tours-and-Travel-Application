@@ -46,6 +46,9 @@ from operations.views import (
     api_fleet_live_feed,
     admin_fleet_radar_view,
     api_fleet_telematics_tick,
+    api_request_depot_transfer,
+    api_receive_depot_transfer,
+    api_depot_transfer_history,
     passenger_live_tracking_view,
     api_passenger_live_tracking,
     broadcast_trip_whatsapp_view,
@@ -93,7 +96,7 @@ from operations.views import (
     api_run_scheduler_maintenance,
 )
 from statements.views import download_statement, generate_statement
-from maintenance.views import damage_marker_studio_view, tire_studio_view
+from maintenance.views import damage_marker_studio_view, tire_studio_view, workshop_mechanic_studio_view
 from finance.views import (
     api_payment_context,
     admin_gst_studio_view,
@@ -109,10 +112,21 @@ from finance.views import (
     api_bank_reconciliation_reconcile_entry,
     api_bank_reconciliation_batch,
     export_bank_reconciliation_report_view,
+    admin_driver_settlement_studio_view,
+    api_trip_settlement_context,
+    api_execute_driver_settlement,
+    driver_settlement_voucher_view,
+    api_driver_settlement_acknowledge,
 )
 from driver_portal.views import pwa_manifest, pwa_service_worker
 from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view
-from core.views import api_get_vehicle_types, api_vehicle_check_availability
+from core.views import (
+    api_get_vehicle_types,
+    api_vehicle_check_availability,
+    fleet_vehicles_roster_view,
+    fleet_drivers_roster_view,
+    api_toggle_vehicle_status_staff,
+)
 from payments_gateway.views import (
     admin_payment_studio_view,
     api_generate_dynamic_upi,
@@ -124,6 +138,7 @@ from crm.views import (
     crm_kanban_board_view,
     public_digital_proposal_view,
     api_proposal_upi_confirm,
+    public_proposal_brochure_pdf_view,
 )
 from customer_portal.views import public_landing_view
 from core.gis_views import full_india_tile_proxy_view, api_india_gis_status_view
@@ -201,6 +216,19 @@ urlpatterns = [
     path('api/finance/bank-reconciliation/batch/', api_bank_reconciliation_batch, name='api-finance-bank-reconciliation-batch'),
     # Phase 5: Driver Allowance (Bata) Auto-Calculation Engine
     path('api/trip/<int:trip_id>/bata/calculate/', api_trip_calculate_bata, name='api-trip-calculate-bata'),
+    # Phase 7: Automated Driver Settlement & 1-Click Payout Studio
+    path('admin/finance/driver-settlement/', admin_driver_settlement_studio_view, name='admin-driver-settlement-studio'),
+    path('admin/driver-settlement/', admin_driver_settlement_studio_view, name='admin-driver-settlement-alias'),
+    path('finance/driver-settlement-studio/', admin_driver_settlement_studio_view, name='finance-driver-settlement-studio'),
+    path('finance/settlement-studio/', admin_driver_settlement_studio_view, name='finance-settlement-studio-alias'),
+    path('finance/settlement/<int:settlement_id>/voucher/', driver_settlement_voucher_view, name='finance-driver-settlement-voucher-root'),
+    path('api/finance/settle/<int:trip_id>/context/', api_trip_settlement_context, name='api-finance-settle-context-root'),
+    path('api/finance/settle/<int:trip_id>/', api_execute_driver_settlement, name='api-finance-settle-execute-root'),
+    path('api/finance/settlement/<int:settlement_id>/acknowledge/', api_driver_settlement_acknowledge, name='api-finance-settle-acknowledge-root'),
+    # Phase 7: Dedicated Staff Fleet & Chauffeurs Management Portal (Within Staff base.html)
+    path('fleet/vehicles/', fleet_vehicles_roster_view, name='fleet-vehicles-roster'),
+    path('fleet/drivers/', fleet_drivers_roster_view, name='fleet-drivers-roster'),
+    path('api/fleet/vehicles/<int:vehicle_id>/toggle-status/', api_toggle_vehicle_status_staff, name='fleet-vehicle-toggle-status'),
     # Phase 6: Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub
     path('admin/crm/kanban/', crm_kanban_board_view, name='admin-crm-kanban'),
     path('admin/kanban/', crm_kanban_board_view, name='admin-crm-kanban-alias'),
@@ -208,6 +236,7 @@ urlpatterns = [
     path('kanban/', crm_kanban_board_view, name='kanban-root-alias'),
     # Interactive Customer Digital Proposal & Dynamic UPI Auto-Conversion
     path('quote/<str:token>/', public_digital_proposal_view, name='public-digital-proposal'),
+    path('quote/<str:token>/brochure.pdf', public_proposal_brochure_pdf_view, name='public-proposal-brochure-pdf'),
     path('quote/<str:token>/confirm/', api_proposal_upi_confirm, name='api-proposal-upi-confirm'),
     # Full India Native GIS Tile Engine & Edge Cache
     path('gis/tiles/<int:z>/<int:x>/<int:y>.png', full_india_tile_proxy_view, name='full-india-tile-proxy'),
@@ -216,6 +245,9 @@ urlpatterns = [
     path('admin/maintenance/tire-studio/', tire_studio_view, name='admin-tire-studio'),
     path('admin/tire-studio/', tire_studio_view, name='admin-tire-studio-alias'),
     path('maintenance/tire-studio/', tire_studio_view, name='maintenance-tire-studio-portal'),
+    # Workshop Mechanic Studio & QR Barcode Spare Parts Checkout
+    path('admin/maintenance/workshop/', workshop_mechanic_studio_view, name='admin-workshop-studio'),
+    path('admin/workshop-studio/', workshop_mechanic_studio_view, name='admin-workshop-studio-alias'),
     # Omnichannel Integrations Hub, Meta Webhook, Email SES/SMTP Studio, Agent Dashboard & Approvals
     path('admin/integrations/', include('integrations.urls')),
     path('api/integrations/meta/webhook/', integrations_views.api_meta_lead_webhook, name='api_meta_lead_webhook_root'),
@@ -291,6 +323,9 @@ urlpatterns = [
     path('operations/fleet-radar/', fleet_live_mission_control, name='operations-fleet-radar'),
     path('api/fleet/live-feed/', api_fleet_live_feed, name='api-fleet-live-feed'),
     path('api/fleet/simulate-tick/', api_fleet_telematics_tick, name='api-fleet-simulate-tick'),
+    path('api/fleet/transfer/request/', api_request_depot_transfer, name='api-fleet-transfer-request'),
+    path('api/fleet/transfer/<int:transfer_id>/receive/', api_receive_depot_transfer, name='api-fleet-transfer-receive'),
+    path('api/fleet/transfer/history/', api_depot_transfer_history, name='api-fleet-transfer-history'),
     path('track/<str:token>/', passenger_live_tracking_view, name='passenger-live-tracking'),
     path('api/track/<str:token>/live/', api_passenger_live_tracking, name='api-passenger-live-tracking'),
     path('api/routing/route/', api_osrm_route_view, name='api_osrm_route'),

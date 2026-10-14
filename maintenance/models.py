@@ -1,7 +1,10 @@
 from decimal import Decimal
+import random
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 from core.models import Vehicle
+from core.depot_scoping import DEPOT_CHOICES, DEPOT_CHENNAI
 
 class ComplianceDocument(models.Model):
 	DOCUMENT_TYPES = [
@@ -86,12 +89,58 @@ class ComplianceDocument(models.Model):
 		self.vehicle.save()
 
 
+def generate_job_card_number():
+	ts = timezone.now().strftime('%Y%m')
+	rn = random.randint(1000, 9999)
+	return f"JC-{ts}-{rn}"
+
+def generate_part_requisition_number():
+	ts = timezone.now().strftime('%Y%m%d')
+	rn = random.randint(100, 999)
+	return f"PRQ-{ts}-{rn}"
+
+PART_CATEGORIES = [
+	('engine_oil', 'Engine Oil & Lubricants'),
+	('filters', 'Filters (Oil/Air/Fuel/AC)'),
+	('brakes', 'Braking System (Pads/Liners/Discs)'),
+	('suspension', 'Suspension & Steering'),
+	('electrical', 'Electrical, Batteries & Lamps'),
+	('cooling', 'Cooling System & Radiator'),
+	('tyres_tubes', 'Tyres, Tubes & Valves'),
+	('body_hardware', 'Body, Glass & Hardware'),
+	('general', 'General Consumables & Fasteners'),
+]
+
+UNIT_OF_MEASURE_CHOICES = [
+	('pcs', 'Pieces / Nos'),
+	('liters', 'Liters (L)'),
+	('kg', 'Kilograms (Kg)'),
+	('sets', 'Sets / Pairs'),
+	('cans', 'Cans / Bottles'),
+]
+
+JOB_CARD_PRIORITIES = [
+	('low', 'Low / Routine Care'),
+	('normal', 'Normal Schedule'),
+	('high', 'High Priority'),
+	('urgent', 'Urgent / Breakdown SOS'),
+]
+
+
 class PartInventory(models.Model):
 	part_name = models.CharField(max_length=255, unique=True)
 	sku = models.CharField(max_length=100, blank=True)
+	barcode = models.CharField(max_length=100, blank=True, null=True, unique=True, help_text="Barcode / QR code data (EAN-13, Code-128, or custom QR)")
+	category = models.CharField(max_length=50, choices=PART_CATEGORIES, default='general')
+	bin_location = models.CharField(max_length=50, blank=True, default='', help_text="Depot Bin / Rack shelf (e.g., BAY-B / RACK-2 / BIN-14)")
+	unit_of_measure = models.CharField(max_length=20, choices=UNIT_OF_MEASURE_CHOICES, default='pcs')
 	current_stock = models.PositiveIntegerField(default=0)
 	minimum_stock_level = models.PositiveIntegerField(default=5)
+	reorder_quantity = models.PositiveIntegerField(default=10, help_text="Batch reorder quantity when threshold is hit")
 	default_unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	base_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES, default=DEPOT_CHENNAI, help_text="Workshop depot location")
+	is_critical_part = models.BooleanField(default=False, help_text="Safety-critical part that grounds vehicle if depleted")
+	last_restocked_at = models.DateTimeField(null=True, blank=True)
 
 	class Meta:
 		verbose_name = 'Part Inventory'
@@ -99,7 +148,29 @@ class PartInventory(models.Model):
 		ordering = ['part_name']
 
 	def __str__(self):
-		return f"{self.part_name} (Stock: {self.current_stock})"
+		return f"{self.part_name} (Stock: {self.current_stock} {self.get_unit_of_measure_display()})"
+
+	@property
+	def is_out_of_stock(self):
+		return self.current_stock <= 0
+
+	@property
+	def is_low_stock(self):
+		return 0 < self.current_stock <= self.minimum_stock_level
+
+	@property
+	def stock_status(self):
+		if self.current_stock <= 0:
+			return 'out_of_stock'
+		if self.current_stock <= self.minimum_stock_level:
+			return 'low_stock'
+		return 'in_stock'
+
+	def save(self, *args, **kwargs):
+		if not self.barcode:
+			clean_sku = (self.sku or self.part_name[:4]).upper().replace(' ', '')
+			self.barcode = f"PRT-{clean_sku}-{random.randint(1000, 9999)}"
+		super().save(*args, **kwargs)
 
 
 class ServiceRecord(models.Model):
@@ -112,55 +183,97 @@ class ServiceRecord(models.Model):
 		('other', 'Other Maintenance')
 	]
 	STATUS_CHOICES = [
+		('open', 'Open / Received'),
 		('pending', 'Pending Approval'),
-		('in_progress', 'In Progress (In Workshop)'),
-		('completed', 'Completed')
+		('in_progress', 'In Progress (In Workshop Bay)'),
+		('awaiting_parts', 'Awaiting Spare Parts'),
+		('quality_check', 'Quality Check & Road Test'),
+		('completed', 'Completed & Released'),
+		('cancelled', 'Cancelled'),
 	]
 	
+	job_card_number = models.CharField(max_length=50, unique=True, blank=True, null=True, help_text="Official Workshop Job Card ID")
 	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='service_records')
 	service_type = models.CharField(max_length=30, choices=SERVICE_TYPES, default='routine')
+	priority = models.CharField(max_length=20, choices=JOB_CARD_PRIORITIES, default='normal')
 	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress')
+	
+	assigned_mechanic = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_job_cards')
+	mechanic_name = models.CharField(max_length=150, blank=True, help_text="Technician or Lead Mechanic in charge")
+	bay_number = models.CharField(max_length=50, blank=True, default="Bay 1", help_text="Garage Bay or Ramp designation")
+	base_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES, default=DEPOT_CHENNAI)
 	
 	date = models.DateField()
 	odometer_reading = models.PositiveIntegerField(help_text="KM reading when given for service")
-	garage_name = models.CharField(max_length=255)
+	garage_name = models.CharField(max_length=255, default="In-House Workshop Hub")
 	
 	description = models.TextField(help_text="Details of complaints and work done")
-	total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	labor_charges = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	parts_total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 	invoice_attachment = models.FileField(upload_to='service_invoices/', null=True, blank=True)
+	
+	estimated_completion_at = models.DateTimeField(null=True, blank=True)
+	completed_at = models.DateTimeField(null=True, blank=True)
+	defect_ticket = models.ForeignKey('maintenance.DefectTicket', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards')
+	inspection_checklist = models.ForeignKey('maintenance.PreTripInspectionChecklist', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards')
 	
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
-		ordering = ['-date']
+		ordering = ['-date', '-created_at']
 		indexes = [
 			models.Index(fields=['vehicle', 'status', 'date'], name='idx_srv_veh_status_date'),
 			models.Index(fields=['vehicle', 'date'], name='idx_srv_veh_date'),
+			models.Index(fields=['job_card_number'], name='idx_srv_job_card_no'),
 		]
 
 	def __str__(self):
-		return f"{self.vehicle.registration_number} - {self.get_service_type_display()} on {self.date}"
+		return f"{self.job_card_number} - {self.vehicle.registration_number} ({self.get_service_type_display()})"
+
+	def recalculate_totals(self):
+		parts_sum = sum((p.quantity * (p.unit_price or Decimal('0.00'))) for p in self.spare_parts.all())
+		self.parts_total_cost = Decimal(str(parts_sum))
+		self.total_cost = Decimal(str(self.labor_charges or Decimal('0.00'))) + self.parts_total_cost
+		ServiceRecord.objects.filter(pk=self.pk).update(
+			parts_total_cost=self.parts_total_cost,
+			total_cost=self.total_cost
+		)
+		return self.total_cost
 
 	def save(self, *args, **kwargs):
+		if not self.job_card_number:
+			self.job_card_number = generate_job_card_number()
+
 		old_status = None
 		if self.pk:
 			old_record = ServiceRecord.objects.filter(pk=self.pk).first()
 			if old_record:
 				old_status = old_record.status
 
-		if self.status == 'in_progress':
-			self.vehicle.status = 'maintenance'
-		elif self.status == 'completed' and self.vehicle.status == 'maintenance':
-			self.vehicle.status = 'active'
-		self.vehicle.save(update_fields=['status'] if self.vehicle.pk else None)
+		if self.status in ['open', 'in_progress', 'awaiting_parts', 'quality_check']:
+			if self.vehicle and self.vehicle.status != 'maintenance':
+				self.vehicle.status = 'maintenance'
+				self.vehicle.save(update_fields=['status'])
+		elif self.status == 'completed':
+			if not self.completed_at:
+				self.completed_at = timezone.now()
+			if self.vehicle and self.vehicle.status == 'maintenance':
+				self.vehicle.status = 'available'
+				self.vehicle.save(update_fields=['status'])
+
 		super().save(*args, **kwargs)
 
-		# Inventory deduction
+		# Inventory deduction for any parts added directly without checkout log
 		if self.status == 'completed' and old_status != 'completed':
-			for part in self.spare_parts.all():
+			for part in self.spare_parts.filter(is_inventory_deducted=False):
 				if part.inventory_item:
 					part.inventory_item.current_stock = max(0, part.inventory_item.current_stock - part.quantity)
 					part.inventory_item.save(update_fields=['current_stock'])
+					part.is_inventory_deducted = True
+					part.save(update_fields=['is_inventory_deducted'])
+					if part.inventory_item.current_stock <= part.inventory_item.minimum_stock_level:
+						PartPurchaseRequisition.trigger_auto_requisition(part.inventory_item)
 
 
 class SparePart(models.Model):
@@ -169,6 +282,7 @@ class SparePart(models.Model):
 	part_name = models.CharField(max_length=255, blank=True, help_text="Or type name manually if not in inventory")
 	quantity = models.PositiveIntegerField(default=1)
 	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+	is_inventory_deducted = models.BooleanField(default=False, help_text="True if already deducted from PartInventory stock")
 	
 	@property
 	def total_price(self):
@@ -182,13 +296,118 @@ class SparePart(models.Model):
 		from django.core.exceptions import ValidationError
 		if not self.inventory_item and not self.part_name:
 			raise ValidationError("Please provide either an inventory item or a part name.")
-		if self.inventory_item and self.quantity > self.inventory_item.current_stock:
+		if self.inventory_item and not self.is_inventory_deducted and self.quantity > self.inventory_item.current_stock:
 			raise ValidationError({'quantity': f'Not enough stock. Only {self.inventory_item.current_stock} left.'})
 
 	def save(self, *args, **kwargs):
 		if self.inventory_item and not self.unit_price:
 			self.unit_price = self.inventory_item.default_unit_price
 		super().save(*args, **kwargs)
+		if self.service_record_id:
+			self.service_record.recalculate_totals()
+
+	def delete(self, *args, **kwargs):
+		sr = self.service_record
+		super().delete(*args, **kwargs)
+		if sr:
+			sr.recalculate_totals()
+
+
+CHECKOUT_MODES = [
+	('camera_qr', 'Live Camera QR / Barcode Scan'),
+	('scanner_usb', 'Hardware Barcode Handheld Gun'),
+	('manual_sku', 'Manual SKU Search / Quick Add'),
+]
+
+class SparePartUsageLog(models.Model):
+	service_record = models.ForeignKey(ServiceRecord, on_delete=models.CASCADE, related_name='part_usage_logs')
+	inventory_item = models.ForeignKey(PartInventory, on_delete=models.PROTECT, related_name='usage_logs')
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='part_usage_logs')
+	quantity = models.PositiveIntegerField(default=1)
+	unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+	total_cost = models.DecimalField(max_digits=10, decimal_places=2)
+	checkout_mode = models.CharField(max_length=20, choices=CHECKOUT_MODES, default='camera_qr')
+	checked_out_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+	mechanic_name = models.CharField(max_length=150, blank=True)
+	barcode_scanned = models.CharField(max_length=100, blank=True)
+	notes = models.CharField(max_length=255, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Spare Part Usage Log'
+		verbose_name_plural = 'Spare Part Usage Logs'
+		indexes = [
+			models.Index(fields=['service_record', 'created_at'], name='idx_usage_sr_created'),
+			models.Index(fields=['vehicle', 'created_at'], name='idx_usage_veh_created'),
+		]
+
+	def __str__(self):
+		return f"{self.quantity}x {self.inventory_item.part_name} on {self.service_record.job_card_number} (₹{self.total_cost})"
+
+
+REQUISITION_STATUSES = [
+	('draft', 'Draft Requisition'),
+	('auto_triggered', 'Auto-Triggered (Low Stock Alert)'),
+	('approved', 'Approved by Fleet GM'),
+	('po_placed', 'Purchase Order Placed with Supplier'),
+	('received', 'Goods Received & Stock Restocked'),
+	('rejected', 'Rejected / Cancelled'),
+]
+
+class PartPurchaseRequisition(models.Model):
+	requisition_number = models.CharField(max_length=50, unique=True, blank=True, null=True, help_text="Auto or manual requisition number")
+	inventory_item = models.ForeignKey(PartInventory, on_delete=models.CASCADE, related_name='requisitions')
+	suggested_quantity = models.PositiveIntegerField(default=10)
+	current_stock_at_time = models.PositiveIntegerField(default=0)
+	estimated_unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	total_estimated_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	status = models.CharField(max_length=30, choices=REQUISITION_STATUSES, default='auto_triggered')
+	urgency = models.CharField(max_length=20, choices=[('normal', 'Normal Reorder'), ('urgent', 'Critical / Grounded Vehicle')], default='normal')
+	base_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES, default=DEPOT_CHENNAI)
+	supplier_name = models.CharField(max_length=255, blank=True)
+	created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+	approved_at = models.DateTimeField(null=True, blank=True)
+	restocked_at = models.DateTimeField(null=True, blank=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Part Purchase Requisition'
+		verbose_name_plural = 'Part Purchase Requisitions'
+
+	def __str__(self):
+		return f"{self.requisition_number} - {self.inventory_item.part_name} ({self.suggested_quantity} {self.inventory_item.get_unit_of_measure_display()})"
+
+	def save(self, *args, **kwargs):
+		if not self.requisition_number:
+			self.requisition_number = generate_part_requisition_number()
+		super().save(*args, **kwargs)
+
+	@classmethod
+	def trigger_auto_requisition(cls, part_item):
+		existing = cls.objects.filter(
+			inventory_item=part_item,
+			status__in=['draft', 'auto_triggered', 'approved', 'po_placed']
+		).first()
+		if existing:
+			return existing
+		req_no = generate_part_requisition_number()
+		qty = part_item.reorder_quantity or 10
+		unit_price = part_item.default_unit_price or Decimal('0.00')
+		return cls.objects.create(
+			requisition_number=req_no,
+			inventory_item=part_item,
+			suggested_quantity=qty,
+			current_stock_at_time=part_item.current_stock,
+			estimated_unit_cost=unit_price,
+			total_estimated_cost=Decimal(str(qty)) * unit_price,
+			status='auto_triggered',
+			urgency='urgent' if (part_item.is_critical_part or part_item.current_stock == 0) else 'normal',
+			base_depot=part_item.base_depot,
+			notes=f"Auto-generated alert: Stock fell to {part_item.current_stock} {part_item.get_unit_of_measure_display()} (Min: {part_item.minimum_stock_level})"
+		)
 
 
 class VehicleAsset(models.Model):

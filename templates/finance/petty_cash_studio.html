@@ -681,6 +681,23 @@
         <span>Petty Cash Float Register</span>
         <span class="studio-badge">Phase 5 Live</span>
       </div>
+
+      <!-- Enterprise Regional Hub Clearance Selector -->
+      <div class="depot-scope-wrap" style="display: inline-flex; align-items: center; gap: 8px; margin-left: 14px;">
+        {% if can_change_depot %}
+        <select id="pettyCashDepotSelect" onchange="switchPettyCashDepot(this.value)" style="background: rgba(255, 255, 255, 0.9); border: 1px solid #cbd5e1; color: #0284c7; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+          <option value="" {% if not current_depot %}selected{% endif %}>🌐 Consolidated (All Hubs)</option>
+          <option value="Chennai Central HQ" {% if current_depot == 'Chennai Central HQ' %}selected{% endif %}>🏢 Chennai Central HQ</option>
+          <option value="Coimbatore Hub" {% if current_depot == 'Coimbatore Hub' %}selected{% endif %}>🏭 Coimbatore Hub</option>
+          <option value="Madurai Depo" {% if current_depot == 'Madurai Depo' %}selected{% endif %}>🏛️ Madurai Depo</option>
+          <option value="Bengaluru Station" {% if current_depot == 'Bengaluru Station' %}selected{% endif %}>🚀 Bengaluru Station</option>
+        </select>
+        {% else %}
+        <span style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); color: #0284c7; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+          <i class="fa-solid fa-lock"></i> {{ depot_scope.display_label|default:current_depot }}
+        </span>
+        {% endif %}
+      </div>
     </div>
 
     <div class="action-group">
@@ -1102,6 +1119,17 @@
       } catch (err) {
         showToast(err.message, 'error');
       }
+    }
+
+    // Enterprise Depot Scoping Selector
+    function switchPettyCashDepot(val) {
+      const url = new URL(window.location.href);
+      if (val) {
+        url.searchParams.set('depot', val);
+      } else {
+        url.searchParams.delete('depot');
+      }
+      window.location.href = url.toString();
     }
 
     // Theme Toggle Controller

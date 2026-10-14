@@ -429,6 +429,16 @@ class Quotation(models.Model):
     total_quoted_price = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'), help_text="Final Client Payable")
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='draft')
+    proposal_token = models.CharField(max_length=64, blank=True, default='', db_index=True)
+    tier_standard_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Budget/Standard tier total price")
+    tier_deluxe_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Deluxe tier total price (Default is quoted price)")
+    tier_luxury_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Royal Luxury tier total price")
+    brochure_cover_theme = models.CharField(max_length=50, default='royal_emerald', choices=[
+        ('royal_emerald', 'Royal Emerald & Gold'),
+        ('deep_sapphire', 'Deep Sapphire Navy'),
+        ('sunset_terracotta', 'Sunset Terracotta'),
+        ('monochrome_slate', 'Executive Monochrome Slate'),
+    ])
     inclusions = models.TextField(
         default="• Accommodation on twin sharing basis as per selected meal plan\n"
                 "• All transfers, excursions, and inter-city drives by dedicated AC vehicle\n"
@@ -478,6 +488,49 @@ class Quotation(models.Model):
         if self.pax_count and self.pax_count > 0:
             return round(self.total_quoted_price / Decimal(str(self.pax_count)), 2)
         return self.total_quoted_price
+
+    @property
+    def standard_tier_total(self):
+        if self.tier_standard_price and self.tier_standard_price > 0:
+            return self.tier_standard_price
+        base = self.total_quoted_price or Decimal('25000.00')
+        return round(base * Decimal('0.85'), 2)
+
+    @property
+    def deluxe_tier_total(self):
+        if self.tier_deluxe_price and self.tier_deluxe_price > 0:
+            return self.tier_deluxe_price
+        return self.total_quoted_price or Decimal('25000.00')
+
+    @property
+    def luxury_tier_total(self):
+        if self.tier_luxury_price and self.tier_luxury_price > 0:
+            return self.tier_luxury_price
+        base = self.total_quoted_price or Decimal('25000.00')
+        return round(base * Decimal('1.38'), 2)
+
+    @property
+    def standard_per_pax(self):
+        pax = max(1, self.pax_count or 1)
+        return round(self.standard_tier_total / Decimal(str(pax)), 2)
+
+    @property
+    def deluxe_per_pax(self):
+        pax = max(1, self.pax_count or 1)
+        return round(self.deluxe_tier_total / Decimal(str(pax)), 2)
+
+    @property
+    def luxury_per_pax(self):
+        pax = max(1, self.pax_count or 1)
+        return round(self.luxury_tier_total / Decimal(str(pax)), 2)
+
+    @property
+    def token(self):
+        if not self.proposal_token:
+            if self.inquiry and self.inquiry.proposal_token:
+                return self.inquiry.proposal_token
+            return f"q-{self.id}"
+        return self.proposal_token
 
     def recalculate_totals(self):
         """
@@ -643,6 +696,8 @@ class Quotation(models.Model):
             last_quote = Quotation.objects.order_by('-id').first()
             next_idx = (last_quote.id + 1) if last_quote else 1
             self.quotation_number = f"QTN-{year}-{next_idx:04d}"
+        if not self.proposal_token:
+            self.proposal_token = secrets.token_urlsafe(16)
         super().save(*args, **kwargs)
 
 

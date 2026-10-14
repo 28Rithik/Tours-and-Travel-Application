@@ -1,4 +1,5 @@
 import datetime
+import urllib.parse
 from decimal import Decimal
 import json
 from django.shortcuts import render, get_object_or_404, redirect
@@ -6,7 +7,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
+from django.core.exceptions import PermissionDenied
 from django.contrib import messages
+
+from core.decorators import require_staff_capability, has_staff_capability
 from django.utils import timezone
 from django.db.models import Count, Sum, Q, Avg
 
@@ -100,6 +104,7 @@ def inquiry_pipeline_view(request):
 
 
 @login_required
+@require_staff_capability('crm_itinerary_builder')
 def quotation_builder_view(request, quotation_id=None):
     """
     Interactive Day-by-Day Quotation Builder with live itemized costing,
@@ -129,6 +134,14 @@ def quotation_builder_view(request, quotation_id=None):
         vtype = VehicleType.objects.filter(id=vtype_id).first() if vtype_id else None
         markup_pct = Decimal(str(request.POST.get('markup_percent', '15.00')))
         gst_rate = Decimal(str(request.POST.get('gst_rate', '5.00')))
+
+        # Financial Governance Threshold: Markups below 10.00% require Executive / Branch Manager override
+        if markup_pct < Decimal('10.00') and not has_staff_capability(request.user, 'discount_override'):
+            raise PermissionDenied(
+                f"Commercial Margin Waiver Restricted: Setting quotation markup to {markup_pct:.2f}% "
+                f"(below the mandatory 10.00% operational floor) requires Executive Directorate / Branch Manager clearance."
+            )
+
         inclusions = request.POST.get('inclusions', '')
         exclusions = request.POST.get('exclusions', '')
 
@@ -371,6 +384,158 @@ def quotation_create_revision_view(request, quotation_id):
     new_quote = quotation.create_revision()
     messages.success(request, f"New revision created: {new_quote.quotation_number} (v{new_quote.version}).")
     return redirect('crm:quotation_builder', quotation_id=new_quote.id)
+
+
+@login_required
+def crm_quotation_brochure_pdf_view(request, quotation_id):
+    """
+    GET /crm/quotations/<id>/brochure/pdf/
+    Renders and streams the official Sivagayathiri Luxury Holiday Itinerary Brochure PDF.
+    Supports ?download=1 to force attachment download or default inline browser viewing.
+    """
+    from .brochure_pdf_engine import LuxuryTourBrochurePDFEngine
+    quotation = get_object_or_404(
+        Quotation.objects.select_related('party', 'vehicle_type', 'inquiry')
+        .prefetch_related('days__items', 'days__hotel'),
+        id=quotation_id
+    )
+
+    force_refresh = request.GET.get('refresh') == '1'
+    pdf_bytes = LuxuryTourBrochurePDFEngine.generate_brochure_pdf(
+        quotation=quotation,
+        force_refresh=force_refresh
+    )
+
+    filename = f"Sivagayathiri_Proposal_{quotation.quotation_number.replace('/', '_')}.pdf"
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    response['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+
+@login_required
+def crm_inquiry_brochure_pdf_view(request, inquiry_id):
+    """
+    GET /crm/inquiries/<id>/brochure/pdf/
+    Renders and streams the luxury holiday brochure directly from an Inquiry record.
+    """
+    from .brochure_pdf_engine import LuxuryTourBrochurePDFEngine
+    inquiry = get_object_or_404(
+        Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to'),
+        id=inquiry_id
+    )
+
+    force_refresh = request.GET.get('refresh') == '1'
+    pdf_bytes = LuxuryTourBrochurePDFEngine.generate_brochure_pdf(
+        inquiry=inquiry,
+        force_refresh=force_refresh
+    )
+
+    filename = f"Sivagayathiri_Holiday_Brochure_{inquiry.inquiry_number.replace('/', '_')}.pdf"
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    response['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+
+def public_proposal_brochure_pdf_view(request, token):
+    """
+    GET /quote/<token>/brochure.pdf
+    Public guest download endpoint for the branded Luxury Proposal PDF brochure.
+    Resolves both Inquiry and Quotation tokens.
+    """
+    from .brochure_pdf_engine import LuxuryTourBrochurePDFEngine
+    quotation = Quotation.objects.filter(proposal_token=token).select_related('party', 'vehicle_type').prefetch_related('days__hotel').first()
+    inquiry = None
+
+    if not quotation:
+        inquiry = Inquiry.objects.filter(proposal_token=token).select_related('party', 'vehicle_type').first()
+
+    if not quotation and not inquiry:
+        return HttpResponse("Proposal brochure not found or expired.", status=404, content_type="text/plain")
+
+    force_refresh = request.GET.get('refresh') == '1'
+    pdf_bytes = LuxuryTourBrochurePDFEngine.generate_brochure_pdf(
+        quotation=quotation,
+        inquiry=inquiry,
+        force_refresh=force_refresh
+    )
+
+    ref = quotation.quotation_number if quotation else inquiry.inquiry_number
+    filename = f"Sivagayathiri_Travel_Brochure_{ref.replace('/', '_')}.pdf"
+    disposition = 'attachment' if request.GET.get('download') == '1' else 'inline'
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'{disposition}; filename="{filename}"'
+    response['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+
+@login_required
+def api_quotation_whatsapp_brochure_link(request, quotation_id):
+    """
+    GET /crm/api/quotations/<id>/whatsapp-brochure/
+    Generates rich pre-formatted WhatsApp sales pitch and direct brochure download link.
+    """
+    quotation = get_object_or_404(Quotation, id=quotation_id)
+    token = quotation.token
+    brochure_url = f"/quote/{token}/brochure.pdf"
+    full_url = request.build_absolute_uri(brochure_url)
+    proposal_page_url = request.build_absolute_uri(f"/quote/{token}/")
+
+    text = (
+        f"Namaste {quotation.guest_name}! 🙏\n\n"
+        f"Greetings from *Sivagayathiri Tours and Travels*! 🚗✨\n\n"
+        f"We are delighted to share your customized luxury holiday proposal for *{quotation.destination}* "
+        f"({quotation.duration_days} Days / {quotation.duration_nights} Nights).\n\n"
+        f"🌟 *Tour Highlights & Tiered Options:*\n"
+        f"• *Standard Comfort:* ₹{quotation.standard_tier_total:,.2f} (₹{quotation.standard_per_pax:,.2f} / pax)\n"
+        f"• *Premium Deluxe (Recommended):* ₹{quotation.deluxe_tier_total:,.2f} (₹{quotation.deluxe_per_pax:,.2f} / pax)\n"
+        f"• *Royal Luxury:* ₹{quotation.luxury_tier_total:,.2f} (₹{quotation.luxury_per_pax:,.2f} / pax)\n\n"
+        f"📥 *Download Your Official PDF Brochure:*\n{full_url}\n\n"
+        f"📱 *Interactive Digital Proposal & 1-Click UPI Booking:*\n{proposal_page_url}\n\n"
+        f"For modifications or instant fleet lock-in, please feel free to reply or call our 24x7 desk at +91 98425 33777."
+    )
+
+    phone_clean = (quotation.guest_phone or '').replace(' ', '').replace('+', '').replace('-', '')
+    wa_link = f"https://wa.me/{phone_clean}?text={urllib.parse.quote_plus(text)}" if phone_clean else f"https://wa.me/?text={urllib.parse.quote_plus(text)}"
+
+    return JsonResponse({
+        'status': 'success',
+        'quotation_number': quotation.quotation_number,
+        'guest_name': quotation.guest_name,
+        'guest_phone': quotation.guest_phone,
+        'brochure_url': brochure_url,
+        'full_brochure_url': full_url,
+        'proposal_page_url': proposal_page_url,
+        'whatsapp_message': text,
+        'whatsapp_share_url': wa_link
+    })
+
+
+@login_required
+def quotation_brochure_interactive_preview_view(request, quotation_id):
+    """
+    GET /crm/quotations/<id>/brochure/preview/
+    Interactive web view of the Luxury Brochure with dynamic tier toggles and 1-click PDF download.
+    """
+    quotation = get_object_or_404(
+        Quotation.objects.select_related('party', 'vehicle_type', 'inquiry')
+        .prefetch_related('days__items', 'days__hotel'),
+        id=quotation_id
+    )
+
+    context = {
+        'q': quotation,
+        'days': quotation.days.all(),
+        'token': quotation.token,
+        'today': timezone.now().date(),
+    }
+    return render(request, 'crm/quotation_brochure_web_preview.html', context)
 
 
 @login_required
@@ -2164,6 +2329,31 @@ def api_inquiry_update_stage(request, inquiry_id):
             completed_at=timezone.now()
         )
 
+        # Phase 4 / Option D: Real-Time WebSocket Multi-User Kanban Synchronization
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                async_to_sync(channel_layer.group_send)(
+                    "crm_kanban_global",
+                    {
+                        "type": "kanban_card_broadcast",
+                        "data": {
+                            "inquiry_id": inquiry.id,
+                            "inquiry_number": inquiry.inquiry_number,
+                            "customer_name": inquiry.customer_name,
+                            "new_status": new_status,
+                            "new_status_display": valid_statuses[new_status],
+                            "user_name": request.user.get_full_name() or request.user.username,
+                            "deal_value": float(inquiry.deal_value),
+                            "timestamp": timezone.now().strftime('%H:%M:%S'),
+                        }
+                    }
+                )
+        except Exception:
+            pass
+
         return JsonResponse({
             'status': 'success',
             'inquiry_id': inquiry.id,
@@ -2685,9 +2875,21 @@ def public_digital_proposal_view(request, token):
     Public Luxury Mobile Proposal View: /quote/<token>/
     Guest opens an interactive mobile-optimized proposal with route itinerary,
     vehicle amenities, hotel photos, transparent inclusions, and dynamic UPI advance payment.
+    Supports both Inquiry and Quotation tokens.
     """
-    from .models import Inquiry
-    inquiry = get_object_or_404(Inquiry, proposal_token=token)
+    from .models import Inquiry, Quotation
+    inquiry = Inquiry.objects.filter(proposal_token=token).first()
+    if not inquiry:
+        quotation = Quotation.objects.filter(proposal_token=token).first()
+        if quotation:
+            context = {
+                'q': quotation,
+                'days': quotation.days.all(),
+                'token': quotation.token,
+                'today': timezone.now().date(),
+            }
+            return render(request, 'crm/quotation_brochure_web_preview.html', context)
+        inquiry = get_object_or_404(Inquiry, proposal_token=token)
 
     inquiry.proposal_view_count += 1
     inquiry.save(update_fields=['proposal_view_count'])

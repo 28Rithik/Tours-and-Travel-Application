@@ -51,6 +51,8 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'unfold',
     'unfold.contrib.filters',
     'unfold.contrib.forms',
@@ -107,6 +109,8 @@ MIDDLEWARE = [
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 ROOT_URLCONF = 'travelerp.urls'
+ASGI_APPLICATION = 'travelerp.asgi.application'
+WSGI_APPLICATION = 'travelerp.wsgi.application'
 
 TEMPLATES = [
     {
@@ -671,4 +675,14 @@ else:
             'TIMEOUT': 300,
         }
     }
+
+# ==============================================================================
+# DJANGO CHANNELS & WEBSOCKET REAL-TIME BROADCAST ENGINE (ZERO-POLLING FLEET RADAR)
+# ==============================================================================
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
 

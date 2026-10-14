@@ -996,18 +996,37 @@ html.dark .dcc-compliance-alert-list {
     <div>
       <div class="dcc-eyebrow">
         <span class="dcc-pulse-dot"></span>
-        <span>Real-Time Fleet Dispatch • Coimbatore Ops Desk</span>
+        <span>Real-Time Fleet Dispatch • {{ depot_scope.display_label }}</span>
       </div>
       <h1 class="dcc-title">Dispatch Control Center</h1>
       <p class="dcc-subtitle">
-        Assign vehicles and chauffeurs, fire 1-click WhatsApp duty briefings, and monitor live in-transit convoys across Tamil Nadu &amp; Kerala.
+        Assign vehicles and chauffeurs, fire 1-click WhatsApp duty briefings, and monitor live in-transit convoys across regional operational hubs.
       </p>
     </div>
     <div class="dcc-actions">
+      <!-- Enterprise Regional Hub Clearance Selector -->
+      {% if can_change_depot %}
+      <div style="display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <label for="dccDepotSelect" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">📍 Depot:</label>
+        <select id="dccDepotSelect" onchange="switchDispatchDepot(this.value)" style="border: none; background: transparent; font-size: 13px; font-weight: 700; color: #0f172a; outline: none; cursor: pointer;">
+          <option value="all" {% if not current_depot %}selected{% endif %}>🌐 All Hubs (Global)</option>
+          <option value="Chennai Central HQ" {% if current_depot == 'Chennai Central HQ' %}selected{% endif %}>Chennai Central HQ</option>
+          <option value="Coimbatore Hub" {% if current_depot == 'Coimbatore Hub' %}selected{% endif %}>Coimbatore Hub</option>
+          <option value="Madurai Depo" {% if current_depot == 'Madurai Depo' %}selected{% endif %}>Madurai Depo</option>
+          <option value="Bengaluru Station" {% if current_depot == 'Bengaluru Station' %}selected{% endif %}>Bengaluru Station</option>
+          <option value="Central Control Room" {% if current_depot == 'Central Control Room' %}selected{% endif %}>Central Control Room</option>
+        </select>
+      </div>
+      {% else %}
+      <div style="display: inline-flex; align-items: center; gap: 6px; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 10px; color: #0284c7; font-size: 12px; font-weight: 700;">
+        <i class="fa-solid fa-lock" style="font-size: 11px;"></i> {{ depot_scope.display_label }}
+      </div>
+      {% endif %}
+
       <a class="dcc-btn dcc-btn-primary" href="{% url 'booking-create' %}">
         <span>+</span> New Booking
       </a>
-      <a class="dcc-btn dcc-btn-dark" href="{% url 'fleet-live' %}">
+      <a class="dcc-btn dcc-btn-dark" href="{% url 'fleet-live' %}{% if current_depot %}?depot={{ current_depot|urlencode }}{% endif %}">
         <span>🛰️</span> Live Fleet Radar
       </a>
       <a class="dcc-btn dcc-btn-secondary" href="{% url 'admin-whatsapp-bot-studio' %}">
@@ -1818,6 +1837,17 @@ async function triggerGuestWhatsApp(tripId, guestName) {
   } catch (err) {
     window.location.href = `/trips/${tripId}/broadcast-whatsapp/`;
   }
+}
+
+// Enterprise Multi-Hub Dispatch Depot Switcher
+function switchDispatchDepot(depotVal) {
+  const url = new URL(window.location.href);
+  if (depotVal && depotVal !== 'all') {
+    url.searchParams.set('depot', depotVal);
+  } else {
+    url.searchParams.delete('depot');
+  }
+  window.location.href = url.toString();
 }
 </script>
 {% endblock %}

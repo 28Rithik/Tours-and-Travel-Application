@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from decimal import Decimal
 from core.models import Cleaner, Driver, Vehicle, Party
+from core.depot_scoping import DEPOT_CHOICES, DEPOT_CHENNAI
 from operations.models import Trip
 
 
@@ -323,13 +324,72 @@ class DriverAdvanceAllocation(models.Model):
 
 
 class DriverSettlement(models.Model):
+	STATUS_CHOICES = [
+		('draft', 'Draft Preview'),
+		('pending_approval', 'Pending Approval'),
+		('settled', 'Settled & Disbursed'),
+		('disputed', 'Disputed'),
+	]
+	PAYMENT_MODES = [
+		('upi', 'Instant UPI Payout'),
+		('cash', 'Cash from Petty Cash Float'),
+		('bank_transfer', 'NEFT / IMPS Bank Transfer'),
+		('wallet', 'Driver Mobile Float / Cash Balance'),
+	]
+
+	voucher_number = models.CharField(max_length=50, blank=True, db_index=True, help_text="e.g. DSV-2026-0001")
 	driver = models.ForeignKey(Driver, on_delete=models.PROTECT, related_name='settlements')
 	trip = models.ForeignKey(Trip, on_delete=models.PROTECT, related_name='settlements', null=True, blank=True)
 	contract_trip = models.ForeignKey('fleet_contracts.ContractTripLog', on_delete=models.PROTECT, related_name='settlements', null=True, blank=True)
 	total_days = models.DecimalField(max_digits=5, decimal_places=2)
-	batta = models.DecimalField(max_digits=10, decimal_places=2)
+	batta = models.DecimalField(max_digits=10, decimal_places=2, help_text="Standard base batta amount")
 	advance_adjusted = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 	settled_on = models.DateField(null=True, blank=True)
+
+	# Enhanced Enterprise Bata Breakdown
+	status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='draft')
+	base_bata = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	night_halt_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	early_morning_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	late_night_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	ghat_road_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Hilly terrain allowance e.g. Ooty/Kodaikanal")
+	fuel_bonus_or_penalty = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Eco-driving fuel bonus (+) or excess penalty (-)")
+	total_bata_earned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+	# Netting & Out-of-Pocket Expense Deductions / Additions
+	cash_advances_received = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	fuel_paid_by_driver = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	toll_parking_paid_by_driver = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	other_expenses_paid_by_driver = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	cash_collected_from_customer = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	traffic_fines_deducted = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	net_payout_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Net amount to pay driver (+ve) or recover from driver (-ve)")
+
+	# Payout & Execution Metadata
+	payment_mode = models.CharField(max_length=30, choices=PAYMENT_MODES, default='upi')
+	payout_reference_utr = models.CharField(max_length=100, blank=True, help_text="UPI Ref No or Bank UTR")
+	driver_acknowledged = models.BooleanField(default=False)
+	driver_acknowledged_at = models.DateTimeField(null=True, blank=True)
+	settled_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='settled_driver_vouchers')
+	calculation_breakdown = models.JSONField(default=dict, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True, null=True)
+	updated_at = models.DateTimeField(auto_now=True, null=True)
+
+	class Meta:
+		ordering = ['-settled_on', '-id']
+		verbose_name = 'Driver Settlement & Bata Voucher'
+		verbose_name_plural = 'Driver Settlements & Bata Vouchers'
+
+	def __str__(self):
+		return f"{self.voucher_number or f'DSV-{self.id}'} - {self.driver.name} (₹{self.net_payout_amount})"
+
+	def save(self, *args, **kwargs):
+		if not self.voucher_number:
+			import time
+			year = timezone.now().year
+			seq = int(time.time() * 1000) % 100000
+			self.voucher_number = f"DSV-{year}-{seq:05d}"
+		super().save(*args, **kwargs)
 
 	def clean(self):
 		from django.core.exceptions import ValidationError
@@ -370,11 +430,89 @@ class DriverSettlement(models.Model):
 				financial_responsibility='driver'
 			)
 			return sum(f.fine_amount for f in fines)
-		return 0
+		return Decimal('0.00')
 
 	@property
 	def balance(self):
 		return self.batta + self.driver_expenses - self.advance_adjusted - self.cash_collected - self.traffic_fines_deduction
+
+	@property
+	def is_payable_to_driver(self):
+		return self.net_payout_amount > 0
+
+	@property
+	def is_recoverable_from_driver(self):
+		return self.net_payout_amount < 0
+
+	@property
+	def abs_net_amount(self):
+		return abs(self.net_payout_amount)
+
+
+class BataTierRule(models.Model):
+	CATEGORY_CHOICES = [
+		('sedan', 'Sedan (Dzire / Etios)'),
+		('suv', 'SUV (Innova / Crysta)'),
+		('tempo_traveller', 'Tempo Traveller (12-17 Seater)'),
+		('mini_coach', 'Mini Coach (21-25 Seater)'),
+		('luxury_coach', 'Luxury Coach (36-45 Seater / Volvo)'),
+	]
+	DUTY_TYPES = [
+		('local', 'Local City Duty'),
+		('outstation', 'Outstation Highway Trip'),
+		('ghat_road', 'Ghat Road / Hill Station (Nilgiris/Kodai)'),
+	]
+
+	name = models.CharField(max_length=100, help_text="e.g. Standard SUV Outstation Slab")
+	vehicle_category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='suv')
+	duty_type = models.CharField(max_length=30, choices=DUTY_TYPES, default='outstation')
+	base_bata_per_day = models.DecimalField(max_digits=10, decimal_places=2, default=500.00)
+	night_halt_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=400.00, help_text="Past 22:00 overnight halt")
+	early_morning_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=200.00, help_text="Reporting before 06:00 AM")
+	late_night_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=200.00, help_text="Final drop after 23:00")
+	ghat_road_daily_bonus = models.DecimalField(max_digits=10, decimal_places=2, default=350.00, help_text="Steep hill elevation driving bonus")
+	overtime_hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, help_text="Beyond standard 12-hour duty")
+	is_active = models.BooleanField(default=True)
+	notes = models.TextField(blank=True)
+
+	class Meta:
+		ordering = ['vehicle_category', 'duty_type']
+		verbose_name = 'Bata Tier Rule'
+		verbose_name_plural = 'Bata Tier Rules'
+
+	def __str__(self):
+		return f"{self.name} ({self.get_vehicle_category_display()} - {self.get_duty_type_display()}): ₹{self.base_bata_per_day}/day"
+
+
+class DriverAllowanceLedger(models.Model):
+	ENTRY_TYPES = [
+		('bata_earned', '🎖️ Trip Bata Earned'),
+		('reimbursement', '🧾 Expense Reimbursement'),
+		('advance_debit', '💵 Trip Advance Disbursed'),
+		('collection_debit', '💼 Customer Cash Collected'),
+		('fine_deduction', '🚨 Traffic Challan Deducted'),
+		('payout_credit', '✅ UPI / Cash Settlement Paid'),
+		('refund_received', '🔁 Unspent Cash Returned to Float'),
+	]
+
+	driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='allowance_ledger')
+	entry_type = models.CharField(max_length=30, choices=ENTRY_TYPES)
+	amount = models.DecimalField(max_digits=12, decimal_places=2)
+	balance_after = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+	trip = models.ForeignKey('operations.Trip', on_delete=models.SET_NULL, null=True, blank=True, related_name='driver_ledger_entries')
+	settlement = models.ForeignKey(DriverSettlement, on_delete=models.SET_NULL, null=True, blank=True, related_name='ledger_entries')
+	date = models.DateField(default=timezone.now)
+	payment_reference = models.CharField(max_length=100, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-date', '-created_at']
+		verbose_name = 'Driver Allowance Ledger Entry'
+		verbose_name_plural = 'Driver Allowance Ledger Entries'
+
+	def __str__(self):
+		return f"{self.driver.name} - {self.get_entry_type_display()}: ₹{self.amount} ({self.date})"
 
 
 class Payment(models.Model):
@@ -847,6 +985,7 @@ class PettyCashAccount(models.Model):
 	]
 
 	account_name = models.CharField(max_length=255, help_text="e.g. Coimbatore Main Depot Float or Driver Karthik Murugan")
+	base_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES, default=DEPOT_CHENNAI, verbose_name="Base Depot / Station", help_text="Home regional depot/hub for this float")
 	account_type = models.CharField(max_length=30, choices=ACCOUNT_TYPES, default='driver')
 	holder_user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='held_petty_cash_accounts')
 	holder_driver = models.ForeignKey('core.Driver', on_delete=models.SET_NULL, null=True, blank=True, related_name='held_petty_cash_accounts')

@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chauffeurs &amp; Drivers Directory | TravelERP{% endblock %}
+{% block header_title %}Chauffeurs &amp; Fleet Drivers Directory{% endblock %}
+
+{% block content %}
+<style>
+  .driver-roster-container {
+    padding: 0 0 32px 0;
+  }
+  
+  .roster-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #4338ca 100%);
+    border-radius: 14px;
+    padding: 26px 32px;
+    color: #ffffff;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .roster-hero h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .roster-hero p {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 13.5px;
+  }
+  .roster-hero .actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .kpi-deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .kpi-card .kpi-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .kpi-card .kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+
+  .controls-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .filter-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .filter-pill:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .filter-pill.active {
+    background: #4338ca;
+    color: #ffffff;
+    border-color: #4338ca;
+    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
+  }
+  
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 13.5px;
+    outline: none;
+    min-width: 240px;
+  }
+  .search-input:focus {
+    border-color: #4338ca;
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+  }
+
+  .table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .driver-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .driver-table th {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .driver-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #1e293b;
+  }
+  .driver-table tr:hover td {
+    background: #fbfcfe;
+  }
+  
+  .btn-primary {
+    background: #4338ca;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease;
+    text-decoration: none;
+  }
+  .btn-primary:hover {
+    background: #3730a3;
+    color: #ffffff;
+  }
+  .btn-outline {
+    background: transparent;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: #94a3b8;
+  }
+
+  /* Modal Overlay */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 580px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 28px;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group.full-width {
+    grid-column: span 2;
+  }
+  .form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .form-group input, .form-group select {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: #4338ca;
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
+  }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 18px;
+    margin-top: 24px;
+  }
+</style>
+
+<div class="driver-roster-container">
+
+  <!-- Flash Messages -->
+  {% if messages %}
+  <div style="margin-bottom: 18px;">
+    {% for msg in messages %}
+    <div style="padding: 12px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600; margin-bottom: 8px; {% if msg.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;{% else %}background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Hero Header -->
+  <div class="roster-hero">
+    <div>
+      <h1><span>👨‍✈️</span> Chauffeurs &amp; Fleet Drivers Directory</h1>
+      <p>Sivagayathiri TravelERP Driver Operations • Depot Scoped: <strong>{{ current_depot|default:"All Depots" }}</strong></p>
+    </div>
+    <div class="actions-group">
+      {% if is_superuser %}
+      <a href="/admin/core/driver/" class="btn-outline" title="Open in raw Django Admin">
+        ⚙️ Raw Admin ↗
+      </a>
+      {% endif %}
+      <a href="{% url 'admin-driver-settlement-studio' %}" class="btn-outline">
+        💵 Bata &amp; Settlements
+      </a>
+      <button type="button" class="btn-primary" onclick="openAddDriverModal()">
+        <span>➕</span> Register Chauffeur
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Deck -->
+  <div class="kpi-deck">
+    <div class="kpi-card">
+      <div class="kpi-label"><span>👥</span> Total Chauffeurs</div>
+      <div class="kpi-val">{{ counts.total }}</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #16a34a;">
+      <div class="kpi-label" style="color: #16a34a;"><span>🟢</span> Active on Duty</div>
+      <div class="kpi-val">{{ counts.active }}</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #64748b;">
+      <div class="kpi-label" style="color: #64748b;"><span>⚫</span> Inactive / Off Duty</div>
+      <div class="kpi-val">{{ counts.inactive }}</div>
+    </div>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <div class="filter-pills">
+      <a href="?status=all{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'all' %}active{% endif %}">
+        All Chauffeurs ({{ counts.total }})
+      </a>
+      <a href="?status=active{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'active' %}active{% endif %}">
+        🟢 Active ({{ counts.active }})
+      </a>
+      <a href="?status=inactive{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'inactive' %}active{% endif %}">
+        ⚫ Inactive ({{ counts.inactive }})
+      </a>
+    </div>
+
+    <form method="GET" class="search-form">
+      <input type="hidden" name="status" value="{{ current_status }}">
+      {% if current_depot %}
+      <input type="hidden" name="depot" value="{{ current_depot }}">
+      {% endif %}
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Search driver name, phone, license..." class="search-input">
+      <button type="submit" class="btn-primary" style="padding: 7px 12px;">🔍</button>
+      {% if search_query %}
+      <a href="?status={{ current_status }}{% if current_depot %}&depot={{ current_depot }}{% endif %}" class="filter-pill" style="padding: 6px 10px;">✕ Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Drivers Table -->
+  <div class="table-card">
+    <table class="driver-table">
+      <thead>
+        <tr>
+          <th>Chauffeur Name</th>
+          <th>Contact &amp; WhatsApp</th>
+          <th>Driving License</th>
+          <th>Base Depot</th>
+          <th>Assigned Vehicle</th>
+          <th>Active Duty</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in drivers %}
+        <tr>
+          <td>
+            <div style="font-weight: 700; color: #0f172a; font-size: 14px;">
+              👨‍✈️ {{ d.name }}
+            </div>
+            <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">
+              {{ d.get_driver_type_display|default:d.driver_type|title }}
+            </div>
+          </td>
+          <td>
+            <div style="font-weight: 600; color: #1e293b;">
+              📞 {{ d.phone|default:"No phone" }}
+            </div>
+            {% if d.phone %}
+            <a href="https://wa.me/91{{ d.phone|cut:' ' }}" target="_blank" style="font-size: 11.5px; color: #15803d; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
+              <span>💬</span> WhatsApp Handover
+            </a>
+            {% endif %}
+          </td>
+          <td>
+            <div style="font-family: monospace; font-weight: 700; color: #334155;">
+              {{ d.license_number|default:"DL-PENDING" }}
+            </div>
+            {% if d.license_status %}
+            <div style="font-size: 11px; color: {{ d.license_status.color }}; font-weight: 600;">
+              {{ d.license_status.label }}
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <span style="font-weight: 600; color: #334155;">{{ d.base_depot }}</span>
+          </td>
+          <td>
+            {% for v in d.default_vehicles.all %}
+            <div style="font-weight: 600; font-size: 12.5px; color: #0f766e;">
+              🚌 {{ v.registration_number }} ({{ v.brand }} {{ v.model }})
+            </div>
+            {% empty %}
+            <span style="font-size: 12px; color: #94a3b8; font-style: italic;">Pool Chauffeur</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if d.status == 'active' %}
+            <span style="background: #dcfce7; color: #15803d; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">
+              🟢 Active
+            </span>
+            {% else %}
+            <span style="background: #f1f5f9; color: #64748b; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">
+              ⚫ Inactive
+            </span>
+            {% endif %}
+            {% if d.active_trip %}
+            <div style="font-size: 11px; color: #1d4ed8; font-weight: 600; margin-top: 3px;">
+              Trip #{{ d.active_trip.trip_id }}
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 48px 16px; color: #64748b;">
+            <div style="font-size: 32px; margin-bottom: 8px;">👨‍✈️</div>
+            <div style="font-size: 15px; font-weight: 600;">No chauffeurs found matching your criteria.</div>
+            <div style="font-size: 13px; margin-top: 4px;">Click "+ Register Chauffeur" to onboard a new driver.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Modal: Add New Driver -->
+<div id="addDriverModal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><span>➕</span> Register New Fleet Chauffeur</h3>
+      <button type="button" class="close-btn" onclick="closeAddDriverModal()">✕</button>
+    </div>
+    <form method="POST" action="{% url 'fleet-drivers-roster' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_driver">
+
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Full Name *</label>
+          <input type="text" name="name" placeholder="e.g. R. Subramanian" required>
+        </div>
+        <div class="form-group">
+          <label>Mobile Phone *</label>
+          <input type="tel" name="phone" placeholder="e.g. 9842112345" required>
+        </div>
+        <div class="form-group">
+          <label>Driving License Number</label>
+          <input type="text" name="license_number" placeholder="e.g. TN-38-2019-004521" style="text-transform: uppercase;">
+        </div>
+        <div class="form-group">
+          <label>License Expiry Date</label>
+          <input type="date" name="license_expiry">
+        </div>
+        <div class="form-group">
+          <label>Home Base Depot *</label>
+          <select name="base_depot" required>
+            {% for code, label in depot_choices %}
+            <option value="{{ code }}" {% if current_depot == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" style="color: #475569; border-color: #cbd5e1;" onclick="closeAddDriverModal()">Cancel</button>
+        <button type="submit" class="btn-primary"><span>💾</span> Register Chauffeur</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openAddDriverModal() {
+    document.getElementById('addDriverModal').style.display = 'flex';
+  }
+  function closeAddDriverModal() {
+    document.getElementById('addDriverModal').style.display = 'none';
+  }
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAddDriverModal();
+  });
+</script>
+{% endblock %}

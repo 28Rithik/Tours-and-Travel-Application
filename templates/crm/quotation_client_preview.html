@@ -416,11 +416,17 @@
     <a href="{% url 'crm:quotation_builder' quotation_id=q.id %}" class="btn-action btn-secondary">
       ✏️ Edit in Studio
     </a>
+    <a href="{% url 'crm:quotation_brochure_pdf' quotation_id=q.id %}?download=1" class="btn-action btn-primary" style="background: linear-gradient(135deg, #0d5c58, #059669); color: white;">
+      📥 Download Luxury Brochure PDF
+    </a>
+    <a href="{% url 'crm:quotation_brochure_preview' quotation_id=q.id %}" class="btn-action btn-secondary">
+      👁️ Brochure Studio
+    </a>
     <a href="{% url 'crm:inquiry_pipeline' %}" class="btn-action btn-secondary">
       ← Back to Pipeline
     </a>
     <button onclick="window.print()" class="btn-action btn-secondary">
-      🖨️ Print / Save as PDF
+      🖨️ Print Document
     </button>
   </div>
 

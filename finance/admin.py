@@ -22,6 +22,8 @@ from .models import (
     PettyCashTransaction,
     BankStatementUpload,
     BankStatementEntry,
+    BataTierRule,
+    DriverAllowanceLedger,
 )
 
 
@@ -269,26 +271,69 @@ class DriverAdvanceAdmin(ModelAdmin):
 @admin.register(DriverSettlement)
 class DriverSettlementAdmin(ModelAdmin):
     list_display = (
+        'voucher_badge',
         'driver_badge',
         'trip_or_contract',
         'total_days',
         'batta_display',
-        'adv_adj_display',
         'expenses_display',
-        'cash_collected_display',
-        'fines_deduction_display',
-        'balance_badge',
+        'deductions_display',
+        'net_payout_badge',
         'settled_badge',
+        'studio_action',
     )
-    list_filter = ('settled_on', 'driver', SettlementStatusFilter)
+    list_filter = ('status', 'payment_mode', 'settled_on', 'driver', SettlementStatusFilter)
     list_select_related = ('driver', 'trip', 'contract_trip')
     search_fields = (
+        'voucher_number',
         'driver__name',
         'trip__trip_id',
-        'contract_trip__shift__route__name',
+        'payout_reference_utr',
     )
     autocomplete_fields = ['driver', 'trip']
     actions = [mark_settled_today]
+
+    @admin.display(description='Voucher', ordering='voucher_number')
+    def voucher_badge(self, obj):
+        v_num = obj.voucher_number or f"DSV-{obj.id}"
+        return format_html(
+            '<a href="/finance/settlement/{}/voucher/" target="_blank" class="font-weight-bold text-primary">'
+            '<i class="fas fa-file-invoice-dollar mr-1"></i>{}</a>',
+            obj.pk,
+            v_num,
+        )
+
+    @admin.display(description='Deductions')
+    def deductions_display(self, obj):
+        total_ded = (obj.cash_advances_received or 0) + (obj.cash_collected_from_customer or 0) + (obj.traffic_fines_deducted or 0)
+        return format_html('<span class="text-danger">-₹{:,.2f}</span>', total_ded)
+
+    @admin.display(description='Net Payout', ordering='net_payout_amount')
+    def net_payout_badge(self, obj):
+        amt = obj.net_payout_amount or 0
+        if amt > 0:
+            return format_html(
+                '<span class="badge badge-success font-weight-bold" style="font-size: 13px;">'
+                '+₹{:,.2f} (Pay Driver)</span>',
+                amt
+            )
+        elif amt < 0:
+            return format_html(
+                '<span class="badge badge-danger font-weight-bold" style="font-size: 13px;">'
+                '-₹{:,.2f} (Surrender)</span>',
+                abs(amt)
+            )
+        return mark_safe('<span class="badge badge-secondary">₹0.00 (Even)</span>')
+
+    @admin.display(description='1-Click Studio')
+    def studio_action(self, obj):
+        if obj.trip_id:
+            return format_html(
+                '<a href="/finance/settlement-studio/?trip={}" class="btn btn-xs btn-outline-primary">'
+                '<i class="fas fa-calculator mr-1"></i>Open Studio</a>',
+                obj.trip_id
+            )
+        return mark_safe('<span class="text-muted">—</span>')
 
     @admin.display(description='Driver', ordering='driver')
     def driver_badge(self, obj):
@@ -765,6 +810,7 @@ class PettyCashTransactionInline(TabularInline):
 class PettyCashAccountAdmin(ModelAdmin):
     list_display = (
         'account_name',
+        'base_depot',
         'account_type_badge',
         'holder_display',
         'current_balance_badge',
@@ -772,9 +818,17 @@ class PettyCashAccountAdmin(ModelAdmin):
         'warning_threshold',
         'studio_link',
     )
-    list_filter = ('account_type', 'is_active')
-    search_fields = ('account_name', 'holder_driver__name', 'holder_user__username')
+    list_filter = ('base_depot', 'account_type', 'is_active')
+    search_fields = ('account_name', 'holder_driver__name', 'holder_user__username', 'base_depot')
     inlines = [PettyCashTransactionInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        from core.depot_scoping import get_user_depot_scope
+        scope = get_user_depot_scope(request.user)
+        if scope['effective_depot']:
+            qs = qs.filter(base_depot=scope['effective_depot'])
+        return qs
 
     @admin.display(description='Type')
     def account_type_badge(self, obj):
@@ -981,6 +1035,80 @@ class BankStatementEntryAdmin(ModelAdmin):
         if obj.status == 'reconciled':
             return mark_safe('<span style="color: #10b981; font-weight: 700; font-size: 11px;">✓ Posted</span>')
         return format_html('<a href="/finance/bank-reconciliation/?upload_id={}" target="_blank" style="color: #6366f1; font-weight: 700; font-size: 11px;">Match & Reconcile &rarr;</a>', obj.upload_id)
+
+
+@admin.register(BataTierRule)
+class BataTierRuleAdmin(ModelAdmin):
+    list_display = (
+        'name',
+        'vehicle_category_badge',
+        'duty_type_badge',
+        'base_bata_display',
+        'night_halt_display',
+        'ghat_bonus_display',
+        'active_badge',
+    )
+    list_filter = ('vehicle_category', 'duty_type', 'is_active')
+    search_fields = ('name', 'notes')
+
+    @admin.display(description='Category')
+    def vehicle_category_badge(self, obj):
+        return format_html('<span class="badge badge-info">{}</span>', obj.get_vehicle_category_display())
+
+    @admin.display(description='Duty Type')
+    def duty_type_badge(self, obj):
+        color = 'warning' if obj.duty_type == 'ghat_road' else ('primary' if obj.duty_type == 'outstation' else 'secondary')
+        return format_html('<span class="badge badge-{}">{}</span>', color, obj.get_duty_type_display())
+
+    @admin.display(description='Base Day Bata')
+    def base_bata_display(self, obj):
+        return format_html('<b>₹{:,.2f}</b>/day', obj.base_bata_per_day)
+
+    @admin.display(description='Night Halt')
+    def night_halt_display(self, obj):
+        return format_html('₹{:,.2f}', obj.night_halt_allowance)
+
+    @admin.display(description='Ghat Bonus')
+    def ghat_bonus_display(self, obj):
+        return format_html('₹{:,.2f}/day', obj.ghat_road_daily_bonus)
+
+    @admin.display(description='Status')
+    def active_badge(self, obj):
+        if obj.is_active:
+            return mark_safe('<span class="badge badge-success">Active</span>')
+        return mark_safe('<span class="badge badge-secondary">Inactive</span>')
+
+
+@admin.register(DriverAllowanceLedger)
+class DriverAllowanceLedgerAdmin(ModelAdmin):
+    list_display = (
+        'date',
+        'driver',
+        'entry_type_badge',
+        'amount_display',
+        'payment_reference',
+        'trip_link',
+    )
+    list_filter = ('entry_type', 'date', 'driver')
+    search_fields = ('driver__name', 'payment_reference', 'notes', 'trip__trip_id')
+    autocomplete_fields = ['driver', 'trip', 'settlement']
+
+    @admin.display(description='Entry Type')
+    def entry_type_badge(self, obj):
+        return obj.get_entry_type_display()
+
+    @admin.display(description='Amount (₹)')
+    def amount_display(self, obj):
+        if obj.entry_type in ['bata_earned', 'reimbursement', 'refund_received']:
+            return format_html('<span style="color: #10b981; font-weight: 800;">+₹{:,.2f}</span>', obj.amount)
+        return format_html('<span style="color: #ef4444; font-weight: 700;">-₹{:,.2f}</span>', obj.amount)
+
+    @admin.display(description='Trip')
+    def trip_link(self, obj):
+        if obj.trip:
+            return format_html('<a href="/trips/{}/" class="text-primary font-weight-bold">#{}</a>', obj.trip.pk, obj.trip.trip_id)
+        return mark_safe('<span class="text-muted">—</span>')
+
 
 
 

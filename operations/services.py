@@ -112,6 +112,30 @@ def ingest_telematics_ping(data):
         'odometer_km': odometer,
     })
 
+    # 2c. Broadcast via Django Channels WebSockets for zero-polling live fleet radar
+    try:
+        from operations.telematics_broadcast import broadcast_fleet_telemetry
+        broadcast_fleet_telemetry({
+            "id": vehicle.id,
+            "registration_number": vehicle.registration_number,
+            "model_name": f"{vehicle.brand} {vehicle.model}".strip(),
+            "lat": float(lat),
+            "lng": float(lng),
+            "speed_kmh": float(speed),
+            "heading_degrees": float(heading or 0),
+            "ignition_on": ignition,
+            "fuel_level_pct": float(fuel_pct) if fuel_pct is not None else 75.0,
+            "current_km": odometer or vehicle.current_km,
+            "status_code": "on_trip" if active_trip else "standby",
+            "status_label": "🟢 On Trip" if active_trip else "🔵 Ready Standby",
+            "status_color": "#10b981" if active_trip else "#3b82f6",
+            "last_ping_time": ping.timestamp.strftime('%H:%M:%S'),
+            "location_name": vehicle.current_location,
+            "base_depot": vehicle.base_depot,
+        }, depot=vehicle.base_depot)
+    except Exception:
+        pass
+
     # 3. Evaluate Driver Behavior & Driving Infractions
     events_triggered = []
     

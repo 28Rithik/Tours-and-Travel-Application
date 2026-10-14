@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from decimal import Decimal
 
+from core.decorators import require_staff_capability
 from finance.services import calculate_party_ledger, calculate_supplier_ledger
 from .forms import StatementForm
 from .models import GeneratedStatement
@@ -17,6 +18,7 @@ def _statement_response(statement, content, content_type, extension):
 
 
 @login_required
+@require_staff_capability('gst_tax_invoice')
 def generate_statement(request):
 	form = StatementForm(request.POST or None)
 	if request.method == 'POST' and form.is_valid():

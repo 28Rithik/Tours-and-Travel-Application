@@ -1,4 +1,5 @@
 from django.db import models
+from core.depot_scoping import DEPOT_CHOICES, DEPOT_CHENNAI
 
 
 class Party(models.Model):
@@ -127,6 +128,7 @@ class Driver(models.Model):
 	address = models.TextField(blank=True)
 	joining_date = models.DateField(null=True, blank=True)
 	status = models.CharField(max_length=20, choices=STATUSES, default='active')
+	base_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES, default=DEPOT_CHENNAI, verbose_name="Base Depot / Station", help_text="Home base operational depot for driver")
 	
 	# Identity & Background
 	date_of_birth = models.DateField(null=True, blank=True)
@@ -321,6 +323,7 @@ class Vehicle(models.Model):
 	ownership_type = models.CharField(max_length=20, choices=OWNERSHIP_TYPES, default='owned')
 	owner_party = models.ForeignKey('Party', on_delete=models.PROTECT, null=True, blank=True, related_name='supplied_vehicles')
 	status = models.CharField(max_length=20, choices=STATUSES, default='available')
+	base_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES, default=DEPOT_CHENNAI, verbose_name="Base Depot / Hub", help_text="Home operational depot/hub for this vehicle")
 	
 	# Technical Specs
 	brand = models.CharField(max_length=100, blank=True)
@@ -454,6 +457,69 @@ class VehiclePhoto(models.Model):
 		return f"Photo of {self.vehicle}"
 
 
+class InterDepotTransferLog(models.Model):
+	REASONS = [
+		('seasonal_peak', 'Seasonal Tourist Peak (e.g. Ooty / Kodaikanal)'),
+		('wedding_contract', 'Large Wedding / Conclave Convoys'),
+		('maintenance_overhaul', 'Major Workshop Maintenance / Overhaul'),
+		('fleet_rebalance', 'Routine Network Fleet Rebalancing'),
+		('breakdown_replacement', 'Emergency Breakdown Asset Swap'),
+	]
+	STATUSES = [
+		('requested', 'Pending Dispatch Approval'),
+		('in_transit', 'Approved & En-Route (In Transit)'),
+		('completed', 'Received & Stationed at Destination'),
+		('cancelled', 'Cancelled / Rejected'),
+	]
+
+	transfer_id = models.CharField(max_length=30, unique=True, blank=True)
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='depot_transfers')
+	origin_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES)
+	destination_depot = models.CharField(max_length=100, choices=DEPOT_CHOICES)
+	reason = models.CharField(max_length=50, choices=REASONS, default='fleet_rebalance')
+	status = models.CharField(max_length=30, choices=STATUSES, default='requested')
+	requested_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, related_name='requested_transfers')
+	approved_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_transfers')
+	transfer_driver = models.ForeignKey('Driver', on_delete=models.SET_NULL, null=True, blank=True, related_name='depot_transfer_duties')
+	odometer_at_dispatch = models.PositiveIntegerField(null=True, blank=True)
+	odometer_at_receipt = models.PositiveIntegerField(null=True, blank=True)
+	dispatched_at = models.DateTimeField(null=True, blank=True)
+	received_at = models.DateTimeField(null=True, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Inter-Depot Fleet Transfer'
+		verbose_name_plural = 'Inter-Depot Fleet Transfers'
+
+	def __str__(self):
+		return f"{self.transfer_id}: {self.vehicle.registration_number} ({self.origin_depot} -> {self.destination_depot})"
+
+	def save(self, *args, **kwargs):
+		if not self.transfer_id:
+			from django.utils import timezone
+			import random
+			ts = timezone.now().strftime('%y%m%d')
+			rnd = random.randint(1000, 9999)
+			self.transfer_id = f"TRF-{ts}-{rnd}"
+		super().save(*args, **kwargs)
+
+	def complete_transfer(self, receiving_user=None, receipt_odometer=None):
+		"""Marks the transfer completed and safely relocates the vehicle's base_depot."""
+		from django.utils import timezone
+		self.status = 'completed'
+		self.received_at = timezone.now()
+		if receipt_odometer:
+			self.odometer_at_receipt = receipt_odometer
+			if receipt_odometer > (self.vehicle.current_km or 0):
+				self.vehicle.current_km = receipt_odometer
+		self.vehicle.base_depot = self.destination_depot
+		self.vehicle.save(update_fields=['base_depot', 'current_km'])
+		self.save()
+
+
 class RateCard(models.Model):
 	party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='rate_cards')
 	vehicle = models.ForeignKey('Vehicle', on_delete=models.CASCADE, null=True, blank=True, related_name='rate_cards')
@@ -543,6 +609,10 @@ class StaffProfile(models.Model):
 
 	def __str__(self):
 		return f"{self.employee_id} - {self.user.get_full_name() or self.user.username} ({self.get_role_display()})"
+
+	@property
+	def approval_limit(self):
+		return self.approval_limit_inr
 
 	@property
 	def display_name(self):

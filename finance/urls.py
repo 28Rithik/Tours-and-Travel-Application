@@ -22,6 +22,11 @@ from .views import (
     api_bank_reconciliation_reconcile_entry,
     api_bank_reconciliation_batch,
     export_bank_reconciliation_report_view,
+    admin_driver_settlement_studio_view,
+    api_trip_settlement_context,
+    api_execute_driver_settlement,
+    driver_settlement_voucher_view,
+    api_driver_settlement_acknowledge,
 )
 
 urlpatterns = [
@@ -50,6 +55,14 @@ urlpatterns = [
     path('api/bank-reconciliation/upload/', api_bank_reconciliation_upload, name='api-bank-reconciliation-upload'),
     path('api/bank-reconciliation/reconcile/<int:entry_id>/', api_bank_reconciliation_reconcile_entry, name='api-bank-reconciliation-reconcile'),
     path('api/bank-reconciliation/batch/', api_bank_reconciliation_batch, name='api-bank-reconciliation-batch'),
+    # Phase 7: Automated Driver Settlement & Bata Payroll Engine (1-Click Payout Studio)
+    path('driver-settlement-studio/', admin_driver_settlement_studio_view, name='driver-settlement-studio'),
+    path('settlement-studio/', admin_driver_settlement_studio_view, name='driver-settlement-studio-alias'),
+    path('driver-settlement/', admin_driver_settlement_studio_view, name='driver-settlement-root'),
+    path('settlement/<int:settlement_id>/voucher/', driver_settlement_voucher_view, name='driver-settlement-voucher'),
+    path('api/settle/<int:trip_id>/context/', api_trip_settlement_context, name='api-trip-settle-context'),
+    path('api/settle/<int:trip_id>/', api_execute_driver_settlement, name='api-trip-settle-execute'),
+    path('api/settlement/<int:settlement_id>/acknowledge/', api_driver_settlement_acknowledge, name='api-driver-settle-acknowledge'),
 ]
 
 

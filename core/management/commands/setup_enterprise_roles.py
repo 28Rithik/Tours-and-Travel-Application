@@ -1,7 +1,8 @@
-﻿from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission, User
 from decimal import Decimal
-from core.models import StaffProfile, Driver
+from core.models import StaffProfile, Driver, Vehicle
+
 
 
 class Command(BaseCommand):
@@ -90,6 +91,22 @@ class Command(BaseCommand):
                     ('operations', ['view_trip', 'view_booking']),
                     ('crm', ['view_customercomplaint', 'add_customercomplaint', 'change_customercomplaint', 'view_inquiry']),
                     ('core', ['view_party', 'view_driver', 'view_vehicle']),
+                ]
+            },
+            'Workshop_Maintenance': {
+                'desc': 'Fleet Maintenance & Workshop Supervisors (Work Orders, Tires & Defect Cards)',
+                'perm_filters': [
+                    ('core', ['view_vehicle', 'change_vehicle', 'view_driver', 'view_vehicletype']),
+                    ('maintenance', None),
+                    ('operations', ['view_trip']),
+                ]
+            },
+            'Compliance_RTO': {
+                'desc': 'Safety, Compliance & RTO Liaison (Permits, FC, Insurance & Violations)',
+                'perm_filters': [
+                    ('core', ['view_vehicle', 'view_driver', 'view_vehicletype']),
+                    ('maintenance', ['view_compliancerecord', 'add_compliancerecord', 'change_compliancerecord']),
+                    ('operations', ['view_trip']),
                 ]
             },
             # Legacy groups for backwards compatibility with earlier Phase 2-5 test suites
@@ -314,6 +331,28 @@ class Command(BaseCommand):
                     'avatar_color': '#06b6d4',
                 }
             },
+            {
+                'username': 'workshop_karthik',
+                'email': 'karthik.raghavan@sivagayathiri.in',
+                'password': 'workshop123',
+                'first_name': 'Karthik',
+                'last_name': 'Raghavan',
+                'is_staff': True,
+                'is_superuser': False,
+                'groups': ['Workshop_Maintenance', 'Fleet_Managers'],
+                'profile': {
+                    'role': 'workshop_manager',
+                    'employee_id': 'SGT-MNT-008',
+                    'branch': 'Madurai Depo',
+                    'department': 'Fleet Engineering & Maintenance',
+                    'designation': 'Maintenance & Workshop Supervisor',
+                    'phone': '+91 94431 88008',
+                    'emergency_contact': '+91 94431 99008',
+                    'approval_limit_inr': Decimal('150000.00'),
+                    'monthly_sales_target_inr': Decimal('0.00'),
+                    'avatar_color': '#ea580c',
+                }
+            },
         ]
 
         # 4. Provision or Update Users & StaffProfiles
@@ -381,4 +420,41 @@ class Command(BaseCommand):
                 sp.designation = desig
                 sp.save()
 
-        self.stdout.write(self.style.SUCCESS("\n[SUCCESS] All 8 Enterprise Roles, Groups & Staff Profiles are fully provisioned!"))
+        # 5. Distribute Vehicles & Drivers across Regional Depots
+        self.stdout.write("\nSyncing Fleet Asset & Driver Depot Allocations...")
+        from core.depot_scoping import (
+            DEPOT_CHENNAI, DEPOT_COIMBATORE, DEPOT_MADURAI, DEPOT_BENGALURU, map_reg_to_depot
+        )
+        for v in Vehicle.objects.all():
+            reg = v.registration_number.upper()
+            if 'TN-38' in reg or 'TN38' in reg:
+                v.base_depot = DEPOT_COIMBATORE
+            elif 'TN-58' in reg or 'TN58' in reg:
+                v.base_depot = DEPOT_MADURAI
+            elif 'KA' in reg:
+                v.base_depot = DEPOT_BENGALURU
+            elif 'DEMO' in reg:
+                try:
+                    num = int(reg.split('-')[-1])
+                    if num % 4 == 0:
+                        v.base_depot = DEPOT_BENGALURU
+                    elif num % 4 == 1:
+                        v.base_depot = DEPOT_CHENNAI
+                    elif num % 4 == 2:
+                        v.base_depot = DEPOT_COIMBATORE
+                    else:
+                        v.base_depot = DEPOT_MADURAI
+                except Exception:
+                    v.base_depot = DEPOT_CHENNAI
+            else:
+                v.base_depot = map_reg_to_depot(reg)
+            v.save()
+
+        for d in Driver.objects.all():
+            if hasattr(d, 'staff_accounts') and d.staff_accounts.exists():
+                d.base_depot = d.staff_accounts.first().branch
+            else:
+                d.base_depot = DEPOT_CHENNAI
+            d.save()
+
+        self.stdout.write(self.style.SUCCESS("\n[SUCCESS] All Enterprise Roles, Profiles & Multi-Hub Depot Assets are fully synchronized!"))

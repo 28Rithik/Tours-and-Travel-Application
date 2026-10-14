@@ -529,29 +529,52 @@
         📄 View Official Vehicle Handover Certificate (#{{ inspection.inspection_number }}) →
       </a>
       {% endif %}
+
+      <!-- 24/7 Dispatch Control Hotline Box -->
+      <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 11.5px; color: #94a3b8;">
+          📞 <strong>Zero Internet?</strong> Call Dispatch Control:
+        </div>
+        <a href="tel:+919842111234" style="background: #10b981; color: #fff; text-decoration: none; padding: 4px 12px; border-radius: 8px; font-size: 11.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+          <span>✆</span> Call Office
+        </a>
+      </div>
     </div>
 
+    <!-- Real-Time Network & Offline Handover Status Banner -->
+    <div id="networkStatusBanner" style="display: none; border-radius: 14px; padding: 12px 16px; font-size: 12.5px; font-weight: 600; line-height: 1.4; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></div>
+
     <!-- ========================================== -->
-    <!-- PASSENGER OTP BOARDING VERIFICATION GATE (PHASE 2) -->
+    <!-- PASSENGER OTP BOARDING VERIFICATION GATE (OFFLINE-RESILIENT) -->
     <!-- ========================================== -->
     <div class="card" style="background: linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <span style="font-size: 13px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
-          🎟️ Commuter OTP Boarding Gate
+          🎟️ Passenger Verification Gate
         </span>
-        <span style="font-size: 10px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Live Gate</span>
+        <span id="gateModeBadge" style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 2px 8px; border-radius: 999px; font-weight: 700;">Offline-Ready</span>
       </div>
       <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
-        Ask boarding passenger for their 4-digit security code before departure:
+        Ask boarding passenger for their 4-digit code (Sent via SMS/WhatsApp):
+        {% if trip.pickup_pin %}
+        <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 1px 6px; border-radius: 4px; font-family: monospace; font-weight: 700;">PIN: {{ trip.pickup_pin }}</span>
+        {% endif %}
       </div>
       <div style="display: flex; gap: 8px;">
-        <input type="text" id="commuterOtpInput" maxlength="6" placeholder="e.g. 4821" 
+        <input type="text" id="commuterOtpInput" maxlength="6" placeholder="e.g. {{ trip.pickup_pin|default:'4821' }}" 
                style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; text-align: center; letter-spacing: 4px; padding: 8px;">
         <button type="button" onclick="verifyCommuterOtp()" 
                 style="background: #0284c7; color: #fff; border: 1px solid #38bdf8; border-radius: 10px; font-weight: 700; padding: 0 16px; font-size: 13px; cursor: pointer;">
           Verify
         </button>
       </div>
+
+      <!-- 1-Tap Offline Manual ID Verification Bypass -->
+      <button type="button" onclick="manualBypassOtp()" 
+              style="width: 100%; margin-top: 10px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; border-radius: 8px; font-size: 11px; font-weight: 700; padding: 7px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>📶</span> No Internet or Guest Has No Phone? Verify In-Person by Name / ID
+      </button>
+
       <div id="otpVerifyFeedback" style="margin-top: 10px; font-size: 12px; display: none;"></div>
     </div>
 
@@ -579,19 +602,22 @@
           <span>Start Odometer Reading (KM) *</span>
           <span style="color: #38bdf8;">Current Dashboard</span>
         </label>
-        <input type="number" name="odometer_reading" class="form-input input-km" required
+        <input type="number" id="startOdoInput" name="odometer_reading" class="form-input input-km" required
                value="{{ trip.opening_km|default:trip.vehicle.current_km|default:'' }}"
                placeholder="e.g. 54320" min="0">
       </div>
 
-      <!-- Camera Upload Box -->
+      <!-- Camera Upload Box (Flexible for Offline) -->
       <div class="form-group">
-        <label class="form-label">📸 Photo of Start Odometer & Dash *</label>
+        <label class="form-label">
+          <span>📸 Photo of Start Odometer &amp; Dash</span>
+          <span style="color: #10b981; font-size: 11px; font-weight: 600;">(Optional if Offline)</span>
+        </label>
         <div class="camera-box" onclick="document.getElementById('startOdoPhoto').click()">
-          <input type="file" id="startOdoPhoto" name="odometer_photo" class="file-hidden" accept="image/*" capture="environment" onchange="previewImage(this, 'startPreview')" required>
+          <input type="file" id="startOdoPhoto" name="odometer_photo" class="file-hidden" accept="image/*" capture="environment" onchange="previewImage(this, 'startPreview')">
           <div class="camera-icon">📷</div>
           <div class="camera-title">Tap to Take Odometer Photo</div>
-          <div class="camera-sub">Use mobile camera to photograph vehicle instrument cluster</div>
+          <div class="camera-sub">Use mobile camera to photograph dash (Can be captured &amp; uploaded later if offline)</div>
           <img id="startPreview" class="photo-preview" alt="Start Odometer Preview">
         </div>
       </div>
@@ -720,14 +746,17 @@
                oninput="calculateMileage()">
       </div>
 
-      <!-- Camera Upload Box -->
+      <!-- Camera Upload Box (Flexible for Offline) -->
       <div class="form-group">
-        <label class="form-label">📸 Photo of Final Odometer *</label>
+        <label class="form-label">
+          <span>📸 Photo of Final Odometer</span>
+          <span style="color: #10b981; font-size: 11px; font-weight: 600;">(Optional if Offline)</span>
+        </label>
         <div class="camera-box" onclick="document.getElementById('endOdoPhoto').click()">
-          <input type="file" id="endOdoPhoto" name="odometer_photo" class="file-hidden" accept="image/*" capture="environment" onchange="previewImage(this, 'endPreview')" required>
+          <input type="file" id="endOdoPhoto" name="odometer_photo" class="file-hidden" accept="image/*" capture="environment" onchange="previewImage(this, 'endPreview')">
           <div class="camera-icon" style="color: #60a5fa; background: rgba(59, 130, 246, 0.15);">📷</div>
           <div class="camera-title">Tap to Take Closing Odometer Photo</div>
-          <div class="camera-sub">Photograph final meter display for billing audit</div>
+          <div class="camera-sub">Photograph final meter display (Can be captured &amp; uploaded later if offline)</div>
           <img id="endPreview" class="photo-preview" alt="End Odometer Preview">
         </div>
       </div>
@@ -975,7 +1004,64 @@
       document.getElementById('sosModal').style.display = 'none';
     }
 
-    // Phase 2: Commuter OTP Verification
+    // Network Online/Offline Monitor
+    const EXPECTED_TRIP_PIN = "{{ trip.pickup_pin|default:'' }}";
+    const TRIP_ID = "{{ trip.id }}";
+
+    function updateNetworkStatus() {
+      const banner = document.getElementById('networkStatusBanner');
+      const badge = document.getElementById('gateModeBadge');
+      if (!banner || !badge) return;
+
+      if (!navigator.onLine) {
+        banner.style.display = 'block';
+        banner.innerHTML = `
+          <div style="background: rgba(245, 158, 11, 0.15); border: 1.5px solid #f59e0b; color: #fbbf24; border-radius: 12px; padding: 12px 14px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; margin-bottom:4px;">
+              <span>⚠️ Offline Mode Active (No Cellular Internet)</span>
+            </div>
+            <div style="font-size: 11.5px; color: #fef08a; line-height: 1.4;">
+              You can continue without internet! Enter your KM readings and verify passenger PINs normally. All records will be stored safely on this phone and sent as soon as you re-enter mobile range.
+              <div style="margin-top: 6px;">
+                📞 Or call Dispatch Hotline: <a href="tel:+919842111234" style="color: #38bdf8; font-weight:800; text-decoration: underline;">+91 98421 11234</a>
+              </div>
+            </div>
+          </div>
+        `;
+        badge.innerText = 'Offline Active';
+        badge.style.background = 'rgba(245, 158, 11, 0.2)';
+        badge.style.color = '#fbbf24';
+      } else {
+        // Check if there is cached offline duty to sync
+        const cachedStart = localStorage.getItem('offline_handover_' + TRIP_ID + '_start');
+        const cachedEnd = localStorage.getItem('offline_handover_' + TRIP_ID + '_end');
+        if (cachedStart || cachedEnd) {
+          banner.style.display = 'block';
+          banner.innerHTML = `
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1.5px solid #10b981; color: #34d399; border-radius: 12px; padding: 12px 14px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <strong>📶 Internet Restored!</strong><br/>
+                <span style="font-size:11px; color:#cbd5e1;">You have cached offline duty readings ready to submit.</span>
+              </div>
+              <button type="button" onclick="syncCachedOfflineDuty()" style="background:#10b981; color:#fff; border:none; padding:7px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">
+                Sync Now 🚀
+              </button>
+            </div>
+          `;
+        } else {
+          banner.style.display = 'none';
+        }
+        badge.innerText = 'Online Live';
+        badge.style.background = 'rgba(16, 185, 129, 0.2)';
+        badge.style.color = '#34d399';
+      }
+    }
+
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    document.addEventListener('DOMContentLoaded', updateNetworkStatus);
+
+    // Commuter OTP Verification (Online + Offline Fallback)
     async function verifyCommuterOtp() {
       const otpInput = document.getElementById('commuterOtpInput');
       const otp = otpInput.value.trim();
@@ -983,8 +1069,14 @@
       if (!otp) return;
       
       feedback.style.display = 'block';
-      feedback.innerHTML = '<span style="color:#94a3b8;">Verifying passenger OTP...</span>';
+      feedback.innerHTML = '<span style="color:#94a3b8;">Verifying passenger code...</span>';
       
+      // If offline, verify directly against trip PIN stored in page
+      if (!navigator.onLine) {
+        verifyOfflineOtpFallback(otp);
+        return;
+      }
+
       try {
         const resp = await fetch('/commute/api/verify-boarding-otp/', {
           method: 'POST',
@@ -1003,12 +1095,108 @@
             ⚠️ <strong>Already Boarded:</strong> ${data.commuter_name} at ${data.boarded_at}
           </div>`;
         } else {
-          feedback.innerHTML = `<div style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 10px; color: #f87171;">
-            ❌ ${data.message}
-          </div>`;
+          // If server fails or doesn't recognize commute route, try matching trip.pickup_pin
+          if (EXPECTED_TRIP_PIN && otp === EXPECTED_TRIP_PIN) {
+            verifyOfflineOtpFallback(otp);
+          } else {
+            feedback.innerHTML = `<div style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 10px; color: #f87171;">
+              ❌ ${data.message || 'Invalid passenger PIN.'}
+            </div>`;
+          }
         }
       } catch (err) {
-        feedback.innerHTML = '<span style="color:#ef4444;">Network error communicating with server.</span>';
+        // Network timeout / drop: execute offline fallback
+        verifyOfflineOtpFallback(otp);
+      }
+    }
+
+    function verifyOfflineOtpFallback(otp) {
+      const feedback = document.getElementById('otpVerifyFeedback');
+      if (EXPECTED_TRIP_PIN && otp === EXPECTED_TRIP_PIN) {
+        feedback.innerHTML = `<div style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; border-radius: 8px; padding: 10px; color: #34d399;">
+          ✅ <strong>Offline Verified:</strong> PIN #${otp} Matches Trip Gate!<br/>
+          <span style="font-size: 11px; color: #cbd5e1;">Guest cleared to board. Logged locally in device memory at ${new Date().toLocaleTimeString()}.</span>
+        </div>`;
+        localStorage.setItem('trip_' + TRIP_ID + '_boarded', JSON.stringify({ otp: otp, verified_at: new Date().toISOString(), mode: 'offline_pin' }));
+      } else {
+        feedback.innerHTML = `<div style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 10px; color: #f87171;">
+          ❌ PIN #${otp} does not match trip record (Expected: ${EXPECTED_TRIP_PIN || '4-digit SMS PIN'}).<br/>
+          <span style="font-size: 11px; color: #cbd5e1;">If passenger has no phone, tap the "Verify In-Person by Name / ID" button below.</span>
+        </div>`;
+      }
+    }
+
+    // 1-Tap Offline In-Person Verification
+    function manualBypassOtp() {
+      const feedback = document.getElementById('otpVerifyFeedback');
+      feedback.style.display = 'block';
+      const guestName = "{{ trip.guest_name|default:'Boarding Commuter' }}";
+      
+      const confirmed = confirm(`Confirm in-person verification for passenger: "${guestName}"?\n\n(Use this when passenger has no smartphone or there is zero internet connectivity).`);
+      if (confirmed) {
+        feedback.innerHTML = `<div style="background: rgba(16,185,129,0.2); border: 1px solid #10b981; border-radius: 8px; padding: 10px; color: #34d399;">
+          ✅ <strong>In-Person Clearance:</strong> Passenger "${guestName}" verified by Driver.<br/>
+          <span style="font-size: 11px; color: #cbd5e1;">Commuter boarded safely. Driver physical audit recorded at ${new Date().toLocaleTimeString()}.</span>
+        </div>`;
+        localStorage.setItem('trip_' + TRIP_ID + '_manual_bypass', JSON.stringify({ guest: guestName, verified_at: new Date().toISOString() }));
+      }
+    }
+
+    // Offline Form Submission Interceptor
+    document.addEventListener('DOMContentLoaded', () => {
+      const startForm = document.getElementById('startDutyForm');
+      const endForm = document.getElementById('endDutyForm');
+
+      if (startForm) {
+        startForm.addEventListener('submit', (e) => {
+          if (!navigator.onLine) {
+            e.preventDefault();
+            const odo = document.getElementById('startOdoInput').value;
+            const notes = document.getElementById('startScratchNotes').value;
+            localStorage.setItem('offline_handover_' + TRIP_ID + '_start', JSON.stringify({
+              odometer_reading: odo,
+              scratch_damage_notes: notes,
+              timestamp: new Date().toISOString()
+            }));
+            alert(`💾 OFFLINE MODE: Start Duty (${odo} KM) has been saved securely to your device!\n\nPlease take a normal camera photo of your meter on your phone. You can proceed with your trip. When you reach mobile network or depot WiFi, return to this page and tap "Sync Now", or call Dispatch Control (+91 98421 11234).`);
+            updateNetworkStatus();
+          }
+        });
+      }
+
+      if (endForm) {
+        endForm.addEventListener('submit', (e) => {
+          if (!navigator.onLine) {
+            e.preventDefault();
+            const odo = document.getElementById('closingKmInput').value;
+            const notes = document.getElementById('endScratchNotes') ? document.getElementById('endScratchNotes').value : '';
+            localStorage.setItem('offline_handover_' + TRIP_ID + '_end', JSON.stringify({
+              odometer_reading: odo,
+              scratch_damage_notes: notes,
+              timestamp: new Date().toISOString()
+            }));
+            alert(`💾 OFFLINE MODE: End Duty (${odo} KM) has been saved securely to your device!\n\nPlease photograph your final meter reading. When internet returns, tap "Sync Now" to complete handover billing, or call Dispatch Control (+91 98421 11234).`);
+            updateNetworkStatus();
+          }
+        });
+      }
+    });
+
+    function syncCachedOfflineDuty() {
+      const cachedStart = localStorage.getItem('offline_handover_' + TRIP_ID + '_start');
+      const cachedEnd = localStorage.getItem('offline_handover_' + TRIP_ID + '_end');
+      
+      if (cachedStart) {
+        const data = JSON.parse(cachedStart);
+        document.getElementById('startOdoInput').value = data.odometer_reading;
+        if (document.getElementById('startScratchNotes')) document.getElementById('startScratchNotes').value = data.scratch_damage_notes;
+        localStorage.removeItem('offline_handover_' + TRIP_ID + '_start');
+        document.getElementById('startDutyForm').submit();
+      } else if (cachedEnd) {
+        const data = JSON.parse(cachedEnd);
+        document.getElementById('closingKmInput').value = data.odometer_reading;
+        localStorage.removeItem('offline_handover_' + TRIP_ID + '_end');
+        document.getElementById('endDutyForm').submit();
       }
     }
 

@@ -13,6 +13,13 @@ from .views import (
     api_tire_rotate,
     api_tire_retread,
     api_pm_engine_evaluate,
+    workshop_mechanic_studio_view,
+    api_scan_spare_part,
+    api_checkout_spare_part,
+    api_create_workshop_job_card,
+    api_update_job_card_status,
+    api_part_quick_restock,
+    job_card_work_order_print_view,
 )
 
 app_name = 'maintenance'
@@ -34,5 +41,13 @@ urlpatterns = [
     path('api/tire/rotate/', api_tire_rotate, name='api_tire_rotate'),
     path('api/tire/retread/', api_tire_retread, name='api_tire_retread'),
     path('api/pm-engine/evaluate/', api_pm_engine_evaluate, name='api_pm_engine_evaluate'),
+    # Workshop Mechanic Studio & QR Barcode Spare Parts Checkout
+    path('workshop-studio/', workshop_mechanic_studio_view, name='workshop_mechanic_studio'),
+    path('job-card/<int:pk>/print/', job_card_work_order_print_view, name='job_card_work_order_print'),
+    path('api/parts/scan/', api_scan_spare_part, name='api_scan_spare_part'),
+    path('api/parts/checkout/', api_checkout_spare_part, name='api_checkout_spare_part'),
+    path('api/parts/restock/', api_part_quick_restock, name='api_part_quick_restock'),
+    path('api/job-card/create/', api_create_workshop_job_card, name='api_create_workshop_job_card'),
+    path('api/job-card/<int:pk>/status/', api_update_job_card_status, name='api_update_job_card_status'),
 ]
 

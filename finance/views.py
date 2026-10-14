@@ -10,6 +10,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from core.decorators import require_staff_capability, require_staff_role, require_approval_ceiling
+
 from core.models import Driver, Party
 from fleet_contracts.models import ContractMonthlyInvoice, ContractTripLog
 from operations.models import Booking, TrafficFine, Trip
@@ -92,6 +94,7 @@ def api_payment_context(request):
 # ==============================================================================
 
 @login_required
+@require_staff_role('admin', 'manager', 'finance_controller', 'operation_account')
 def accounting_export_dashboard(request):
     """
     Central hub for Tally Prime, Zoho Books financial data exports, and
@@ -224,6 +227,7 @@ def accounting_export_dashboard(request):
 
 
 @login_required
+@require_staff_capability('tally_zoho_export')
 def export_tally_sales_view(request):
     """Downloads standard Tally Prime Sales XML for the selected date range."""
     from_date = request.GET.get('from_date')
@@ -239,6 +243,7 @@ def export_tally_sales_view(request):
 
 
 @login_required
+@require_staff_capability('tally_zoho_export')
 def export_tally_expenses_view(request):
     """Downloads standard Tally Prime Expenses & Fuel XML for the selected date range."""
     from_date = request.GET.get('from_date')
@@ -253,6 +258,7 @@ def export_tally_expenses_view(request):
 
 
 @login_required
+@require_staff_capability('tally_zoho_export')
 def export_zoho_sales_view(request):
     """Downloads Zoho Books compatible CSV for customer invoices."""
     from_date = request.GET.get('from_date')
@@ -268,6 +274,7 @@ def export_zoho_sales_view(request):
 
 
 @login_required
+@require_staff_capability('tally_zoho_export')
 def export_zoho_expenses_view(request):
     """Downloads Zoho Books compatible CSV for operational fleet expenses."""
     from_date = request.GET.get('from_date')
@@ -282,6 +289,7 @@ def export_zoho_expenses_view(request):
 
 
 @login_required
+@require_staff_role('admin', 'finance_controller')
 def run_batch_payroll_view(request):
     """Trigger 1-click batch payroll run for all active drivers."""
     if request.method != 'POST':
@@ -370,6 +378,7 @@ import json
 
 
 @login_required
+@require_staff_capability('gst_tax_invoice')
 def admin_gst_studio_view(request):
     """
     Enterprise Django Unfold Corporate GST B2B Invoicing & E-Way Bill Generation Studio.
@@ -402,6 +411,7 @@ def admin_gst_studio_view(request):
 
 
 @login_required
+@require_staff_capability('gst_tax_invoice')
 def api_generate_corporate_invoice_eway(request):
     """
     API endpoint: 1-Click Generation of Corporate GST B2B Invoice, NIC E-Way Bill, QR Stamping,
@@ -644,6 +654,7 @@ def corporate_invoice_pdf_view(request, invoice_id):
 
 
 @login_required
+@require_staff_capability('gst_tax_invoice')
 def export_gstr1_b2b_view(request):
     """
     GSTR-1 B2B e-Invoice CSV download.
@@ -659,6 +670,7 @@ def export_gstr1_b2b_view(request):
 
 
 @login_required
+@require_staff_capability('gst_tax_invoice')
 def export_itc_reconciliation_view(request):
     """
     ITC Reconciliation CSV download.
@@ -721,6 +733,7 @@ def api_dispatch_corporate_invoice_whatsapp(request, invoice_id):
 # ==============================================================================
 
 @login_required
+@require_staff_capability('petty_cash_disbursement')
 def admin_petty_cash_studio_view(request):
     """
     Cashier & Dispatcher Control Studio for user-level petty cash float registers,
@@ -759,7 +772,13 @@ def admin_petty_cash_studio_view(request):
             notes="Dispatcher standby fund for highway towing and spot tyre replacement"
         )
 
+    from core.depot_scoping import get_user_depot_scope
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+
     accounts = PettyCashAccount.objects.filter(is_active=True).select_related('holder_user', 'holder_driver')
+    if depot_scope['effective_depot']:
+        accounts = accounts.filter(base_depot=depot_scope['effective_depot'])
     
     # Recalculate balances to ensure accuracy
     for acc in accounts:
@@ -770,14 +789,23 @@ def admin_petty_cash_studio_view(request):
     
     today = timezone.localtime().date()
     today_txns = PettyCashTransaction.objects.filter(date=today, status__in=['approved', 'submitted'])
+    if depot_scope['effective_depot']:
+        today_txns = today_txns.filter(account__base_depot=depot_scope['effective_depot'])
+
     today_disbursed = sum((t.amount for t in today_txns if t.transaction_type in ['expense', 'trip_advance']), Decimal('0.00'))
     today_topups = sum((t.amount for t in today_txns if t.transaction_type in ['top_up', 'settlement_refund']), Decimal('0.00'))
     
-    pending_audits = PettyCashTransaction.objects.filter(status='submitted').count()
+    pending_audits_qs = PettyCashTransaction.objects.filter(status='submitted')
+    if depot_scope['effective_depot']:
+        pending_audits_qs = pending_audits_qs.filter(account__base_depot=depot_scope['effective_depot'])
+    pending_audits = pending_audits_qs.count()
+
     low_balance_accounts = [acc for acc in accounts if acc.is_low_balance]
 
     # Filtered transactions
     txns = PettyCashTransaction.objects.select_related('account', 'trip', 'authorized_by').order_by('-date', '-created_at')
+    if depot_scope['effective_depot']:
+        txns = txns.filter(account__base_depot=depot_scope['effective_depot'])
     
     acc_filter = request.GET.get('account_id')
     cat_filter = request.GET.get('category')
@@ -810,11 +838,15 @@ def admin_petty_cash_studio_view(request):
         'categories': PettyCashTransaction.EXPENSE_CATEGORIES,
         'trips': trips,
         'drivers': drivers,
+        'depot_scope': depot_scope,
+        'current_depot': depot_scope['effective_depot'],
+        'can_change_depot': depot_scope['can_change_depot'],
     })
 
 
 @csrf_exempt
 @login_required
+@require_staff_capability('petty_cash_disbursement')
 def api_petty_cash_topup(request):
     """
     POST endpoint to top-up / replenish an active petty cash float.
@@ -874,6 +906,8 @@ def api_petty_cash_topup(request):
 
 @csrf_exempt
 @login_required
+@require_staff_capability('petty_cash_disbursement')
+@require_approval_ceiling(amount_extractor='amount')
 def api_petty_cash_disburse(request):
     """
     POST endpoint to log an out-of-pocket cash expense voucher with receipt upload.
@@ -910,6 +944,15 @@ def api_petty_cash_disburse(request):
             return JsonResponse({'status': 'error', 'message': 'Expense amount must be positive.'}, status=400)
 
         account = get_object_or_404(PettyCashAccount, pk=acc_id)
+
+        # Enforce regional depot fencing on petty cash float
+        from core.depot_scoping import get_user_depot_scope
+        depot_scope = get_user_depot_scope(request.user)
+        if depot_scope['effective_depot'] and account.base_depot != depot_scope['effective_depot'] and not depot_scope['can_change_depot']:
+            return JsonResponse({
+                'status': 'error',
+                'message': f"Unauthorized: You can only disburse from {depot_scope['effective_depot']} accounts. This float belongs to {account.base_depot}."
+            }, status=403)
 
         # Allow submission even if low, but flag if insufficient
         trip = Trip.objects.filter(pk=trip_id).first() if trip_id else None
@@ -1061,6 +1104,7 @@ def driver_mobile_wallet_view(request, trip_id=None):
 # ==============================================================================
 
 @login_required
+@require_staff_role('admin', 'manager', 'finance_controller', 'operation_account')
 def admin_bank_reconciliation_studio_view(request):
     """
     Dispatcher & Finance Control Studio for Automated Bank Statement Reconciliation.
@@ -1315,5 +1359,204 @@ def export_bank_reconciliation_report_view(request, upload_id=None):
         ])
 
     return response
+
+
+# ==============================================================================
+# Phase 7: Automated Driver Settlement & Bata Payroll Engine (1-Click Payout Studio)
+# ==============================================================================
+
+@login_required
+@require_staff_capability('trip_bata_settlement')
+def admin_driver_settlement_studio_view(request):
+    """
+    1-Click Payout & Driver Settlement Studio.
+    Reconciles trip driver Bata, out-of-pocket receipts, cash advances, customer collections,
+    and traffic challans into a unified net payout voucher with dynamic UPI QR code.
+    """
+    from core.depot_scoping import get_user_depot_scope
+    from finance.driver_settlement_engine import DriverSettlementEngine
+    from finance.models import DriverSettlement, BataTierRule, DriverAllowanceLedger
+    from operations.models import Trip
+
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+    effective_depot = depot_scope['effective_depot']
+
+    filter_status = request.GET.get('status', 'pending')
+    driver_filter = request.GET.get('driver')
+    search_q = request.GET.get('q', '').strip()
+
+    # Query completed & billed trips ready for settlement
+    trips_qs = Trip.objects.select_related('driver', 'vehicle', 'booking', 'package').order_by('-end_date', '-id')
+
+    if effective_depot:
+        trips_qs = trips_qs.filter(driver__base_depot=effective_depot)
+
+    if driver_filter:
+        trips_qs = trips_qs.filter(driver_id=driver_filter)
+
+    if search_q:
+        trips_qs = trips_qs.filter(
+            models.Q(trip_id__icontains=search_q) |
+            models.Q(driver__name__icontains=search_q) |
+            models.Q(guest_name__icontains=search_q) |
+            models.Q(booking__booking_number__icontains=search_q)
+        )
+
+    # Base querysets
+    pending_trips = list(trips_qs.filter(status__in=['completed', 'billed']).exclude(settlements__status='settled')[:40])
+    recent_settled = list(DriverSettlement.objects.filter(status='settled').select_related('driver', 'trip', 'settled_by').order_by('-settled_on', '-id')[:25])
+    if effective_depot:
+        recent_settled = [s for s in recent_settled if getattr(s.driver, 'base_depot', None) == effective_depot]
+
+    # Calculate high-level KPIs
+    total_pending_count = trips_qs.filter(status__in=['completed', 'billed']).exclude(settlements__status='settled').count()
+
+    first_of_month = timezone.now().date().replace(day=1)
+    mtd_settlements = DriverSettlement.objects.filter(status='settled', settled_on__gte=first_of_month)
+    if effective_depot:
+        mtd_settlements = mtd_settlements.filter(driver__base_depot=effective_depot)
+
+    mtd_disbursed = mtd_settlements.filter(net_payout_amount__gt=0).aggregate(s=models.Sum('net_payout_amount'))['s'] or Decimal('0.00')
+    mtd_surrendered = mtd_settlements.filter(net_payout_amount__lt=0).aggregate(s=models.Sum('net_payout_amount'))['s'] or Decimal('0.00')
+    surrender_total = abs(mtd_surrendered)
+
+    total_settled_trips_count = mtd_settlements.count()
+    avg_bata = (mtd_settlements.aggregate(s=models.Sum('total_bata_earned'))['s'] or Decimal('0.00')) / (total_settled_trips_count or 1)
+
+    # Initial trip preview if requested via ?trip=<id>
+    active_preview = None
+    preview_trip_id = request.GET.get('trip')
+    if preview_trip_id:
+        try:
+            preview_trip = Trip.objects.select_related('driver', 'vehicle', 'booking').get(pk=preview_trip_id)
+            active_preview = DriverSettlementEngine.calculate_trip_driver_settlement(preview_trip)
+        except Exception:
+            pass
+    elif pending_trips:
+        try:
+            active_preview = DriverSettlementEngine.calculate_trip_driver_settlement(pending_trips[0])
+        except Exception:
+            pass
+
+    # Drivers list for filter dropdown
+    drivers = Driver.objects.filter(status='active').order_by('name')
+    if effective_depot:
+        drivers = drivers.filter(base_depot=effective_depot)
+
+    # Active tier rules
+    tier_rules = BataTierRule.objects.filter(is_active=True).order_by('vehicle_category', 'duty_type')
+
+    return render(request, 'finance/driver_settlement_studio.html', {
+        'title': 'Driver Settlement & Bata Payroll Studio',
+        'pending_trips': pending_trips,
+        'recent_settled': recent_settled,
+        'active_preview': active_preview,
+        'drivers': drivers,
+        'tier_rules': tier_rules,
+        'filter_status': filter_status,
+        'selected_driver': driver_filter,
+        'search_q': search_q,
+        'total_pending_count': total_pending_count,
+        'mtd_disbursed': mtd_disbursed,
+        'surrender_total': surrender_total,
+        'avg_bata': avg_bata,
+        'depot_scope': depot_scope,
+    })
+
+
+@login_required
+@require_staff_capability('trip_bata_settlement')
+def api_trip_settlement_context(request, trip_id):
+    """
+    JSON API returning complete itemized calculations, terrain analysis, and UPI QR payload for a trip.
+    """
+    from finance.driver_settlement_engine import DriverSettlementEngine
+    trip = get_object_or_404(Trip.objects.select_related('driver', 'vehicle', 'booking'), pk=trip_id)
+    try:
+        data = DriverSettlementEngine.calculate_trip_driver_settlement(trip)
+        return JsonResponse({'status': 'success', 'data': data})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+@require_staff_capability('trip_bata_settlement')
+@csrf_exempt
+def api_execute_driver_settlement(request, trip_id):
+    """
+    POST API to execute official settlement, disburse/reconcile payment, and record ledger vouchers.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required'}, status=405)
+
+    import json
+    from finance.driver_settlement_engine import DriverSettlementEngine
+    trip = get_object_or_404(Trip.objects.select_related('driver', 'vehicle'), pk=trip_id)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8')) if request.body else {}
+    except Exception:
+        payload = request.POST.dict()
+
+    payment_mode = payload.get('payment_mode', 'upi')
+    payout_ref = payload.get('payout_reference_utr', '').strip()
+    notes = payload.get('notes', '').strip()
+    fuel_bonus = Decimal(str(payload.get('fuel_bonus_or_penalty', 0)))
+
+    try:
+        settlement = DriverSettlementEngine.execute_settlement(
+            trip=trip,
+            settled_by_user=request.user,
+            payment_mode=payment_mode,
+            payout_reference_utr=payout_ref,
+            notes=notes,
+            fuel_bonus_or_penalty=fuel_bonus,
+        )
+        return JsonResponse({
+            'status': 'success',
+            'voucher_number': settlement.voucher_number,
+            'settlement_id': settlement.id,
+            'net_payout': float(settlement.net_payout_amount),
+            'voucher_url': f"/finance/settlement/{settlement.id}/voucher/",
+            'message': f"Settlement {settlement.voucher_number} executed successfully for {trip.driver.name}!"
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def driver_settlement_voucher_view(request, settlement_id):
+    """
+    Renders high-res official printable Driver Settlement Voucher (A4 / Thermal printable).
+    """
+    from finance.models import DriverSettlement
+    settlement = get_object_or_404(
+        DriverSettlement.objects.select_related('driver', 'trip', 'trip__vehicle', 'trip__booking', 'settled_by'),
+        pk=settlement_id
+    )
+    trip = settlement.trip
+    calc = settlement.calculation_breakdown or {}
+
+    return render(request, 'finance/driver_settlement_voucher_print.html', {
+        'settlement': settlement,
+        'trip': trip,
+        'calc': calc,
+        'now': timezone.now(),
+    })
+
+
+@csrf_exempt
+def api_driver_settlement_acknowledge(request, settlement_id):
+    """
+    Digital signature / acknowledgment endpoint for drivers from their mobile device.
+    """
+    from finance.models import DriverSettlement
+    settlement = get_object_or_404(DriverSettlement, pk=settlement_id)
+    settlement.driver_acknowledged = True
+    settlement.driver_acknowledged_at = timezone.now()
+    settlement.save(update_fields=['driver_acknowledged', 'driver_acknowledged_at'])
+    return JsonResponse({'status': 'success', 'message': 'Settlement acknowledged by driver.'})
+
 
 

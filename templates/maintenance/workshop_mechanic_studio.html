@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workshop Mechanic Studio & QR Barcode Parts Checkout | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #059669;
+      --accent-light: #ecfdf5;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --info: #0284c7;
+      --info-light: #f0f9ff;
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    .top-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f172a;
+    }
+    .brand-badge {
+      background: #eff6ff;
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+    .btn-outline {
+      background: #ffffff;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover {
+      background: #f1f5f9;
+    }
+    .btn-success {
+      background: var(--accent);
+      color: #ffffff;
+    }
+    .btn-success:hover {
+      background: #047857;
+    }
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      border-radius: 6px;
+    }
+
+    /* Studio Layout */
+    .studio-container {
+      flex: 1;
+      padding: 20px 24px;
+      max-width: 1720px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* KPI Summary Strip */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 550px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+    .kpi-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+    .kpi-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .kpi-icon.blue { background: #eff6ff; color: #2563eb; }
+    .kpi-icon.red { background: #fef2f2; color: #dc2626; }
+    .kpi-icon.amber { background: #fffbeb; color: #d97706; }
+    .kpi-icon.emerald { background: #ecfdf5; color: #059669; }
+
+    /* Main Split Cockpit */
+    .cockpit-split {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1100px) {
+      .cockpit-split { grid-template-columns: 1fr; }
+    }
+
+    /* Left Sidebar: Job Cards List */
+    .roster-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .roster-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--card-border);
+      background: #fafafa;
+    }
+    .roster-search {
+      position: relative;
+      margin-bottom: 10px;
+    }
+    .roster-search input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      outline: none;
+      background: #ffffff;
+    }
+    .roster-search i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .filter-tab {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      white-space: nowrap;
+    }
+    .filter-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .roster-list {
+      max-height: calc(100vh - 290px);
+      overflow-y: auto;
+    }
+    .job-card-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: block;
+      text-decoration: none;
+      color: inherit;
+    }
+    .job-card-item:hover {
+      background: #f8fafc;
+    }
+    .job-card-item.selected {
+      background: #eff6ff;
+      border-left: 4px solid var(--primary);
+    }
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .item-jc-no {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2563eb;
+    }
+    .item-veh {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .item-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      align-items: center;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-urgent { background: #fee2e2; color: #991b1b; }
+    .badge-high { background: #fef3c7; color: #92400e; }
+    .badge-normal { background: #f1f5f9; color: #475569; }
+    .badge-open { background: #e0e7ff; color: #3730a3; }
+    .badge-in_progress { background: #dbeafe; color: #1e40af; }
+    .badge-awaiting_parts { background: #ffedd5; color: #9a3412; }
+    .badge-quality_check { background: #f3e8ff; color: #6b21a8; }
+    .badge-completed { background: #ecfdf5; color: #065f46; }
+
+    /* Right Main Cockpit: Job Card Details */
+    .active-job-details {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .detail-card {
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .detail-header {
+      padding: 16px 20px;
+      background: #fafafa;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .jc-title-block h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .jc-submeta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Stepper */
+    .status-stepper {
+      display: flex;
+      gap: 8px;
+      background: #ffffff;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .step-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      font-size: 0.74rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      background: #f8fafc;
+      color: var(--text-muted);
+    }
+    .step-btn:hover {
+      background: #f1f5f9;
+      color: var(--text);
+    }
+    .step-btn.current {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #1d4ed8;
+    }
+    .step-btn.done {
+      background: #ecfdf5;
+      color: #059669;
+      border-color: #a7f3d0;
+    }
+
+    /* Meta Grid */
+    .meta-box-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (max-width: 800px) {
+      .meta-box-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .meta-box-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .meta-box-item .label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .meta-box-item .val {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* Defect origination alert banner */
+    .defect-banner {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 18px;
+      margin: 16px 20px 0 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .defect-banner i {
+      color: #d97706;
+      font-size: 1.1rem;
+      margin-top: 2px;
+    }
+    .defect-content {
+      font-size: 0.82rem;
+      color: #78350f;
+    }
+    .defect-content strong {
+      color: #92400e;
+    }
+
+    /* Parts Checkout Workspace */
+    .checkout-section {
+      padding: 20px;
+    }
+    .section-headline {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    /* QR Barcode Scanner Drawer & Input Hub */
+    .scanner-hub {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 850px) {
+      .scanner-hub { grid-template-columns: 1fr; }
+    }
+    .scanner-box {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .scanner-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scan-input-group {
+      display: flex;
+      gap: 8px;
+    }
+    .scan-input-group input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+    }
+    .scan-input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* Live Part Preview Pill */
+    .part-preview-pill {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pill-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pill-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #1e3a8a;
+    }
+    .pill-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      font-size: 0.76rem;
+      color: #3b82f6;
+    }
+    .pill-grid span strong {
+      color: #1e40af;
+    }
+
+    /* Parts Table */
+    .parts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .parts-table th {
+      background: #f8fafc;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .parts-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .parts-table tr:hover {
+      background: #fafafa;
+    }
+    .cost-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* Grand Total Tally Box */
+    .financial-tally-bar {
+      background: #fafafa;
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 28px;
+    }
+    .tally-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .tally-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .tally-amt {
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #0f172a;
+    }
+    .tally-amt.grand {
+      font-size: 1.45rem;
+      color: var(--primary);
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+    .modal-head {
+      padding: 16px 20px;
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-head h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal-foot {
+      padding: 14px 20px;
+      background: #fafafa;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .form-group label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .form-control {
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+      font-family: inherit;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Live video scanner container */
+    #scanner-video-container {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    #scanner-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .scanner-laser {
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      animation: laserScan 1.5s infinite alternate ease-in-out;
+    }
+    @keyframes laserScan {
+      0% { top: 20%; }
+      100% { top: 80%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="top-bar">
+    <div class="brand-title">
+      <i class="fa-solid fa-wrench" style="color: #2563eb;"></i>
+      <span>Workshop Mechanic Studio</span>
+      <span class="brand-badge">Garage Floor 4.0</span>
+      {% if active_job_card %}
+        <span class="badge badge-normal" style="font-family:'JetBrains Mono'; font-weight:700;">{{ active_job_card.base_depot }}</span>
+      {% endif %}
+    </div>
+
+    <div class="top-actions">
+      <button class="btn btn-outline" onclick="openModal('quickRestockModal')">
+        <i class="fa-solid fa-boxes-stacked"></i> Quick Restock
+      </button>
+      <button class="btn btn-primary" onclick="openModal('newJobCardModal')">
+        <i class="fa-solid fa-plus"></i> New Job Card
+      </button>
+      <a href="/admin/maintenance/servicerecord/" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Fleet Ledger
+      </a>
+    </div>
+  </header>
+
+  <!-- Studio Container -->
+  <main class="studio-container">
+
+    <!-- KPI Metric Strip -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Active Job Cards</div>
+          <div class="kpi-value">{{ kpi.active_job_cards }}</div>
+        </div>
+        <div class="kpi-icon blue">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Grounded in Bays</div>
+          <div class="kpi-value">{{ kpi.grounded_vehicles }}</div>
+        </div>
+        <div class="kpi-icon red">
+          <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Low Stock Parts Alert</div>
+          <div class="kpi-value" style="color:{% if kpi.low_stock_parts > 0 %}#dc2626{% else %}#059669{% endif %};">
+            {{ kpi.low_stock_parts }}
+          </div>
+        </div>
+        <div class="kpi-icon amber">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">MTD Parts Consumed</div>
+          <div class="kpi-value cost-num" style="font-size:1.35rem;">₹{{ kpi.mtd_parts_spend|floatformat:2 }}</div>
+        </div>
+        <div class="kpi-icon emerald">
+          <i class="fa-solid fa-receipt"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cockpit Split Layout -->
+    <div class="cockpit-split">
+
+      <!-- Left Roster: Job Cards List -->
+      <aside class="roster-card">
+        <div class="roster-header">
+          <form method="GET" action="" class="roster-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search JC#, vehicle, mechanic..." onchange="this.form.submit()">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <input type="hidden" name="depot" value="{{ depot_filter }}">
+          </form>
+
+          <div class="filter-tabs">
+            <a href="?status=active{% if depot_filter %}&depot={{ depot_filter }}{% endif %}" class="filter-tab {% if status_filter == 'active' %}active{% endif %}">Active Bays</a>
+            <a href="?status=in_progress{% if depot_filter %}&depot={{ depot_filter }}{% endif %}" class="filter-tab {% if status_filter == 'in_progress' %}active{% endif %}">In Bay</a>
+            <a href="?status=awaiting_parts{% if depot_filter %}&depot={{ depot_filter }}{% endif %}" class="filter-tab {% if status_filter == 'awaiting_parts' %}active{% endif %}">Waiting Parts</a>
+            <a href="?status=completed{% if depot_filter %}&depot={{ depot_filter }}{% endif %}" class="filter-tab {% if status_filter == 'completed' %}active{% endif %}">Released</a>
+            <a href="?status=all{% if depot_filter %}&depot={{ depot_filter }}{% endif %}" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+          </div>
+        </div>
+
+        <div class="roster-list">
+          {% for jc in job_cards %}
+            <a href="?job_card_id={{ jc.id }}&status={{ status_filter }}{% if depot_filter %}&depot={{ depot_filter }}{% endif %}"
+               class="job-card-item {% if active_job_card and active_job_card.id == jc.id %}selected{% endif %}">
+              <div class="item-top">
+                <span class="item-jc-no">{{ jc.job_card_number }}</span>
+                <span class="badge badge-{{ jc.status }}">{{ jc.get_status_display }}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="item-veh">{{ jc.vehicle.registration_number }}</span>
+                <span class="badge badge-{{ jc.priority }}">{{ jc.priority|upper }}</span>
+              </div>
+              <div class="item-meta">
+                <span><i class="fa-solid fa-warehouse"></i> {{ jc.bay_number|default:"Bay 1" }}</span>
+                <span>•</span>
+                <span><i class="fa-solid fa-user-gear"></i> {{ jc.mechanic_name|default:"Unassigned" }}</span>
+                <span>•</span>
+                <span class="cost-num" style="color:#059669; font-weight:700;">₹{{ jc.total_cost|floatformat:0 }}</span>
+              </div>
+            </a>
+          {% empty %}
+            <div style="padding:40px 20px; text-align:center; color:#94a3b8;">
+              <i class="fa-solid fa-clipboard-check" style="font-size:2rem; margin-bottom:10px; color:#cbd5e1;"></i>
+              <p style="font-weight:600; font-size:0.9rem;">No Job Cards Found</p>
+              <p style="font-size:0.78rem; margin-top:4px;">No vehicles currently match this filter criteria.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </aside>
+
+      <!-- Right Panel: Active Job Card Interactive Workspace -->
+      <section class="active-job-details">
+        {% if active_job_card %}
+          <div class="detail-card">
+            
+            <!-- Detail Header -->
+            <div class="detail-header">
+              <div class="jc-title-block">
+                <h2>
+                  <span>{{ active_job_card.vehicle.registration_number }}</span>
+                  <span class="badge badge-{{ active_job_card.priority }}">{{ active_job_card.priority|upper }}</span>
+                  <span class="badge badge-{{ active_job_card.status }}">{{ active_job_card.get_status_display }}</span>
+                </h2>
+                <div class="jc-submeta">
+                  <span><strong>JC Number:</strong> <code style="font-family:'JetBrains Mono'; font-weight:700; color:#2563eb;">{{ active_job_card.job_card_number }}</code></span>
+                  <span><strong>Service Type:</strong> {{ active_job_card.get_service_type_display }}</span>
+                  <span><strong>Logged On:</strong> {{ active_job_card.date|date:"d M Y" }}</span>
+                  <span><strong>Hub:</strong> {{ active_job_card.base_depot }}</span>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display:flex; gap:8px;">
+                <a href="/maintenance/job-card/{{ active_job_card.id }}/print/" target="_blank" class="btn btn-outline btn-sm">
+                  <i class="fa-solid fa-print"></i> Print Work Order
+                </a>
+                {% if active_job_card.status != 'completed' %}
+                  <button class="btn btn-success btn-sm" onclick="advanceJobCardStatus('{{ active_job_card.id }}', 'completed')">
+                    <i class="fa-solid fa-circle-check"></i> Complete & Release
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Workflow Status Stepper Bar -->
+            <div style="padding: 12px 20px; background: #fafafa; border-bottom: 1px solid var(--border);">
+              <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase;">
+                Operational Stepper Transition
+              </div>
+              <div class="status-stepper">
+                <button class="step-btn {% if active_job_card.status == 'open' %}current{% else %}done{% endif %}" onclick="advanceJobCardStatus('{{ active_job_card.id }}', 'open')">
+                  <i class="fa-solid fa-inbox"></i> 1. Received
+                </button>
+                <button class="step-btn {% if active_job_card.status == 'in_progress' %}current{% elif active_job_card.status in 'awaiting_parts,quality_check,completed' %}done{% endif %}" onclick="advanceJobCardStatus('{{ active_job_card.id }}', 'in_progress')">
+                  <i class="fa-solid fa-wrench"></i> 2. In Bay Work
+                </button>
+                <button class="step-btn {% if active_job_card.status == 'awaiting_parts' %}current{% elif active_job_card.status in 'quality_check,completed' %}done{% endif %}" onclick="advanceJobCardStatus('{{ active_job_card.id }}', 'awaiting_parts')">
+                  <i class="fa-solid fa-boxes-packing"></i> 3. Awaiting Parts
+                </button>
+                <button class="step-btn {% if active_job_card.status == 'quality_check' %}current{% elif active_job_card.status == 'completed' %}done{% endif %}" onclick="advanceJobCardStatus('{{ active_job_card.id }}', 'quality_check')">
+                  <i class="fa-solid fa-road"></i> 4. Quality Road Test
+                </button>
+                <button class="step-btn {% if active_job_card.status == 'completed' %}current{% endif %}" onclick="advanceJobCardStatus('{{ active_job_card.id }}', 'completed')">
+                  <i class="fa-solid fa-circle-check"></i> 5. Released to Fleet
+                </button>
+              </div>
+            </div>
+
+            <!-- Meta Box Details -->
+            <div class="meta-box-grid">
+              <div class="meta-box-item">
+                <span class="label">Garage Bay / Ramp</span>
+                <span class="val">{{ active_job_card.bay_number|default:"Bay 1" }}</span>
+              </div>
+              <div class="meta-box-item">
+                <span class="label">Lead Mechanic</span>
+                <span class="val">{{ active_job_card.mechanic_name|default:"Unassigned" }}</span>
+              </div>
+              <div class="meta-box-item">
+                <span class="label">Odometer Reading</span>
+                <span class="val">{{ active_job_card.odometer_reading|default:0 }} KM</span>
+              </div>
+              <div class="meta-box-item">
+                <span class="label">Vehicle State</span>
+                <span class="val" style="color:{% if active_job_card.vehicle.status == 'maintenance' %}#dc2626{% else %}#059669{% endif %};">
+                  <i class="fa-solid fa-circle" style="font-size:0.6rem;"></i> {{ active_job_card.vehicle.get_status_display }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Pre-Trip Inspection / Defect Ticket Alert Banner (if linked) -->
+            {% if active_job_card.defect_ticket %}
+              <div class="defect-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div class="defect-content">
+                  <div><strong>Originated from Defect Ticket #{{ active_job_card.defect_ticket.id }}:</strong> Reported by {{ active_job_card.defect_ticket.reported_by }}</div>
+                  <div style="margin-top:2px;">{{ active_job_card.defect_ticket.description|linebreaksbr }}</div>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Description / Mechanic Diagnosis -->
+            <div style="padding:16px 20px; font-size:0.86rem; color:#334155; line-height:1.5;">
+              <strong>Complaints & Task Scope:</strong>
+              <div style="margin-top:4px; white-space:pre-wrap;">{{ active_job_card.description|default:"Routine maintenance and general inspection." }}</div>
+            </div>
+
+            <!-- Spare Parts QR Barcode Checkout Section -->
+            <div class="checkout-section">
+              <div class="section-headline">
+                <span><i class="fa-solid fa-barcode" style="color:var(--primary);"></i> Spare Parts QR Barcode Scanner & Rapid Checkout</span>
+                <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Atomic inventory deduction protects against garage leakage</span>
+              </div>
+
+              <!-- Scanner & Manual Search Drawer -->
+              <div class="scanner-hub">
+                <!-- Barcode Gun / Input Field -->
+                <div class="scanner-box">
+                  <div class="scanner-title">
+                    <i class="fa-solid fa-barcode"></i> Hardware Barcode Gun / SKU Input
+                  </div>
+                  <div class="scan-input-group">
+                    <input type="text" id="barcodeInput" placeholder="Scan QR/Barcode or type SKU/Name..." autocomplete="off" onkeydown="if(event.key==='Enter') lookupPart()">
+                    <button class="btn btn-primary btn-sm" onclick="lookupPart()">Lookup</button>
+                    <button class="btn btn-outline btn-sm" onclick="toggleCameraScanner()" title="Open Device Camera">
+                      <i class="fa-solid fa-camera"></i>
+                    </button>
+                  </div>
+                  <small style="color:var(--text-muted); font-size:0.72rem;">Press enter after handheld USB barcode scan or typing SKU.</small>
+
+                  <!-- Camera stream container -->
+                  <div id="scanner-video-container">
+                    <video id="scanner-video" playsinline></video>
+                    <div class="scanner-laser"></div>
+                  </div>
+                </div>
+
+                <!-- Part Preview & Checkout Quantity -->
+                <div class="scanner-box">
+                  <div class="scanner-title">
+                    <i class="fa-solid fa-cart-flatbed"></i> 1-Tap Checkout to Job Card
+                  </div>
+
+                  <div id="partPreviewPill" class="part-preview-pill">
+                    <div class="pill-header">
+                      <div class="pill-title" id="previewPartName">Brake Pads Front Set</div>
+                      <span id="previewStockStatus" class="badge badge-normal">IN STOCK</span>
+                    </div>
+                    <div class="pill-grid">
+                      <span>SKU: <strong id="previewSku">BRK-102</strong></span>
+                      <span>Bin: <strong id="previewBin">BAY-A/BIN-3</strong></span>
+                      <span>Stock: <strong id="previewStock">12 pcs</strong></span>
+                      <span>Rate: <strong id="previewPrice">₹1,450.00</strong></span>
+                      <span>Depot: <strong id="previewDepot">Chennai HQ</strong></span>
+                      <span>Critical: <strong id="previewCritical">Yes</strong></span>
+                    </div>
+
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:6px;">
+                      <label style="font-size:0.78rem; font-weight:700;">Qty to Fit:</label>
+                      <input type="number" id="checkoutQty" value="1" min="1" max="99" style="width:70px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-weight:700;">
+                      <button class="btn btn-success btn-sm" id="btnConfirmCheckout" onclick="executePartCheckout()">
+                        <i class="fa-solid fa-arrow-down-to-bracket"></i> Issue & Fit to Vehicle
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="previewPlaceholder" style="text-align:center; padding:20px; color:#94a3b8; font-size:0.8rem;">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size:1.5rem; margin-bottom:6px; color:#cbd5e1;"></i>
+                    <p>Scan barcode or search SKU on the left to review part specs and issue to vehicle.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Itemized Parts Consumed Ledger -->
+              <div style="font-size:0.88rem; font-weight:700; color:#0f172a; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span>Fitted Spare Parts on this Job Card</span>
+                <span style="font-size:0.75rem; color:#64748b; font-weight:600;">{{ active_job_card.spare_parts.count }} item(s) issued</span>
+              </div>
+
+              <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+                <table class="parts-table">
+                  <thead>
+                    <tr>
+                      <th>Part / Component</th>
+                      <th>Category & Bin</th>
+                      <th>Qty Issued</th>
+                      <th>Unit Rate</th>
+                      <th>Line Cost</th>
+                      <th>Audit Trail</th>
+                    </tr>
+                  </thead>
+                  <tbody id="partsTableBody">
+                    {% for sp in active_job_card.spare_parts.all %}
+                      <tr>
+                        <td>
+                          <strong>{{ sp.inventory_item.part_name|default:sp.part_name }}</strong>
+                          {% if sp.inventory_item and sp.inventory_item.sku %}
+                            <div style="font-size:0.72rem; color:var(--text-muted); font-family:'JetBrains Mono';">SKU: {{ sp.inventory_item.sku }}</div>
+                          {% endif %}
+                        </td>
+                        <td>
+                          <span style="font-size:0.76rem; color:#475569;">{{ sp.inventory_item.get_category_display|default:"Consumables" }}</span>
+                          <div style="font-size:0.72rem; color:#94a3b8;"><i class="fa-solid fa-box-archive"></i> {{ sp.inventory_item.bin_location|default:"Unassigned" }}</div>
+                        </td>
+                        <td><strong>{{ sp.quantity }}</strong> <small>{{ sp.inventory_item.get_unit_of_measure_display|default:"pcs" }}</small></td>
+                        <td class="cost-num">₹{{ sp.unit_price|floatformat:2 }}</td>
+                        <td class="cost-num" style="color:#2563eb;">₹{{ sp.total_price|floatformat:2 }}</td>
+                        <td>
+                          <span class="badge badge-normal" style="font-size:0.68rem;">Verified Issue</span>
+                        </td>
+                      </tr>
+                    {% empty %}
+                      <tr id="noPartsRow">
+                        <td colspan="6" style="text-align:center; padding:30px; color:#94a3b8;">
+                          No spare parts checked out to this job card yet. Scan a QR code or search SKU above to add components.
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Financial Tally Bar -->
+            <div class="financial-tally-bar">
+              <div class="tally-item">
+                <span class="tally-label">Parts Subtotal</span>
+                <span class="tally-amt" id="partsSubtotalDisplay">₹{{ active_job_card.parts_total_cost|floatformat:2 }}</span>
+              </div>
+              <div class="tally-item">
+                <span class="tally-label">Labor Charges</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="tally-amt">₹</span>
+                  <input type="number" id="laborChargesInput" value="{{ active_job_card.labor_charges|default:0 }}" step="50" onchange="updateLaborCharges('{{ active_job_card.id }}')" style="width:110px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:6px; font-weight:700; font-family:'JetBrains Mono'; font-size:1.05rem;">
+                </div>
+              </div>
+              <div class="tally-item">
+                <span class="tally-label">Grand Total Work Order</span>
+                <span class="tally-amt grand" id="grandTotalDisplay">₹{{ active_job_card.total_cost|floatformat:2 }}</span>
+              </div>
+            </div>
+
+          </div>
+        {% else %}
+          <!-- Empty State when no Job Card Selected -->
+          <div class="detail-card" style="padding:80px 20px; text-align:center; color:#94a3b8;">
+            <i class="fa-solid fa-wrench" style="font-size:3rem; margin-bottom:14px; color:#cbd5e1;"></i>
+            <h3 style="font-size:1.25rem; font-weight:800; color:#0f172a;">No Active Job Card Selected</h3>
+            <p style="font-size:0.86rem; margin-top:6px; max-width:400px; margin-left:auto; margin-right:auto;">
+              Select a vehicle job card from the left roster or click "New Job Card" to book a coach into a maintenance bay.
+            </p>
+            <div style="margin-top:18px;">
+              <button class="btn btn-primary" onclick="openModal('newJobCardModal')">
+                <i class="fa-solid fa-plus"></i> Open New Job Card
+              </button>
+            </div>
+          </div>
+        {% endif %}
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL: New Workshop Job Card -->
+  <div class="modal-overlay" id="newJobCardModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-plus" style="color:var(--primary);"></i> Open New Workshop Job Card</h3>
+        <button style="background:none; border:none; font-size:1.1rem; cursor:pointer;" onclick="closeModal('newJobCardModal')">&times;</button>
+      </div>
+      <form id="createJobCardForm" onsubmit="event.preventDefault(); submitCreateJobCard();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Select Fleet Vehicle *</label>
+            <select class="form-control" id="newJcVehicle" required>
+              <option value="">-- Choose Vehicle --</option>
+              {% for veh in vehicles_list %}
+                <option value="{{ veh.id }}">{{ veh.registration_number }} ({{ veh.model|default:"Coach" }} - Status: {{ veh.get_status_display }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Service / Repair Type</label>
+              <select class="form-control" id="newJcType">
+                <option value="routine">Routine Periodic Service</option>
+                <option value="breakdown">Breakdown SOS Repair</option>
+                <option value="tyre">Tyre / Wheel Alignment</option>
+                <option value="bodywork">Bodywork / Tinkering</option>
+                <option value="accidental">Accidental Insurance Claim</option>
+                <option value="other">General Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Job Priority</label>
+              <select class="form-control" id="newJcPriority">
+                <option value="normal">Normal Operational</option>
+                <option value="urgent">Urgent / Grounded Coach</option>
+                <option value="high">High Priority Departure</option>
+                <option value="low">Low Routine Care</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Bay / Ramp Number</label>
+              <input type="text" class="form-control" id="newJcBay" value="Bay 1" placeholder="e.g. Bay 2, Lift 1">
+            </div>
+            <div class="form-group">
+              <label>Assigned Lead Mechanic</label>
+              <input type="text" class="form-control" id="newJcMechanic" placeholder="e.g. Murugan M / Senior Tech">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Driver Complaints & Task Scope *</label>
+            <textarea class="form-control" id="newJcDesc" rows="3" required placeholder="Describe brake noise, oil leak, AC cooling loss, or periodic schedule..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Initial Estimated Labor Charges (₹)</label>
+              <input type="number" class="form-control" id="newJcLabor" value="0.00" step="50">
+            </div>
+            <div class="form-group">
+              <label>Depot Hub</label>
+              <select class="form-control" id="newJcDepot">
+                {% for code, name in depot_choices %}
+                  <option value="{{ code }}">{{ name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-outline" onclick="closeModal('newJobCardModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Job Card & Ground in Bay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Quick Restock Parts -->
+  <div class="modal-overlay" id="quickRestockModal">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-boxes-stacked" style="color:var(--accent);"></i> Quick Spare Parts Restocking</h3>
+        <button style="background:none; border:none; font-size:1.1rem; cursor:pointer;" onclick="closeModal('quickRestockModal')">&times;</button>
+      </div>
+      <form id="quickRestockForm" onsubmit="event.preventDefault(); submitQuickRestock();">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Select Inventory Item *</label>
+            <select class="form-control" id="restockPartId" required>
+              <option value="">-- Choose Spare Part --</option>
+              {% for p in parts_catalog %}
+                <option value="{{ p.id }}">{{ p.part_name }} (Stock: {{ p.current_stock }} {{ p.get_unit_of_measure_display }} - SKU: {{ p.sku|default:"N/A" }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Quantity Received *</label>
+            <input type="number" class="form-control" id="restockQty" value="10" min="1" required>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-outline" onclick="closeModal('quickRestockModal')">Cancel</button>
+          <button type="submit" class="btn btn-success">Confirm Stock Inward</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" style="position:fixed; bottom:24px; right:24px; z-index:9999; display:none; background:#0f172a; color:#fff; padding:12px 20px; border-radius:10px; box-shadow:0 10px 25px rgba(0,0,0,0.3); font-size:0.86rem; font-weight:600; align-items:center; gap:10px;">
+    <i id="toastIcon" class="fa-solid fa-circle-check" style="color:#22c55e;"></i>
+    <span id="toastMsg">Operation successful</span>
+  </div>
+
+  <script>
+    // Global active job card id
+    const ACTIVE_JC_ID = {% if active_job_card %}{{ active_job_card.id }}{% else %}null{% endif %};
+    let currentScannedPart = null;
+
+    // Toast helper
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toastIcon');
+      const text = document.getElementById('toastMsg');
+      text.innerText = msg;
+      if (isError) {
+        icon.className = 'fa-solid fa-circle-xmark';
+        icon.style.color = '#ef4444';
+      } else {
+        icon.className = 'fa-solid fa-circle-check';
+        icon.style.color = '#22c55e';
+      }
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    }
+
+    // Modal helpers
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // CSRF helper
+    function getCsrfToken() {
+      const name = 'csrftoken=';
+      const decoded = decodeURIComponent(document.cookie);
+      const ca = decoded.split(';');
+      for(let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
+      }
+      return '';
+    }
+
+    // Part Lookup by barcode / SKU
+    async function lookupPart() {
+      const query = document.getElementById('barcodeInput').value.trim();
+      if (!query) return;
+
+      try {
+        const res = await fetch(`/maintenance/api/parts/scan/?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (data.success && data.found) {
+          currentScannedPart = data.part;
+          displayPartPreview(data.part);
+          showToast(`Found: ${data.part.part_name}`);
+        } else {
+          currentScannedPart = null;
+          document.getElementById('partPreviewPill').style.display = 'none';
+          document.getElementById('previewPlaceholder').style.display = 'block';
+          showToast(data.message || 'No matching spare part found.', true);
+        }
+      } catch (err) {
+        showToast('Error looking up part: ' + err.message, true);
+      }
+    }
+
+    // Display Preview
+    function displayPartPreview(part) {
+      document.getElementById('previewPlaceholder').style.display = 'none';
+      const pill = document.getElementById('partPreviewPill');
+      pill.style.display = 'flex';
+
+      document.getElementById('previewPartName').innerText = part.part_name;
+      document.getElementById('previewSku').innerText = part.sku || 'N/A';
+      document.getElementById('previewBin').innerText = part.bin_location || 'Unassigned';
+      document.getElementById('previewStock').innerText = `${part.current_stock} ${part.unit_of_measure_display}`;
+      document.getElementById('previewPrice').innerText = `₹${part.default_unit_price.toFixed(2)}`;
+      document.getElementById('previewDepot').innerText = part.base_depot;
+      document.getElementById('previewCritical').innerText = part.is_critical_part ? 'YES ⚠️' : 'No';
+
+      const statusBadge = document.getElementById('previewStockStatus');
+      if (part.is_out_of_stock) {
+        statusBadge.className = 'badge badge-urgent';
+        statusBadge.innerText = 'OUT OF STOCK';
+        document.getElementById('btnConfirmCheckout').disabled = true;
+      } else if (part.is_low_stock) {
+        statusBadge.className = 'badge badge-high';
+        statusBadge.innerText = 'LOW STOCK';
+        document.getElementById('btnConfirmCheckout').disabled = false;
+      } else {
+        statusBadge.className = 'badge badge-completed';
+        statusBadge.innerText = 'IN STOCK';
+        document.getElementById('btnConfirmCheckout').disabled = false;
+      }
+    }
+
+    // Execute Part Checkout
+    async function executePartCheckout() {
+      if (!ACTIVE_JC_ID) {
+        showToast('Please select or create an active Job Card first.', true);
+        return;
+      }
+      if (!currentScannedPart) {
+        showToast('Please scan or lookup a part first.', true);
+        return;
+      }
+
+      const qty = parseInt(document.getElementById('checkoutQty').value) || 1;
+      const barcodeScanned = document.getElementById('barcodeInput').value.trim();
+
+      try {
+        const res = await fetch('/maintenance/api/parts/checkout/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({
+            job_card_id: ACTIVE_JC_ID,
+            part_id: currentScannedPart.id,
+            quantity: qty,
+            checkout_mode: 'camera_qr',
+            barcode_scanned: barcodeScanned
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          // Refresh page to sync full table & financials
+          setTimeout(() => { window.location.reload(); }, 800);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Checkout failed: ' + err.message, true);
+      }
+    }
+
+    // Advance Job Card Status
+    async function advanceJobCardStatus(jcId, newStatus) {
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/status/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 600);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Status update failed: ' + err.message, true);
+      }
+    }
+
+    // Update Labor Charges
+    async function updateLaborCharges(jcId) {
+      const amt = document.getElementById('laborChargesInput').value;
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/status/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ labor_charges: amt })
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('grandTotalDisplay').innerText = `₹${data.grand_total.toFixed(2)}`;
+          showToast('Labor charges updated.');
+        }
+      } catch (err) {
+        showToast('Failed to update labor: ' + err.message, true);
+      }
+    }
+
+    // Create Job Card
+    async function submitCreateJobCard() {
+      const vehId = document.getElementById('newJcVehicle').value;
+      const type = document.getElementById('newJcType').value;
+      const priority = document.getElementById('newJcPriority').value;
+      const bay = document.getElementById('newJcBay').value;
+      const mechanic = document.getElementById('newJcMechanic').value;
+      const desc = document.getElementById('newJcDesc').value;
+      const labor = document.getElementById('newJcLabor').value;
+      const depot = document.getElementById('newJcDepot').value;
+
+      try {
+        const res = await fetch('/maintenance/api/job-card/create/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({
+            vehicle_id: vehId,
+            service_type: type,
+            priority: priority,
+            bay_number: bay,
+            mechanic_name: mechanic,
+            description: desc,
+            labor_charges: labor,
+            base_depot: depot
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('newJobCardModal');
+          window.location.href = `?job_card_id=${data.job_card_id}`;
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Error creating job card: ' + err.message, true);
+      }
+    }
+
+    // Submit Quick Restock
+    async function submitQuickRestock() {
+      const partId = document.getElementById('restockPartId').value;
+      const qty = document.getElementById('restockQty').value;
+
+      try {
+        const res = await fetch('/maintenance/api/parts/restock/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ part_id: partId, quantity: qty })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('quickRestockModal');
+          setTimeout(() => { window.location.reload(); }, 800);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Restock failed: ' + err.message, true);
+      }
+    }
+
+    // Optional Camera Barcode Scanner
+    let videoStream = null;
+    async function toggleCameraScanner() {
+      const container = document.getElementById('scanner-video-container');
+      const video = document.getElementById('scanner-video');
+
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+        container.style.display = 'none';
+        return;
+      }
+
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        video.srcObject = videoStream;
+        video.play();
+        container.style.display = 'block';
+
+        // Check BarcodeDetector API support
+        if ('BarcodeDetector' in window) {
+          const barcodeDetector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13'] });
+          const scanInterval = setInterval(async () => {
+            if (!videoStream) { clearInterval(scanInterval); return; }
+            try {
+              const barcodes = await barcodeDetector.detect(video);
+              if (barcodes.length > 0) {
+                const code = barcodes[0].rawValue;
+                document.getElementById('barcodeInput').value = code;
+                toggleCameraScanner();
+                lookupPart();
+                clearInterval(scanInterval);
+              }
+            } catch (e) {}
+          }, 400);
+        } else {
+          showToast('Camera active. Point at barcode and type SKU or press enter.', false);
+        }
+      } catch (err) {
+        showToast('Camera access denied or unavailable: ' + err.message, true);
+      }
+    }
+  </script>
+</body>
+</html>

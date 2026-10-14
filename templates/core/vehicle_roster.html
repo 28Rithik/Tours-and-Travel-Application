@@ -1,0 +1,950 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Fleet Assets &amp; Vehicles Studio | TravelERP{% endblock %}
+{% block header_title %}Fleet Assets & Operational Vehicles Roster{% endblock %}
+
+{% block content %}
+<style>
+  .fleet-roster-container {
+    padding: 0 0 32px 0;
+  }
+  
+  .roster-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f766e 100%);
+    border-radius: 14px;
+    padding: 26px 32px;
+    color: #ffffff;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .roster-hero h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .roster-hero p {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 13.5px;
+  }
+  .roster-hero .actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .kpi-deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  }
+  .kpi-card .kpi-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .kpi-card .kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+
+  .controls-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .filter-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .filter-pill:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .filter-pill.active {
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
+    box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
+  }
+  
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 13.5px;
+    outline: none;
+    min-width: 240px;
+  }
+  .search-input:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  }
+  
+  .table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .vehicle-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .vehicle-table th {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .vehicle-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #1e293b;
+  }
+  .vehicle-table tr:hover td {
+    background: #fbfcfe;
+  }
+  
+  .reg-badge {
+    font-family: 'Space Grotesk', monospace;
+    font-weight: 800;
+    font-size: 14px;
+    background: #fef08a;
+    color: #713f12;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #fde047;
+    letter-spacing: 0.05em;
+    display: inline-block;
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+  .status-available { background: #dcfce7; color: #15803d; }
+  .status-on_trip { background: #dbeafe; color: #1d4ed8; }
+  .status-maintenance, .status-in_shop { background: #ffedd5; color: #c2410c; }
+  .status-inactive { background: #f1f5f9; color: #64748b; }
+  
+  .btn-primary {
+    background: #0f766e;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 13.5px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease;
+    text-decoration: none;
+  }
+  .btn-primary:hover {
+    background: #115e59;
+    color: #ffffff;
+  }
+  .btn-outline {
+    background: transparent;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid #475569;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: #94a3b8;
+  }
+  
+  .toggle-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .toggle-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+  
+  /* Modal Overlay */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-box {
+    background: #ffffff;
+    border-radius: 16px;
+    max-width: 760px;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 28px;
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  .modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #64748b;
+  }
+  
+  /* Tab Strip inside Modal */
+  .modal-tab-strip {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  .modal-tab-btn {
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .modal-tab-btn.active {
+    background: #0f766e;
+    color: #ffffff;
+    border-color: #0f766e;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.3);
+  }
+
+  .form-tab-pane {
+    display: none;
+  }
+  .form-tab-pane.active {
+    display: block;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .form-group.full-width {
+    grid-column: span 2;
+  }
+  .form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+  }
+  .form-group input, .form-group select {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  }
+  .checkbox-cluster {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-top: 6px;
+  }
+  .checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 18px;
+    margin-top: 24px;
+  }
+  
+  .compliance-pill {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  .compliance-ok { background: #dcfce7; color: #166534; }
+  .compliance-warn { background: #fef9c3; color: #854d0e; }
+  .compliance-miss { background: #f1f5f9; color: #64748b; }
+</style>
+
+<div class="fleet-roster-container">
+
+  <!-- Flash Messages -->
+  {% if messages %}
+  <div style="margin-bottom: 18px;">
+    {% for msg in messages %}
+    <div style="padding: 12px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600; margin-bottom: 8px; {% if msg.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;{% else %}background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Hero Header -->
+  <div class="roster-hero">
+    <div>
+      <h1><span>🚛</span> Fleet Assets & Vehicles Studio</h1>
+      <p>Operational hub for Sivagayathiri TravelERP fleet assets • Depot Scoped: <strong>{{ current_depot|default:"All Depots" }}</strong></p>
+    </div>
+    <div class="actions-group">
+      {% if is_superuser %}
+      <a href="/admin/core/vehicle/" class="btn-outline" title="Open in raw Django Admin">
+        ⚙️ Raw Admin ↗
+      </a>
+      {% endif %}
+      <a href="{% url 'fleet-live' %}" class="btn-outline">
+        🛰️ Live Radar
+      </a>
+      <a href="{% url 'maintenance:tire_studio' %}" class="btn-outline">
+        🛞 Tire Studio
+      </a>
+      <a href="{% url 'maintenance:compliance_dashboard' %}" class="btn-outline">
+        🛡️ RTO Compliance
+      </a>
+      <button type="button" class="btn-primary" onclick="openAddVehicleModal()">
+        <span>➕</span> Register Vehicle
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Deck -->
+  <div class="kpi-deck">
+    <div class="kpi-card">
+      <div class="kpi-label"><span>🚚</span> Total Fleet</div>
+      <div class="kpi-val">{{ counts.total }}</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #16a34a;">
+      <div class="kpi-label" style="color: #16a34a;"><span>🟢</span> Available Ready</div>
+      <div class="kpi-val">{{ counts.available }}</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #2563eb;">
+      <div class="kpi-label" style="color: #2563eb;"><span>🔵</span> On Active Trip</div>
+      <div class="kpi-val">{{ counts.on_trip }}</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #ea580c;">
+      <div class="kpi-label" style="color: #ea580c;"><span>🟠</span> In Maintenance</div>
+      <div class="kpi-val">{{ counts.maintenance }}</div>
+    </div>
+    <div class="kpi-card" style="border-left: 4px solid #64748b;">
+      <div class="kpi-label" style="color: #64748b;"><span>⚫</span> Standby / Inactive</div>
+      <div class="kpi-val">{{ counts.inactive }}</div>
+    </div>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <div class="filter-pills">
+      <a href="?status=all{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'all' %}active{% endif %}">
+        All Assets ({{ counts.total }})
+      </a>
+      <a href="?status=available{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'available' %}active{% endif %}">
+        🟢 Available ({{ counts.available }})
+      </a>
+      <a href="?status=on_trip{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'on_trip' %}active{% endif %}">
+        🔵 On Trip ({{ counts.on_trip }})
+      </a>
+      <a href="?status=maintenance{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'maintenance' %}active{% endif %}">
+        🟠 In Workshop ({{ counts.maintenance }})
+      </a>
+      <a href="?status=inactive{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'inactive' %}active{% endif %}">
+        ⚫ Inactive ({{ counts.inactive }})
+      </a>
+    </div>
+
+    <form method="GET" class="search-form">
+      <input type="hidden" name="status" value="{{ current_status }}">
+      {% if current_depot %}
+      <input type="hidden" name="depot" value="{{ current_depot }}">
+      {% endif %}
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Search registration, model, driver..." class="search-input">
+      <button type="submit" class="btn-primary" style="padding: 7px 12px;">🔍</button>
+      {% if search_query %}
+      <a href="?status={{ current_status }}{% if current_depot %}&depot={{ current_depot }}{% endif %}" class="filter-pill" style="padding: 6px 10px;">✕ Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Vehicle Table -->
+  <div class="table-card">
+    <table class="vehicle-table">
+      <thead>
+        <tr>
+          <th>Reg. Plate</th>
+          <th>Vehicle &amp; Specs</th>
+          <th>RTO &amp; FASTag</th>
+          <th>Depot &amp; Chauffeur</th>
+          <th>Odometer</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in vehicles %}
+        <tr id="vehicle-row-{{ v.id }}">
+          <td>
+            <span class="reg-badge">{{ v.registration_number }}</span>
+            <div style="font-size: 11px; color: #64748b; margin-top: 3px;">
+              {{ v.get_ownership_type_display|default:v.ownership_type|title }}
+            </div>
+          </td>
+          <td>
+            <div style="font-weight: 700; color: #0f172a;">{{ v.brand }} {{ v.model }}</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+              {{ v.vehicle_type.name|default:"Coach" }} • {{ v.seating_capacity }} Seats • {{ v.get_fuel_type_display|title }}
+              {% if v.has_ac %}<span style="color: #0284c7; font-weight: 700; margin-left: 4px;">❄️ AC</span>{% endif %}
+              {% if v.has_air_suspension %}<span style="color: #10b981; font-weight: 700; margin-left: 4px;">🛞 Air Susp</span>{% endif %}
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div>
+                {% if v.fc_expiry %}
+                <span class="compliance-pill compliance-ok">FC: {{ v.fc_expiry|date:"d/m/Y" }}</span>
+                {% else %}
+                <span class="compliance-pill compliance-miss">No FC date</span>
+                {% endif %}
+                {% if v.insurance_expiry %}
+                <span class="compliance-pill compliance-ok">Ins: {{ v.insurance_expiry|date:"d/m/Y" }}</span>
+                {% endif %}
+              </div>
+              <div style="font-size: 11px; color: #64748b; font-family: monospace;">
+                FASTag: {{ v.fastag_id|default:"Not linked" }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-weight: 600; color: #334155;">{{ v.base_depot }}</div>
+            {% if v.default_driver %}
+            <div style="font-size: 12px; color: #0f766e; margin-top: 2px;">
+              👨‍✈️ {{ v.default_driver.name }}
+            </div>
+            {% else %}
+            <span style="font-size: 11.5px; color: #94a3b8; font-style: italic;">Chauffeur Unassigned</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="font-weight: 700; font-family: monospace; font-size: 13.5px;">{{ v.current_km|default:0 }} KM</div>
+            {% if v.next_service_due_km %}
+            <div style="font-size: 11px; color: #c2410c;">Service @ {{ v.next_service_due_km }} KM</div>
+            {% endif %}
+          </td>
+          <td>
+            <span id="badge-{{ v.id }}" class="status-badge status-{{ v.status }}">
+              {% if v.status == 'available' %}🟢 Available
+              {% elif v.status == 'on_trip' %}🔵 On Trip
+              {% elif v.status == 'maintenance' or v.status == 'in_shop' %}🟠 In Workshop
+              {% else %}⚫ {{ v.get_status_display }}
+              {% endif %}
+            </span>
+          </td>
+          <td>
+            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+              {% if v.status != 'on_trip' %}
+              <button type="button" class="toggle-btn" onclick="toggleVehicleStatus({{ v.id }})" id="btn-toggle-{{ v.id }}" title="Toggle between Available and Workshop">
+                {% if v.status == 'available' %}🔧 Workshop{% else %}✅ Ready{% endif %}
+              </button>
+              {% else %}
+              <a href="{% url 'fleet-live' %}" class="toggle-btn" style="text-decoration: none; color: #1d4ed8;">
+                🛰️ Track
+              </a>
+              {% endif %}
+
+              <!-- 1-Click Enrich / Edit Specs Modal Trigger -->
+              <button type="button" class="toggle-btn" style="color: #0f766e; font-weight: 700;" onclick='openEditVehicleModal({
+                id: {{ v.id }},
+                registration_number: "{{ v.registration_number }}",
+                brand: "{{ v.brand }}",
+                model: "{{ v.model }}",
+                vehicle_type: "{{ v.vehicle_type_id|default:'' }}",
+                seating_capacity: {{ v.seating_capacity }},
+                base_depot: "{{ v.base_depot }}",
+                ownership_type: "{{ v.ownership_type }}",
+                fuel_type: "{{ v.fuel_type }}",
+                current_km: {{ v.current_km|default:0 }},
+                default_driver: "{{ v.default_driver_id|default:'' }}",
+                rc_expiry: "{{ v.rc_expiry|date:'Y-m-d'|default:'' }}",
+                fc_expiry: "{{ v.fc_expiry|date:'Y-m-d'|default:'' }}",
+                insurance_expiry: "{{ v.insurance_expiry|date:'Y-m-d'|default:'' }}",
+                permit_expiry: "{{ v.permit_expiry|date:'Y-m-d'|default:'' }}",
+                pollution_expiry: "{{ v.pollution_expiry|date:'Y-m-d'|default:'' }}",
+                fastag_id: "{{ v.fastag_id|default:'' }}",
+                gps_imei: "{{ v.gps_imei|default:'' }}",
+                insurance_provider: "{{ v.insurance_provider|default:'' }}",
+                insurance_policy_number: "{{ v.insurance_policy_number|default:'' }}",
+                engine_number: "{{ v.engine_number|default:'' }}",
+                chassis_number: "{{ v.chassis_number|default:'' }}",
+                has_ac: {% if v.has_ac %}true{% else %}false{% endif %},
+                has_air_suspension: {% if v.has_air_suspension %}true{% else %}false{% endif %},
+                is_sleeper: {% if v.is_sleeper %}true{% else %}false{% endif %},
+                fuel_tank_capacity: "{{ v.fuel_tank_capacity|default:'' }}",
+                def_capacity: "{{ v.def_capacity|default:'' }}",
+                next_service_due_km: "{{ v.next_service_due_km|default:'' }}"
+              })' title="Enrich RTO Compliance, Specs & FASTag">
+                ✏️ Enrich
+              </button>
+
+              {% if is_superuser %}
+              <a href="/admin/core/vehicle/{{ v.id }}/change/" class="toggle-btn" title="Open in raw Django Admin" style="color: #64748b; text-decoration: none;">
+                ⚙️
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px 16px; color: #64748b;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🚛</div>
+            <div style="font-size: 15px; font-weight: 600;">No fleet vehicles match the current criteria.</div>
+            <div style="font-size: 13px; margin-top: 4px;">Try clearing filters or click "+ Register Vehicle" to add a new coach or car.</div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Modal: Register & Enrich Fleet Vehicle (Tabbed Studio) -->
+<div id="addVehicleModal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle"><span>➕</span> Register New Fleet Vehicle</h3>
+      <button type="button" class="close-btn" onclick="closeAddVehicleModal()">✕</button>
+    </div>
+
+    <!-- Tab Strip -->
+    <div class="modal-tab-strip">
+      <button type="button" class="modal-tab-btn active" onclick="switchModalTab('tab-core')">
+        🚚 1. Operational Profile
+      </button>
+      <button type="button" class="modal-tab-btn" onclick="switchModalTab('tab-rto')">
+        🛡️ 2. RTO Compliance &amp; FASTag
+      </button>
+      <button type="button" class="modal-tab-btn" onclick="switchModalTab('tab-specs')">
+        🔧 3. Specs &amp; Amenities
+      </button>
+    </div>
+
+    <form method="POST" action="{% url 'fleet-vehicles-roster' %}" id="vehicleForm">
+      {% csrf_token %}
+      <input type="hidden" name="action" id="formAction" value="add_vehicle">
+      <input type="hidden" name="vehicle_id" id="formVehicleId" value="">
+
+      <!-- Tab 1: Operational Core -->
+      <div id="tab-core" class="form-tab-pane active">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Registration Plate Number *</label>
+            <input type="text" name="registration_number" id="field_reg" placeholder="e.g. TN-38-BZ-4411" required style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label>Brand / Make *</label>
+            <input type="text" name="brand" id="field_brand" placeholder="e.g. BharatBenz, Toyota, Tata" required>
+          </div>
+          <div class="form-group">
+            <label>Model Name *</label>
+            <input type="text" name="model" id="field_model" placeholder="e.g. Glider 12M, Innova Crysta" required>
+          </div>
+          <div class="form-group">
+            <label>Vehicle Classification Type</label>
+            <select name="vehicle_type" id="field_vtype">
+              <option value="">-- Select Type --</option>
+              {% for vt in vehicle_types %}
+              <option value="{{ vt.id }}">{{ vt.name }} ({{ vt.seating_capacity }} Pax)</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Seating Passenger Capacity *</label>
+            <input type="number" name="seating_capacity" id="field_capacity" value="7" min="1" max="65" required>
+          </div>
+          <div class="form-group">
+            <label>Base Depot / Operational Hub *</label>
+            <select name="base_depot" id="field_depot" required>
+              {% for code, label in depot_choices %}
+              <option value="{{ code }}" {% if current_depot == code %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fleet Ownership Model</label>
+            <select name="ownership_type" id="field_ownership">
+              <option value="owned" selected>Owned Fleet Asset</option>
+              <option value="outsourced">Outsourced / Attached Contractor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fuel Type</label>
+            <select name="fuel_type" id="field_fuel">
+              <option value="diesel" selected>Diesel</option>
+              <option value="petrol">Petrol</option>
+              <option value="electric">Electric (EV)</option>
+              <option value="cng">CNG</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Current Odometer Reading (KM)</label>
+            <input type="number" name="current_km" id="field_km" value="0" min="0">
+          </div>
+          <div class="form-group">
+            <label>Default Assigned Chauffeur</label>
+            <select name="default_driver" id="field_driver">
+              <option value="">-- Pool Driver (Unassigned) --</option>
+              {% for drv in drivers %}
+              <option value="{{ drv.id }}">{{ drv.name }} ({{ drv.base_depot }})</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: RTO Compliance, Fastag & Legal -->
+      <div id="tab-rto" class="form-tab-pane">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fitness Certificate (FC) Expiry Date</label>
+            <input type="date" name="fc_expiry" id="field_fc">
+          </div>
+          <div class="form-group">
+            <label>RC Registration Expiry Date</label>
+            <input type="date" name="rc_expiry" id="field_rc">
+          </div>
+          <div class="form-group">
+            <label>Comprehensive Insurance Expiry Date</label>
+            <input type="date" name="insurance_expiry" id="field_ins_exp">
+          </div>
+          <div class="form-group">
+            <label>All India / State Tourist Permit Expiry</label>
+            <input type="date" name="permit_expiry" id="field_permit">
+          </div>
+          <div class="form-group">
+            <label>Pollution (PUC) Expiry Date</label>
+            <input type="date" name="pollution_expiry" id="field_puc">
+          </div>
+          <div class="form-group">
+            <label>Electronic FASTag Barcode / Wallet ID</label>
+            <input type="text" name="fastag_id" id="field_fastag" placeholder="e.g. 607417-002-998811">
+          </div>
+          <div class="form-group">
+            <label>AIS-140 GPS Device IMEI Number</label>
+            <input type="text" name="gps_imei" id="field_gps" placeholder="e.g. 864209040123456">
+          </div>
+          <div class="form-group">
+            <label>Insurance Provider Name</label>
+            <input type="text" name="insurance_provider" id="field_insprov" placeholder="e.g. Tata AIG, ICICI Lombard">
+          </div>
+          <div class="form-group full-width">
+            <label>Insurance Policy Number</label>
+            <input type="text" name="insurance_policy_number" id="field_inspol" placeholder="e.g. POL-SGT-2026-99014">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Mechanical Specs & Passenger Amenities -->
+      <div id="tab-specs" class="form-tab-pane">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Diesel / Fuel Tank Capacity (Liters)</label>
+            <input type="number" name="fuel_tank_capacity" id="field_fuel_tank" placeholder="e.g. 260 Liters">
+          </div>
+          <div class="form-group">
+            <label>DEF (AdBlue) Tank Capacity (Liters)</label>
+            <input type="number" name="def_capacity" id="field_def_cap" placeholder="e.g. 40 Liters">
+          </div>
+          <div class="form-group">
+            <label>Next Preventive Service Due (KM)</label>
+            <input type="number" name="next_service_due_km" id="field_next_srv" placeholder="e.g. 50000 KM">
+          </div>
+          <div class="form-group">
+            <label>Engine Serial Number</label>
+            <input type="text" name="engine_number" id="field_eng" placeholder="e.g. OM924LA-9921">
+          </div>
+          <div class="form-group full-width">
+            <label>Chassis Frame VIN Number</label>
+            <input type="text" name="chassis_number" id="field_chas" placeholder="e.g. MB9GL12M-2026-00441">
+          </div>
+          <div class="form-group full-width">
+            <label>Comfort Amenities Available</label>
+            <div class="checkbox-cluster">
+              <label class="checkbox-label">
+                <input type="checkbox" name="has_ac" id="field_has_ac"> ❄️ High-Capacity AC
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="has_air_suspension" id="field_has_susp"> 🛞 Air Suspension Comfort
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="is_sleeper" id="field_is_sleeper"> 🛏️ Pushback / Sleeper Berths
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" style="color: #475569; border-color: #cbd5e1;" onclick="closeAddVehicleModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="btnSubmitModal">
+          <span>💾</span> Save Specifications
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function switchModalTab(tabId) {
+    document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.form-tab-pane').forEach(pane => pane.classList.remove('active'));
+
+    const activeBtn = Array.from(document.querySelectorAll('.modal-tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+    if (activeBtn) activeBtn.classList.add('active');
+    
+    const targetPane = document.getElementById(tabId);
+    if (targetPane) targetPane.classList.add('active');
+  }
+
+  function openAddVehicleModal() {
+    document.getElementById('modalTitle').innerHTML = '<span>➕</span> Register New Fleet Vehicle';
+    document.getElementById('formAction').value = 'add_vehicle';
+    document.getElementById('formVehicleId').value = '';
+    document.getElementById('btnSubmitModal').innerHTML = '<span>💾</span> Save &amp; Register Vehicle';
+
+    // Reset fields
+    document.getElementById('vehicleForm').reset();
+    document.getElementById('field_capacity').value = 7;
+    document.getElementById('field_km').value = 0;
+
+    switchModalTab('tab-core');
+    document.getElementById('addVehicleModal').style.display = 'flex';
+  }
+
+  function openEditVehicleModal(data) {
+    document.getElementById('modalTitle').innerHTML = `<span>✏️</span> Enrich Specs: ${data.registration_number}`;
+    document.getElementById('formAction').value = 'edit_vehicle';
+    document.getElementById('formVehicleId').value = data.id;
+    document.getElementById('btnSubmitModal').innerHTML = '<span>💾</span> Update Specifications';
+
+    // Populate fields
+    document.getElementById('field_reg').value = data.registration_number || '';
+    document.getElementById('field_brand').value = data.brand || '';
+    document.getElementById('field_model').value = data.model || '';
+    document.getElementById('field_vtype').value = data.vehicle_type || '';
+    document.getElementById('field_capacity').value = data.seating_capacity || 7;
+    document.getElementById('field_depot').value = data.base_depot || '';
+    document.getElementById('field_ownership').value = data.ownership_type || 'owned';
+    document.getElementById('field_fuel').value = data.fuel_type || 'diesel';
+    document.getElementById('field_km').value = data.current_km || 0;
+    document.getElementById('field_driver').value = data.default_driver || '';
+
+    // RTO & Compliance
+    document.getElementById('field_fc').value = data.fc_expiry || '';
+    document.getElementById('field_rc').value = data.rc_expiry || '';
+    document.getElementById('field_ins_exp').value = data.insurance_expiry || '';
+    document.getElementById('field_permit').value = data.permit_expiry || '';
+    document.getElementById('field_puc').value = data.pollution_expiry || '';
+    document.getElementById('field_fastag').value = data.fastag_id || '';
+    document.getElementById('field_gps').value = data.gps_imei || '';
+    document.getElementById('field_insprov').value = data.insurance_provider || '';
+    document.getElementById('field_inspol').value = data.insurance_policy_number || '';
+
+    // Specs & Amenities
+    document.getElementById('field_fuel_tank').value = data.fuel_tank_capacity || '';
+    document.getElementById('field_def_cap').value = data.def_capacity || '';
+    document.getElementById('field_next_srv').value = data.next_service_due_km || '';
+    document.getElementById('field_eng').value = data.engine_number || '';
+    document.getElementById('field_chas').value = data.chassis_number || '';
+    document.getElementById('field_has_ac').checked = Boolean(data.has_ac);
+    document.getElementById('field_has_susp').checked = Boolean(data.has_air_suspension);
+    document.getElementById('field_is_sleeper').checked = Boolean(data.is_sleeper);
+
+    switchModalTab('tab-core');
+    document.getElementById('addVehicleModal').style.display = 'flex';
+  }
+
+  function closeAddVehicleModal() {
+    document.getElementById('addVehicleModal').style.display = 'none';
+  }
+  
+  // Close on escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAddVehicleModal();
+  });
+
+  // Toggle vehicle availability live
+  async function toggleVehicleStatus(vehicleId) {
+    const btn = document.getElementById(`btn-toggle-${vehicleId}`);
+    const badge = document.getElementById(`badge-${vehicleId}`);
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = 'Updating...';
+
+    try {
+      const response = await fetch(`/api/fleet/vehicles/${vehicleId}/toggle-status/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      });
+      const data = await response.json();
+      
+      if (response.ok && data.status === 'success') {
+        if (data.new_status === 'available') {
+          badge.className = 'status-badge status-available';
+          badge.innerHTML = '🟢 Available';
+          btn.innerText = '🔧 Workshop';
+        } else {
+          badge.className = 'status-badge status-maintenance';
+          badge.innerHTML = '🟠 In Workshop';
+          btn.innerText = '✅ Ready';
+        }
+      } else {
+        alert(data.message || 'Failed to update vehicle status.');
+        btn.innerText = originalText;
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while toggling vehicle status.');
+      btn.innerText = originalText;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+</script>
+{% endblock %}

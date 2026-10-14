@@ -1186,14 +1186,20 @@ class QuotationAdmin(ModelAdmin):
                 'total_quoted_price',
             )
         }),
-        ('3. Scope, Inclusions & Exclusions', {
+        ('3. 3-Tier Brochure Pricing & Theme', {
+            'fields': (
+                ('tier_standard_price', 'tier_deluxe_price', 'tier_luxury_price'),
+                ('brochure_cover_theme', 'proposal_token'),
+            )
+        }),
+        ('4. Scope, Inclusions & Exclusions', {
             'fields': (
                 'inclusions',
                 'exclusions',
                 'terms_conditions',
             )
         }),
-        ('4. System Conversion Tracking', {
+        ('5. System Conversion Tracking', {
             'fields': (
                 'booking',
                 ('created_by', 'created_at', 'updated_at'),
@@ -1253,9 +1259,12 @@ class QuotationAdmin(ModelAdmin):
     @admin.display(description='Actions')
     def actions_display(self, obj):
         return format_html(
-            '<a href="/crm/quotations/{}/preview/" target="_blank" class="button" style="padding: 3px 8px; font-size: 11px; background: #0284c7; color: #fff; border-radius: 4px; text-decoration: none;">'
-            '👁️ Preview</a>',
-            obj.id
+            '<div style="display: flex; gap: 4px; align-items: center;">'
+            '<a href="/crm/quotations/{}/preview/" target="_blank" class="button" style="padding: 2px 7px; font-size: 10px; background: #0284c7; color: #fff; border-radius: 4px; text-decoration: none;">👁️ Preview</a>'
+            '<a href="/crm/quotations/{}/brochure/pdf/" target="_blank" class="button" style="padding: 2px 7px; font-size: 10px; background: #0d5c58; color: #fff; border-radius: 4px; text-decoration: none;">📥 Brochure PDF</a>'
+            '<a href="/crm/quotations/{}/brochure/preview/" target="_blank" class="button" style="padding: 2px 7px; font-size: 10px; background: #475569; color: #fff; border-radius: 4px; text-decoration: none;">🎨 Studio</a>'
+            '</div>',
+            obj.id, obj.id, obj.id
         )
 
     @admin.action(description="⚡ Recalculate totals from line items")

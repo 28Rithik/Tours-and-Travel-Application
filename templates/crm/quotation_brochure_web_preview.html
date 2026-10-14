@@ -1,0 +1,629 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Luxury Brochure • {{ q.quotation_number }} | Sivagayathiri Travels{% endblock %}
+{% block header_title %}Luxury Tour Proposal Brochure (Interactive Preview){% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --primary-teal: #0d5c58;
+    --primary-teal-dark: #094441;
+    --accent-gold: #d97706;
+    --bg-light: #f8fafc;
+    --border-subtle: #e2e8f0;
+    --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  }
+
+  .brochure-control-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    position: sticky;
+    top: 70px;
+    z-index: 40;
+  }
+
+  .btn-brochure-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+  .btn-download-pdf {
+    background: linear-gradient(135deg, #0d5c58 0%, #157e79 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(13, 92, 88, 0.25);
+  }
+  .btn-download-pdf:hover {
+    background: linear-gradient(135deg, #094441 0%, #0d5c58 100%);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+  .btn-share-wa {
+    background: #25d366;
+    color: #ffffff;
+  }
+  .btn-share-wa:hover {
+    background: #1ebe57;
+    color: #ffffff;
+  }
+  .btn-outline-back {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+  }
+  .btn-outline-back:hover {
+    background: #e2e8f0;
+  }
+
+  /* Paper Container simulating physical A4 pages */
+  .a4-preview-canvas {
+    max-width: 860px;
+    margin: 0 auto 50px auto;
+  }
+
+  .a4-page-sheet {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+    padding: 44px 48px;
+    margin-bottom: 30px;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    line-height: 1.55;
+  }
+
+  /* Header Brand */
+  .brochure-brand-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2.5px solid var(--primary-teal);
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+  }
+  .gold-accent-line {
+    height: 3px;
+    background: linear-gradient(90deg, #d97706 0%, #fbbf24 60%, transparent 100%);
+    margin-top: -16px;
+    margin-bottom: 20px;
+  }
+
+  .brand-company-title {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--primary-teal);
+    margin: 0;
+  }
+  .brand-company-sub {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .brochure-meta-box {
+    text-align: right;
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.4;
+  }
+
+  /* Hero Card */
+  .hero-proposal-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .hero-badge-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    color: #b45309;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .hero-title-main {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+  .trip-spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    font-size: 12px;
+  }
+  .spec-item .spec-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+  .spec-item .spec-val {
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 2px;
+  }
+
+  /* 3-Tier Cards Grid */
+  .tiers-comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 20px 0 28px 0;
+  }
+  .tier-card {
+    border: 1.5px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 16px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    transition: transform 0.15s ease;
+  }
+  .tier-card.recommended {
+    border-color: var(--primary-teal);
+    background: #f0fdf4;
+    box-shadow: 0 4px 14px rgba(13, 92, 88, 0.1);
+  }
+  .tier-rec-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-teal);
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 99px;
+    text-transform: uppercase;
+  }
+  .tier-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 4px;
+  }
+  .tier-price-box {
+    margin: 12px 0;
+  }
+  .tier-price-val {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--primary-teal);
+  }
+  .tier-per-pax {
+    font-size: 10px;
+    color: #64748b;
+  }
+  .tier-perks-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 11px;
+    color: #334155;
+    line-height: 1.45;
+  }
+  .tier-perks-list li {
+    margin-bottom: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Day Itinerary Block */
+  .itinerary-day-row {
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .day-row-head {
+    background: var(--primary-teal);
+    color: #ffffff;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .day-row-body {
+    padding: 14px;
+    background: #f8fafc;
+    font-size: 12px;
+  }
+  .schedule-part {
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+  }
+  .schedule-time-tag {
+    font-weight: 800;
+    color: var(--primary-teal);
+    min-width: 80px;
+  }
+  .hotel-resort-banner {
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Matrix */
+  .inc-exc-flex {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .inc-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 11px;
+    color: #166534;
+  }
+  .exc-box {
+    background: #fffbfa;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 11px;
+    color: #991b1b;
+  }
+
+  /* QR Box */
+  .upi-payment-panel {
+    background: #ffffff;
+    border: 1.5px solid var(--primary-teal);
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin: 20px 0;
+  }
+  .upi-info {
+    flex: 1;
+    font-size: 12px;
+  }
+  .qr-badge-hold {
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f8fafc;
+  }
+
+  @media print {
+    .brochure-control-panel, .sidebar, .topbar { display: none !important; }
+    .a4-page-sheet { box-shadow: none; border: none; padding: 0; margin-bottom: 0; }
+  }
+</style>
+
+<div class="brochure-control-panel no-print">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <a href="{% url 'crm:quotation_preview' quotation_id=q.id %}" class="btn-brochure-action btn-outline-back">
+      ← Back to Proposal
+    </a>
+    <div>
+      <h3 style="font-size: 15px; font-weight: 800; margin: 0; color: #0f172a;">
+        {{ q.quotation_number }} (v{{ q.version }}) • Luxury Itinerary Brochure
+      </h3>
+      <p style="font-size: 11px; color: #64748b; margin: 0;">
+        Prepared for {{ q.guest_name }} • {{ q.destination }}
+      </p>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; align-items: center;">
+    <!-- Direct PDF Download -->
+    <a href="{% url 'crm:quotation_brochure_pdf' quotation_id=q.id %}?download=1" class="btn-brochure-action btn-download-pdf">
+      📥 Download PDF Brochure
+    </a>
+
+    <!-- Inline PDF Tab -->
+    <a href="{% url 'crm:quotation_brochure_pdf' quotation_id=q.id %}" target="_blank" class="btn-brochure-action btn-outline-back">
+      👁️ Open Raw PDF Stream
+    </a>
+
+    <!-- WhatsApp Share -->
+    <button onclick="shareWhatsApp()" class="btn-brochure-action btn-share-wa">
+      📲 Share via WhatsApp
+    </button>
+  </div>
+</div>
+
+<!-- A4 Brochure Canvas Sheet -->
+<div class="a4-preview-canvas">
+
+  <!-- PAGE 1: COVER & PROPOSAL SNAPSHOT -->
+  <div class="a4-page-sheet">
+    <div class="brochure-brand-bar">
+      <div>
+        <h1 class="brand-company-title">SIVAGAYATHIRI TOURS AND TRAVELS</h1>
+        <div class="brand-company-sub">Bespoke Holiday Expeditions • Premium Chauffeur Fleet • Corporate DMC</div>
+      </div>
+      <div class="brochure-meta-box">
+        <strong>REF:</strong> {{ q.quotation_number }}<br>
+        <strong>DATE:</strong> {{ today|date:"d M Y" }}<br>
+        <strong>HQ:</strong> Coimbatore, TN
+      </div>
+    </div>
+    <div class="gold-accent-line"></div>
+
+    <div class="hero-proposal-card">
+      <span class="hero-badge-tag">★ Bespoke Private Holiday Proposal ★</span>
+      <h2 class="hero-title-main">
+        {{ q.duration_days }} DAYS / {{ q.duration_nights }} NIGHTS EXCLUSIVE {{ q.destination|upper }} EXPEDITION
+      </h2>
+
+      <div class="trip-spec-grid">
+        <div class="spec-item">
+          <div class="spec-lbl">Primary Guest</div>
+          <div class="spec-val">{{ q.guest_name }}</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-lbl">Party Size</div>
+          <div class="spec-val">{{ q.pax_count }} Travelers (Private Family/Group)</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-lbl">Travel Dates</div>
+          <div class="spec-val">{{ q.start_date|date:"d M Y" }} to {{ q.end_date|date:"d M Y" }}</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-lbl">Chauffeur Mobility</div>
+          <div class="spec-val" style="color: var(--primary-teal);">
+            {{ q.vehicle_type|default:"Toyota Innova Crysta Luxury AC" }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-Tier Sales Closer Comparison -->
+    <h3 style="font-size: 14px; font-weight: 800; color: var(--primary-teal); margin-bottom: 4px;">
+      SELECT YOUR PREFERRED HOLIDAY EXPERIENCE (3-TIER COMPARISON)
+    </h3>
+    <p style="font-size: 11px; color: #64748b; margin-bottom: 12px;">
+      Transparent fixed pricing with no hidden driver surcharges or toll surprises.
+    </p>
+
+    <div class="tiers-comparison-grid">
+      <!-- Tier 1: Comfort -->
+      <div class="tier-card">
+        <div>
+          <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">Tier 1</div>
+          <div class="tier-name">Comfort Package</div>
+          <div class="tier-price-box">
+            <div class="tier-price-val">₹{{ q.standard_tier_total|floatformat:2 }}</div>
+            <div class="tier-per-pax">₹{{ q.standard_per_pax|floatformat:2 }} / guest</div>
+          </div>
+          <ul class="tier-perks-list">
+            <li>✓ Swift Dzire / Etios AC</li>
+            <li>✓ 3-Star Premium Hotel</li>
+            <li>✓ CP Plan (Breakfast Only)</li>
+            <li>✓ Standard Sightseeing</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tier 2: Deluxe (Recommended) -->
+      <div class="tier-card recommended">
+        <div class="tier-rec-badge">Recommended ★</div>
+        <div>
+          <div style="font-size: 10px; font-weight: 800; color: var(--primary-teal); text-transform: uppercase;">Tier 2</div>
+          <div class="tier-name">Premium Deluxe</div>
+          <div class="tier-price-box">
+            <div class="tier-price-val">₹{{ q.deluxe_tier_total|floatformat:2 }}</div>
+            <div class="tier-per-pax">₹{{ q.deluxe_per_pax|floatformat:2 }} / guest</div>
+          </div>
+          <ul class="tier-perks-list">
+            <li>✓ <strong>Innova Crysta Luxury</strong></li>
+            <li>✓ <strong>4-Star Hill Resort</strong></li>
+            <li>✓ <strong>MAP Plan (Breakfast+Dinner)</strong></li>
+            <li>✓ <strong>Campfire + Boating Safari</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Tier 3: Royal Luxury -->
+      <div class="tier-card">
+        <div>
+          <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase;">Tier 3</div>
+          <div class="tier-name">Royal Luxury</div>
+          <div class="tier-price-box">
+            <div class="tier-price-val">₹{{ q.luxury_tier_total|floatformat:2 }}</div>
+            <div class="tier-per-pax">₹{{ q.luxury_per_pax|floatformat:2 }} / guest</div>
+          </div>
+          <ul class="tier-perks-list">
+            <li>✓ Urbania Executive / Benz</li>
+            <li>✓ 5-Star Heritage Palace</li>
+            <li>✓ AP Plan (All Meals Inc)</li>
+            <li>✓ Private Guide Escort</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: DAY-BY-DAY VISUAL ITINERARY -->
+  <div class="a4-page-sheet">
+    <h3 style="font-size: 15px; font-weight: 800; color: var(--primary-teal); margin-bottom: 14px;">
+      DAY-BY-DAY EXPEDITION ITINERARY
+    </h3>
+
+    {% if days %}
+      {% for d in days %}
+        <div class="itinerary-day-row">
+          <div class="day-row-head">
+            <span>DAY {{ d.day_number }}: {{ d.title|upper }}</span>
+            <span style="font-size: 10px; opacity: 0.9;">Overnight: {{ d.overnight_destination|default:q.destination }}</span>
+          </div>
+          <div class="day-row-body">
+            <div class="schedule-part">
+              <span class="schedule-time-tag">Highlights:</span>
+              <span>{{ d.description }}</span>
+            </div>
+            {% if d.hotel %}
+              <div class="hotel-resort-banner">
+                <div>
+                  <strong>🏨 {{ d.hotel.name }}</strong> ({{ d.hotel.get_star_category_display }})<br>
+                  <span style="font-size: 10px; color: #64748b;">Meal Plan: <strong>{{ d.hotel_meal_plan }} Plan</strong></span>
+                </div>
+                <span style="font-size: 11px; font-weight: 700; color: var(--primary-teal);">Confirmed Allotment</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <!-- Fallback Visual Preview -->
+      <div class="itinerary-day-row">
+        <div class="day-row-head">
+          <span>DAY 01: ARRIVAL, SCENIC GHAT ASCENT & BOTANICAL GARDENS</span>
+          <span style="font-size: 10px; opacity: 0.9;">Overnight: {{ q.destination }}</span>
+        </div>
+        <div class="day-row-body">
+          <div class="schedule-part">
+            <span class="schedule-time-tag">🌅 Morning:</span>
+            <span>Private executive pickup in sanitized luxury vehicle, scenic hill ascent with curated mountain halts.</span>
+          </div>
+          <div class="schedule-part">
+            <span class="schedule-time-tag">☀️ Afternoon:</span>
+            <span>Check-in at scenic hill resort. Visit Government Botanical Gardens and heritage rose conservatory.</span>
+          </div>
+          <div class="schedule-part">
+            <span class="schedule-time-tag">🌙 Evening:</span>
+            <span>Sunset pedal boat safari on the lake. Campfire and multi-cuisine dinner at the resort.</span>
+          </div>
+        </div>
+      </div>
+      <div class="itinerary-day-row">
+        <div class="day-row-head">
+          <span>DAY 02: PEAK VANTAGES, WATERFALLS & TEA ESTATE TASTING</span>
+          <span style="font-size: 10px; opacity: 0.9;">Overnight: {{ q.destination }}</span>
+        </div>
+        <div class="day-row-body">
+          <div class="schedule-part">
+            <span class="schedule-time-tag">🌅 Morning:</span>
+            <span>Drive to highest mountain summit for panoramic valley vistas. Factory tea brewing session.</span>
+          </div>
+          <div class="schedule-part">
+            <span class="schedule-time-tag">☀️ Afternoon:</span>
+            <span>Pykara Waterfalls excursion and speed boating. Leisurely traditional hill lunch.</span>
+          </div>
+          <div class="schedule-part">
+            <span class="schedule-time-tag">🌙 Evening:</span>
+            <span>Artisan chocolate and spice shopping. Return to resort for cozy bonfire night.</span>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Inclusions & Exclusions -->
+    <div class="inc-exc-flex">
+      <div class="inc-box">
+        <strong style="display: block; margin-bottom: 6px;">✓ 100% INCLUDED:</strong>
+        • Sanitized AC Vehicle on standby throughout<br>
+        • Uniformed Chauffeur (10+ yrs hill experience)<br>
+        • All Diesel Fuel, Fastag Electronic Tolls<br>
+        • Hill Station State Boundary Permits<br>
+        • Chauffeur Daily & Overnight Batta<br>
+        • Handpicked 4-Star Resort Accommodation
+      </div>
+      <div class="exc-box">
+        <strong style="display: block; margin-bottom: 6px;">✗ EXCLUDED:</strong>
+        • Flights or interstate train tickets<br>
+        • Personal laundry, room service, alcoholic drinks<br>
+        • Meals not designated in selected plan<br>
+        • Optional adventure activities / camera permits
+      </div>
+    </div>
+
+    <!-- Instant UPI Payment Panel -->
+    <div class="upi-payment-panel">
+      <div class="upi-info">
+        <h4 style="font-size: 14px; font-weight: 800; color: var(--primary-teal); margin-bottom: 4px;">
+          ⚡ INSTANT FLEET LOCK-IN VIA UPI
+        </h4>
+        <p style="font-size: 11px; color: #475569; margin-bottom: 6px;">
+          Lock in your preferred vehicle & chauffeur with a token advance of <strong>₹5,000</strong>.
+          Balance is payable conveniently on boarding.
+        </p>
+        <div style="font-size: 10px; color: #64748b; line-height: 1.4;">
+          <strong>Axis Bank Ltd:</strong> A/C No: 921020054321098 • IFSC: UTIB0000123 • Gandhipuram, Coimbatore
+        </div>
+      </div>
+      <div class="qr-badge-hold">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=upi://pay?pa=sivagayathiritravels@okaxis&pn=Sivagayathiri+Tours&am=5000&cu=INR" alt="UPI QR" style="width: 80px; height: 80px; display: block; margin: 0 auto;">
+        <div style="font-size: 8px; font-weight: 800; color: #475569; margin-top: 4px;">SCAN & PAY ₹5,000</div>
+      </div>
+    </div>
+
+    <!-- Sign-off Block -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #e2e8f0; padding-top: 16px; margin-top: 24px;">
+      <div>
+        <div style="font-size: 11px; font-weight: 800; color: var(--primary-teal);">SIVAGAYATHIRI TOURS AND TRAVELS</div>
+        <div style="font-size: 10px; color: #64748b;">Authorized Holiday Operations Desk • Coimbatore Hub</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 10px; color: #64748b; margin-bottom: 25px;">Client Acceptance Signature</div>
+        <div style="border-top: 1px solid #94a3b8; width: 140px; font-size: 9px; color: #475569; font-weight: 700;">{{ q.guest_name }}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  async function shareWhatsApp() {
+    try {
+      const res = await fetch("{% url 'crm:api_quotation_whatsapp_brochure' quotation_id=q.id %}");
+      const data = await res.json();
+      if (data.status === 'success') {
+        window.open(data.whatsapp_share_url, '_blank');
+      } else {
+        alert('Could not generate WhatsApp link.');
+      }
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  }
+</script>
+{% endblock %}

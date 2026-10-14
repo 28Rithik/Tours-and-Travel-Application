@@ -15,8 +15,14 @@ from core.models import Vehicle, Driver
 
 @login_required
 def booking_list(request):
-    from django.db.models import Q
+    from django.db.models import Q, Count
     from core.models import Driver, Vehicle
+    from core.depot_scoping import (
+        get_user_depot_scope, get_scoped_trips, get_scoped_bookings, get_scoped_vehicles, get_scoped_drivers
+    )
+
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
 
     search_term = request.GET.get('search', '').strip()
     current_tab = request.GET.get('tab', 'unassigned' if request.GET.get('filter') == 'unassigned' else 'all')
@@ -24,8 +30,8 @@ def booking_list(request):
     journey_filter = request.GET.get('journey_type')
     hotel_filter = request.GET.get('hotel_status')
 
-    # 1. Base Trips Query for Dispatch
-    trips_qs = Trip.objects.select_related(
+    # 1. Base Trips Query for Dispatch (Scoped by Depot)
+    trips_qs = get_scoped_trips(request.user, depot_param).select_related(
         'vehicle', 'driver', 'booking', 'party', 'vehicle__vehicle_type'
     ).order_by('-id')
 
@@ -52,22 +58,23 @@ def booking_list(request):
         # All active/recent dispatches
         trips_list = trips_qs.filter(status__in=['booked', 'assigned', 'driver_confirmed', 'started', 'completed'])
 
-    # Counters — Single aggregated query instead of 4 separate queries
-    from django.db.models import Count
-    counts = Trip.objects.aggregate(
+    # Counters — Scoped aggregate
+    counts = trips_qs.aggregate(
         unassigned_count=Count('id', filter=Q(status='booked', vehicle__isnull=True)),
         assigned_count=Count('id', filter=Q(status__in=['assigned', 'driver_confirmed'])),
         in_transit_count=Count('id', filter=Q(status='started')),
         completed_count=Count('id', filter=Q(status__in=['completed', 'billed', 'settled'])),
     )
-    unassigned_count = counts['unassigned_count']
-    assigned_count = counts['assigned_count']
-    in_transit_count = counts['in_transit_count']
-    completed_count = counts['completed_count']
+    unassigned_count = counts['unassigned_count'] or 0
+    assigned_count = counts['assigned_count'] or 0
+    in_transit_count = counts['in_transit_count'] or 0
+    completed_count = counts['completed_count'] or 0
     total_active_count = unassigned_count + assigned_count + in_transit_count
 
-    # 2. Bookings Queue with select_related to eliminate N+1 queries
-    bookings = Booking.objects.select_related('party', 'vehicle_type', 'package').order_by('-booking_date')
+    # 2. Bookings Queue with select_related (Scoped by Depot)
+    bookings = get_scoped_bookings(request.user, depot_param).select_related(
+        'party', 'vehicle_type', 'package'
+    ).order_by('-booking_date')
     if status_filter:
         bookings = bookings.filter(status=status_filter)
     if journey_filter:
@@ -79,11 +86,11 @@ def booking_list(request):
             guest_name__icontains=search_term
         ) | bookings.filter(booking_number__icontains=search_term)
 
-    pending_bookings_count = Booking.objects.filter(status='pending').count()
+    pending_bookings_count = bookings.filter(status='pending').count()
 
-    # 3. Available Resources for Fast Allocation Modal / Dropdowns
-    available_vehicles = Vehicle.objects.all().select_related('vehicle_type').order_by('registration_number')
-    available_drivers = Driver.objects.all().order_by('name')
+    # 3. Available Resources for Fast Allocation Modal / Dropdowns (Scoped by Depot)
+    available_vehicles = get_scoped_vehicles(request.user, depot_param).select_related('vehicle_type').order_by('registration_number')
+    available_drivers = get_scoped_drivers(request.user, depot_param).order_by('name')
 
     return render(request, 'operations/booking_list.html', {
         'trips': trips_list[:50],
@@ -101,6 +108,9 @@ def booking_list(request):
         'journey_filter': journey_filter,
         'hotel_filter': hotel_filter,
         'search_term': search_term,
+        'depot_scope': depot_scope,
+        'current_depot': depot_scope['effective_depot'],
+        'can_change_depot': depot_scope['can_change_depot'],
     })
 
 
@@ -620,11 +630,18 @@ def fleet_live_mission_control(request):
     """
     Renders the live interactive Leaflet.js mission control command center (standalone portal).
     """
-    vehicles = Vehicle.objects.all().select_related('vehicle_type', 'default_driver')
+    from core.depot_scoping import get_user_depot_scope, get_scoped_vehicles
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+
+    vehicles = get_scoped_vehicles(request.user, depot_param).select_related('vehicle_type', 'default_driver')
+    scoped_vehicle_ids = set(vehicles.values_list('id', flat=True))
     standby_vehicles = vehicles.filter(status='available')
     active_incidents = EmergencyIncidentAlert.objects.filter(
         status__in=['reported', 'acknowledged', 'standby_dispatched']
     ).select_related('vehicle', 'driver')
+    if depot_scope['effective_depot']:
+        active_incidents = active_incidents.filter(vehicle_id__in=scoped_vehicle_ids)
     geofences = GeofenceZone.objects.filter(is_active=True)
 
     return render(request, 'operations/fleet_live_mission_control.html', {
@@ -633,6 +650,9 @@ def fleet_live_mission_control(request):
         'active_incidents': active_incidents,
         'geofences': geofences,
         'is_admin_radar': False,
+        'depot_scope': depot_scope,
+        'current_depot': depot_scope['effective_depot'],
+        'can_change_depot': depot_scope['can_change_depot'],
     })
 
 
@@ -641,334 +661,12 @@ def api_fleet_live_feed(request):
     """
     REST endpoint returning real-time telematics, vehicle status, active alerts,
     breadcrumbs, speed gauges, active trip markers, and geofence perimeter telemetry.
+    Reuses the centralized telematics payload engine for 100% parity with WebSockets.
     """
-    now = timezone.now()
-    five_days_ago = (now - timedelta(days=5)).date()
+    from operations.telematics_broadcast import build_fleet_live_feed_payload
+    payload = build_fleet_live_feed_payload(user=request.user, depot_param=request.GET.get('depot'))
+    return JsonResponse(payload)
 
-    vehicles = Vehicle.objects.all().select_related('vehicle_type', 'default_driver')
-    active_incidents = EmergencyIncidentAlert.objects.filter(
-        status__in=['reported', 'acknowledged', 'standby_dispatched']
-    ).select_related('vehicle', 'driver')
-    incident_by_vehicle = {inc.vehicle_id: inc for inc in active_incidents}
-
-    # Open defect tickets
-    defect_vehicle_ids = set(
-        DefectTicket.objects.filter(status='open').values_list('vehicle_id', flat=True)
-    )
-
-    # Failed checklists in last 48 hours
-    two_days_ago = now - timedelta(days=2)
-    failed_checklists_vehicle_ids = set(
-        PreTripInspectionChecklist.objects.filter(
-            overall_status='failed', created_at__gte=two_days_ago
-        ).values_list('vehicle_id', flat=True)
-    )
-
-    # Active trips
-    active_trips = Trip.objects.filter(
-        status__in=['assigned', 'started']
-    ).select_related('driver', 'booking', 'vehicle')
-    trip_by_vehicle = {t.vehicle_id: t for t in active_trips if t.vehicle_id}
-
-    # Recent trips in 5 days
-    recent_trip_vehicle_ids = set(
-        Trip.objects.filter(start_date__gte=five_days_ago).values_list('vehicle_id', flat=True)
-    )
-
-    # Driver scorecards cached by driver_id
-    scorecard_by_driver = {
-        sc.driver_id: sc for sc in DriverScorecard.objects.all()
-    }
-
-    # Active Geofence Zones
-    geofences = list(GeofenceZone.objects.filter(is_active=True))
-    geofences_list = []
-    for g in geofences:
-        geofences_list.append({
-            "id": g.id,
-            "name": g.name,
-            "zone_type": g.get_zone_type_display(),
-            "zone_code": g.zone_type,
-            "lat": float(g.latitude),
-            "lng": float(g.longitude),
-            "radius": g.radius_meters,
-            "speed_limit": g.speed_limit_kmh,
-        })
-
-    # Optimized latest telematics pings lookup
-    latest_ping_ids = VehicleTelematicsPing.objects.values('vehicle_id').annotate(max_id=Max('id')).values_list('max_id', flat=True)
-    latest_pings_map = {p.vehicle_id: p for p in VehicleTelematicsPing.objects.filter(id__in=latest_ping_ids)}
-
-    vehicle_list = []
-    active_count = 0
-    standby_count = 0
-    workshop_count = 0
-    idle_count = 0
-    sos_count = 0
-    geofence_breach_count = 0
-
-    base_lat, base_lng = 11.0168, 76.9558  # Coimbatore HQ Depot
-
-    for v in vehicles:
-        incident = incident_by_vehicle.get(v.id)
-        active_trip = trip_by_vehicle.get(v.id)
-        in_workshop = (
-            v.status in ['in_shop', 'breakdown', 'maintenance'] or
-            v.id in defect_vehicle_ids or
-            v.id in failed_checklists_vehicle_ids
-        )
-        has_recent_trip = (v.id in recent_trip_vehicle_ids) or (active_trip is not None)
-
-        if incident:
-            status_code = 'sos_alert'
-            status_label = f"🔴 SOS: {incident.get_incident_type_display()}"
-            status_color = "#ef4444"
-            sos_count += 1
-        elif in_workshop:
-            status_code = 'workshop'
-            status_label = "🟠 In Workshop / Grounded"
-            status_color = "#f59e0b"
-            workshop_count += 1
-        elif active_trip:
-            status_code = 'on_trip'
-            status_label = "🟢 On Trip"
-            status_color = "#10b981"
-            active_count += 1
-        elif not has_recent_trip:
-            status_code = 'idle'
-            status_label = "⚪ Idle (>5 Days)"
-            status_color = "#94a3b8"
-            idle_count += 1
-        else:
-            status_code = 'standby'
-            status_label = "🔵 Ready Standby"
-            status_color = "#3b82f6"
-            standby_count += 1
-
-        # Telematics coordinates & gauges
-        latest_ping = latest_pings_map.get(v.id)
-        if latest_ping and latest_ping.latitude and latest_ping.longitude:
-            lat = float(latest_ping.latitude)
-            lng = float(latest_ping.longitude)
-            speed = float(latest_ping.speed_kmh)
-            heading = float(latest_ping.heading_degrees or 0.0)
-            ignition = latest_ping.ignition_on
-            fuel_pct = float(latest_ping.fuel_level_pct) if latest_ping.fuel_level_pct is not None else 72.0
-            ping_time = latest_ping.timestamp.strftime('%H:%M:%S')
-            odometer = latest_ping.odometer_km or v.current_km or 40000
-            satellites = latest_ping.satellite_count or 10
-            altitude = float(latest_ping.altitude_m or 425.0)
-        else:
-            speed = 52.0 if status_code == 'on_trip' else 0.0
-            heading = 45.0 if status_code == 'on_trip' else 0.0
-            ignition = True if status_code == 'on_trip' else False
-            fuel_pct = 75.0
-            ping_time = "Live System"
-            odometer = v.current_km or 42000
-            satellites = 9
-            altitude = 425.0
-
-            assigned_dest = active_trip.destination.lower() if active_trip and active_trip.destination else ""
-            coords_found = False
-            for place, coords in DESTINATION_COORDINATES.items():
-                if place in assigned_dest:
-                    lat = coords[0] + (((v.id * 7) % 20) - 10) * 0.002
-                    lng = coords[1] + (((v.id * 11) % 20) - 10) * 0.002
-                    coords_found = True
-                    break
-            if not coords_found:
-                lat = base_lat + (((v.id * 17) % 40) - 20) * 0.0018
-                lng = base_lng + (((v.id * 23) % 40) - 20) * 0.0018
-
-        # Breadcrumbs trail (last positions for radar trailing effect)
-        crumbs = [[lat, lng]]
-        if speed > 0:
-            h_rad = math.radians(heading)
-            for step in range(1, 4):
-                crumbs.append([
-                    round(lat - (step * 0.0012 * math.cos(h_rad)), 6),
-                    round(lng - (step * 0.0012 * math.sin(h_rad)), 6)
-                ])
-
-        # Geofence Perimeter Detection
-        geofence_status = None
-        for g in geofences:
-            dist = calculate_haversine_distance_meters(lat, lng, g.latitude, g.longitude)
-            if dist <= g.radius_meters:
-                is_speeding = speed > g.speed_limit_kmh
-                is_restricted = (g.zone_type == 'restricted_zone')
-                alert_text = (
-                    "RESTRICTED ZONE INTRUSION" if is_restricted else
-                    ("OVERSPEED IN GEOFENCE" if is_speeding else "INSIDE GEOFENCE")
-                )
-                if is_speeding or is_restricted:
-                    geofence_breach_count += 1
-
-                geofence_status = {
-                    "zone_id": g.id,
-                    "zone_name": g.name,
-                    "zone_type": g.get_zone_type_display(),
-                    "zone_code": g.zone_type,
-                    "distance_meters": round(dist, 1),
-                    "speed_limit_kmh": g.speed_limit_kmh,
-                    "is_speeding": is_speeding,
-                    "is_restricted": is_restricted,
-                    "alert_text": alert_text,
-                }
-                break
-
-        # Driver details
-        driver_obj = active_trip.driver if active_trip and active_trip.driver else v.default_driver
-        driver_info = None
-        if driver_obj:
-            sc = scorecard_by_driver.get(driver_obj.id)
-            driver_info = {
-                "id": driver_obj.id,
-                "name": driver_obj.name,
-                "phone": driver_obj.phone,
-                "grade": sc.grade if sc else "A+",
-                "safety_score": float(sc.safety_score) if sc else 98.0,
-            }
-
-        # Trip details and route geometry
-        trip_info = None
-        trip_route = None
-        if active_trip:
-            dest_str = (active_trip.destination or "").lower()
-            pickup_str = (active_trip.pickup_location or "").lower()
-
-            orig_lat, orig_lng = base_lat, base_lng
-            for place, coords in DESTINATION_COORDINATES.items():
-                if place in pickup_str:
-                    orig_lat, orig_lng = coords
-                    break
-
-            dest_lat, dest_lng = (11.4102, 76.6950)  # Default Ooty
-            for place, coords in DESTINATION_COORDINATES.items():
-                if place in dest_str:
-                    dest_lat, dest_lng = coords
-                    break
-
-            trip_info = {
-                "id": active_trip.id,
-                "booking_number": active_trip.booking.booking_number if active_trip.booking else f"TRP-{active_trip.id}",
-                "guest_name": active_trip.guest_name or "Guest Passenger",
-                "guest_phone": active_trip.booking.guest_phone if active_trip.booking else "",
-                "pickup": active_trip.pickup_location or "Coimbatore Terminal",
-                "destination": active_trip.destination or "Ooty Boat House",
-                "status": active_trip.get_status_display(),
-            }
-
-            trip_route = {
-                "trip_id": active_trip.id,
-                "booking_number": trip_info["booking_number"],
-                "origin_name": trip_info["pickup"],
-                "origin_coords": [orig_lat, orig_lng],
-                "dest_name": trip_info["destination"],
-                "dest_coords": [dest_lat, dest_lng],
-                "route_path": [
-                    [orig_lat, orig_lng],
-                    [lat, lng],
-                    [dest_lat, dest_lng]
-                ],
-                "eta_minutes": max(15, int(abs(dest_lat - lat) * 550) + 10),
-                "progress_pct": 58,
-            }
-
-        # Incident details
-        incident_info = None
-        if incident:
-            incident_info = {
-                "id": incident.id,
-                "incident_id": incident.incident_id,
-                "incident_type": incident.get_incident_type_display(),
-                "severity": incident.get_severity_display(),
-                "description": incident.description,
-                "reported_at": incident.reported_at.strftime('%H:%M'),
-            }
-
-        vehicle_list.append({
-            "id": v.id,
-            "registration_number": v.registration_number,
-            "model_name": f"{v.brand} {v.model}".strip(),
-            "vehicle_type": v.vehicle_type.name if v.vehicle_type else "Vehicle",
-            "capacity": v.seating_capacity,
-            "current_km": odometer,
-            "fuel_type": v.get_fuel_type_display() if hasattr(v, 'get_fuel_type_display') else v.fuel_type,
-            "status_code": status_code,
-            "status_label": status_label,
-            "status_color": status_color,
-            "location_name": v.current_location or "Coimbatore Operational Sector",
-            "lat": lat,
-            "lng": lng,
-            "speed_kmh": speed,
-            "heading_degrees": heading,
-            "ignition_on": ignition,
-            "fuel_level_pct": fuel_pct,
-            "satellites": satellites,
-            "altitude_m": altitude,
-            "breadcrumbs": crumbs,
-            "geofence_status": geofence_status,
-            "last_ping_time": ping_time,
-            "driver": driver_info,
-            "trip": trip_info,
-            "trip_route": trip_route,
-            "incident": incident_info,
-        })
-
-    # Recent behavior events (violations in last 24h)
-    recent_violations = []
-    since_yesterday = now - timedelta(days=1)
-    behavior_events = DriverBehaviorLog.objects.filter(
-        timestamp__gte=since_yesterday
-    ).select_related('driver', 'vehicle').order_by('-timestamp')[:15]
-    for b in behavior_events:
-        recent_violations.append({
-            "id": b.id,
-            "event_type": b.get_event_type_display(),
-            "severity": b.severity,
-            "vehicle_reg": b.vehicle.registration_number,
-            "driver_name": b.driver.name if b.driver else "N/A",
-            "speed": float(b.recorded_speed_kmh),
-            "limit": float(b.speed_limit_kmh),
-            "time": b.timestamp.strftime('%H:%M:%S'),
-        })
-
-    # Active incidents list
-    incidents_list = []
-    for inc in active_incidents:
-        incidents_list.append({
-            "id": inc.id,
-            "incident_id": inc.incident_id,
-            "vehicle_reg": inc.vehicle.registration_number,
-            "driver_name": inc.driver.name if inc.driver else "Unassigned",
-            "incident_type": inc.get_incident_type_display(),
-            "severity": inc.severity,
-            "status": inc.get_status_display(),
-            "location": inc.location_address or "GPS Location",
-            "reported_at": inc.reported_at.strftime('%H:%M'),
-            "description": inc.description,
-        })
-
-    return JsonResponse({
-        "status": "success",
-        "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
-        "summary": {
-            "total_vehicles": len(vehicle_list),
-            "active_count": active_count,
-            "standby_count": standby_count,
-            "workshop_count": workshop_count,
-            "idle_count": idle_count,
-            "sos_count": sos_count,
-            "geofence_breaches_count": geofence_breach_count,
-            "active_alerts_count": len(incidents_list),
-            "violations_count": len(recent_violations),
-        },
-        "vehicles": vehicle_list,
-        "active_incidents": incidents_list,
-        "recent_violations": recent_violations,
-        "geofences": geofences_list,
-    })
 
 
 @login_required
@@ -1025,6 +723,27 @@ def api_fleet_telematics_tick(request):
         # Autonomous safety & geofence evaluation
         from operations.geofence_engine import GeofenceSafetyEngine
         eval_result = GeofenceSafetyEngine.evaluate_ping(ping)
+
+        # Broadcast live tick over WebSockets immediately (zero latency)
+        from operations.telematics_broadcast import broadcast_fleet_telemetry
+        broadcast_fleet_telemetry({
+            "id": v.id,
+            "registration_number": v.registration_number,
+            "model_name": f"{v.brand} {v.model}".strip(),
+            "lat": new_lat,
+            "lng": new_lng,
+            "speed_kmh": speed,
+            "heading_degrees": heading,
+            "ignition_on": True,
+            "fuel_level_pct": float(fuel),
+            "current_km": odometer,
+            "status_code": "on_trip",
+            "status_label": "🟢 On Trip",
+            "status_color": "#10b981",
+            "last_ping_time": ping.timestamp.strftime('%H:%M:%S'),
+            "location_name": v.current_location,
+            "base_depot": v.base_depot,
+        }, depot=v.base_depot)
 
         ticks_generated.append({
             "vehicle": v.registration_number,
@@ -1429,6 +1148,28 @@ def driver_handover_sos_view(request, trip_id):
             description=description,
             status='reported'
         )
+
+        # Broadcast via WebSockets to Live Control Room
+        try:
+            from operations.telematics_broadcast import broadcast_emergency_sos
+            broadcast_emergency_sos({
+                "id": alert.id,
+                "incident_id": alert.incident_id,
+                "vehicle_id": alert.vehicle_id,
+                "vehicle_reg": alert.vehicle.registration_number if alert.vehicle else "",
+                "driver_name": alert.driver.name if alert.driver else "Unassigned",
+                "driver_phone": alert.driver.phone if alert.driver else "",
+                "incident_type": alert.get_incident_type_display(),
+                "severity": alert.severity,
+                "status": alert.get_status_display(),
+                "location": alert.location_address or "GPS Location",
+                "reported_at": alert.reported_at.strftime('%H:%M:%S') if alert.reported_at else "",
+                "description": alert.description,
+                "passengers_safety_status": alert.passengers_safety_status,
+                "passenger_count": alert.passenger_count,
+            })
+        except Exception:
+            pass
 
         # Broadcast via WhatsApp
         try:
@@ -3216,5 +2957,300 @@ def api_run_scheduler_maintenance(request):
     except Exception as e:
         logger.exception('Scheduler maintenance batch failed')
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+# ==============================================================================
+# Inter-Depot Asset Relocation & Fleet Rebalancing APIs
+# ==============================================================================
+
+@login_required
+def api_request_depot_transfer(request):
+    """
+    Initiates or approves an inter-depot vehicle relocation request.
+    Endpoint: POST /api/fleet/transfer/request/
+    """
+    from core.decorators import has_staff_capability
+    if not has_staff_capability(request.user, 'fleet_relocation_transfer'):
+        return JsonResponse({
+            'status': 'forbidden',
+            'error': 'Clearance Restricted',
+            'detail': 'Requires authorization for Inter-Depot Vehicle Relocation.'
+        }, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required.'}, status=405)
+
+    import json
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Malformed JSON: {str(e)}'}, status=400)
+    else:
+        data = request.POST.dict()
+
+    vehicle_id = data.get('vehicle_id')
+    destination_depot = data.get('destination_depot')
+    reason = data.get('reason', 'fleet_rebalance')
+    notes = data.get('notes', '').strip()
+    driver_id = data.get('transfer_driver_id')
+    dispatch_now = str(data.get('dispatch_immediately', 'true')).lower() in ['true', '1', 'yes']
+
+    if not vehicle_id:
+        return JsonResponse({'status': 'error', 'message': 'vehicle_id is required.'}, status=400)
+    if not destination_depot:
+        return JsonResponse({'status': 'error', 'message': 'destination_depot is required.'}, status=400)
+
+    from core.models import Vehicle, Driver, InterDepotTransferLog, DEPOT_CHOICES
+    from core.depot_scoping import get_user_depot_scope
+    from django.utils import timezone
+
+    valid_depots = dict(DEPOT_CHOICES)
+    if destination_depot not in valid_depots:
+        return JsonResponse({'status': 'error', 'message': f'Invalid destination depot: {destination_depot}'}, status=400)
+
+    try:
+        vehicle = Vehicle.objects.select_related('vehicle_type').get(pk=vehicle_id)
+    except Vehicle.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': f'Vehicle #{vehicle_id} not found.'}, status=404)
+
+    origin_depot = vehicle.base_depot
+    if origin_depot == destination_depot:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Vehicle {vehicle.registration_number} is already stationed at {origin_depot}.'
+        }, status=400)
+
+    # Depot Scoping check: regional custodians cannot relocate vehicles outside their depot
+    depot_scope = get_user_depot_scope(request.user)
+    if not depot_scope['can_change_depot']:
+        if origin_depot != depot_scope['effective_depot']:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Security restriction: You are scoped to {depot_scope["effective_depot"]} and cannot dispatch vehicles from {origin_depot}.'
+            }, status=403)
+
+    # Check if vehicle has an active trip
+    active_trip = Trip.objects.filter(vehicle=vehicle, status__in=['assigned', 'started']).first()
+    if active_trip:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Vehicle {vehicle.registration_number} is currently allocated to active trip {active_trip.trip_id or active_trip.id} ({active_trip.get_status_display()}). Cannot transfer active asset.'
+        }, status=400)
+
+    # Check if vehicle already has an in-flight transfer
+    existing_transfer = InterDepotTransferLog.objects.filter(
+        vehicle=vehicle,
+        status__in=['requested', 'in_transit']
+    ).first()
+    if existing_transfer:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Vehicle {vehicle.registration_number} already has an active transfer in progress ({existing_transfer.transfer_id} - {existing_transfer.get_status_display()}).'
+        }, status=400)
+
+    transfer_driver = None
+    if driver_id:
+        transfer_driver = Driver.objects.filter(pk=driver_id).first()
+
+    odometer = data.get('odometer_at_dispatch') or vehicle.current_km or 0
+    try:
+        odometer = int(odometer)
+    except (ValueError, TypeError):
+        odometer = vehicle.current_km or 0
+
+    transfer = InterDepotTransferLog.objects.create(
+        vehicle=vehicle,
+        origin_depot=origin_depot,
+        destination_depot=destination_depot,
+        reason=reason,
+        requested_by=request.user,
+        transfer_driver=transfer_driver,
+        odometer_at_dispatch=odometer,
+        notes=notes,
+        status='in_transit' if dispatch_now else 'requested',
+        approved_by=request.user if dispatch_now else None,
+        dispatched_at=timezone.now() if dispatch_now else None,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Relocation order {transfer.transfer_id} created for {vehicle.registration_number} ({origin_depot} ➔ {destination_depot}). Status: {transfer.get_status_display()}.',
+        'transfer': {
+            'id': transfer.id,
+            'transfer_id': transfer.transfer_id,
+            'vehicle_id': vehicle.id,
+            'vehicle_registration': vehicle.registration_number,
+            'origin_depot': transfer.origin_depot,
+            'destination_depot': transfer.destination_depot,
+            'reason': transfer.reason,
+            'reason_display': transfer.get_reason_display(),
+            'status': transfer.status,
+            'status_display': transfer.get_status_display(),
+            'driver_name': transfer_driver.name if transfer_driver else None,
+            'odometer_at_dispatch': transfer.odometer_at_dispatch,
+            'created_at': transfer.created_at.isoformat(),
+        }
+    })
+
+
+@login_required
+def api_receive_depot_transfer(request, transfer_id):
+    """
+    Receives an incoming vehicle at the destination depot and updates the vehicle's base_depot.
+    Endpoint: POST /api/fleet/transfer/<transfer_id>/receive/
+    """
+    from core.decorators import has_staff_capability
+    if not has_staff_capability(request.user, 'fleet_relocation_transfer'):
+        return JsonResponse({
+            'status': 'forbidden',
+            'error': 'Clearance Restricted',
+            'detail': 'Requires authorization for Inter-Depot Vehicle Relocation.'
+        }, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required.'}, status=405)
+
+    import json
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Malformed JSON: {str(e)}'}, status=400)
+    else:
+        data = request.POST.dict()
+
+    from core.models import InterDepotTransferLog
+    from core.depot_scoping import get_user_depot_scope
+
+    transfer = None
+    if str(transfer_id).isdigit():
+        transfer = InterDepotTransferLog.objects.select_related('vehicle').filter(pk=int(transfer_id)).first()
+    if not transfer:
+        transfer = InterDepotTransferLog.objects.select_related('vehicle').filter(transfer_id=str(transfer_id)).first()
+
+    if not transfer:
+        return JsonResponse({'status': 'error', 'message': f'Transfer record #{transfer_id} not found.'}, status=404)
+
+    if transfer.status not in ['requested', 'in_transit']:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Transfer {transfer.transfer_id} is already {transfer.get_status_display()}. Cannot receive.'
+        }, status=400)
+
+    # Depot Scoping check: regional staff can only receive transfers destined for their depot
+    depot_scope = get_user_depot_scope(request.user)
+    if not depot_scope['can_change_depot']:
+        if transfer.destination_depot != depot_scope['effective_depot']:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Security restriction: You are scoped to {depot_scope["effective_depot"]}. Only {transfer.destination_depot} custodians can receive this asset.'
+            }, status=403)
+
+    receipt_odometer = data.get('odometer_at_receipt')
+    if receipt_odometer:
+        try:
+            receipt_odometer = int(receipt_odometer)
+        except (ValueError, TypeError):
+            receipt_odometer = None
+
+    receipt_notes = data.get('notes', '').strip()
+    if receipt_notes:
+        transfer.notes = f"{transfer.notes}\n[Receipt Notes]: {receipt_notes}".strip()
+
+    transfer.complete_transfer(receiving_user=request.user, receipt_odometer=receipt_odometer)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Vehicle {transfer.vehicle.registration_number} successfully received and stationed at {transfer.destination_depot}!',
+        'transfer': {
+            'id': transfer.id,
+            'transfer_id': transfer.transfer_id,
+            'vehicle_id': transfer.vehicle.id,
+            'vehicle_registration': transfer.vehicle.registration_number,
+            'base_depot': transfer.vehicle.base_depot,
+            'status': transfer.status,
+            'status_display': transfer.get_status_display(),
+            'received_at': transfer.received_at.isoformat() if transfer.received_at else None,
+            'odometer_at_receipt': transfer.odometer_at_receipt,
+        }
+    })
+
+
+@login_required
+def api_depot_transfer_history(request):
+    """
+    Returns transfer audit history filtered by depot scoping, status, and vehicle.
+    Endpoint: GET /api/fleet/transfer/history/
+    """
+    from core.decorators import has_staff_capability
+    if not has_staff_capability(request.user, 'fleet_relocation_transfer'):
+        return JsonResponse({
+            'status': 'forbidden',
+            'error': 'Clearance Restricted',
+            'detail': 'Requires authorization for Inter-Depot Vehicle Relocation.'
+        }, status=403)
+
+    from core.models import InterDepotTransferLog
+    from core.depot_scoping import get_user_depot_scope
+    from django.db.models import Q
+
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+
+    transfers_qs = InterDepotTransferLog.objects.select_related(
+        'vehicle', 'transfer_driver', 'requested_by', 'approved_by'
+    ).order_by('-created_at')
+
+    if depot_scope['effective_depot']:
+        target_depot = depot_scope['effective_depot']
+        transfers_qs = transfers_qs.filter(
+            Q(origin_depot=target_depot) | Q(destination_depot=target_depot)
+        )
+
+    status_filter = request.GET.get('status')
+    if status_filter:
+        transfers_qs = transfers_qs.filter(status=status_filter)
+
+    vehicle_id = request.GET.get('vehicle_id')
+    if vehicle_id:
+        transfers_qs = transfers_qs.filter(vehicle_id=vehicle_id)
+
+    try:
+        limit = min(int(request.GET.get('limit', 50)), 100)
+    except (ValueError, TypeError):
+        limit = 50
+    transfers = transfers_qs[:limit]
+
+    results = []
+    for t in transfers:
+        results.append({
+            'id': t.id,
+            'transfer_id': t.transfer_id,
+            'vehicle_id': t.vehicle_id,
+            'vehicle_registration': t.vehicle.registration_number,
+            'origin_depot': t.origin_depot,
+            'destination_depot': t.destination_depot,
+            'reason': t.reason,
+            'reason_display': t.get_reason_display(),
+            'status': t.status,
+            'status_display': t.get_status_display(),
+            'requested_by': t.requested_by.username if t.requested_by else None,
+            'approved_by': t.approved_by.username if t.approved_by else None,
+            'driver_name': t.transfer_driver.name if t.transfer_driver else None,
+            'odometer_at_dispatch': t.odometer_at_dispatch,
+            'odometer_at_receipt': t.odometer_at_receipt,
+            'dispatched_at': t.dispatched_at.isoformat() if t.dispatched_at else None,
+            'received_at': t.received_at.isoformat() if t.received_at else None,
+            'notes': t.notes,
+            'created_at': t.created_at.isoformat(),
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'count': len(results),
+        'depot_scope': depot_scope,
+        'transfers': results
+    })
 
 

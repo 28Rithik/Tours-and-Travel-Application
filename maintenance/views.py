@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
+from django.utils import timezone
+from core.decorators import require_staff_capability
 
 from core.models import Vehicle
 from maintenance.services import check_compliance_expiries, check_preventive_maintenance_due
@@ -9,6 +11,7 @@ from maintenance.models import ServiceReminder, DefectTicket
 
 
 @login_required
+@require_staff_capability('rto_compliance_ledger')
 def compliance_and_maintenance_dashboard(request):
     """
     Control room dashboard for RTO document compliance, upcoming expirations,
@@ -272,6 +275,7 @@ def damage_inspection_print_certificate(request, inspection_id):
 # ==============================================================================
 
 @login_required
+@require_staff_capability('tire_health_audit')
 def tire_studio_view(request):
     """
     Interactive 2D Axle & Tire Health Studio.
@@ -394,6 +398,7 @@ def api_vehicle_tire_schematic(request, vehicle_id):
 
 
 @login_required
+@require_staff_capability('tire_health_audit')
 def api_tire_inspect(request):
     """POST endpoint to log physical tread & PSI inspection for a tyre."""
     import json
@@ -430,6 +435,7 @@ def api_tire_inspect(request):
 
 
 @login_required
+@require_staff_capability('tire_health_audit')
 def api_tire_rotate(request):
     """POST endpoint to rotate tyre positions."""
     import json
@@ -452,6 +458,7 @@ def api_tire_rotate(request):
 
 
 @login_required
+@require_staff_capability('tire_health_audit')
 def api_tire_retread(request):
     """POST endpoint to send tyre for retread or return from retread."""
     import json
@@ -484,6 +491,7 @@ def api_tire_retread(request):
 
 
 @login_required
+@require_staff_capability('tire_health_audit')
 def api_pm_engine_evaluate(request):
     """POST endpoint to trigger fleet-wide preventative maintenance and tire safety evaluation."""
     from .pm_engine import evaluate_fleet_pm_triggers
@@ -493,5 +501,420 @@ def api_pm_engine_evaluate(request):
 
     result = evaluate_fleet_pm_triggers(vehicle_id=v_id, create_tickets=True)
     return JsonResponse(result)
+
+
+# ==============================================================================
+# WORKSHOP MECHANIC STUDIO & QR BARCODE SPARE PARTS CHECKOUT
+# ==============================================================================
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def workshop_mechanic_studio_view(request):
+    """
+    Mobile-Touch Garage Workshop Studio & QR Barcode Parts Checkout Cockpit.
+    Enables garage floor mechanics, store keepers, and fleet managers to track job cards,
+    allocate garage bays, scan QR barcodes to check out parts, and prevent parts inventory leakage.
+    """
+    from decimal import Decimal
+    from django.db.models import Sum, Q, F
+    from .models import ServiceRecord, PartInventory, SparePart, SparePartUsageLog, PartPurchaseRequisition
+    from core.models import Vehicle
+    from django.contrib.auth.models import User
+    from core.depot_scoping import DEPOT_CHOICES, DEPOT_CHENNAI
+
+    status_filter = request.GET.get('status', 'active')
+    depot_filter = request.GET.get('depot', '')
+    priority_filter = request.GET.get('priority', '')
+    search_q = request.GET.get('q', '').strip()
+    selected_job_card_id = request.GET.get('job_card_id')
+
+    qs = ServiceRecord.objects.select_related('vehicle', 'assigned_mechanic', 'defect_ticket').prefetch_related('spare_parts__inventory_item', 'part_usage_logs').order_by('-created_at')
+
+    if status_filter == 'active':
+        qs = qs.filter(status__in=['open', 'in_progress', 'awaiting_parts', 'quality_check'])
+    elif status_filter and status_filter != 'all':
+        qs = qs.filter(status=status_filter)
+
+    if depot_filter and depot_filter != 'all':
+        qs = qs.filter(base_depot=depot_filter)
+
+    if priority_filter and priority_filter != 'all':
+        qs = qs.filter(priority=priority_filter)
+
+    if search_q:
+        qs = qs.filter(
+            Q(job_card_number__icontains=search_q) |
+            Q(vehicle__registration_number__icontains=search_q) |
+            Q(mechanic_name__icontains=search_q) |
+            Q(garage_name__icontains=search_q) |
+            Q(description__icontains=search_q)
+        )
+
+    job_cards = list(qs[:50])
+
+    active_job_card = None
+    if selected_job_card_id:
+        active_job_card = ServiceRecord.objects.filter(pk=selected_job_card_id).prefetch_related('spare_parts__inventory_item', 'part_usage_logs').first()
+    if not active_job_card and job_cards:
+        active_job_card = job_cards[0]
+
+    now = timezone.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    active_job_cards_count = ServiceRecord.objects.filter(status__in=['open', 'in_progress', 'awaiting_parts', 'quality_check']).count()
+    grounded_vehicles_count = Vehicle.objects.filter(status='maintenance').count()
+    low_stock_parts_count = PartInventory.objects.filter(current_stock__lte=F('minimum_stock_level')).count()
+    mtd_parts_spend = SparePartUsageLog.objects.filter(created_at__gte=month_start).aggregate(total=Sum('total_cost'))['total'] or Decimal('0.00')
+
+    parts_catalog = PartInventory.objects.all().order_by('part_name')[:100]
+    vehicles_list = Vehicle.objects.filter(status__in=['available', 'maintenance']).order_by('registration_number')
+    recent_usage_logs = SparePartUsageLog.objects.select_related('inventory_item', 'service_record', 'vehicle').order_by('-created_at')[:8]
+    open_requisitions = PartPurchaseRequisition.objects.select_related('inventory_item').filter(status__in=['draft', 'auto_triggered', 'approved'])[:5]
+
+    context = {
+        'title': 'Workshop Mechanic Studio & QR Barcode Checkout',
+        'job_cards': job_cards,
+        'active_job_card': active_job_card,
+        'status_filter': status_filter,
+        'depot_filter': depot_filter,
+        'priority_filter': priority_filter,
+        'search_q': search_q,
+        'depot_choices': DEPOT_CHOICES,
+        'kpi': {
+            'active_job_cards': active_job_cards_count,
+            'grounded_vehicles': grounded_vehicles_count,
+            'low_stock_parts': low_stock_parts_count,
+            'mtd_parts_spend': mtd_parts_spend,
+        },
+        'parts_catalog': parts_catalog,
+        'vehicles_list': vehicles_list,
+        'recent_usage_logs': recent_usage_logs,
+        'open_requisitions': open_requisitions,
+    }
+    return render(request, 'maintenance/workshop_mechanic_studio.html', context)
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_scan_spare_part(request):
+    """
+    Scans or searches spare parts inventory by QR barcode, SKU, or name.
+    Returns live inventory levels, bin location, unit price, and safety stock status.
+    """
+    from .models import PartInventory
+    from django.db.models import Q
+
+    query = (request.GET.get('q') or request.GET.get('barcode') or request.GET.get('sku') or '').strip()
+    if not query:
+        return JsonResponse({'success': False, 'message': 'Barcode or SKU query required.'}, status=400)
+
+    part = PartInventory.objects.filter(Q(barcode__iexact=query) | Q(sku__iexact=query)).first()
+    if not part:
+        part = PartInventory.objects.filter(part_name__icontains=query).first()
+
+    if not part:
+        return JsonResponse({'success': False, 'found': False, 'message': f"No spare part found matching '{query}'."})
+
+    return JsonResponse({
+        'success': True,
+        'found': True,
+        'part': {
+            'id': part.id,
+            'part_name': part.part_name,
+            'sku': part.sku,
+            'barcode': part.barcode,
+            'category': part.category,
+            'category_display': part.get_category_display(),
+            'bin_location': part.bin_location or 'Unassigned',
+            'current_stock': part.current_stock,
+            'minimum_stock_level': part.minimum_stock_level,
+            'unit_of_measure': part.unit_of_measure,
+            'unit_of_measure_display': part.get_unit_of_measure_display(),
+            'default_unit_price': float(part.default_unit_price),
+            'base_depot': part.base_depot,
+            'is_critical_part': part.is_critical_part,
+            'stock_status': part.stock_status,
+            'is_low_stock': part.is_low_stock,
+            'is_out_of_stock': part.is_out_of_stock,
+        }
+    })
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_checkout_spare_part(request):
+    """
+    Atomic 1-tap spare part checkout to active job card.
+    Prevents stock leakage, creates immutable audit log, and deducts PartInventory immediately.
+    """
+    import json
+    from decimal import Decimal
+    from django.db import transaction
+    from .models import ServiceRecord, PartInventory, SparePart, SparePartUsageLog, PartPurchaseRequisition
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        job_card_id = int(data.get('job_card_id'))
+        part_id = int(data.get('part_id'))
+        quantity = int(data.get('quantity', 1))
+        checkout_mode = data.get('checkout_mode', 'camera_qr')
+        barcode_scanned = data.get('barcode_scanned', '')
+        notes = data.get('notes', '')
+
+        if quantity <= 0:
+            return JsonResponse({'success': False, 'message': 'Quantity must be at least 1.'}, status=400)
+
+        with transaction.atomic():
+            job_card = get_object_or_404(ServiceRecord.objects.select_for_update(), pk=job_card_id)
+            part = get_object_or_404(PartInventory.objects.select_for_update(), pk=part_id)
+
+            if part.current_stock < quantity:
+                return JsonResponse({
+                    'success': False,
+                    'message': f"Insufficient stock for {part.part_name}. Requested: {quantity}, Available: {part.current_stock} {part.get_unit_of_measure_display()}."
+                }, status=400)
+
+            part.current_stock -= quantity
+            part.save(update_fields=['current_stock'])
+
+            unit_price = part.default_unit_price or Decimal('0.00')
+            total_price = unit_price * Decimal(str(quantity))
+
+            spare_part = SparePart.objects.create(
+                service_record=job_card,
+                inventory_item=part,
+                part_name=part.part_name,
+                quantity=quantity,
+                unit_price=unit_price,
+                is_inventory_deducted=True
+            )
+
+            usage_log = SparePartUsageLog.objects.create(
+                service_record=job_card,
+                inventory_item=part,
+                vehicle=job_card.vehicle,
+                quantity=quantity,
+                unit_price=unit_price,
+                total_cost=total_price,
+                checkout_mode=checkout_mode,
+                checked_out_by=request.user,
+                mechanic_name=job_card.mechanic_name or request.user.get_full_name() or request.user.username,
+                barcode_scanned=barcode_scanned or part.barcode or '',
+                notes=notes
+            )
+
+            job_card.recalculate_totals()
+
+            auto_requisition_triggered = False
+            req_info = None
+            if part.current_stock <= part.minimum_stock_level:
+                req = PartPurchaseRequisition.trigger_auto_requisition(part)
+                auto_requisition_triggered = True
+                req_info = {
+                    'requisition_number': req.requisition_number,
+                    'suggested_quantity': req.suggested_quantity,
+                    'urgency': req.urgency,
+                }
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Successfully checked out {quantity}x {part.part_name} to Job Card {job_card.job_card_number}.",
+            'checkout': {
+                'part_id': part.id,
+                'part_name': part.part_name,
+                'quantity': quantity,
+                'unit_price': float(unit_price),
+                'total_cost': float(total_price),
+                'remaining_stock': part.current_stock,
+                'stock_status': part.stock_status,
+                'job_card_parts_cost': float(job_card.parts_total_cost),
+                'job_card_grand_total': float(job_card.total_cost),
+            },
+            'auto_requisition_triggered': auto_requisition_triggered,
+            'requisition': req_info,
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_create_workshop_job_card(request):
+    """Creates a new workshop job card and grounds the vehicle in bay."""
+    import json
+    from decimal import Decimal
+    from .models import ServiceRecord, DefectTicket, PreTripInspectionChecklist
+    from core.models import Vehicle
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        vehicle_id = int(data.get('vehicle_id'))
+        vehicle = get_object_or_404(Vehicle, pk=vehicle_id)
+
+        service_type = data.get('service_type', 'routine')
+        priority = data.get('priority', 'normal')
+        mechanic_name = data.get('mechanic_name', '').strip()
+        bay_number = data.get('bay_number', 'Bay 1').strip()
+        garage_name = data.get('garage_name', 'In-House Workshop Hub').strip()
+        odometer_reading = int(data.get('odometer_reading') or (vehicle.current_km or 0))
+        description = data.get('description', '').strip()
+        labor_charges = Decimal(str(data.get('labor_charges', '0.00')))
+        base_depot = data.get('base_depot', vehicle.base_depot)
+
+        defect_ticket_id = data.get('defect_ticket_id')
+        defect_ticket = DefectTicket.objects.filter(pk=defect_ticket_id).first() if defect_ticket_id else None
+
+        inspection_checklist_id = data.get('inspection_checklist_id')
+        inspection_checklist = PreTripInspectionChecklist.objects.filter(pk=inspection_checklist_id).first() if inspection_checklist_id else None
+
+        job_card = ServiceRecord.objects.create(
+            vehicle=vehicle,
+            service_type=service_type,
+            priority=priority,
+            status='in_progress',
+            assigned_mechanic=request.user,
+            mechanic_name=mechanic_name or request.user.get_full_name() or request.user.username,
+            bay_number=bay_number,
+            base_depot=base_depot,
+            date=timezone.now().date(),
+            odometer_reading=odometer_reading,
+            garage_name=garage_name,
+            description=description,
+            labor_charges=labor_charges,
+            total_cost=labor_charges,
+            defect_ticket=defect_ticket,
+            inspection_checklist=inspection_checklist
+        )
+
+        vehicle.status = 'maintenance'
+        vehicle.save(update_fields=['status'])
+
+        if defect_ticket:
+            defect_ticket.status = 'in_progress'
+            defect_ticket.notes = f"Linked to Job Card {job_card.job_card_number}"
+            defect_ticket.save(update_fields=['status', 'notes'])
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Job Card {job_card.job_card_number} created for {vehicle.registration_number}.",
+            'job_card_id': job_card.id,
+            'job_card_number': job_card.job_card_number,
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_update_job_card_status(request, pk):
+    """Updates job card status stepper and releases vehicle if completed."""
+    import json
+    from decimal import Decimal
+    from .models import ServiceRecord
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        job_card = get_object_or_404(ServiceRecord, pk=pk)
+        new_status = data.get('status')
+        if new_status:
+            job_card.status = new_status
+
+        if 'labor_charges' in data:
+            job_card.labor_charges = Decimal(str(data['labor_charges']))
+
+        if 'mechanic_name' in data:
+            job_card.mechanic_name = data['mechanic_name'].strip()
+
+        if 'bay_number' in data:
+            job_card.bay_number = data['bay_number'].strip()
+
+        if 'description' in data and data['description']:
+            job_card.description = data['description'].strip()
+
+        job_card.save()
+        job_card.recalculate_totals()
+
+        if job_card.status == 'completed' and job_card.defect_ticket:
+            job_card.defect_ticket.status = 'resolved'
+            job_card.defect_ticket.resolved_date = timezone.now().date()
+            job_card.defect_ticket.save(update_fields=['status', 'resolved_date'])
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Job Card {job_card.job_card_number} updated to {job_card.get_status_display()}.",
+            'status': job_card.status,
+            'status_display': job_card.get_status_display(),
+            'vehicle_status': job_card.vehicle.status,
+            'grand_total': float(job_card.total_cost),
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_part_quick_restock(request):
+    """1-Click stock receiving and restocking."""
+    import json
+    from .models import PartInventory, PartPurchaseRequisition
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        part_id = int(data.get('part_id'))
+        quantity = int(data.get('quantity', 0))
+
+        if quantity <= 0:
+            return JsonResponse({'success': False, 'message': 'Restock quantity must be positive.'}, status=400)
+
+        part = get_object_or_404(PartInventory, pk=part_id)
+        part.current_stock += quantity
+        part.last_restocked_at = timezone.now()
+        part.save(update_fields=['current_stock', 'last_restocked_at'])
+
+        PartPurchaseRequisition.objects.filter(
+            inventory_item=part,
+            status__in=['draft', 'auto_triggered', 'approved', 'po_placed']
+        ).update(status='received', restocked_at=timezone.now())
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Restocked {quantity} {part.get_unit_of_measure_display()} for {part.part_name}. Current stock: {part.current_stock}.",
+            'current_stock': part.current_stock,
+            'stock_status': part.stock_status,
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def job_card_work_order_print_view(request, pk):
+    """Renders printable A4 garage work order sheet and parts consumption voucher."""
+    from .models import ServiceRecord
+    job_card = get_object_or_404(
+        ServiceRecord.objects.select_related('vehicle', 'assigned_mechanic', 'defect_ticket', 'inspection_checklist')
+        .prefetch_related('spare_parts__inventory_item', 'part_usage_logs'),
+        pk=pk
+    )
+    context = {
+        'title': f"Work Order - {job_card.job_card_number}",
+        'job_card': job_card,
+        'printed_at': timezone.now(),
+        'printed_by': request.user,
+    }
+    return render(request, 'maintenance/job_card_work_order_print.html', context)
+
 
 

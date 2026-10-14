@@ -10,6 +10,7 @@ from .models import (
     VehicleAsset, AssetRotationLog, TireInspectionLog, DefectTicket, ServiceReminder,
     PreTripInspectionChecklist,
     VehicleDamageInspection, VehicleDamageMarker,
+    SparePartUsageLog, PartPurchaseRequisition,
 )
 
 
@@ -153,18 +154,25 @@ class SparePartInline(TabularInline):
     autocomplete_fields = ['inventory_item']
 
 
+class SparePartUsageLogInline(TabularInline):
+    model = SparePartUsageLog
+    extra = 0
+    can_delete = False
+    readonly_fields = ('created_at', 'inventory_item', 'quantity', 'unit_price', 'total_cost', 'checkout_mode', 'checked_out_by', 'mechanic_name', 'barcode_scanned')
+    fields = ('created_at', 'inventory_item', 'quantity', 'unit_price', 'total_cost', 'checkout_mode', 'checked_out_by', 'mechanic_name')
+
+
 @admin.register(ServiceRecord)
 class ServiceRecordAdmin(ModelAdmin):
     list_display = (
-        'vehicle_link', 'service_type_badge', 'date', 'garage_name',
-        'odometer_reading', 'parts_count_display', 'total_cost_display',
-        'status_badge',
+        'job_card_number', 'vehicle_link', 'service_type_badge', 'priority_badge',
+        'bay_number', 'total_cost_display', 'status_badge', 'workshop_studio_btn', 'print_voucher_btn',
     )
-    list_filter = ('service_type', 'status', 'date')
-    search_fields = ('vehicle__registration_number', 'garage_name', 'description')
+    list_filter = ('status', 'priority', 'service_type', 'base_depot', 'date')
+    search_fields = ('job_card_number', 'vehicle__registration_number', 'mechanic_name', 'garage_name', 'description')
     autocomplete_fields = ['vehicle']
     date_hierarchy = 'date'
-    inlines = [SparePartInline]
+    inlines = [SparePartInline, SparePartUsageLogInline]
     list_per_page = 30
     actions = [mark_services_completed]
 
@@ -196,25 +204,29 @@ class ServiceRecordAdmin(ModelAdmin):
             bg, icon, label
         )
 
-    @admin.display(description="Parts Used")
-    def parts_count_display(self, obj):
-        count = obj.spare_parts.count()
-        if count == 0:
-            return mark_safe('<span style="color:#64748b;">None</span>')
+    @admin.display(description="Priority", ordering='priority')
+    def priority_badge(self, obj):
+        p_colors = {
+            'urgent': ('#fee2e2', '#991b1b', '🔥 URGENT'),
+            'high':   ('#fef3c7', '#92400e', '⚡ HIGH'),
+            'normal': ('#f1f5f9', '#475569', 'NORMAL'),
+            'low':    ('#f8fafc', '#64748b', 'LOW'),
+        }
+        bg, text, label = p_colors.get(obj.priority, ('#f1f5f9', '#475569', obj.priority.upper()))
         return format_html(
-            '<span style="color:#38bdf8; font-weight:600;">{} part{}</span>',
-            count, 's' if count > 1 else ''
+            '<span style="background:{}; color:{}; padding:2px 8px; border-radius:8px; font-size:10px; font-weight:700;">{}</span>',
+            bg, text, label
         )
 
     @admin.display(description="Cost", ordering='total_cost')
     def total_cost_display(self, obj):
         cost = obj.total_cost
         if cost >= 20000:
-            color = '#f87171'  # Red for high cost
+            color = '#f87171'
         elif cost >= 5000:
-            color = '#fbbf24'  # Orange for medium
+            color = '#fbbf24'
         else:
-            color = '#4ade80'  # Green for low
+            color = '#4ade80'
         cost_str = f"₹{cost:,.2f}"
         return format_html(
             '<span style="color:{}; font-weight:700;">{}</span>',
@@ -224,17 +236,78 @@ class ServiceRecordAdmin(ModelAdmin):
     @admin.display(description="Status", ordering='status')
     def status_badge(self, obj):
         colors = {
-            'pending':     ('#eab308', '#422006', '⏳'),
-            'in_progress': ('#3b82f6', '#ffffff', '🔧'),
-            'completed':   ('#16a34a', '#ffffff', '✅'),
+            'open':           ('#e0e7ff', '#3730a3', '📥 OPEN'),
+            'pending':        ('#fef3c7', '#92400e', '⏳ PENDING'),
+            'in_progress':    ('#dbeafe', '#1e40af', '🔧 IN BAY'),
+            'awaiting_parts': ('#ffedd5', '#9a3412', '📦 AWAITING PARTS'),
+            'quality_check':  ('#f3e8ff', '#6b21a8', '🔍 QC TEST'),
+            'completed':      ('#ecfdf5', '#065f46', '✅ RELEASED'),
+            'cancelled':      ('#f1f5f9', '#475569', '❌ CANCELLED'),
         }
-        bg, text, icon = colors.get(obj.status, ('#64748b', '#ffffff', '❓'))
-        label = obj.get_status_display()
+        bg, text, label = colors.get(obj.status, ('#64748b', '#ffffff', obj.get_status_display()))
         return format_html(
             '<span style="background:{}; color:{}; padding:3px 10px; border-radius:12px; '
-            'font-size:11px; font-weight:700; white-space:nowrap;">'
-            '{} {}</span>',
-            bg, text, icon, label
+            'font-size:11px; font-weight:700; white-space:nowrap;">{}</span>',
+            bg, text, label
+        )
+
+    @admin.display(description="Studio")
+    def workshop_studio_btn(self, obj):
+        return format_html(
+            '<a href="/maintenance/workshop-studio/?job_card_id={}" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#fff; padding:4px 9px; border-radius:6px; font-size:11px; font-weight:700; text-decoration:none;">🛠️ Studio &rarr;</a>',
+            obj.pk
+        )
+
+    @admin.display(description="Work Order")
+    def print_voucher_btn(self, obj):
+        return format_html(
+            '<a href="/maintenance/job-card/{}/print/" target="_blank" style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; text-decoration:none;">🖨️ Print</a>',
+            obj.pk
+        )
+
+
+@admin.register(SparePartUsageLog)
+class SparePartUsageLogAdmin(ModelAdmin):
+    list_display = (
+        'created_at', 'job_card_link', 'vehicle', 'inventory_item',
+        'quantity', 'unit_price', 'total_cost', 'checkout_mode', 'checked_out_by',
+    )
+    list_filter = ('checkout_mode', 'created_at')
+    search_fields = ('service_record__job_card_number', 'vehicle__registration_number', 'inventory_item__part_name', 'barcode_scanned')
+    date_hierarchy = 'created_at'
+
+    @admin.display(description="Job Card")
+    def job_card_link(self, obj):
+        return format_html(
+            '<a href="/admin/maintenance/servicerecord/{}/change/" style="font-weight:700; color:#38bdf8;">{}</a>',
+            obj.service_record.pk, obj.service_record.job_card_number
+        )
+
+
+@admin.register(PartPurchaseRequisition)
+class PartPurchaseRequisitionAdmin(ModelAdmin):
+    list_display = (
+        'requisition_number', 'inventory_item', 'suggested_quantity',
+        'current_stock_at_time', 'total_estimated_cost', 'status_badge', 'urgency', 'base_depot', 'created_at',
+    )
+    list_filter = ('status', 'urgency', 'base_depot')
+    search_fields = ('requisition_number', 'inventory_item__part_name', 'supplier_name')
+    date_hierarchy = 'created_at'
+
+    @admin.display(description="Status")
+    def status_badge(self, obj):
+        colors = {
+            'draft':          ('#f1f5f9', '#475569'),
+            'auto_triggered': ('#fef3c7', '#92400e'),
+            'approved':       ('#dbeafe', '#1e40af'),
+            'po_placed':      ('#e0e7ff', '#3730a3'),
+            'received':       ('#ecfdf5', '#065f46'),
+            'rejected':       ('#fee2e2', '#991b1b'),
+        }
+        bg, text = colors.get(obj.status, ('#f1f5f9', '#475569'))
+        return format_html(
+            '<span style="background:{}; color:{}; padding:2px 8px; border-radius:8px; font-size:11px; font-weight:700;">{}</span>',
+            bg, text, obj.get_status_display()
         )
 
 
@@ -683,12 +756,18 @@ class ServiceReminderAdmin(ModelAdmin):
 @admin.register(PartInventory)
 class PartInventoryAdmin(ModelAdmin):
     list_display = (
-        'part_name', 'sku_display', 'stock_display', 'minimum_stock_level',
-        'default_unit_price_display', 'stock_status', 'reorder_alert',
+        'part_name', 'sku_display', 'barcode', 'category', 'bin_location',
+        'stock_display', 'default_unit_price_display', 'stock_status', 'reorder_alert', 'is_critical_badge', 'base_depot'
     )
-    list_filter = ('current_stock',)
-    search_fields = ('part_name', 'sku')
+    list_filter = ('category', 'base_depot', 'is_critical_part', 'current_stock')
+    search_fields = ('part_name', 'sku', 'barcode', 'bin_location')
     list_per_page = 30
+
+    @admin.display(description="Critical Part")
+    def is_critical_badge(self, obj):
+        if obj.is_critical_part:
+            return mark_safe('<span style="color:#ef4444; font-weight:700;">⚠️ Critical</span>')
+        return mark_safe('<span style="color:#64748b;">Standard</span>')
 
     @admin.display(description="SKU")
     def sku_display(self, obj):

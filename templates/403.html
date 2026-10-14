@@ -36,22 +36,32 @@
         </div>
 
         <h1 class="text-6xl font-extrabold tracking-tight text-slate-900 mb-2">403</h1>
-        <h2 class="text-2xl font-bold text-slate-800 mb-3">Security Protocol Clearance Required</h2>
+        <h2 class="text-2xl font-bold text-slate-800 mb-3">Security Clearance Restricted</h2>
+        
+        {% if exception %}
+        <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-mono leading-relaxed text-left shadow-sm">
+            <div class="font-bold uppercase tracking-wider text-[10px] text-rose-700 mb-1 flex items-center gap-1.5 font-sans">
+                <span class="material-symbols-outlined text-sm">gpp_maybe</span> Policy Violation Details
+            </div>
+            {{ exception }}
+        </div>
+        {% else %}
         <p class="text-sm text-slate-600 max-w-md mx-auto mb-8 leading-relaxed">
-            Your current account credentials or role lack clearance to access or modify this enterprise module. Contact the superuser administrator for group permissions.
+            Your current account credentials or role lack clearance to access or modify this enterprise module. Contact the superuser administrator for elevated clearance.
         </p>
+        {% endif %}
 
         <!-- Recovery Action Grid -->
         <div class="flex flex-wrap items-center justify-center gap-3">
-            <a href="/admin/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-sm shadow-md shadow-sky-600/20 transition-all">
+            <a href="/staff/roles-matrix/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/20 transition-all">
+                <span class="material-symbols-outlined text-lg">admin_panel_settings</span>
+                Staff &amp; RBAC Matrix
+            </a>
+            <a href="/dashboard/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-sm font-semibold transition-all">
                 <span class="material-symbols-outlined text-lg">dashboard</span>
-                Mission Control
+                Operations Desk
             </a>
-            <a href="/client/login/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-semibold text-sm transition-all">
-                <span class="material-symbols-outlined text-lg">corporate_fare</span>
-                Client Portal
-            </a>
-            <button onclick="history.back()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 text-sm font-medium transition-all">
+            <button onclick="history.back()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-sm font-medium transition-all shadow-sm">
                 <span class="material-symbols-outlined text-base">arrow_back</span>
                 Previous Page
             </button>

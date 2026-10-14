@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Settlement & Bata Payroll Studio | TravelERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    (function() {
+      try {
+        var raw = localStorage.getItem('_x_adminTheme');
+        var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
+        if (t !== 'dark') {
+          document.documentElement.classList.add('light-mode');
+        }
+      } catch(e) {
+        document.documentElement.classList.add('light-mode');
+      }
+    })();
+  </script>
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #059669;
+      --accent-glow: rgba(5, 150, 105, 0.2);
+      --danger: #dc2626;
+      --warning: #d97706;
+      --info: #0284c7;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      color: #334155;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .back-btn:hover { background: #e2e8f0; color: #0f172a; }
+    .studio-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .studio-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #eef2ff;
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .depot-select-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .depot-select-wrap select {
+      border: none;
+      background: transparent;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .main-content {
+      padding: 24px 28px;
+      flex: 1;
+      max-width: 1680px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* KPI Summary Row */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 4px;
+    }
+    .kpi-card.pending::before { background: var(--warning); }
+    .kpi-card.disbursed::before { background: var(--accent); }
+    .kpi-card.surrender::before { background: var(--info); }
+    .kpi-card.rate::before { background: var(--primary); }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .kpi-card.pending .kpi-icon { background: #fef3c7; color: #b45309; }
+    .kpi-card.disbursed .kpi-icon { background: #d1fae5; color: #047857; }
+    .kpi-card.surrender .kpi-icon { background: #e0f2fe; color: #0369a1; }
+    .kpi-card.rate .kpi-icon { background: #e0e7ff; color: #4338ca; }
+
+    .kpi-meta h4 {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .kpi-num {
+      font-size: 22px;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Workspace Split Grid */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Left Panel: Trips List */
+    .roster-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .roster-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--card-border);
+      background: #f8fafc;
+    }
+    .roster-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .roster-title {
+      font-size: 14px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .filter-tab {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .filter-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .roster-search-box {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 12px;
+      background: #ffffff;
+      color: var(--text);
+      outline: none;
+    }
+    .roster-search-wrap {
+      position: relative;
+    }
+    .roster-search-wrap i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .trips-scroll-list {
+      max-height: 720px;
+      overflow-y: auto;
+      divide-y: 1px solid var(--card-border);
+    }
+    .trip-card-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .trip-card-item:hover {
+      background: #f8fafc;
+    }
+    .trip-card-item.selected {
+      background: #eef2ff;
+      border-left: 4px solid var(--primary);
+    }
+    .trip-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .trip-code {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--primary);
+    }
+    .trip-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-pending { background: #fef3c7; color: #b45309; }
+    .badge-settled { background: #d1fae5; color: #047857; }
+
+    .trip-driver-line {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .trip-route-line {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .trip-chips-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .mini-chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .chip-ghat { background: #ecfdf5; color: #059669; font-weight: 700; }
+
+    /* Right Panel: Cockpit */
+    .cockpit-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      padding: 24px 28px;
+    }
+
+    .cockpit-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 20px;
+    }
+    .driver-big-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .driver-avatar-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: #e0e7ff;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      border: 1px solid #c7d2fe;
+    }
+    .driver-name-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .driver-sub-tags {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .terrain-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+    .terrain-indicator.outstation {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #bfdbfe;
+    }
+
+    /* Breakdown Columns Grid */
+    .breakdown-3col {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .col-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .col-header {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .col-card.bata .col-header { color: #4338ca; }
+    .col-card.reimburse .col-header { color: #059669; }
+    .col-card.deductions .col-header { color: #dc2626; }
+
+    .line-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .line-item:last-child { border-bottom: none; }
+    .item-label { color: #475569; }
+    .item-val { font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+    .item-val.pos { color: #047857; }
+    .item-val.neg { color: #dc2626; }
+
+    .subtotal-row {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 2px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    /* Verdict Box */
+    .verdict-box {
+      border-radius: 16px;
+      padding: 22px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .verdict-box.payable {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(5, 150, 105, 0.25);
+    }
+    .verdict-box.recoverable {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(217, 119, 6, 0.25);
+    }
+    .verdict-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      opacity: 0.9;
+    }
+    .verdict-amount {
+      font-size: 36px;
+      font-weight: 900;
+      font-family: 'Space Grotesk', sans-serif;
+      margin: 4px 0;
+    }
+    .verdict-sub {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    /* Settlement Action Drawer */
+    .action-drawer {
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 20px 24px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #ffffff;
+      color: var(--text);
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+
+    .btn-action-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .btn-settle {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    }
+    .btn-settle:hover {
+      background: #047857;
+      transform: translateY(-1px);
+    }
+    .btn-print {
+      background: #ffffff;
+      color: #1e293b;
+      border: 1px solid #cbd5e1;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .btn-print:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    /* UPI QR Box Modal */
+    .upi-qr-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .qr-visual-box {
+      width: 72px;
+      height: 72px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #0f172a;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .workspace-grid { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .breakdown-3col { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <a href="/dashboard/" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+      <h1 class="studio-title">
+        <i class="fa-solid fa-calculator" style="color: var(--primary);"></i>
+        Driver Settlement & Bata Payroll Studio
+      </h1>
+      <span class="studio-tag">1-Click Payout Engine</span>
+    </div>
+
+    <div class="top-controls">
+      <!-- Depot Scope Filter -->
+      <div class="depot-select-wrap">
+        <i class="fa-solid fa-building" style="color: var(--primary);"></i>
+        <span>Depot:</span>
+        <select onchange="window.location.href='?depot=' + this.value">
+          <option value="all" {% if depot_scope.selected_depot == 'all' %}selected{% endif %}>🌐 All Hubs</option>
+          <option value="Chennai Central HQ" {% if depot_scope.selected_depot == 'Chennai Central HQ' %}selected{% endif %}>Chennai Central HQ</option>
+          <option value="Coimbatore Hub" {% if depot_scope.selected_depot == 'Coimbatore Hub' %}selected{% endif %}>Coimbatore Hub</option>
+          <option value="Madurai Depo" {% if depot_scope.selected_depot == 'Madurai Depo' %}selected{% endif %}>Madurai Depo</option>
+          <option value="Bengaluru Station" {% if depot_scope.selected_depot == 'Bengaluru Station' %}selected{% endif %}>Bengaluru Station</option>
+        </select>
+      </div>
+
+      <a href="/admin/finance/driversettlement/" target="_blank" class="back-btn" title="View in Django Admin">
+        <i class="fa-solid fa-sliders"></i> Admin Ledger
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- KPI Summary Row -->
+    <div class="kpi-row">
+      <div class="kpi-card pending">
+        <div class="kpi-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+        <div class="kpi-meta">
+          <h4>Pending Settlement</h4>
+          <div class="kpi-num">{{ total_pending_count }} Trips</div>
+          <div class="kpi-sub">Completed duties awaiting clearance</div>
+        </div>
+      </div>
+
+      <div class="kpi-card disbursed">
+        <div class="kpi-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="kpi-meta">
+          <h4>MTD Disbursed</h4>
+          <div class="kpi-num">₹{{ mtd_disbursed|floatformat:2 }}</div>
+          <div class="kpi-sub">Chauffeur net payouts disbursed this month</div>
+        </div>
+      </div>
+
+      <div class="kpi-card surrender">
+        <div class="kpi-icon"><i class="fa-solid fa-rotate-left"></i></div>
+        <div class="kpi-meta">
+          <h4>Advance Surrenders</h4>
+          <div class="kpi-num">₹{{ surrender_total|floatformat:2 }}</div>
+          <div class="kpi-sub">Excess float refunded to depot cash</div>
+        </div>
+      </div>
+
+      <div class="kpi-card rate">
+        <div class="kpi-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="kpi-meta">
+          <h4>Avg Daily Bata</h4>
+          <div class="kpi-num">₹{{ avg_bata|floatformat:0 }}</div>
+          <div class="kpi-sub">Benchmark daily chauffeur allowance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workspace Split: Trips Roster vs Settlement Cockpit -->
+    <div class="workspace-grid">
+
+      <!-- LEFT: Completed Trips List -->
+      <section class="roster-panel">
+        <div class="roster-header">
+          <div class="roster-title-row">
+            <div class="roster-title"><i class="fa-solid fa-list-check" style="color: var(--primary);"></i> Trips Roster</div>
+            <span class="mini-chip">{{ pending_trips|length }} Available</span>
+          </div>
+
+          <div class="filter-tabs">
+            <a href="?status=pending{% if depot_scope.selected_depot %}&depot={{ depot_scope.selected_depot }}{% endif %}" class="filter-tab {% if filter_status == 'pending' %}active{% endif %}">
+              Pending Trips
+            </a>
+            <a href="?status=settled{% if depot_scope.selected_depot %}&depot={{ depot_scope.selected_depot }}{% endif %}" class="filter-tab {% if filter_status == 'settled' %}active{% endif %}">
+              Settled Vouchers
+            </a>
+          </div>
+
+          <form method="GET" action="" class="roster-search-wrap">
+            {% if depot_scope.selected_depot %}<input type="hidden" name="depot" value="{{ depot_scope.selected_depot }}">{% endif %}
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search Trip #, Driver, or Guest..." class="roster-search-box">
+          </form>
+        </div>
+
+        <div class="trips-scroll-list" id="tripsList">
+          {% if pending_trips %}
+            {% for t in pending_trips %}
+              <div class="trip-card-item {% if active_preview and active_preview.trip_id == t.id %}selected{% endif %}" onclick="loadTripSettlement({{ t.id }})">
+                <div class="trip-item-top">
+                  <span class="trip-code">#{{ t.trip_id }}</span>
+                  <span class="trip-badge badge-pending">Ready</span>
+                </div>
+                <div class="trip-driver-line">
+                  <i class="fa-solid fa-user-tie" style="color: #6366f1;"></i> {{ t.driver.name }}
+                </div>
+                <div class="trip-route-line">
+                  <i class="fa-solid fa-route"></i>
+                  <span>{{ t.booking.pickup_location|default:"Coimbatore" }} &rarr; {{ t.booking.destination|default:"Outstation" }}</span>
+                </div>
+                <div class="trip-chips-row">
+                  <span class="mini-chip">{{ t.days_count }} Day{% if t.days_count > 1 %}s{% endif %}</span>
+                  <span class="mini-chip">{{ t.vehicle.registration_number|default:"No Vehicle" }}</span>
+                  {% if 'ooty' in t.booking.destination|lower or 'kodai' in t.booking.destination|lower or 'munnar' in t.booking.destination|lower %}
+                    <span class="mini-chip chip-ghat"><i class="fa-solid fa-mountain"></i> Ghat Road</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div style="padding: 32px; text-align: center; color: var(--text-muted); font-size: 13px;">
+              <i class="fa-solid fa-check-circle" style="font-size: 28px; color: var(--accent); margin-bottom: 8px; display: block;"></i>
+              No pending trips requiring settlement!
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- RIGHT: Interactive 1-Click Settlement Studio Cockpit -->
+      <section class="cockpit-panel" id="cockpitContainer">
+        {% if active_preview %}
+          <!-- Banner: Driver & Trip Details -->
+          <div class="cockpit-banner">
+            <div class="driver-big-meta">
+              <div class="driver-avatar-circle">
+                {{ active_preview.driver_name|slice:":1" }}
+              </div>
+              <div>
+                <h2 class="driver-name-title" id="driverName">{{ active_preview.driver_name }}</h2>
+                <div class="driver-sub-tags">
+                  <span><i class="fa-solid fa-phone"></i> <span id="driverPhone">{{ active_preview.driver_phone|default:"98401 12345" }}</span></span>
+                  <span><i class="fa-solid fa-wallet"></i> UPI: <b id="driverUpi">{{ active_preview.driver_upi }}</b></span>
+                  <span><i class="fa-solid fa-car"></i> <span id="vehicleReg">{{ active_preview.vehicle_reg }}</span> ({{ active_preview.vehicle_category|upper }})</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              {% if active_preview.is_ghat_road %}
+                <span class="terrain-indicator" id="terrainTag"><i class="fa-solid fa-mountain"></i> Western Ghats / Nilgiris Active</span>
+              {% else %}
+                <span class="terrain-indicator outstation" id="terrainTag"><i class="fa-solid fa-road"></i> Standard {{ active_preview.duty_type|title }} Duty</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- 3-Column Itemized Balance Sheet -->
+          <div class="breakdown-3col">
+            <!-- Col 1: Driver Bata -->
+            <div class="col-card bata">
+              <div class="col-header"><i class="fa-solid fa-award"></i> 1. Chauffeur Bata</div>
+              <div class="line-item">
+                <span class="item-label">Base Bata ({{ active_preview.days_count }} Days @ ₹{{ active_preview.base_rate_per_day }})</span>
+                <span class="item-val pos" id="valBaseBata">₹{{ active_preview.base_bata|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Night Halts ({{ active_preview.night_halts_count }} Night{% if active_preview.night_halts_count > 1 %}s{% endif %})</span>
+                <span class="item-val pos" id="valNightHalt">₹{{ active_preview.night_halt_allowance|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Early Reporting (< 06:00 AM)</span>
+                <span class="item-val pos" id="valEarlyMorn">₹{{ active_preview.early_morning_allowance|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Late Night Drop (>= 23:00)</span>
+                <span class="item-val pos" id="valLateNight">₹{{ active_preview.late_night_allowance|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Ghat Road Hairpin Bonus</span>
+                <span class="item-val pos" id="valGhatBonus">₹{{ active_preview.ghat_road_allowance|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Extended Tour Bonus (>=5 Days)</span>
+                <span class="item-val pos" id="valExpedition">₹{{ active_preview.expedition_bonus|floatformat:2 }}</span>
+              </div>
+              <div class="subtotal-row">
+                <span>Total Bata Earned</span>
+                <span class="item-val pos" id="valTotalBata">₹{{ active_preview.total_bata_earned|floatformat:2 }}</span>
+              </div>
+            </div>
+
+            <!-- Col 2: Reimbursements (Paid by Driver) -->
+            <div class="col-card reimburse">
+              <div class="col-header"><i class="fa-solid fa-receipt"></i> 2. Driver Expenses</div>
+              <div class="line-item">
+                <span class="item-label">Diesel / Fuel Slips</span>
+                <span class="item-val pos" id="valFuelPaid">₹{{ active_preview.fuel_paid_by_driver|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Highway Tolls & Parking</span>
+                <span class="item-val pos" id="valTollsPaid">₹{{ active_preview.toll_parking_paid_by_driver|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Permits / Cleaners / Misc</span>
+                <span class="item-val pos" id="valOtherExp">₹{{ active_preview.other_expenses_paid_by_driver|floatformat:2 }}</span>
+              </div>
+              <div class="subtotal-row">
+                <span>Total Reimbursements</span>
+                <span class="item-val pos" id="valTotalReimburse">₹{{ active_preview.total_reimbursements|floatformat:2 }}</span>
+              </div>
+            </div>
+
+            <!-- Col 3: Deductions & Cash Advances -->
+            <div class="col-card deductions">
+              <div class="col-header"><i class="fa-solid fa-minus-circle"></i> 3. Deductions & Netting</div>
+              <div class="line-item">
+                <span class="item-label">Cash Advances Issued</span>
+                <span class="item-val neg" id="valAdvances">-₹{{ active_preview.cash_advances_received|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Cash Collected from Guest</span>
+                <span class="item-val neg" id="valCashCollected">-₹{{ active_preview.cash_collected_from_customer|floatformat:2 }}</span>
+              </div>
+              <div class="line-item">
+                <span class="item-label">Traffic Police Challans</span>
+                <span class="item-val neg" id="valTrafficFines">-₹{{ active_preview.traffic_fines_deducted|floatformat:2 }}</span>
+              </div>
+              <div class="subtotal-row">
+                <span>Total Deductions</span>
+                <span class="item-val neg" id="valTotalDeductions">-₹{{ active_preview.total_deductions|floatformat:2 }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- THE VERDICT: Net Amount -->
+          <div class="verdict-box {% if active_preview.is_payable_to_driver %}payable{% else %}recoverable{% endif %}" id="verdictBox">
+            <div>
+              <div class="verdict-title" id="verdictTitle">
+                {% if active_preview.is_payable_to_driver %}
+                  ✓ Net Amount Payable to Driver
+                {% else %}
+                  ⚠ Unspent Float Surrender Required
+                {% endif %}
+              </div>
+              <div class="verdict-amount" id="verdictAmount">
+                ₹{{ active_preview.abs_net_amount|floatformat:2 }}
+              </div>
+              <div class="verdict-sub" id="verdictSub">
+                {% if active_preview.is_payable_to_driver %}
+                  Ready for instant UPI disbursement to {{ active_preview.driver_upi }}
+                {% else %}
+                  Driver received excess cash advance and must return remainder to Cashier float.
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <i class="fa-solid {% if active_preview.is_payable_to_driver %}fa-circle-check{% else %}fa-hand-holding-dollar{% endif %}" style="font-size: 48px; opacity: 0.3;"></i>
+            </div>
+          </div>
+
+          <!-- Settlement Form & Execution Drawer -->
+          <div class="action-drawer">
+            <form id="settlementForm" onsubmit="executeSettlement(event)">
+              <input type="hidden" id="currentTripId" value="{{ active_preview.trip_id }}">
+              
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Disbursement Channel</label>
+                  <select id="paymentMode" class="form-control" onchange="togglePaymentMode(this.value)">
+                    <option value="upi">⚡ Dynamic Instant UPI Payout</option>
+                    <option value="cash">💵 Depot Petty Cash Float</option>
+                    <option value="bank_transfer">🏦 Bank Transfer (NEFT/IMPS)</option>
+                    <option value="wallet">📱 Driver Mobile Float Balance</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>Payment Ref / UTR #</label>
+                  <input type="text" id="utrReference" class="form-control" placeholder="e.g. UPI-628491028371 or Chq No">
+                </div>
+
+                <div class="form-group">
+                  <label>Eco-Drive Fuel Bonus (₹)</label>
+                  <input type="number" id="fuelBonusInput" class="form-control" value="0.00" step="50" oninput="adjustFuelBonus(this.value)">
+                </div>
+              </div>
+
+              <!-- Dynamic UPI QR Helper Box -->
+              <div id="upiHelperBox" class="upi-qr-card">
+                <div class="qr-visual-box"><i class="fa-solid fa-qrcode"></i></div>
+                <div>
+                  <div style="font-size: 13px; font-weight: 800; color: #0f172a;">Scan & Disburse via UPI</div>
+                  <div style="font-size: 11px; color: #64748b; margin-top: 2px;">
+                    Send to <b>{{ active_preview.driver_upi }}</b> via PhonePe, Google Pay, or Paytm.
+                  </div>
+                  <a href="{{ active_preview.upi_intent_url }}" id="upiIntentLink" class="back-btn" style="display: inline-flex; margin-top: 6px; font-size: 11px; padding: 4px 8px;">
+                    <i class="fa-solid fa-mobile-screen-button"></i> Open UPI App Link
+                  </a>
+                </div>
+              </div>
+
+              <div class="btn-action-row" style="margin-top: 18px;">
+                <a href="/finance/settlement/{% if active_preview.existing_voucher %}{{ active_preview.trip_id }}{% else %}1{% endif %}/voucher/" target="_blank" id="printVoucherBtn" class="btn-print">
+                  <i class="fa-solid fa-print"></i> Print Official Voucher
+                </a>
+
+                <button type="submit" id="submitSettleBtn" class="btn-settle">
+                  <i class="fa-solid fa-bolt"></i> 1-Click Approve & Disburse
+                </button>
+              </div>
+            </form>
+          </div>
+
+        {% else %}
+          <div style="padding: 60px; text-align: center; color: var(--text-muted);">
+            <i class="fa-solid fa-calculator" style="font-size: 42px; color: #cbd5e1; margin-bottom: 12px; display: block;"></i>
+            <h3>Select a completed trip from the left roster</h3>
+            <p style="font-size: 13px; margin-top: 4px;">The 1-Click Payout Studio will automatically reconcile trip Bata, fuel receipts, and cash advances.</p>
+          </div>
+        {% endif %}
+      </section>
+
+    </div>
+
+  </main>
+
+  <script>
+    let currentCalculation = {{ active_preview|default:'null'|safe }};
+
+    function loadTripSettlement(tripId) {
+      document.querySelectorAll('.trip-card-item').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+
+      fetch(`/api/finance/settle/${tripId}/context/`)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            currentCalculation = res.data;
+            renderCockpit(res.data);
+          } else {
+            alert('Error loading settlement: ' + res.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Failed to connect to settlement engine.');
+        });
+    }
+
+    function renderCockpit(d) {
+      document.getElementById('currentTripId').value = d.trip_id;
+      document.getElementById('driverName').innerText = d.driver_name;
+      document.getElementById('driverPhone').innerText = d.driver_phone || '98401 12345';
+      document.getElementById('driverUpi').innerText = d.driver_upi;
+      document.getElementById('vehicleReg').innerText = d.vehicle_reg;
+
+      // Terrain Tag
+      const terrainTag = document.getElementById('terrainTag');
+      if (d.is_ghat_road) {
+        terrainTag.className = 'terrain-indicator';
+        terrainTag.innerHTML = '<i class="fa-solid fa-mountain"></i> Western Ghats / Nilgiris Active';
+      } else {
+        terrainTag.className = 'terrain-indicator outstation';
+        terrainTag.innerHTML = `<i class="fa-solid fa-road"></i> Standard ${d.duty_type} Duty`;
+      }
+
+      // Column 1: Bata
+      document.getElementById('valBaseBata').innerText = `₹${d.base_bata.toFixed(2)}`;
+      document.getElementById('valNightHalt').innerText = `₹${d.night_halt_allowance.toFixed(2)}`;
+      document.getElementById('valEarlyMorn').innerText = `₹${d.early_morning_allowance.toFixed(2)}`;
+      document.getElementById('valLateNight').innerText = `₹${d.late_night_allowance.toFixed(2)}`;
+      document.getElementById('valGhatBonus').innerText = `₹${d.ghat_road_allowance.toFixed(2)}`;
+      document.getElementById('valExpedition').innerText = `₹${d.expedition_bonus.toFixed(2)}`;
+      document.getElementById('valTotalBata').innerText = `₹${d.total_bata_earned.toFixed(2)}`;
+
+      // Column 2: Reimbursements
+      document.getElementById('valFuelPaid').innerText = `₹${d.fuel_paid_by_driver.toFixed(2)}`;
+      document.getElementById('valTollsPaid').innerText = `₹${d.toll_parking_paid_by_driver.toFixed(2)}`;
+      document.getElementById('valOtherExp').innerText = `₹${d.other_expenses_paid_by_driver.toFixed(2)}`;
+      document.getElementById('valTotalReimburse').innerText = `₹${d.total_reimbursements.toFixed(2)}`;
+
+      // Column 3: Deductions
+      document.getElementById('valAdvances').innerText = `-₹${d.cash_advances_received.toFixed(2)}`;
+      document.getElementById('valCashCollected').innerText = `-₹${d.cash_collected_from_customer.toFixed(2)}`;
+      document.getElementById('valTrafficFines').innerText = `-₹${d.traffic_fines_deducted.toFixed(2)}`;
+      document.getElementById('valTotalDeductions').innerText = `-₹${d.total_deductions.toFixed(2)}`;
+
+      // Verdict Box
+      const verdictBox = document.getElementById('verdictBox');
+      const verdictTitle = document.getElementById('verdictTitle');
+      const verdictAmount = document.getElementById('verdictAmount');
+      const verdictSub = document.getElementById('verdictSub');
+
+      verdictAmount.innerText = `₹${d.abs_net_amount.toFixed(2)}`;
+
+      if (d.is_payable_to_driver) {
+        verdictBox.className = 'verdict-box payable';
+        verdictTitle.innerText = '✓ Net Amount Payable to Driver';
+        verdictSub.innerText = `Ready for instant UPI disbursement to ${d.driver_upi}`;
+        document.getElementById('submitSettleBtn').innerHTML = '<i class="fa-solid fa-bolt"></i> 1-Click Approve & Disburse';
+        document.getElementById('upiHelperBox').style.display = 'inline-flex';
+        document.getElementById('upiIntentLink').href = d.upi_intent_url;
+      } else {
+        verdictBox.className = 'verdict-box recoverable';
+        verdictTitle.innerText = '⚠ Unspent Float Surrender Required';
+        verdictSub.innerText = 'Driver received excess cash advance and must return remainder to Cashier float.';
+        document.getElementById('submitSettleBtn').innerHTML = '<i class="fa-solid fa-hand-holding-dollar"></i> Acknowledge Cash Surrender Received';
+        document.getElementById('upiHelperBox').style.display = 'none';
+      }
+    }
+
+    function togglePaymentMode(mode) {
+      const upiBox = document.getElementById('upiHelperBox');
+      if (mode === 'upi' && currentCalculation && currentCalculation.is_payable_to_driver) {
+        upiBox.style.display = 'inline-flex';
+      } else {
+        upiBox.style.display = 'none';
+      }
+    }
+
+    function adjustFuelBonus(val) {
+      if (!currentCalculation) return;
+      const bonus = parseFloat(val) || 0;
+      const adjusted = currentCalculation.net_payout_amount + bonus;
+      const verdictAmount = document.getElementById('verdictAmount');
+      verdictAmount.innerText = `₹${Math.abs(adjusted).toFixed(2)}`;
+    }
+
+    function executeSettlement(e) {
+      e.preventDefault();
+      const tripId = document.getElementById('currentTripId').value;
+      if (!tripId) {
+        alert('Please select a trip first.');
+        return;
+      }
+
+      const paymentMode = document.getElementById('paymentMode').value;
+      const utr = document.getElementById('utrReference').value;
+      const bonus = parseFloat(document.getElementById('fuelBonusInput').value) || 0;
+
+      const submitBtn = document.getElementById('submitSettleBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Settlement...';
+
+      fetch(`/api/finance/settle/${tripId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify({
+          payment_mode: paymentMode,
+          payout_reference_utr: utr,
+          fuel_bonus_or_penalty: bonus,
+        }),
+      })
+      .then(res => res.json())
+      .then(data => {
+        submitBtn.disabled = false;
+        if (data.status === 'success') {
+          alert(`✅ Success: ${data.message}\nVoucher: ${data.voucher_number}`);
+          if (data.voucher_url) {
+            window.open(data.voucher_url, '_blank');
+          }
+          window.location.reload();
+        } else {
+          alert('Settlement failed: ' + data.message);
+          submitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> 1-Click Approve & Disburse';
+        }
+      })
+      .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> 1-Click Approve & Disburse';
+        alert('Server communication error.');
+      });
+    }
+  </script>
+
+</body>
+</html>
