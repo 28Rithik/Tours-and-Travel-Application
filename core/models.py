@@ -48,6 +48,27 @@ class Supplier(Party):
 		verbose_name_plural = 'Suppliers'
 
 
+class VehicleCategory(models.Model):
+	name = models.CharField(max_length=100, unique=True, help_text="e.g. Sedan & Compact, Premium MUV & SUV, Luxury Coach")
+	code = models.SlugField(max_length=50, unique=True, help_text="Slug identifier e.g. sedan, suv_muv, mini_coach, luxury_coach, electric_ev")
+	description = models.TextField(blank=True, help_text="Fleet capability, typical party size, and operations context")
+	icon = models.CharField(max_length=50, default='directions_car', help_text="Material Symbol or FontAwesome icon class e.g. directions_car, airport_shuttle, directions_bus")
+	badge_color = models.CharField(max_length=20, default='#0284c7', help_text="Hex color code for UI badging (e.g. #0284c7, #10b981, #f59e0b)")
+	seating_range = models.CharField(max_length=50, blank=True, help_text="Typical seat capacity span e.g. 4-5 Seats, 6-7 Seats, 12-26 Seats, 36-54 Seats")
+	display_order = models.PositiveIntegerField(default=1, help_text="Ordering in dropdowns and showcase galleries")
+	is_active = models.BooleanField(default=True, verbose_name="Active")
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['display_order', 'name']
+		verbose_name = 'Vehicle Category'
+		verbose_name_plural = 'Vehicle Categories'
+
+	def __str__(self):
+		return self.name
+
+
 class VehicleType(models.Model):
 	TRANSMISSION_TYPES = [('manual', 'Manual'), ('automatic', 'Automatic')]
 	TOLL_CLASSES = [('car', 'Car / Jeep / Van'), ('lcv', 'LCV / Mini Bus'), ('bus_2_axle', 'Bus (2 Axle)'), ('bus_3_axle', 'Bus (3 Axle)'), ('multi_axle', 'Multi Axle')]
@@ -55,6 +76,15 @@ class VehicleType(models.Model):
 	
 	# Basic Info
 	name = models.CharField(max_length=100, unique=True)
+	vehicle_category = models.ForeignKey(
+		VehicleCategory,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name='vehicle_types',
+		verbose_name="Vehicle Category",
+		help_text="Standardized enterprise fleet classification"
+	)
 	category = models.CharField(max_length=50, blank=True)
 	description = models.TextField(blank=True, help_text="Short description for customer portal")
 	
@@ -84,6 +114,11 @@ class VehicleType(models.Model):
 
 	def __str__(self):
 		return self.name
+
+	def save(self, *args, **kwargs):
+		if self.vehicle_category and not self.category:
+			self.category = self.vehicle_category.name
+		super().save(*args, **kwargs)
 
 
 from django.db.models.signals import post_save, post_delete
@@ -319,6 +354,15 @@ class Vehicle(models.Model):
 	
 	# Basic Info
 	registration_number = models.CharField(max_length=30, unique=True)
+	vehicle_category = models.ForeignKey(
+		VehicleCategory,
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		related_name='vehicles',
+		verbose_name="Vehicle Category",
+		help_text="Fleet classification (auto-inferred from Vehicle Type if left blank)"
+	)
 	vehicle_type = models.ForeignKey(VehicleType, on_delete=models.PROTECT, null=True, blank=True)
 	ownership_type = models.CharField(max_length=20, choices=OWNERSHIP_TYPES, default='owned')
 	owner_party = models.ForeignKey('Party', on_delete=models.PROTECT, null=True, blank=True, related_name='supplied_vehicles')
@@ -447,6 +491,11 @@ class Vehicle(models.Model):
 
 	def __str__(self):
 		return f'{self.vehicle_type} ({self.registration_number})'
+
+	def save(self, *args, **kwargs):
+		if not self.vehicle_category and self.vehicle_type and self.vehicle_type.vehicle_category:
+			self.vehicle_category = self.vehicle_type.vehicle_category
+		super().save(*args, **kwargs)
 
 class VehiclePhoto(models.Model):
 	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='photos')
@@ -589,7 +638,7 @@ class StaffProfile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
 	role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='sales_executive')
 	employee_id = models.CharField(max_length=30, unique=True, help_text="e.g. SGT-ADM-01")
-	branch = models.CharField(max_length=100, default='Chennai Central HQ')
+	branch = models.CharField(max_length=100, default='Coimbatore Central HQ')
 	department = models.CharField(max_length=100, default='Operations')
 	designation = models.CharField(max_length=100, blank=True)
 	phone = models.CharField(max_length=20, blank=True)

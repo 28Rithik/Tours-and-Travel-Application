@@ -443,6 +443,8 @@
         <p class="nav-section-title"><span>🚛</span> Fleet &amp; Telematics</p>
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live Fleet Map</a>
         <a class="nav-link" href="/admin/core/vehicle/">🚗 Vehicle Assets (Admin)</a>
+        <a class="nav-link" href="/admin/core/vehiclecategory/">🏷️ Vehicle Categories (Admin)</a>
+        <a class="nav-link" href="/admin/core/vehicletype/">🚙 Vehicle Types (Admin)</a>
         <a class="nav-link" href="/admin/core/driver/">👨‍✈️ Chauffeurs &amp; Drivers (Admin)</a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">🚗 2D Vehicle Damage Studio</a>
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">🛞 2D Axle &amp; Tire Health Studio</a>

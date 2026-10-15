@@ -115,7 +115,7 @@ def rbac_context(request):
             'empid': 'SGT-EXEC-001',
             'badge_color': '#e11d48',
             'icon_class': 'fa-solid fa-crown',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'Full Root Governance & Master Audit',
         },
         {
@@ -126,7 +126,7 @@ def rbac_context(request):
             'empid': 'SGT-MGR-002',
             'badge_color': '#8b5cf6',
             'icon_class': 'fa-solid fa-building-user',
-            'branch': 'Coimbatore Hub',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'Discount Approvals & P&L Margins',
         },
         {
@@ -137,7 +137,7 @@ def rbac_context(request):
             'empid': 'SGT-TRN-003',
             'badge_color': '#0ea5e9',
             'icon_class': 'fa-solid fa-compass-drafting',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'Bespoke Itineraries & Tour Tariffs',
         },
         {
@@ -148,7 +148,7 @@ def rbac_context(request):
             'empid': 'SGT-B2B-004',
             'badge_color': '#4f46e5',
             'icon_class': 'fa-solid fa-briefcase',
-            'branch': 'Bengaluru Station',
+            'branch': 'Hosur Branch',
             'focus': 'Corporate B2B Commute & SEZ Shuttles',
         },
         {
@@ -159,7 +159,7 @@ def rbac_context(request):
             'empid': 'SGT-SLS-005',
             'badge_color': '#10b981',
             'icon_class': 'fa-solid fa-file-signature',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Chennai Branch',
             'focus': 'CRM Kanban & Digital Proposals',
         },
         {
@@ -170,7 +170,7 @@ def rbac_context(request):
             'empid': 'SGT-OPS-006',
             'badge_color': '#0284c7',
             'icon_class': 'fa-solid fa-truck-ramp-box',
-            'branch': 'Coimbatore Hub',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'Live Radar, Driver Rosters & Standby',
         },
         {
@@ -181,7 +181,7 @@ def rbac_context(request):
             'empid': 'SGT-NIT-007',
             'badge_color': '#312e81',
             'icon_class': 'fa-solid fa-moon',
-            'branch': 'Central Control Room',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'Graveyard Supervision & Panic Triggers',
         },
         {
@@ -192,7 +192,7 @@ def rbac_context(request):
             'empid': 'SGT-MNT-008',
             'badge_color': '#ea580c',
             'icon_class': 'fa-solid fa-wrench',
-            'branch': 'Madurai Depo',
+            'branch': 'Erode Branch',
             'focus': 'Preventive Service & Tire Audits',
         },
         {
@@ -203,7 +203,7 @@ def rbac_context(request):
             'empid': 'SGT-RTO-009',
             'badge_color': '#0369a1',
             'icon_class': 'fa-solid fa-shield-halved',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'RTO Fitness (FC), Permits & Insurance',
         },
         {
@@ -214,7 +214,7 @@ def rbac_context(request):
             'empid': 'SGT-TAX-010',
             'badge_color': '#7c3aed',
             'icon_class': 'fa-solid fa-vault',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'GST INV-1, E-Way Bills & Tally Export',
         },
         {
@@ -225,7 +225,7 @@ def rbac_context(request):
             'empid': 'SGT-FIN-011',
             'badge_color': '#d97706',
             'icon_class': 'fa-solid fa-file-invoice-dollar',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Tirupur Branch',
             'focus': 'Driver Bata, Fuel Slips & Toll Claims',
         },
         {
@@ -236,7 +236,7 @@ def rbac_context(request):
             'empid': 'SGT-CSH-012',
             'badge_color': '#ca8a04',
             'icon_class': 'fa-solid fa-money-bill-transfer',
-            'branch': 'Coimbatore Hub',
+            'branch': 'Coimbatore Central HQ',
             'focus': 'Driver Cash Advances & Fastag Vault',
         },
         {
@@ -247,7 +247,7 @@ def rbac_context(request):
             'empid': 'SGT-DRV-013',
             'badge_color': '#f97316',
             'icon_class': 'fa-solid fa-id-badge',
-            'branch': 'Madurai Depo',
+            'branch': 'Trichy Branch',
             'focus': 'Mobile PWA Handover & Duty Roster',
         },
         {
@@ -258,7 +258,7 @@ def rbac_context(request):
             'empid': 'SGT-SUP-014',
             'badge_color': '#06b6d4',
             'icon_class': 'fa-solid fa-headset',
-            'branch': 'Chennai Central HQ',
+            'branch': 'Chennai Branch',
             'focus': 'Passenger Care, SOS & Concierge',
         },
     ]

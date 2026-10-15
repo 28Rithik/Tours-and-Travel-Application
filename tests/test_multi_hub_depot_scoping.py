@@ -261,7 +261,7 @@ class MultiHubDepotScopingTestCase(TestCase):
         self.client.force_login(self.user_ops)
         resp_ops = self.client.get('/fleet/live/')
         self.assertEqual(resp_ops.status_code, 200)
-        self.assertContains(resp_ops, 'Coimbatore Hub (Regional Fenced)')
+        self.assertContains(resp_ops, f'{DEPOT_COIMBATORE} (Regional Fenced)')
 
     def test_04_api_fleet_live_feed_telemetry(self):
         """Test GET /api/fleet/live-feed/ returns scoped JSON payload."""

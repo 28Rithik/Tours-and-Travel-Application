@@ -61,9 +61,12 @@ from django.core.cache import cache
 
 
 def get_dashboard_ledger_totals():
-    cached = cache.get('dashboard_receivables_payables')
-    if cached is not None:
-        return cached
+    try:
+        cached = cache.get('dashboard_receivables_payables')
+        if cached is not None:
+            return cached
+    except Exception:
+        pass
 
     from collections import defaultdict
     from finance.models import Payment, LedgerAdjustment
@@ -120,7 +123,10 @@ def get_dashboard_ledger_totals():
         else:
             payables += abs(b)
 
-    cache.set('dashboard_receivables_payables', (receivables, payables), 300)
+    try:
+        cache.set('dashboard_receivables_payables', (receivables, payables), 300)
+    except Exception:
+        pass
     return receivables, payables
 
 
@@ -408,7 +414,7 @@ def staff_roles_matrix_view(request):
             'module': 'Asset Maintenance & Workshop',
             'capability': 'Preventative Service Schedules & Tire Tread Mileage Audit',
             'desc': 'Track 10,000 km oil intervals, tire tread depth thresholds, and scheduled overhauls.',
-            'roles': ['admin', 'manager', 'workshop_manager'],
+            'roles': ['admin', 'manager', 'workshop_manager', 'compliance_rto_officer'],
         },
         {
             'module': 'Safety, RTO Compliance & SOS',
@@ -444,7 +450,7 @@ def staff_roles_matrix_view(request):
             'module': 'B2B Corporate Commute Contracts',
             'capability': 'SLA Delay Penalty Audits & Night Escort Safe-Drop Index',
             'desc': 'Reconcile on-time trip penalties, escort sign-offs, and automated client billing.',
-            'roles': ['admin', 'manager', 'b2b_corporate_lead', 'compliance_rto_officer'],
+            'roles': ['admin', 'manager', 'b2b_corporate_lead', 'night_dispatcher', 'compliance_rto_officer'],
         },
         {
             'module': 'Billing, GST Invoicing & Tax',

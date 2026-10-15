@@ -737,12 +737,13 @@
           <input type="text" id="rosterSearchInput" class="roster-search-box" placeholder="Search by name, employee ID, designation, or department..." oninput="filterStaffRoster()">
         </div>
         <select id="depotFilterSelect" class="depot-select" onchange="filterStaffRoster()">
-          <option value="all">All Depots &amp; Stations</option>
-          <option value="chennai">Chennai Central HQ</option>
-          <option value="coimbatore">Coimbatore Hub</option>
-          <option value="madurai">Madurai Depo</option>
-          <option value="bengaluru">Bengaluru Station</option>
-          <option value="control">Central Control Room</option>
+          <option value="all">All Depots &amp; Branches</option>
+          <option value="coimbatore">Coimbatore Central HQ (Main Location)</option>
+          <option value="tirupur">Tirupur Branch</option>
+          <option value="erode">Erode Branch</option>
+          <option value="chennai">Chennai Branch</option>
+          <option value="hosur">Hosur Branch</option>
+          <option value="trichy">Tiruchirappalli (Trichy) Branch</option>
         </select>
       </div>
 
@@ -1083,11 +1084,7 @@ function filterStaffRoster() {
 
     let matchesDepot = true;
     if (depotVal !== 'all') {
-      if (depotVal === 'chennai' && !branchData.includes('chennai')) matchesDepot = false;
-      if (depotVal === 'coimbatore' && !branchData.includes('coimbatore')) matchesDepot = false;
-      if (depotVal === 'madurai' && !branchData.includes('madurai')) matchesDepot = false;
-      if (depotVal === 'bengaluru' && !branchData.includes('bengaluru')) matchesDepot = false;
-      if (depotVal === 'control' && !branchData.includes('control')) matchesDepot = false;
+      if (!branchData.includes(depotVal)) matchesDepot = false;
     }
 
     if (matchesQuery && matchesDept && matchesDepot) {

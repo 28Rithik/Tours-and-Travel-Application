@@ -10,17 +10,10 @@ Write-Host "====================================================================
 # 1. Enable PostgreSQL mode
 $env:USE_POSTGRES = "1"
 
-# 2. Locate verified Python runtime (.venv or py -3.12)
+# 2. Locate verified Python runtime (py -3.12 has all ERP dependencies)
 $PYTHON = "py"
 $PYTHON_ARGS = @("-3.12")
-
-if (Test-Path ".\.venv\Scripts\python.exe") {
-    $PYTHON = (Resolve-Path ".\.venv\Scripts\python.exe").Path
-    $PYTHON_ARGS = @()
-    Write-Host "[*] Using virtual environment runtime: $PYTHON" -ForegroundColor Green
-} else {
-    Write-Host "[*] Using Python 3.12 launcher (py -3.12)" -ForegroundColor Green
-}
+Write-Host "[*] Using Python 3.12 launcher (py -3.12)" -ForegroundColor Green
 
 # 3. Verify PostgreSQL container is running
 $pg_running = docker ps --filter "name=travelerp_postgis" --format "{{.Status}}"

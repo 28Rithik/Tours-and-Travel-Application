@@ -671,10 +671,17 @@ def execute_groq_llm(user_message, conversation_history=None, api_key=None, mode
         second_payload = {
             "model": model_name,
             "messages": messages,
+            "tools": GROQ_TOOLS_SCHEMA,
+            "tool_choice": "none",
             "temperature": 0.3,
             "max_tokens": 500
         }
         second_resp = requests.post(GROQ_API_URL, headers=headers, json=second_payload, timeout=25)
+        if second_resp.status_code != 200:
+            # Retry with tool_choice auto
+            second_payload["tool_choice"] = "auto"
+            second_resp = requests.post(GROQ_API_URL, headers=headers, json=second_payload, timeout=25)
+
         if second_resp.status_code == 200:
             final_content = second_resp.json()['choices'][0]['message'].get('content', '')
             return final_content, "SUCCESS", executed_tools_data

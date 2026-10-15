@@ -510,6 +510,7 @@ UNFOLD = {
                 "collapsible": True,
                 "items": [
                     {"title": "Vehicles", "icon": "directions_car", "link": reverse_lazy("admin:core_vehicle_changelist")},
+                    {"title": "Vehicle Categories", "icon": "grid_view", "link": reverse_lazy("admin:core_vehiclecategory_changelist")},
                     {"title": "Vehicle Types", "icon": "category", "link": reverse_lazy("admin:core_vehicletype_changelist")},
                     {"title": "Live Fleet Radar Map", "icon": "satellite_alt", "link": "/admin/operations/fleet-radar/"},
                 ],
@@ -707,7 +708,18 @@ GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
 # ==============================================================================
 REDIS_URL = os.getenv('REDIS_URL', '')
 
-if REDIS_URL:
+def _check_redis_alive(url):
+    if not url:
+        return False
+    try:
+        import redis
+        client = redis.from_url(url, socket_connect_timeout=0.3, socket_timeout=0.3)
+        client.ping()
+        return True
+    except Exception:
+        return False
+
+if REDIS_URL and _check_redis_alive(REDIS_URL):
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.redis.RedisCache',

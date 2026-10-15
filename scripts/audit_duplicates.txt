@@ -1,0 +1,242 @@
+================================================================================
+AUDITING VEHICLE CATEGORIES & VEHICLE TYPES FOR DUPLICATES AND MISCLASSIFICATIONS
+================================================================================
+
+--- 1. DUPLICATE CLUSTERS (NORMALIZED) ---
+
+Total duplicate clusters found: 0
+
+--- 2. CATEGORY AUDIT ---
+
+Category: Sedan & Compact (sedan) - 7 types
+  [ 71] Honda Amaze VX 1.2                               |  4 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 68] Honda City V                                     |  4 seats | Fuel: petrol   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 72] Hyundai Aura E 1.2                               |  4 seats | Fuel: petrol   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 69] Maruti Suzuki Ciaz Sigma 1.5                     |  4 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [  3] Maruti Suzuki Dzire Lxi                          |  4 seats | Fuel: petrol   | AC: True | Lux: False | Tariffs: 6244 | Vehicles: 2
+  [ 67] Toyota Corolla Altis                             |  4 seats | Fuel: petrol   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 70] Toyota Etios VXD                                 |  4 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 1
+
+Category: Premium MUV & SUV (suv_muv) - 9 types
+  [ 97] Toyota Fortuner 4x4 2.8 4WD                      |  5 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 65] Kia Carens Clavis HTE(O) 1.5                     |  6 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 63] Toyota Rumion S Petrol                           |  6 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 66] Mahindra Marazzo M2 7 STR                        |  7 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 62] Maruti Suzuki Invicto Zeta Plus                  |  7 seats | Fuel: petrol   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 59] Toyota Innova 2.5 VX                             |  7 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [  1] Toyota Innova Crysta 2.4 GX+                     |  7 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 6244 | Vehicles: 2
+  [ 61] Toyota Innova Hycross VX                         |  7 seats | Fuel: petrol   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 1
+  [ 64] Maruti Suzuki Ertiga Lxi                         |  8 seats | Fuel: petrol   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+
+Category: Ultra-Luxury VIP & Chauffeur Drive (luxury_vip) - 6 types
+  [ 95] Mercedes Benz E220d LWB                          |  3 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 96] Mercedes-Benz S-Class S350d                      |  3 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 94] Toyota Camry Hybrid                              |  3 seats | Fuel: petrol   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 99] Mercedes Benz V-Class V 300d                     |  5 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 98] Toyota Vellfire Executive Lounge                 |  5 seats | Fuel: petrol   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [100] Kia Carnival Limousine                           |  7 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+
+Category: Luxury Van & Mini Coach (mini_coach) - 29 types
+  [ 78] Toyota GranAce 3R 2.8l                           |  7 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 75] Force Motors Cityline AC                         |  9 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [111] Force Traveller T1 3350 AC Maharaja FG           |  9 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [107] Force Urbania 3350                               |  9 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [113] Force Urbania 3615 Maharaja                      |  9 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 76] Toyota HiAce Commuter H300 GL 2023               | 10 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [106] Force Urbania 3615                               | 13 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [112] Force Urbania 4400 Maharaja                      | 13 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 74] Tata Winger Tourist 3200 AC                      | 13 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [  4] Force Traveller T1 3350 AC                       | 14 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 3847 | Vehicles: 1
+  [110] Force Traveller T1 3700 AC Maharaja FG           | 14 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 12] Force Urbania 4400                               | 16 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 2397 | Vehicles: 3
+  [103] Force Traveller T1 3700 AC                       | 17 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 77] Toyota Coaster 4.2l                              | 17 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [102] Force Traveller T1 4020 AC                       | 20 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [109] Force Traveller T1 4020 AC FG                    | 20 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [119] SML Isuzu Asai 3335 AC                           | 20 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [118] SML Isuzu Swaraj Mazda EcoMax T3500              | 20 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [121] Eicher 2050 Aadhavan Coach                       | 21 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [122] Eicher 2050 Joy Coach                            | 21 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [120] Eicher 2050 Pandyan Coach                        | 21 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [128] Bharat Benz 1017 Navigo FG                       | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [127] Bharat Benz 1017 Ojes Body FG                    | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [126] SML Isuzu 3335 Aadhavan Coach FG                 | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [125] SML Isuzu 3335 Pandyan Coach FG                  | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [124] SML Isuzu 3335 Skylar Sahara Coach               | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [123] SML Isuzu 3335 Vinayaka Coach                    | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [101] Force Traveller T2 4020 AC                       | 26 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [108] Force Traveller T2 4020 AC FG                    | 26 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+
+Category: Intercity Luxury Coach & Sleeper (luxury_coach) - 92 types
+  [133] Mahindra Cruzio Grande 4440                      | 32 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [114] Bharat Benz 1017 Fixed Glass                     | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [242] Bharat Benz 1017 Mini Bus                        | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [130] Bharat Benz 1017 Ojes Fedora Body                | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [131] Bharat Benz 1017 Prakash Astra                   | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [132] Bharat Benz 1017 Prakash Astra FG                | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [129] Bharat Benz 1017 Skylar Sahara Coach             | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [243] Eicher 2090 L Mini Bus                           | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [117] SML Isuzu Executive LX 5100 Fixed Glass          | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [198] Ashok Leyland Garud TF 2513 Kalpa                | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [196] Ashok Leyland Garud TF 2513 Rudra                | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [197] Ashok Leyland Garud TF 2513 Spyder               | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [194] Ashok Leyland Garud TF 2513.5 SL1800+            | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [192] Ashok Leyland Garud TF 2513.5 Veera V8 Mk III    | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [184] Bharat Benz 1924 Aravali Stunner                 | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [178] Bharat Benz 1924 Damodar Kalpa                   | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [179] Bharat Benz 1924 Damodar Prabal                  | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [175] Bharat Benz 1924 Damodar Rudra                   | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [176] Bharat Benz 1924 Damodar Spyder 2.0              | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [177] Bharat Benz 1924 Damodar Super High Deck+        | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [188] Bharat Benz 1924 Jaswant Type 1 Coach            | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [189] Bharat Benz 1924 Jaswant Type 2 Coach            | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 13] Bharat Benz 1924 MG Glider Z+                    | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 2396 | Vehicles: 0
+  [173] Bharat Benz 1924 MG Tigra                        | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [174] Bharat Benz 1924 Prakash Capella GT              | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [186] Bharat Benz 1924 R2 Prime+ REC                   | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [185] Bharat Benz 1924 Sahara Meraki                   | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [187] Bharat Benz 1924 Shakti Coach                    | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [190] Bharat Benz 1924 Shri Dharmraj Body              | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [180] Bharat Benz 1924 Sutlej SL1800+                  | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [183] Bharat Benz 1924 Synaty Destino                  | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [182] Bharat Benz 1924 Synaty Lavie                    | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [181] Bharat Benz 1924 Veera V8 Mk III                 | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [191] Tata LPO 1618 Mirabelle S5300                    | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [202] Volvo Eicher 6019 Pro Capella GT                 | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [199] Volvo Eicher 6019 Pro Rudra                      | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [200] Volvo Eicher 6019 Pro Spyder                     | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [203] Volvo Eicher 6019 Pro Stella                     | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [201] Volvo Eicher 6019 Pro Super High Deck            | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [195] Volvo Eicher 6019 Pro Sutlej SL1800+             | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [204] Volvo Eicher 6019 Pro VECV Body                  | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [193] Volvo Eicher 6019 Pro Veera V8 mk III            | 36 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [134] Mahindra Cruzio Grande 5360                      | 40 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [208] Mercedes Benz 2441 SHD MG Dream Z                | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [207] Mercedes Benz 2441 SHD Sleeper                   | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [116] SML Isuzu Hiroi 5300 Fixed Glass                 | 40 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [209] Scania Metrolink HD 14.5m Sleeper                | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [205] Volvo 9400 B11R 14.5m AC Sleeper                 | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [206] Volvo 9400 B11R 14.5m MG Star Z                  | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [211] Volvo B8R 9600 SLX 15m Sleeper (40 Berths)       | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [210] Volvo B8R 9600s 15m Sleeper                      | 40 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [115] Force MonoBus T3 MB 5200 AC Fixed Glass          | 41 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [212] Volvo B8R 9600 SLX 15m Sleeper (42 Berths)       | 42 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [150] Volvo 9600 B8R 12.2m Bi-Axle                     | 43 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [140] Volvo Eicher 6016 R LPO VECV 12.4 m FG           | 43 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [277] Ashok Leyland Garud TF 2513.5 Heavy Chassis (Rs. 40L OEM) | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [171] Bharat Benz 1624 Aravali Stunner                 | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [165] Bharat Benz 1624 Damodar Kalpa                   | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [162] Bharat Benz 1624 Damodar Rudra                   | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [163] Bharat Benz 1624 Damodar Spyder 2.0              | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [164] Bharat Benz 1624 Damodar Super High Deck+        | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [141] Bharat Benz 1624 MG Glider 12m FG                | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 1
+  [161] Bharat Benz 1624 MG Tigra                        | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [142] Bharat Benz 1624 Prakash Capella GT 11.4m FG     | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [143] Bharat Benz 1624 Prakash Zedastra FG             | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [169] Bharat Benz 1624 Sahara Meraki                   | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [168] Bharat Benz 1624 Sutlej S-1800+                  | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [167] Bharat Benz 1624 Synaty Destino 12m              | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [166] Bharat Benz 1624 Synaty Umang                    | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [170] Bharat Benz 1624 Veeramaha Samrat V8 Mk III      | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [276] Bharat Benz 1924 Heavy Coach Chassis (₹49L OEM)  | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [159] Eicher 6016 6200 WB Sahara Dexter                | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [158] Eicher 6019 R Synaty Destino 12m                 | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [153] Scania Metrolink HD 12m Bi-Axle                  | 45 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [147] Volvo 9400 B8R 12m Biaxle                        | 45 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [157] Volvo Eicher 6016 N Sutlej S-1800+               | 45 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [160] Volvo Eicher 6016 Pro Syanty 12 m                | 45 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [151] Volvo 9600 B8R 13.5m Multi-Axle                  | 47 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [148] Volvo 9400 B11R 13.5m Bi-Axle                    | 51 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [144] Bharat Benz 1624 Prakash Zedastra 13.5m          | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [145] Bharat Benz 1924 Glider 13.5m                    | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [146] Volvo Eicher 6019 Pro VECV 13.5m                 | 52 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [  6] Ashok Leyland Viking 11.4m Zedastra              | 53 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 3847 | Vehicles: 0
+  [139] Ashok Leyland Viking 11.4m Zedvega               | 53 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [  8] Bharat Benz 1624 Prakash Zedastra                | 53 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 6245 | Vehicles: 0
+  [136] Bharat Benz 1624 ZedVega                         | 53 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [137] Eicher 6016 Prakash Zedastra                     | 53 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [154] Scania Metrolink HD 13.7m Multi-Axle             | 53 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [149] Volvo 9400 B11R 14.5m Multi-Axle                 | 55 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 1
+  [152] Volvo 9600 B8R 15m Multi-Axle                    | 55 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [155] Scania Metrolink HD 14.5m Multi-Axle             | 57 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 1
+  [156] Mercedes Benz 2441 SHD 15m Multiaxle             | 59 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+
+Category: Corporate Commute & Institutional Bus (commute_staff) - 50 types
+  [228] Force Urbania 3615 Staff                         | 13 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [227] Force Urbania 4400 Staff                         | 16 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [226] Force Traveller T1 3700 AC Staff                 | 17 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [259] Eicher Starline Next 2050 C                      | 22 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [260] Eicher Starline Next-Gen 2050 D                  | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [252] Force Traveller 26 School                        | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [225] Force Traveller T2 4020 AC Staff                 | 25 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [251] Force Traveller School 4020 WB                   | 26 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [224] Eicher Skyline Next 2075 G AC                    | 28 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [261] Eicher Starline Next-Gen 2070 E                  | 30 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [235] SML Isuzu Executive LX 4240 Staff                | 30 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [223] Eicher Skyline Next 2075 H AC                    | 32 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [230] Force MonoBus T3 MB 4020 AC Staff                | 33 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [233] SML Isuzu Hiroi 4370 Staff                       | 34 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [217] Tata Ultra Prime 34+D LPO8.6/44                  | 34 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [231] Bharat Benz 1017 AC Staff                        | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [232] Bharat Benz 1017 Fixed Glass Staff               | 35 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [264] Ashok Leyland Oyster School 3900                 | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [220] Eicher Skyline Pro Next 3009 H AC FG             | 36 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [236] SML Isuzu Executive LX 5100 Staff                | 37 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [247] BharatBenz 917 School Bus                        | 39 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [222] Eicher Skyline Next 2090 L AC                    | 40 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [248] SML Isuzu Executive LX School 4240 N             | 40 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [229] Force MonoBus T3 MB 5200 AC Staff                | 41 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [234] SML Isuzu Hiroi 5300 Staff                       | 42 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [250] SML Isuzu S7 4240 School                         | 42 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [219] Eicher Skyline Pro Next 3010 L AC FG             | 44 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [216] Tata Ultra Prime 44+D LPO11.6/54                 | 44 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [262] Eicher Starline Next-Gen 2090 K                  | 45 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [256] Force Traveller Monobus Scholar 4020             | 48 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [246] BharatBenz 1017 School Bus                       | 49 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [221] Eicher Skyline Next 2112 M AC                    | 50 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [254] Force Monobus SWB School                         | 50 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [214] Tata Ultra Prime 42+D AC LPO11.6/54 FG           | 50 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [213] Tata Ultra Prime 50+D AC LPO11.6/54 FG           | 50 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [240] Ashok Leyland Lynx Arrow Coach                   | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [241] Ashok Leyland Lynx MG Glider Fixed Glass AC      | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [237] Ashok Leyland Lynx Oyster 5200 LS1510            | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [239] Ashok Leyland Lynx Prakash Vega                  | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [238] Ashok Leyland Lynx Strong REC Coach              | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [249] SML Isuzu S7 5100 School                         | 52 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [258] Eicher Skyline Pro Next 3009 H AC School         | 53 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [244] Ashok Leyland Viking 222 12m Route Line Bus      | 55 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [218] Eicher Skyline Pro Next 3011 L AC FG             | 55 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [253] Force Monobus LWB School                         | 55 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [215] Tata Ultra Prime 55+D LPO11.6/54                 | 55 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [245] Bharat Benz 1624 12m Route Line Bus              | 56 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [255] Force Traveller Monobus Scholar 5200             | 60 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [263] Ashok Leyland Oyster Wide School 4900            | 63 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [257] Eicher Skyline Pro Next 3011 K School            | 66 seats | Fuel: diesel   | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+
+Category: Electric Mobility (EV) (electric_ev) - 15 types
+  [ 79] MG ZS EV Excite Pro                              |  4 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 81] Tata Nexon EV                                    |  4 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 82] Tata Tigor EV XT                                 |  4 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 80] BYD eMax 7 Premium                               |  6 seats | Fuel: electric | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [ 89] Force E - Traveller                              | 14 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 84] Tata Starbus Ultra 9/7 EV                        | 20 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 85] Tata Starbus Ultra 9/9 EV                        | 31 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 88] Eicher Skyline Pro-E 9m                          | 32 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 93] Eicher Skyline Pro-E 9m (2x2)                    | 32 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 91] Tata Ultra 9/9 EV (2x2)                          | 40 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 83] Ashok Leyland Switch Mobility EiV 12             | 45 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 86] Tata Starbus Ultra 9/12 EV                       | 45 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 90] Tata Ultra 9/9 EV (3x2)                          | 48 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 92] Eicher Skyline Pro-E 12m (2x2)                   | 50 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+  [ 87] Eicher Skyline Pro-E 3012 12m                    | 50 seats | Fuel: electric | AC: True | Lux: False | Tariffs: 0 | Vehicles: 0
+
+Category: Luxury Caravans & Celebrity Vanity Vans (specialized_vanity) - 9 types
+  [265] Bharat Benz 1017 JCBL Caravan 9m                 |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [266] Bharat Benz 1017 OJES Body Caravan               |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [270] Bharat Benz 1017 Single Door Vanity Van          |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [271] Bharat Benz 1017 Three Door Vanity Van           |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [267] Force Traveller 4020 Caravan                     |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [272] Force Traveller 4020 T2 Vanity Van               |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [268] Force Urbania 4400 Caravan                       |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [273] Volvo 9400 12m JCBL Vanity Van                   |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0
+  [269] Volvo 9400 JCBL Caravan 12m                      |  4 seats | Fuel: diesel   | AC: True | Lux: True | Tariffs: 0 | Vehicles: 0

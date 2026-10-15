@@ -18,6 +18,7 @@ from .models import (
 	RateCard,
 	Supplier,
 	Vehicle,
+	VehicleCategory,
 	VehiclePhoto,
 	VehicleType,
 )
@@ -334,15 +335,95 @@ class LicenseClassAdmin(ModelAdmin):
 		)
 
 
+@admin.register(VehicleCategory)
+class VehicleCategoryAdmin(ModelAdmin):
+	list_display = (
+		'name_display',
+		'code_badge',
+		'seating_range_display',
+		'vehicle_types_count_display',
+		'vehicles_count_display',
+		'display_order',
+		'is_active',
+	)
+	list_filter = ('is_active',)
+	search_fields = ('name', 'code', 'description')
+	ordering = ('display_order', 'name')
+	list_editable = ('display_order', 'is_active')
+
+	fieldsets = (
+		('Category Definition', {
+			'fields': ('name', 'code', 'description', 'is_active')
+		}),
+		('Visual Badging & Capacity', {
+			'fields': ('icon', 'badge_color', 'seating_range', 'display_order')
+		}),
+	)
+
+	@admin.display(description='Category Name')
+	def name_display(self, obj):
+		return format_html(
+			'<div style="display: flex; align-items: center; gap: 8px;">'
+			'<span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background-color: {}22; color: {}; border: 1px solid {}44; font-size: 13px;">'
+			'<i class="{}"></i>'
+			'</span>'
+			'<strong style="font-size: 13px; color: #0f172a;">{}</strong>'
+			'</div>',
+			obj.badge_color or '#0284c7',
+			obj.badge_color or '#0284c7',
+			obj.badge_color or '#0284c7',
+			obj.icon or 'fa-solid fa-car-side',
+			obj.name,
+		)
+
+	@admin.display(description='Code')
+	def code_badge(self, obj):
+		return format_html(
+			'<code style="background-color: #f1f5f9; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">{}</code>',
+			obj.code
+		)
+
+	@admin.display(description='Seating Capacity')
+	def seating_range_display(self, obj):
+		if not obj.seating_range:
+			return mark_safe('<span style="color: #94a3b8;">—</span>')
+		return format_html(
+			'<span class="badge" style="background-color: #334155; color: #f8fafc; border: 1px solid #475569; font-size: 11px; padding: 3px 8px;">'
+			'<i class="fas fa-users mr-1"></i>{}'
+			'</span>',
+			obj.seating_range
+		)
+
+	@admin.display(description='Vehicle Types')
+	def vehicle_types_count_display(self, obj):
+		count = obj.vehicle_types.count()
+		return format_html(
+			'<a href="/admin/core/vehicletype/?vehicle_category__id__exact={}" class="badge" style="background-color: #0284c7; color: #fff; padding: 3px 8px; font-size: 11px; text-decoration: none;" title="View vehicle types in this category">'
+			'<i class="fas fa-layer-group mr-1"></i>{} Types'
+			'</a>',
+			obj.id, count
+		)
+
+	@admin.display(description='Fleet Vehicles')
+	def vehicles_count_display(self, obj):
+		count = Vehicle.objects.filter(Q(vehicle_category=obj) | Q(vehicle_type__vehicle_category=obj)).distinct().count()
+		return format_html(
+			'<a href="/admin/core/vehicle/?vehicle_category__id__exact={}" class="badge" style="background-color: #10b981; color: #fff; padding: 3px 8px; font-size: 11px; text-decoration: none;" title="View fleet vehicles in this category">'
+			'<i class="fas fa-car mr-1"></i>{} Vehicles'
+			'</a>',
+			obj.id, count
+		)
+
+
 @admin.register(VehicleType)
 class VehicleTypeAdmin(ModelAdmin):
-	list_display = ('name', 'category_badge', 'seating_capacity_display', 'fleet_count_display', 'rates_summary_display', 'features_summary')
-	search_fields = ('name', 'category')
-	list_filter = ('category', 'fuel_type', 'toll_class', 'transmission_type', 'has_ac', 'is_luxury')
+	list_display = ('name', 'vehicle_category_badge', 'category_badge', 'seating_capacity_display', 'fleet_count_display', 'rates_summary_display', 'features_summary')
+	search_fields = ('name', 'category', 'vehicle_category__name')
+	list_filter = ('vehicle_category', 'category', 'fuel_type', 'toll_class', 'transmission_type', 'has_ac', 'is_luxury')
 
 	fieldsets = (
 		('Basic Info', {
-			'fields': ('name', 'category', 'description', 'stock_photo')
+			'fields': ('name', 'vehicle_category', 'category', 'description', 'stock_photo')
 		}),
 		('Pricing & Rates', {
 			'fields': ('default_day_rate', 'default_km_rate', 'minimum_km_per_day', 'extra_km_rate', 'extra_hour_rate', 'driver_bata', 'night_halt_charge')
@@ -355,12 +436,27 @@ class VehicleTypeAdmin(ModelAdmin):
 		}),
 	)
 
-	@admin.display(description='Category')
+	@admin.display(description='Category (Master)')
+	def vehicle_category_badge(self, obj):
+		if not obj.vehicle_category:
+			return mark_safe('<span style="color: #94a3b8;">—</span>')
+		cat = obj.vehicle_category
+		return format_html(
+			'<span class="badge" style="background-color: {}18; color: {}; border: 1px solid {}44; font-size: 11px; font-weight: 700; padding: 3px 8px;">'
+			'{}'
+			'</span>',
+			cat.badge_color or '#0284c7',
+			cat.badge_color or '#0284c7',
+			cat.badge_color or '#0284c7',
+			cat.name
+		)
+
+	@admin.display(description='Legacy Tag')
 	def category_badge(self, obj):
 		if not obj.category:
 			return mark_safe('<span style="color: #94a3b8;">—</span>')
 		return format_html(
-			'<span class="badge" style="background-color: #1e293b; color: #93c5fd; border: 1px solid #3b82f6; font-size: 12px; padding: 3px 8px;">{}</span>',
+			'<span class="badge" style="background-color: #1e293b; color: #93c5fd; border: 1px solid #3b82f6; font-size: 11px; padding: 2px 6px;">{}</span>',
 			obj.category
 		)
 
@@ -803,6 +899,7 @@ class VehiclePhotoInline(TabularInline):
 class VehicleAdmin(ModelAdmin):
 	list_display = (
 		'registration_number_display',
+		'vehicle_category_badge',
 		'vehicle_type',
 		'base_depot',
 		'ownership_badge',
@@ -813,8 +910,8 @@ class VehicleAdmin(ModelAdmin):
 		'status_toggle_display',
 		'live_map_link',
 	)
-	list_filter = ('base_depot', 'ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
-	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name', 'base_depot')
+	list_filter = ('vehicle_category', 'base_depot', 'ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
+	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name', 'base_depot', 'vehicle_category__name')
 
 	class Media:
 		css = {
@@ -826,7 +923,7 @@ class VehicleAdmin(ModelAdmin):
 
 	fieldsets = (
 		('Basic Info', {
-			'fields': ('registration_number', 'vehicle_type', 'base_depot', 'ownership_type', 'owner_party', 'status', 'current_location')
+			'fields': ('registration_number', 'vehicle_category', 'vehicle_type', 'base_depot', 'ownership_type', 'owner_party', 'status', 'current_location')
 		}),
 		('Vehicle Overview', {
 			'fields': ('brand', 'model', 'seating_capacity', 'has_ac', 'fuel_type'),
@@ -905,6 +1002,19 @@ class VehicleAdmin(ModelAdmin):
 			'<strong style="font-size: 13px; color: #f8fafc; letter-spacing: 0.5px;">{}</strong>{}',
 			obj.registration_number,
 			mark_safe(subtext)
+		)
+
+	@admin.display(description='Category')
+	def vehicle_category_badge(self, obj):
+		cat = obj.vehicle_category or (obj.vehicle_type.vehicle_category if obj.vehicle_type else None)
+		if not cat:
+			return mark_safe('<span style="color: #94a3b8;">—</span>')
+		return format_html(
+			'<span class="badge" style="background-color: {}18; color: {}; border: 1px solid {}44; font-size: 11px; font-weight: 700; padding: 2px 7px;">{}</span>',
+			cat.badge_color or '#0284c7',
+			cat.badge_color or '#0284c7',
+			cat.badge_color or '#0284c7',
+			cat.name
 		)
 
 	@admin.display(description='Fleet Ownership')

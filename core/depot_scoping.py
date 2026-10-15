@@ -22,62 +22,90 @@ Governance Rules:
 from typing import Optional, Dict, Any, List
 from django.db.models import Q, QuerySet
 
-DEPOT_CHENNAI = 'Chennai Central HQ'
-DEPOT_COIMBATORE = 'Coimbatore Hub'
-DEPOT_MADURAI = 'Madurai Depo'
-DEPOT_BENGALURU = 'Bengaluru Station'
+DEPOT_COIMBATORE = 'Coimbatore Central HQ'
+DEPOT_TIRUPUR = 'Tirupur Branch'
+DEPOT_ERODE = 'Erode Branch'
+DEPOT_CHENNAI = 'Chennai Branch'
+DEPOT_HOSUR = 'Hosur Branch'
+DEPOT_TRICHY = 'Trichy Branch'
 DEPOT_CONTROL_ROOM = 'Central Control Room'
 
+# Legacy aliases for database and test compatibility
+LEGACY_DEPOT_CHENNAI = 'Chennai Central HQ'
+LEGACY_DEPOT_COIMBATORE = 'Coimbatore Hub'
+LEGACY_DEPOT_MADURAI = 'Madurai Depo'
+LEGACY_DEPOT_BENGALURU = 'Bengaluru Station'
+DEPOT_MADURAI = LEGACY_DEPOT_MADURAI
+DEPOT_BENGALURU = LEGACY_DEPOT_BENGALURU
+
 DEPOT_CHOICES = [
-    (DEPOT_CHENNAI, 'Chennai Central HQ'),
-    (DEPOT_COIMBATORE, 'Coimbatore Hub'),
-    (DEPOT_MADURAI, 'Madurai Depo'),
-    (DEPOT_BENGALURU, 'Bengaluru Station'),
-    (DEPOT_CONTROL_ROOM, 'Central Control Room'),
+    (DEPOT_COIMBATORE, 'Coimbatore Central HQ (Main Location)'),
+    (DEPOT_TIRUPUR, 'Tirupur Branch (Industrial / Knitwear Hub)'),
+    (DEPOT_ERODE, 'Erode Branch (Textile & Outstation Hub)'),
+    (DEPOT_CHENNAI, 'Chennai Branch (Metro & Airport Concierge)'),
+    (DEPOT_HOSUR, 'Hosur Branch (Industrial Corridor & Border Hub)'),
+    (DEPOT_TRICHY, 'Trichy Branch (Central Transit & Temple Hub)'),
+    (DEPOT_CONTROL_ROOM, 'Central Control Room (24/7 SOS Hub)'),
+    # Legacy choices
+    (LEGACY_DEPOT_CHENNAI, 'Chennai Central HQ (Legacy)'),
+    (LEGACY_DEPOT_COIMBATORE, 'Coimbatore Hub (Legacy)'),
+    (LEGACY_DEPOT_MADURAI, 'Madurai Depo (Legacy)'),
+    (LEGACY_DEPOT_BENGALURU, 'Bengaluru Station (Legacy)'),
 ]
 
 ALL_DEPOTS = [
-    DEPOT_CHENNAI,
     DEPOT_COIMBATORE,
-    DEPOT_MADURAI,
-    DEPOT_BENGALURU,
+    DEPOT_TIRUPUR,
+    DEPOT_ERODE,
+    DEPOT_CHENNAI,
+    DEPOT_HOSUR,
+    DEPOT_TRICHY,
     DEPOT_CONTROL_ROOM,
 ]
 
 DEPOT_KEYWORDS = {
     DEPOT_COIMBATORE: [
-        'coimbatore', 'cbe', 'ooty', 'nilgiris', 'tiruppur', 'tirupur',
-        'salem', 'erode', 'pollachi', 'avinashi', 'palakkad', 'anamalai'
+        'coimbatore', 'cbe', 'ooty', 'nilgiris', 'pollachi', 'avinashi',
+        'mettupalayam', 'palakkad', 'valparai', 'sulur', 'saravanampatti', 'peelamedu'
     ],
-    DEPOT_MADURAI: [
-        'madurai', 'dindigul', 'theni', 'rameswaram', 'rameshwaram',
-        'kanyakumari', 'tirunelveli', 'tuticorin', 'thoothukudi', 'virudhunagar',
-        'sivakasi', 'kodai', 'kodaikanal'
+    DEPOT_TIRUPUR: [
+        'tiruppur', 'tirupur', 'palladam', 'kangeyam', 'dharapuram', 'udumalaipettai', 'avinasipalayam'
     ],
-    DEPOT_BENGALURU: [
-        'bengaluru', 'bangalore', 'mysuru', 'mysore', 'electronic city',
-        'whitefield', 'kempegowda', 'hosur', 'bellandur', 'sarjapur'
+    DEPOT_ERODE: [
+        'erode', 'bhavani', 'perundurai', 'gobichettipalayam', 'anthiyur', 'sathyamangalam', 'bannari'
     ],
     DEPOT_CHENNAI: [
-        'chennai', 'tambaram', 'madhavaram', 'guindy', 'egmore', 'central',
-        'chengalpattu', 'kanchipuram', 'vellore', 'tirupati', 'pondicherry', 'puducherry'
+        'chennai', 'tambaram', 'guindy', 'omr', 'ecr', 'central', 'egmore',
+        'chengalpattu', 'kanchipuram', 'mahabalipuram', 'tirupati', 'pondicherry', 'puducherry'
+    ],
+    DEPOT_HOSUR: [
+        'hosur', 'krishnagiri', 'sipcot', 'electronic city', 'bangalore', 'bengaluru', 'denkanikottai'
+    ],
+    DEPOT_TRICHY: [
+        'trichy', 'tiruchirappalli', 'srirangam', 'samayapuram', 'thanjavur', 'kumbakonam', 'pudukkottai'
     ],
 }
 
 DEPOT_RTO_PREFIXES = {
     DEPOT_COIMBATORE: [
-        'TN37', 'TN38', 'TN39', 'TN40', 'TN41', 'TN42', 'TN43', 'TN66', 'TN99'
+        'TN37', 'TN38', 'TN40', 'TN41', 'TN43', 'TN66', 'TN99'
     ],
-    DEPOT_MADURAI: [
-        'TN58', 'TN59', 'TN64', 'TN65', 'TN67', 'TN72', 'TN74', 'TN76'
+    DEPOT_TIRUPUR: [
+        'TN39', 'TN42', 'TN78'
     ],
-    DEPOT_BENGALURU: [
-        'KA01', 'KA02', 'KA03', 'KA04', 'KA05', 'KA41', 'KA51', 'KA53', 'KA'
+    DEPOT_ERODE: [
+        'TN33', 'TN34', 'TN36', 'TN86'
     ],
     DEPOT_CHENNAI: [
         'TN01', 'TN02', 'TN03', 'TN04', 'TN05', 'TN06', 'TN07', 'TN08',
         'TN09', 'TN10', 'TN11', 'TN12', 'TN13', 'TN14', 'TN18', 'TN19',
-        'TN20', 'TN21', 'TN22'
+        'TN20', 'TN21', 'TN22', 'TN85'
+    ],
+    DEPOT_HOSUR: [
+        'TN70', 'TN24', 'KA01', 'KA02', 'KA03', 'KA04', 'KA05', 'KA51', 'KA53'
+    ],
+    DEPOT_TRICHY: [
+        'TN45', 'TN48', 'TN81'
     ],
 }
 
@@ -89,14 +117,22 @@ def normalize_depot_name(depot_str: Optional[str]) -> Optional[str]:
     cleaned = depot_str.strip().lower()
     if cleaned in ['all', 'global', '*']:
         return 'all'
+    if 'tirupur' in cleaned or 'tiruppur' in cleaned:
+        return DEPOT_TIRUPUR
+    if 'erode' in cleaned:
+        return DEPOT_ERODE
+    if 'hosur' in cleaned:
+        return DEPOT_HOSUR
+    if 'trichy' in cleaned or 'tiruchirappalli' in cleaned:
+        return DEPOT_TRICHY
     if 'chennai' in cleaned:
         return DEPOT_CHENNAI
     if 'coimbatore' in cleaned or 'cbe' in cleaned:
         return DEPOT_COIMBATORE
     if 'madurai' in cleaned:
-        return DEPOT_MADURAI
+        return LEGACY_DEPOT_MADURAI
     if 'bengaluru' in cleaned or 'bangalore' in cleaned:
-        return DEPOT_BENGALURU
+        return LEGACY_DEPOT_BENGALURU
     if 'control' in cleaned:
         return DEPOT_CONTROL_ROOM
     for code, label in DEPOT_CHOICES:
@@ -108,12 +144,12 @@ def normalize_depot_name(depot_str: Optional[str]) -> Optional[str]:
 def map_city_to_depot(location_name: Optional[str]) -> str:
     """Classifies a pickup or destination city into its operational hub."""
     if not location_name:
-        return DEPOT_CHENNAI
+        return DEPOT_COIMBATORE
     loc = location_name.lower()
     for depot, keywords in DEPOT_KEYWORDS.items():
         if any(k in loc for k in keywords):
             return depot
-    return DEPOT_CHENNAI
+    return DEPOT_COIMBATORE
 
 
 def map_reg_to_depot(reg_no: Optional[str]) -> str:
