@@ -335,6 +335,16 @@ class LicenseClassAdmin(ModelAdmin):
 		)
 
 
+class VehicleTypeInline(TabularInline):
+	model = VehicleType
+	extra = 0
+	can_delete = False
+	show_change_link = True
+	fields = ('name', 'seating_capacity', 'fuel_type', 'default_day_rate', 'default_km_rate', 'driver_bata', 'has_ac', 'is_luxury')
+	readonly_fields = ('name', 'seating_capacity', 'fuel_type', 'default_day_rate', 'default_km_rate', 'driver_bata', 'has_ac', 'is_luxury')
+	ordering = ('seating_capacity', 'name')
+
+
 @admin.register(VehicleCategory)
 class VehicleCategoryAdmin(ModelAdmin):
 	list_display = (
@@ -350,15 +360,34 @@ class VehicleCategoryAdmin(ModelAdmin):
 	search_fields = ('name', 'code', 'description')
 	ordering = ('display_order', 'name')
 	list_editable = ('display_order', 'is_active')
+	inlines = [VehicleTypeInline]
+	readonly_fields = ('fleet_breakdown',)
 
 	fieldsets = (
-		('Category Definition', {
-			'fields': ('name', 'code', 'description', 'is_active')
+		('Category Overview', {
+			'fields': ('fleet_breakdown', 'name', 'code', 'description', 'is_active')
 		}),
 		('Visual Badging & Capacity', {
 			'fields': ('icon', 'badge_color', 'seating_range', 'display_order')
 		}),
 	)
+
+	@admin.display(description='Fleet Breakdown')
+	def fleet_breakdown(self, obj):
+		if not obj.pk:
+			return mark_safe('<span style="color: #94a3b8;">Save category to view fleet metrics</span>')
+		types_count = obj.vehicle_types.count()
+		veh_count = Vehicle.objects.filter(Q(vehicle_category=obj) | Q(vehicle_type__vehicle_category=obj)).distinct().count()
+		return format_html(
+			'<div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 18px; display: inline-flex; gap: 24px; align-items: center;">'
+			'<div><span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; letter-spacing: 0.5px;">Vehicle Types</span>'
+			'<strong style="font-size: 18px; color: #0284c7;"><i class="fas fa-layer-group mr-1"></i>{}</strong></div>'
+			'<div style="width: 1px; height: 32px; background-color: #cbd5e1;"></div>'
+			'<div><span style="font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; display: block; letter-spacing: 0.5px;">Assigned Fleet Vehicles</span>'
+			'<strong style="font-size: 18px; color: #10b981;"><i class="fas fa-car mr-1"></i>{}</strong></div>'
+			'</div>',
+			types_count, veh_count
+		)
 
 	@admin.display(description='Category Name')
 	def name_display(self, obj):
