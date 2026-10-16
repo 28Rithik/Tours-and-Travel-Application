@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'app.css' %}?v=2.3">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=2.4">
   <script>
     /* Immediate Anti-FOUC Theme Detection (Matches Django Unfold) */
     (function() {
@@ -38,7 +38,8 @@
     /* ── STRICT PROTECTION FOR FONT AWESOME & ICONS (Guarantees icons never render as ▯ boxes) ── */
     .fa, .fas, .far, .fal, .fad, .fab,
     .fa-solid, .fa-regular, .fa-brands,
-    .nav-icon, [class*="fa-"], [class^="fa-"] {
+    .nav-icon,
+    i[class*="fa-"], i[class^="fa-"] {
       font-family: "Font Awesome 6 Free" !important;
       font-style: normal !important;
       font-variant: normal !important;
@@ -57,7 +58,7 @@
     }
     .fa::before, .fas::before, .far::before, .fal::before, .fab::before,
     .fa-solid::before, .fa-regular::before, .fa-brands::before,
-    [class*="fa-"]::before, [class^="fa-"]::before {
+    i[class*="fa-"]::before {
       font-family: inherit !important;
     }
 

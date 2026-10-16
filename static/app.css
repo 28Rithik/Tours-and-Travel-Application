@@ -160,7 +160,8 @@ h1, h2, h3, h4, h5, h6 {
 /* ── Strict Icon Protection against Font Overrides ── */
 .fa, .fas, .far, .fal, .fad, .fab,
 .fa-solid, .fa-regular, .fa-brands,
-.nav-icon, [class*="fa-"], [class^="fa-"] {
+.nav-icon,
+i[class*="fa-"], i[class^="fa-"] {
   font-family: "Font Awesome 6 Free" !important;
   font-style: normal !important;
   font-variant: normal !important;
@@ -179,7 +180,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .fa::before, .fas::before, .far::before, .fal::before, .fab::before,
 .fa-solid::before, .fa-regular::before, .fa-brands::before,
-[class*="fa-"]::before, [class^="fa-"]::before {
+i[class*="fa-"]::before {
   font-family: inherit !important;
 }
 .material-symbols-outlined, [class*="material-symbols"] {

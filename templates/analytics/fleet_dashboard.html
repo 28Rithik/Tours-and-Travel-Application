@@ -11,12 +11,12 @@
     <div class="fa-header">
         <div>
             <div class="fa-title-row">
-                <h1 class="fa-title">📊 Fleet Intelligence &amp; Cost Analytics</h1>
+                <h1 class="fa-title"><i class="fa-solid fa-chart-line" style="color: #0284c7; margin-right: 8px;"></i>Fleet Intelligence &amp; Cost Analytics</h1>
                 <span class="fa-badge-live">Live Intelligence</span>
                 {% if from_cache %}
-                <span class="fa-badge-cache" title="Instant in-memory cache hit">⚡ Cached at {{ cached_at }} ({{ t_elapsed_ms }}ms)</span>
+                <span class="fa-badge-cache" title="Instant in-memory cache hit"><i class="fa-solid fa-bolt" style="margin-right: 4px;"></i>Cached at {{ cached_at }} ({{ t_elapsed_ms }}ms)</span>
                 {% else %}
-                <span class="fa-badge-cache fa-badge-fresh" title="Freshly computed set aggregates">🔄 Live Fresh Data ({{ t_elapsed_ms }}ms)</span>
+                <span class="fa-badge-cache fa-badge-fresh" title="Freshly computed set aggregates"><i class="fa-solid fa-arrows-rotate" style="margin-right: 4px;"></i>Live Fresh Data ({{ t_elapsed_ms }}ms)</span>
                 {% endif %}
             </div>
             <p class="fa-subtitle">
@@ -25,16 +25,16 @@
         </div>
         <div class="fa-actions">
             <a href="?refresh=1" class="fa-btn fa-btn-refresh" title="Bypass cache and recalculate fleet metrics in real-time">
-                <span>🔄</span>
+                <i class="fa-solid fa-arrows-rotate"></i>
                 <span>Recalculate Metrics</span>
             </a>
             <a href="/fleet/live/" class="fa-btn fa-btn-primary">
-                <span>🛰️</span>
+                <i class="fa-solid fa-map-location-dot"></i>
                 <span>Mission Control Map</span>
             </a>
             {% if is_superuser or is_manager %}
             <a href="/admin/analytics/driverscorecard/" class="fa-btn fa-btn-outline">
-                <span>👨‍✈️</span>
+                <i class="fa-solid fa-id-card"></i>
                 <span>Admin Scorecards</span>
             </a>
             {% endif %}
