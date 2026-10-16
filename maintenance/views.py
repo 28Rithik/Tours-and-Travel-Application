@@ -96,6 +96,7 @@ def damage_marker_studio_view(request):
 
     vehicles = Vehicle.objects.filter(status__in=['available', 'assigned', 'on_trip']).order_by('registration_number')
     recent_inspections = VehicleDamageInspection.objects.select_related('vehicle').order_by('-created_at')[:10]
+    active_trips = Trip.objects.filter(status__in=['booked', 'assigned', 'driver_confirmed', 'started']).select_related('vehicle', 'driver').order_by('-id')[:25]
 
     context = {
         'title': '2D Vehicle Damage Marker Studio',
@@ -104,6 +105,7 @@ def damage_marker_studio_view(request):
         'selected_vehicle': selected_vehicle,
         'vehicles': vehicles,
         'recent_inspections': recent_inspections,
+        'active_trips': active_trips,
         'trip_id': trip_id,
     }
     return render(request, 'maintenance/damage_marker_studio.html', context)

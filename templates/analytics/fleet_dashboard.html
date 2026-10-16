@@ -64,8 +64,8 @@
                 {{ utilization.active_count }} <span class="fa-kpi-sub">On Duty</span>
             </div>
             <div class="fa-duty-pills">
-                <span class="fa-pill pill-standby">🔵 {{ utilization.standby_count }} Standby</span>
-                <span class="fa-pill pill-idle">⚪ {{ utilization.idle_count }} Idle (&gt;5d)</span>
+                <span class="fa-pill pill-standby"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0284c7; margin-right:4px;"></span>{{ utilization.standby_count }} Standby</span>
+                <span class="fa-pill pill-idle"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#94a3b8; margin-right:4px;"></span>{{ utilization.idle_count }} Idle (&gt;5d)</span>
             </div>
             <div class="fa-kpi-footer">
                 Instant dispatch availability ready in yard
@@ -80,9 +80,9 @@
             </div>
             <div class="fa-duty-pills">
                 {% if utilization.maintenance_count > 0 %}
-                <span class="fa-pill pill-warning">⚠️ Grounded / Open Tickets</span>
+                <span class="fa-pill pill-warning"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px;"></i>Grounded / Open Tickets</span>
                 {% else %}
-                <span class="fa-pill pill-success">✅ 100% Fleet Operational</span>
+                <span class="fa-pill pill-success"><i class="fa-solid fa-circle-check" style="margin-right: 4px;"></i>100% Fleet Operational</span>
                 {% endif %}
             </div>
             <div class="fa-kpi-footer">
@@ -97,7 +97,7 @@
                 {{ scorecards|length }} <span class="fa-kpi-sub">Captains</span>
             </div>
             <div class="fa-duty-pills">
-                <span class="fa-pill pill-gold">⭐ 4.8 / 5.0 Rating Avg</span>
+                <span class="fa-pill pill-gold"><i class="fa-solid fa-star" style="color: #f59e0b; margin-right: 4px;"></i>4.8 / 5.0 Rating Avg</span>
                 <span class="fa-pill pill-sky">96% Safety Avg</span>
             </div>
             <div class="fa-kpi-footer">
@@ -109,22 +109,22 @@
     <!-- Workspace Navigation Tabs -->
     <div class="fa-tab-nav">
         <button type="button" class="fa-tab-btn active" id="tab-btn-cpk" onclick="switchFaTab('cpk')">
-            <span>🚚</span>
+            <i class="fa-solid fa-truck" style="margin-right: 6px;"></i>
             <span>Vehicle CPK Economics</span>
             <span class="fa-tab-badge" id="badge-cpk-count">{{ cpk_list|length }}</span>
         </button>
         <button type="button" class="fa-tab-btn" id="tab-btn-drivers" onclick="switchFaTab('drivers')">
-            <span>🏆</span>
+            <i class="fa-solid fa-trophy" style="margin-right: 6px; color: #f59e0b;"></i>
             <span>Captain Performance Leaderboard</span>
             <span class="fa-tab-badge">{{ scorecards|length }}</span>
         </button>
         <button type="button" class="fa-tab-btn" id="tab-btn-benchmarks" onclick="switchFaTab('benchmarks')">
-            <span>📈</span>
+            <i class="fa-solid fa-chart-pie" style="margin-right: 6px; color: #a855f7;"></i>
             <span>Segment Unit Economics</span>
             <span class="fa-tab-badge">{{ benchmarks_summary|length }}</span>
         </button>
         <button type="button" class="fa-tab-btn" id="tab-btn-yard" onclick="switchFaTab('yard')">
-            <span>🛰️</span>
+            <i class="fa-solid fa-warehouse" style="margin-right: 6px; color: #0ea5e9;"></i>
             <span>Yard &amp; Duty Roster</span>
             <span class="fa-tab-badge">{{ utilization.total_count }}</span>
         </button>
@@ -138,7 +138,7 @@
             <!-- Filter Toolbar -->
             <div class="fa-toolbar">
                 <div class="fa-search-box">
-                    <span>🔍</span>
+                    <i class="fa-solid fa-magnifying-glass" style="color: #64748b;"></i>
                     <input type="text" id="cpk-search-input" class="fa-input" placeholder="Search vehicle plate, model or category..." onkeyup="filterCpkRows()">
                 </div>
                 <div class="fa-filter-chips">
@@ -165,14 +165,14 @@
                 <table class="fa-table" id="cpk-data-table">
                     <thead>
                         <tr>
-                            <th onclick="sortCpkTable(0)">Registration ↕</th>
-                            <th onclick="sortCpkTable(1)">Segment ↕</th>
-                            <th onclick="sortCpkTable(2)">KMs Run ↕</th>
-                            <th onclick="sortCpkTable(3)">Fuel CPK ↕</th>
-                            <th onclick="sortCpkTable(4)">Maint CPK ↕</th>
-                            <th onclick="sortCpkTable(5)">True CPK ↕</th>
-                            <th onclick="sortCpkTable(6)">RPK ↕</th>
-                            <th onclick="sortCpkTable(7)">Operating Margin ↕</th>
+                            <th onclick="sortCpkTable(0)">Registration <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(1)">Segment <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(2)">KMs Run <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(3)">Fuel CPK <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(4)">Maint CPK <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(5)">True CPK <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(6)">RPK <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
+                            <th onclick="sortCpkTable(7)">Operating Margin <i class="fa-solid fa-sort" style="font-size: 10px; opacity: 0.6; margin-left: 3px;"></i></th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -187,10 +187,10 @@
                             <td>
                                 {% if is_superuser or is_fleet_manager %}
                                 <a href="/admin/core/vehicle/{{ v.vehicle.pk }}/change/" class="fa-plate-link">
-                                    🚗 {{ v.registration_number }}
+                                    <i class="fa-solid fa-car text-sky" style="margin-right: 5px;"></i>{{ v.registration_number }}
                                 </a>
                                 {% else %}
-                                <span class="fa-plate-text">🚗 {{ v.registration_number }}</span>
+                                <span class="fa-plate-text"><i class="fa-solid fa-car text-sky" style="margin-right: 5px;"></i>{{ v.registration_number }}</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -218,7 +218,7 @@
                             </td>
                             <td>
                                 <a href="/admin/core/vehicle/{{ v.vehicle.pk }}/change/" class="fa-btn-tbl" title="Inspect Vehicle Asset">
-                                    <span>⚙️</span>
+                                    <i class="fa-solid fa-gear"></i>
                                 </a>
                             </td>
                         </tr>
@@ -249,7 +249,7 @@
             <!-- Filter Toolbar -->
             <div class="fa-toolbar">
                 <div class="fa-search-box">
-                    <span>🔍</span>
+                    <i class="fa-solid fa-magnifying-glass" style="color: #64748b;"></i>
                     <input type="text" id="driver-search-input" class="fa-input" placeholder="Search captain by name or phone..." onkeyup="filterDriverRows()">
                 </div>
                 <div class="fa-filter-chips">
@@ -296,10 +296,10 @@
                             <td>
                                 {% if is_superuser or is_fleet_manager %}
                                 <a href="/admin/core/driver/{{ card.driver.pk }}/change/" class="fa-driver-link">
-                                    👨‍✈️ {{ card.driver.name }}
+                                    <i class="fa-solid fa-id-badge" style="color: #0284c7; margin-right: 5px;"></i>{{ card.driver.name }}
                                 </a>
                                 {% else %}
-                                <strong class="fa-driver-name">👨‍✈️ {{ card.driver.name }}</strong>
+                                <strong class="fa-driver-name"><i class="fa-solid fa-id-badge" style="color: #0284c7; margin-right: 5px;"></i>{{ card.driver.name }}</strong>
                                 {% endif %}
                                 <div class="fa-driver-sub">{{ card.driver.phone }}</div>
                             </td>
@@ -319,7 +319,7 @@
                                 {{ card.safety_score }}%
                             </td>
                             <td class="font-mono text-amber font-bold">
-                                ★ {{ card.average_rating }}
+                                <i class="fa-solid fa-star" style="color: #f59e0b; margin-right: 3px; font-size: 11px;"></i>{{ card.average_rating }}
                             </td>
                             <td class="font-mono text-slate">{{ card.fuel_efficiency_score }}%</td>
                             <td class="fa-duty-vol">
@@ -327,7 +327,7 @@
                             </td>
                             <td>
                                 <a href="/admin/core/driver/{{ card.driver.pk }}/change/" class="fa-btn-tbl" title="View Driver Profile">
-                                    <span>👤</span>
+                                    <i class="fa-solid fa-user"></i>
                                 </a>
                             </td>
                         </tr>
@@ -356,7 +356,7 @@
     <div class="fa-tab-pane" id="tab-pane-benchmarks">
         <div class="fa-panel-card">
             <div class="fa-panel-head">
-                <h2>📈 Category Benchmarks (Cost-Per-KM vs Revenue-Per-KM)</h2>
+                <h2><i class="fa-solid fa-chart-pie" style="color: #0284c7; margin-right: 8px;"></i>Category Benchmarks (Cost-Per-KM vs Revenue-Per-KM)</h2>
                 <span class="fa-head-sub">Aggregated model benchmarks computed across active deployments</span>
             </div>
             <div class="fa-table-wrap">
@@ -373,7 +373,7 @@
                     <tbody>
                         {% for b in benchmarks_summary %}
                         <tr>
-                            <td><strong>🚗 {{ b.vehicle_type }}</strong></td>
+                            <td><strong><i class="fa-solid fa-car text-sky" style="margin-right: 6px;"></i>{{ b.vehicle_type }}</strong></td>
                             <td class="font-mono">{{ b.count }} vehicles</td>
                             <td class="font-mono text-rose font-bold">₹{{ b.avg_cpk }} / km</td>
                             <td class="font-mono text-sky font-bold">₹{{ b.avg_rpk }} / km</td>
@@ -399,15 +399,15 @@
         <div class="fa-panel-card">
             <div class="fa-toolbar">
                 <div class="fa-search-box">
-                    <span>🔍</span>
+                    <i class="fa-solid fa-magnifying-glass" style="color: #64748b;"></i>
                     <input type="text" id="yard-search-input" class="fa-input" placeholder="Search yard vehicles by plate, model, location..." onkeyup="filterYardRows()">
                 </div>
                 <div class="fa-filter-chips">
                     <button type="button" class="fa-chip active" onclick="setYardStatusFilter('all', this)">All ({{ utilization.vehicles|length }})</button>
-                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('active', this)">🟢 On Trip ({{ utilization.active_count }})</button>
-                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('standby', this)">🔵 Standby ({{ utilization.standby_count }})</button>
-                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('maintenance', this)">🟠 In Workshop ({{ utilization.maintenance_count }})</button>
-                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('idle', this)">⚪ Idle ({{ utilization.idle_count }})</button>
+                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('active', this)"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; margin-right:4px;"></span>On Trip ({{ utilization.active_count }})</button>
+                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('standby', this)"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0284c7; margin-right:4px;"></span>Standby ({{ utilization.standby_count }})</button>
+                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('maintenance', this)"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b; margin-right:4px;"></span>In Workshop ({{ utilization.maintenance_count }})</button>
+                    <button type="button" class="fa-chip" onclick="setYardStatusFilter('idle', this)"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#94a3b8; margin-right:4px;"></span>Idle ({{ utilization.idle_count }})</button>
                 </div>
             </div>
 
@@ -431,7 +431,7 @@
                             data-loc="{{ y.current_location|lower }}"
                             data-status="{{ y.status_cat }}">
                             <td>
-                                <strong class="fa-plate-text">🚗 {{ y.registration_number }}</strong>
+                                <strong class="fa-plate-text"><i class="fa-solid fa-car text-sky" style="margin-right: 5px;"></i>{{ y.registration_number }}</strong>
                             </td>
                             <td>
                                 <div><strong>{{ y.model }}</strong></div>
@@ -442,7 +442,7 @@
                                     {{ y.status_label }}
                                 </span>
                             </td>
-                            <td>📍 {{ y.current_location }}</td>
+                            <td><i class="fa-solid fa-location-dot" style="color: #64748b; margin-right: 4px;"></i>{{ y.current_location }}</td>
                             <td class="font-mono">{{ y.current_km }} km</td>
                             <td>
                                 {% if y.active_trip %}
