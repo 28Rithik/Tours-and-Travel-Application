@@ -6,7 +6,8 @@ from .manifest_import import download_manifest_template_csv, upload_manifest_csv
 app_name = 'packages'
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/admin/packages/package/', permanent=False), name='packages-catalog-redirect'),
+    path('', views.packages_catalog_view, name='packages-catalog'),
+    path('catalog/', views.packages_catalog_view, name='catalog'),
     path('htmx/', include('packages.htmx_urls', namespace='htmx_packages')),
     path('quote/preview/', views.preview_tour_quotation, name='preview_tour_quotation'),
     path('quote/<int:package_id>/', views.generate_tour_quotation, name='quotation_proposal'),

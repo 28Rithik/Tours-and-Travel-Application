@@ -236,3 +236,58 @@ def view_rooming_list(request, expedition_id):
         'passengers': passengers,
     }
     return render(request, 'packages/manifest_rooming_list.html', context)
+
+
+@login_required
+def packages_catalog_view(request):
+    """
+    Staff Portal: Tour Packages Catalog & Expedition Hub.
+    Dedicated staff page providing search, category filtering, itinerary inspection,
+    quotation generation, and College IV expedition manifests inside base.html.
+    """
+    from django.db.models import Q, Count
+    from .models import PackageTemplate
+
+    tab = request.GET.get('tab', 'packages')
+    search_query = request.GET.get('q', '').strip()
+    category_filter = request.GET.get('category', 'all')
+
+    packages_qs = Package.objects.prefetch_related('itinerary_days', 'vehicle_tariffs').order_by('-id')
+    if search_query:
+        packages_qs = packages_qs.filter(
+            Q(title__icontains=search_query) |
+            Q(package_code__icontains=search_query) |
+            Q(destination_summary__icontains=search_query)
+        )
+    if category_filter != 'all':
+        packages_qs = packages_qs.filter(category=category_filter)
+
+    templates_qs = PackageTemplate.objects.order_by('name')
+    if search_query and tab == 'templates':
+        templates_qs = templates_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(destination__icontains=search_query)
+        )
+
+    expeditions_qs = CollegeIVExpedition.objects.select_related('package').annotate(
+        manifest_count=Count('student_manifest')
+    ).order_by('-start_date')
+
+    counts = {
+        'total_packages': Package.objects.count(),
+        'active_packages': Package.objects.filter(is_active=True).count(),
+        'templates_count': PackageTemplate.objects.count(),
+        'expeditions_count': CollegeIVExpedition.objects.count(),
+    }
+
+    return render(request, 'packages/package_catalog.html', {
+        'packages': packages_qs,
+        'templates': templates_qs,
+        'expeditions': expeditions_qs,
+        'counts': counts,
+        'current_tab': tab,
+        'search_query': search_query,
+        'category_filter': category_filter,
+        'categories': Package.CATEGORIES,
+    })
+

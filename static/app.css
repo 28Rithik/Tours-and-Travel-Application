@@ -157,6 +157,38 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.015em;
 }
 
+/* ── Strict Icon Protection against Font Overrides ── */
+.fa, .fas, .far, .fal, .fad, .fab,
+.fa-solid, .fa-regular, .fa-brands,
+.nav-icon, [class*="fa-"], [class^="fa-"] {
+  font-family: "Font Awesome 6 Free" !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  text-rendering: auto !important;
+  line-height: 1 !important;
+}
+.fa-solid, .fas, [class*="fa-solid"] {
+  font-weight: 900 !important;
+}
+.fa-regular, .far, [class*="fa-regular"] {
+  font-weight: 400 !important;
+}
+.fa-brands, .fab, [class*="fa-brands"] {
+  font-family: "Font Awesome 6 Brands" !important;
+  font-weight: 400 !important;
+}
+.fa::before, .fas::before, .far::before, .fal::before, .fab::before,
+.fa-solid::before, .fa-regular::before, .fa-brands::before,
+[class*="fa-"]::before, [class^="fa-"]::before {
+  font-family: inherit !important;
+}
+.material-symbols-outlined, [class*="material-symbols"] {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+  text-transform: none !important;
+}
+
 h1 { font-size: clamp(1.75rem, 3.5vw, 2.25rem); }
 h2 { font-size: 1.5rem; }
 h3 { font-size: 1.25rem; }
@@ -1460,22 +1492,26 @@ html.dark .nav-link.is-active {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 14px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 9999px;
   background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-  color: #ffffff;
-  font-size: 12px;
+  color: #ffffff !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 0.8rem;
   font-weight: 700;
-  text-decoration: none;
-  box-shadow: 0 2px 10px rgba(37,99,235,.35);
-  transition: all .2s ease;
-  border: none;
+  text-decoration: none !important;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 8px rgba(37,99,235,.28);
+  border: 1px solid rgba(255,255,255,0.22);
+  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 .btn-topbar-admin:hover {
   background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
-  box-shadow: 0 4px 14px rgba(37,99,235,.45);
-  color: #fff;
+  box-shadow: 0 4px 14px rgba(37,99,235,.42);
+  transform: translateY(-1px);
+  color: #ffffff !important;
 }
 
 /* Sidebar toggle button (mobile) */

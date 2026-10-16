@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tour Packages Catalog &amp; Expedition Hub | Sivagayathiri Travels{% endblock %}
+{% block header_title %}Tour Packages Catalog &amp; Expedition Hub{% endblock %}
+
+{% block content %}
+<style>
+  .pkg-container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding-bottom: 3.5rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .pkg-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0284c7 100%);
+    border-radius: 14px;
+    padding: 24px 30px;
+    color: #ffffff;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .pkg-hero h1 {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 6px 0;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .pkg-hero p {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 13.5px;
+  }
+
+  .kpi-deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  html.dark .kpi-card {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  .kpi-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+  html.dark .kpi-val {
+    color: #f8fafc;
+  }
+
+  .tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 20px;
+    padding-bottom: 2px;
+  }
+  html.dark .tabs-bar {
+    border-color: #334155;
+  }
+  .tab-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #64748b;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.15s ease;
+    margin-bottom: -2px;
+  }
+  .tab-link:hover {
+    color: #0284c7;
+  }
+  .tab-link.active {
+    color: #0284c7;
+    border-bottom-color: #0284c7;
+  }
+  html.dark .tab-link.active {
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+  }
+
+  .controls-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  html.dark .controls-bar {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  .filter-pills {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-pill {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  html.dark .filter-pill {
+    background: #1e293b;
+    color: #cbd5e1;
+  }
+  .filter-pill.active {
+    background: #0284c7;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  }
+  .search-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 13px;
+    outline: none;
+    min-width: 240px;
+    background: #ffffff;
+    color: #0f172a;
+  }
+  html.dark .search-input {
+    background: #1e293b;
+    border-color: #475569;
+    color: #f8fafc;
+  }
+
+  .packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 20px;
+  }
+  .pkg-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  html.dark .pkg-card {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  .pkg-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  .pkg-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background: rgba(2, 132, 199, 0.1);
+    color: #0284c7;
+  }
+  .action-btn-sm {
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #1e293b;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.12s ease;
+  }
+  html.dark .action-btn-sm {
+    background: #1e293b;
+    border-color: #475569;
+    color: #cbd5e1;
+  }
+  .action-btn-sm:hover {
+    background: #f1f5f9;
+    border-color: #0284c7;
+    color: #0284c7;
+  }
+</style>
+
+<div class="pkg-container">
+  <!-- Hero Section -->
+  <div class="pkg-hero">
+    <div>
+      <h1><i class="fa-solid fa-umbrella-beach" style="color: #38bdf8;"></i> Tour Packages &amp; Architect Studio</h1>
+      <p>Master Itinerary Builder, College IV Expeditions, Customer Proposal Engine &amp; Vouchers</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <a href="{% url 'crm:inquiry_pipeline' %}" class="action-btn-sm" style="background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3);">
+        <i class="fa-solid fa-filter-circle-dollar"></i> CRM Inquiries
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Deck -->
+  <div class="kpi-deck">
+    <div class="kpi-card">
+      <span class="kpi-label"><i class="fa-solid fa-compass" style="color: #0284c7;"></i> Total Tour Packages</span>
+      <span class="kpi-val">{{ counts.total_packages }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Active in Catalog</span>
+      <span class="kpi-val" style="color: #10b981;">{{ counts.active_packages }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label"><i class="fa-solid fa-drafting-compass" style="color: #8b5cf6;"></i> Circuit Templates</span>
+      <span class="kpi-val">{{ counts.templates_count }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label"><i class="fa-solid fa-graduation-cap" style="color: #d97706;"></i> College IV Expeditions</span>
+      <span class="kpi-val" style="color: #d97706;">{{ counts.expeditions_count }}</span>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs-bar">
+    <a href="?tab=packages" class="tab-link {% if current_tab == 'packages' %}active{% endif %}">
+      <i class="fa-solid fa-compass"></i> Tour Packages Catalog ({{ counts.total_packages }})
+    </a>
+    <a href="?tab=templates" class="tab-link {% if current_tab == 'templates' %}active{% endif %}">
+      <i class="fa-solid fa-drafting-compass"></i> Circuit Templates ({{ counts.templates_count }})
+    </a>
+    <a href="?tab=expeditions" class="tab-link {% if current_tab == 'expeditions' %}active{% endif %}">
+      <i class="fa-solid fa-graduation-cap"></i> College IV Expeditions ({{ counts.expeditions_count }})
+    </a>
+  </div>
+
+  {% if current_tab == 'packages' %}
+  <!-- Filter & Search Controls -->
+  <div class="controls-bar">
+    <div class="filter-pills">
+      <a href="?tab=packages&category=all{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if category_filter == 'all' %}active{% endif %}">All Categories</a>
+      {% for cat_code, cat_name in categories %}
+      <a href="?tab=packages&category={{ cat_code }}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if category_filter == cat_code %}active{% endif %}">{{ cat_name }}</a>
+      {% endfor %}
+    </div>
+    <form method="get" style="display: flex; gap: 8px;">
+      <input type="hidden" name="tab" value="packages">
+      <input type="hidden" name="category" value="{{ category_filter }}">
+      <input type="search" name="q" value="{{ search_query }}" class="search-input" placeholder="Search packages, destinations...">
+      <button type="submit" class="action-btn-sm" style="padding: 7px 14px;">Search</button>
+    </form>
+  </div>
+
+  <!-- Packages Grid -->
+  <div class="packages-grid">
+    {% for p in packages %}
+    <div class="pkg-card">
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+          <span class="pkg-badge">{{ p.get_category_display }}</span>
+          {% if p.package_code %}<code style="font-size: 11px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ p.package_code }}</code>{% endif %}
+        </div>
+        <h3 style="font-size: 16px; font-weight: 800; margin: 0 0 6px 0; color: #0f172a; line-height: 1.3;">
+          {{ p.title }}
+        </h3>
+        <p style="font-size: 13px; color: #64748b; margin: 0 0 12px 0;">
+          <i class="fa-solid fa-location-dot" style="color: #ef4444; margin-right: 4px;"></i> {{ p.destination_summary|default:"Custom Destination Circuit" }}
+        </p>
+        <div style="display: flex; gap: 14px; font-size: 12.5px; color: #475569; margin-bottom: 16px; flex-wrap: wrap;">
+          <span><i class="fa-solid fa-clock" style="color: #0284c7;"></i> {{ p.duration_nights }}N / {{ p.duration_days }}D</span>
+          <span><i class="fa-solid fa-hotel" style="color: #10b981;"></i> {{ p.get_meal_plan_display|default:"Standard Plan" }}</span>
+        </div>
+      </div>
+      <div style="border-top: 1px solid #f1f5f9; padding-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <span style="font-size: 12px; color: #64748b;">
+          {{ p.itinerary_days.count }} Day Plan{{ p.itinerary_days.count|pluralize }}
+        </span>
+        <div style="display: flex; gap: 6px;">
+          <a href="{% url 'packages:quotation_proposal' p.id %}" target="_blank" class="action-btn-sm" title="Generate Official Proposal Quotation">
+            <i class="fa-solid fa-file-invoice"></i> Proposal
+          </a>
+          <a href="{% url 'packages:tour_voucher' p.id %}" target="_blank" class="action-btn-sm" title="Generate Tour Service Voucher">
+            <i class="fa-solid fa-receipt"></i> Voucher
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 16px; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; color: #64748b;">
+      <i class="fa-solid fa-umbrella-beach" style="font-size: 2.5rem; color: #cbd5e1; margin-bottom: 12px;"></i>
+      <h3 style="margin: 0 0 6px 0;">No packages found</h3>
+      <p style="margin: 0;">Try adjusting your search criteria or category filter.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% elif current_tab == 'templates' %}
+  <!-- Circuit Templates Master -->
+  <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Template Name</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Destination</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Category</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Duration</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Base Price</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in templates %}
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 12px 16px; font-weight: 700; color: #0f172a;">{{ t.name }}</td>
+          <td style="padding: 12px 16px;">{{ t.destination }}</td>
+          <td style="padding: 12px 16px;"><span class="pkg-badge">{{ t.get_category_display }}</span></td>
+          <td style="padding: 12px 16px; font-weight: 600;">{{ t.duration_nights }}N / {{ t.duration_days }}D</td>
+          <td style="padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #0284c7;">₹{{ t.base_price|floatformat:2 }}</td>
+          <td style="padding: 12px 16px;">
+            {% if t.is_active %}
+            <span style="color: #10b981; font-weight: 700; font-size: 12px;">Active</span>
+            {% else %}
+            <span style="color: #94a3b8; font-weight: 700; font-size: 12px;">Inactive</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="padding: 32px; text-align: center; color: #64748b;">No templates found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% elif current_tab == 'expeditions' %}
+  <!-- College IV Expeditions -->
+  <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13.5px;">
+      <thead>
+        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; text-align: left;">
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">College / Institution</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Tour Itinerary</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Tour Dates</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Headcount</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Coaches</th>
+          <th style="padding: 12px 16px; font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase; text-align: right;">Manifest &amp; Rooming</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in expeditions %}
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 12px 16px;">
+            <strong style="color: #0f172a; font-size: 14px;">{{ exp.college_name }}</strong>
+            <div style="font-size: 12px; color: #64748b;">Dept: {{ exp.department_and_batch }}</div>
+          </td>
+          <td style="padding: 12px 16px; font-weight: 600;">{{ exp.package.title|default:"Custom IV Route" }}</td>
+          <td style="padding: 12px 16px; font-size: 12.5px;">
+            {{ exp.start_date|date:"d M Y" }} &rarr; {{ exp.end_date|date:"d M Y" }}
+          </td>
+          <td style="padding: 12px 16px;">
+            <strong style="color: #0284c7;">{{ exp.total_pax }} Pax</strong>
+            <div style="font-size: 11.5px; color: #64748b;">+ {{ exp.faculty_count }} Faculty</div>
+          </td>
+          <td style="padding: 12px 16px; font-weight: 700;">{{ exp.bus_count }} Coach{{ exp.bus_count|pluralize }}</td>
+          <td style="padding: 12px 16px; text-align: right;">
+            <div style="display: inline-flex; gap: 6px;">
+              <a href="{% url 'packages:view_rooming_list' exp.id %}" target="_blank" class="action-btn-sm" title="View Printable Rooming List &amp; Coach Manifest">
+                <i class="fa-solid fa-list-check"></i> Rooming List
+              </a>
+              <a href="{% url 'packages:download_manifest_template' %}" class="action-btn-sm" title="Download CSV Manifest Template">
+                <i class="fa-solid fa-file-csv"></i> CSV
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="padding: 32px; text-align: center; color: #64748b;">No College IV Expeditions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

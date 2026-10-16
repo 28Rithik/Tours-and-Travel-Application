@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.db import models
 import datetime
 
-from .models import VehicleType, Vehicle
+from .models import VehicleCategory, VehicleType, Vehicle
 
 
 def api_get_vehicle_types(request):
@@ -391,5 +391,218 @@ def api_toggle_vehicle_status_staff(request, vehicle_id):
         'label': new_label,
         'registration_number': vehicle.registration_number
     })
+
+
+@login_required
+def fleet_categories_view(request):
+    """
+    Staff Portal: Enterprise Vehicle Categories Master.
+    Enables Fleet Leads and Commercial Directors to manage vehicle classifications,
+    seating tier spans, and showcase branding directly in the staff portal.
+    """
+    from django.utils.text import slugify
+
+    search_query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', 'all')
+
+    # Handle Category Create/Edit
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action in ('add_category', 'edit_category'):
+            name = request.POST.get('name', '').strip()
+            code = request.POST.get('code', '').strip() or slugify(name)
+            desc = request.POST.get('description', '').strip()
+            icon = request.POST.get('icon', 'directions_car').strip()
+            color = request.POST.get('badge_color', '#0284c7').strip()
+            seats = request.POST.get('seating_range', '').strip()
+            order = int(request.POST.get('display_order') or 1)
+            is_active = 'is_active' in request.POST
+
+            if not name:
+                messages.error(request, "Category name is required.")
+            else:
+                try:
+                    if action == 'edit_category':
+                        cat_id = request.POST.get('category_id')
+                        cat = get_object_or_404(VehicleCategory, pk=cat_id)
+                        cat.name = name
+                        cat.code = code
+                        cat.description = desc
+                        cat.icon = icon
+                        cat.badge_color = color
+                        cat.seating_range = seats
+                        cat.display_order = order
+                        cat.is_active = is_active
+                        cat.save()
+                        messages.success(request, f"✅ Category '{cat.name}' updated successfully.")
+                    else:
+                        cat = VehicleCategory.objects.create(
+                            name=name, code=code, description=desc,
+                            icon=icon, badge_color=color, seating_range=seats,
+                            display_order=order, is_active=is_active
+                        )
+                        messages.success(request, f"✅ Category '{cat.name}' created successfully.")
+                    return redirect('fleet-categories')
+                except Exception as e:
+                    messages.error(request, f"Error saving category: {str(e)}")
+
+        elif action == 'toggle_category':
+            cat_id = request.POST.get('category_id')
+            cat = get_object_or_404(VehicleCategory, pk=cat_id)
+            cat.is_active = not cat.is_active
+            cat.save(update_fields=['is_active'])
+            messages.success(request, f"Status for '{cat.name}' updated to {'Active' if cat.is_active else 'Inactive'}.")
+            return redirect('fleet-categories')
+
+    categories_qs = VehicleCategory.objects.annotate(
+        type_count=Count('vehicle_types', distinct=True),
+        vehicle_count=Count('vehicles', distinct=True)
+    ).order_by('display_order', 'name')
+
+    if search_query:
+        categories_qs = categories_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(code__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(seating_range__icontains=search_query)
+        )
+
+    if status_filter == 'active':
+        categories_qs = categories_qs.filter(is_active=True)
+    elif status_filter == 'inactive':
+        categories_qs = categories_qs.filter(is_active=False)
+
+    counts = {
+        'total': VehicleCategory.objects.count(),
+        'active': VehicleCategory.objects.filter(is_active=True).count(),
+        'inactive': VehicleCategory.objects.filter(is_active=False).count(),
+        'total_types': VehicleType.objects.count(),
+        'total_vehicles': Vehicle.objects.count(),
+    }
+
+    return render(request, 'core/vehicle_categories.html', {
+        'categories': categories_qs,
+        'counts': counts,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def fleet_types_view(request):
+    """
+    Staff Portal: Enterprise Vehicle Types & Standard Tariffs Master.
+    Enables Fleet Operations, Commercial Quoting, and Dispatch to inspect vehicle models,
+    default day/km rates, minimum KM thresholds, driver batas, and seating capacities.
+    """
+    search_query = request.GET.get('q', '').strip()
+    cat_filter = request.GET.get('category', 'all')
+    fuel_filter = request.GET.get('fuel', 'all')
+
+    # Handle Add/Edit Vehicle Type
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action in ('add_type', 'edit_type'):
+            name = request.POST.get('name', '').strip()
+            cat_id = request.POST.get('vehicle_category')
+            desc = request.POST.get('description', '').strip()
+            day_rate = float(request.POST.get('default_day_rate') or 0)
+            km_rate = float(request.POST.get('default_km_rate') or 0)
+            min_km = int(request.POST.get('minimum_km_per_day') or 250)
+            extra_km = float(request.POST.get('extra_km_rate') or 0)
+            extra_hr = float(request.POST.get('extra_hour_rate') or 0)
+            driver_bata = float(request.POST.get('driver_bata') or 0)
+            night_halt = float(request.POST.get('night_halt_charge') or 0)
+            seats = int(request.POST.get('seating_capacity') or 4)
+            luggage = request.POST.get('luggage_capacity', '').strip()
+            fuel = request.POST.get('fuel_type', 'diesel')
+            mileage = float(request.POST.get('expected_mileage_kmpl') or 0) or None
+            toll = request.POST.get('toll_class', 'car')
+            has_ac = 'has_ac' in request.POST
+            is_lux = 'is_luxury' in request.POST
+            trans = request.POST.get('transmission_type', 'manual')
+
+            if not name:
+                messages.error(request, "Vehicle Type name is required.")
+            else:
+                try:
+                    cat = VehicleCategory.objects.get(pk=cat_id) if cat_id else None
+                    if action == 'edit_type':
+                        type_id = request.POST.get('type_id')
+                        vt = get_object_or_404(VehicleType, pk=type_id)
+                        vt.name = name
+                        vt.vehicle_category = cat
+                        vt.description = desc
+                        vt.default_day_rate = day_rate
+                        vt.default_km_rate = km_rate
+                        vt.minimum_km_per_day = min_km
+                        vt.extra_km_rate = extra_km
+                        vt.extra_hour_rate = extra_hr
+                        vt.driver_bata = driver_bata
+                        vt.night_halt_charge = night_halt
+                        vt.seating_capacity = seats
+                        vt.luggage_capacity = luggage
+                        vt.fuel_type = fuel
+                        vt.expected_mileage_kmpl = mileage
+                        vt.toll_class = toll
+                        vt.has_ac = has_ac
+                        vt.is_luxury = is_lux
+                        vt.transmission_type = trans
+                        vt.save()
+                        messages.success(request, f"✅ Vehicle Type '{vt.name}' updated successfully.")
+                    else:
+                        vt = VehicleType.objects.create(
+                            name=name, vehicle_category=cat, description=desc,
+                            default_day_rate=day_rate, default_km_rate=km_rate,
+                            minimum_km_per_day=min_km, extra_km_rate=extra_km,
+                            extra_hour_rate=extra_hr, driver_bata=driver_bata,
+                            night_halt_charge=night_halt, seating_capacity=seats,
+                            luggage_capacity=luggage, fuel_type=fuel,
+                            expected_mileage_kmpl=mileage, toll_class=toll,
+                            has_ac=has_ac, is_luxury=is_lux, transmission_type=trans
+                        )
+                        messages.success(request, f"✅ Vehicle Type '{vt.name}' created successfully.")
+                    return redirect('fleet-types')
+                except Exception as e:
+                    messages.error(request, f"Error saving vehicle type: {str(e)}")
+
+    types_qs = VehicleType.objects.select_related('vehicle_category').annotate(
+        vehicle_count=Count('vehicle', distinct=True)
+    ).order_by('vehicle_category__display_order', 'name')
+
+    if search_query:
+        types_qs = types_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(vehicle_category__name__icontains=search_query)
+        )
+
+    if cat_filter != 'all':
+        types_qs = types_qs.filter(vehicle_category__id=cat_filter)
+
+    if fuel_filter != 'all':
+        types_qs = types_qs.filter(fuel_type=fuel_filter)
+
+    all_categories = VehicleCategory.objects.filter(is_active=True).order_by('display_order', 'name')
+
+    counts = {
+        'total': VehicleType.objects.count(),
+        'ac_count': VehicleType.objects.filter(has_ac=True).count(),
+        'luxury_count': VehicleType.objects.filter(is_luxury=True).count(),
+        'total_vehicles': Vehicle.objects.count(),
+    }
+
+    return render(request, 'core/vehicle_types.html', {
+        'types': types_qs,
+        'categories': all_categories,
+        'counts': counts,
+        'search_query': search_query,
+        'cat_filter': cat_filter,
+        'fuel_filter': fuel_filter,
+        'fuel_choices': VehicleType.FUEL_TYPES,
+        'toll_choices': VehicleType.TOLL_CLASSES,
+        'trans_choices': VehicleType.TRANSMISSION_TYPES,
+    })
+
 
 

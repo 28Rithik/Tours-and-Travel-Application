@@ -124,6 +124,8 @@ from core.views import (
     api_get_vehicle_types,
     api_vehicle_check_availability,
     fleet_vehicles_roster_view,
+    fleet_categories_view,
+    fleet_types_view,
     fleet_drivers_roster_view,
     api_toggle_vehicle_status_staff,
 )
@@ -230,6 +232,8 @@ urlpatterns = [
     path('api/finance/settlement/<int:settlement_id>/acknowledge/', api_driver_settlement_acknowledge, name='api-finance-settle-acknowledge-root'),
     # Phase 7: Dedicated Staff Fleet & Chauffeurs Management Portal (Within Staff base.html)
     path('fleet/vehicles/', fleet_vehicles_roster_view, name='fleet-vehicles-roster'),
+    path('fleet/categories/', fleet_categories_view, name='fleet-categories'),
+    path('fleet/types/', fleet_types_view, name='fleet-types'),
     path('fleet/drivers/', fleet_drivers_roster_view, name='fleet-drivers-roster'),
     path('api/fleet/vehicles/<int:vehicle_id>/toggle-status/', api_toggle_vehicle_status_staff, name='fleet-vehicle-toggle-status'),
     # Phase 6: Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub

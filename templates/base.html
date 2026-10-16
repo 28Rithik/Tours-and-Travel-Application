@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'app.css' %}">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=2.3">
   <script>
     /* Immediate Anti-FOUC Theme Detection (Matches Django Unfold) */
     (function() {
@@ -27,12 +27,96 @@
     })();
   </script>
   <style>
+    /* ── Universal Plus Jakarta Sans Base Typography ── */
+    html, body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6, p, a, button, input, select, textarea, table, th, td, label {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* ── STRICT PROTECTION FOR FONT AWESOME & ICONS (Guarantees icons never render as ▯ boxes) ── */
+    .fa, .fas, .far, .fal, .fad, .fab,
+    .fa-solid, .fa-regular, .fa-brands,
+    .nav-icon, [class*="fa-"], [class^="fa-"] {
+      font-family: "Font Awesome 6 Free" !important;
+      font-style: normal !important;
+      font-variant: normal !important;
+      text-rendering: auto !important;
+      line-height: 1 !important;
+    }
+    .fa-solid, .fas, [class*="fa-solid"] {
+      font-weight: 900 !important;
+    }
+    .fa-regular, .far, [class*="fa-regular"] {
+      font-weight: 400 !important;
+    }
+    .fa-brands, .fab, [class*="fa-brands"] {
+      font-family: "Font Awesome 6 Brands" !important;
+      font-weight: 400 !important;
+    }
+    .fa::before, .fas::before, .far::before, .fal::before, .fab::before,
+    .fa-solid::before, .fa-regular::before, .fa-brands::before,
+    [class*="fa-"]::before, [class^="fa-"]::before {
+      font-family: inherit !important;
+    }
+
+    /* Material Symbols protection */
+    .material-symbols-outlined, [class*="material-symbols"] {
+      font-family: 'Material Symbols Outlined' !important;
+      font-weight: normal !important;
+      font-style: normal !important;
+      text-transform: none !important;
+      letter-spacing: normal !important;
+      word-wrap: normal !important;
+      white-space: nowrap !important;
+      direction: ltr !important;
+    }
+
     /* ── Topbar Actions & Theme Switcher Pill ── */
     .topbar-actions-cluster {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
+
+    /* 👑 Direct Switch to Unfold Admin Workspace Button Pill */
+    .btn-topbar-admin {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 34px;
+      padding: 0 14px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #ffffff !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-decoration: none !important;
+      letter-spacing: -0.01em;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .btn-topbar-admin:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.42);
+      transform: translateY(-1px);
+      color: #ffffff !important;
+    }
+    .btn-topbar-admin i {
+      font-size: 0.82rem;
+      color: #fde047; /* Gold crown */
+    }
+    html.dark .btn-topbar-admin {
+      background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
     .theme-switch-pill {
       display: inline-flex;
       align-items: center;
@@ -40,6 +124,7 @@
       border: 1px solid #cbd5e1;
       border-radius: 9999px;
       padding: 2px 3px;
+      height: 34px;
       gap: 2px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
@@ -83,13 +168,17 @@
     /* ── Phase 6: Notification Bell ── */
     .notif-bell-wrap { position: relative; display: inline-flex; align-items: center; }
     #notif-bell-btn {
-      background: none; border: none; cursor: pointer; font-size: 1.35rem;
-      line-height: 1; padding: 6px 10px; border-radius: 8px; color: inherit;
-      transition: background .15s; position: relative;
+      background: #ffffff; border: 1px solid #cbd5e1; cursor: pointer; font-size: 1.05rem;
+      height: 34px; width: 34px; border-radius: 9999px; color: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all .15s; position: relative;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      padding: 0;
     }
-    #notif-bell-btn:hover { background: rgba(255,255,255,.1); }
+    #notif-bell-btn:hover { background: #f8fafc; border-color: #0284c7; }
+    html.dark #notif-bell-btn { background: #1e293b; border-color: #334155; color: #cbd5e1; }
     #notif-badge {
-      display: none; position: absolute; top: 2px; right: 2px;
+      display: none; position: absolute; top: -2px; right: -2px;
       background: #ef4444; color: #fff; font-size: .65rem; font-weight: 700;
       min-width: 16px; height: 16px; border-radius: 99px; padding: 0 3px;
       line-height: 16px; text-align: center; pointer-events: none;
@@ -156,25 +245,32 @@
       background: #ffffff;
       border: 1px solid #cbd5e1;
       border-radius: 9999px;
-      padding: 4px 12px 4px 5px;
+      height: 34px;
+      padding: 2px 12px 2px 4px;
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
       color: #0f172a;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     .btn-profile-pill:hover {
       border-color: #0284c7;
       box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
       background: #f8fafc;
     }
+    html.dark .btn-profile-pill {
+      background: #1e293b;
+      border-color: #334155;
+      color: #f8fafc;
+    }
     .profile-avatar-badge {
-      width: 30px;
-      height: 30px;
+      width: 26px;
+      height: 26px;
       border-radius: 9999px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
+      font-size: 0.85rem;
       flex-shrink: 0;
       line-height: 1;
     }
@@ -467,17 +563,17 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">
           <i class="fa-solid fa-map-location-dot nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Live Fleet Map
         </a>
-        <a class="nav-link" href="/admin/core/vehicle/">
-          <i class="fa-solid fa-bus nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Assets (Admin)
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-vehicles-roster' %}is-active{% endif %}" href="{% url 'fleet-vehicles-roster' %}">
+          <i class="fa-solid fa-bus nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Fleet &amp; Assets
         </a>
-        <a class="nav-link" href="/admin/core/vehiclecategory/">
-          <i class="fa-solid fa-layer-group nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Categories (Admin)
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-categories' %}is-active{% endif %}" href="{% url 'fleet-categories' %}">
+          <i class="fa-solid fa-layer-group nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Categories
         </a>
-        <a class="nav-link" href="/admin/core/vehicletype/">
-          <i class="fa-solid fa-car-side nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Types (Admin)
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-types' %}is-active{% endif %}" href="{% url 'fleet-types' %}">
+          <i class="fa-solid fa-car-side nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Types &amp; Tariffs
         </a>
-        <a class="nav-link" href="/admin/core/driver/">
-          <i class="fa-solid fa-id-card nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Chauffeurs &amp; Drivers (Admin)
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-drivers-roster' %}is-active{% endif %}" href="{% url 'fleet-drivers-roster' %}">
+          <i class="fa-solid fa-id-card nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Chauffeurs &amp; Captains
         </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">
           <i class="fa-solid fa-car-burst nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> 2D Vehicle Damage Studio
@@ -496,25 +592,19 @@
         <!-- 3. Tour Packages & Holiday Architect (Tour Designers, Booking Managers & Superusers) -->
         {% if is_booking_manager or is_tour_designer or is_superuser %}
         <p class="nav-section-title"><i class="fa-solid fa-umbrella-beach" style="font-size: 0.7rem; color: #0ea5e9;"></i> Tour Packages &amp; Architect</p>
-        <a class="nav-link" href="/admin/packages/package/">
+        <a class="nav-link {% if request.resolver_match.app_name == 'packages' and 'tab=' not in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}">
           <i class="fa-solid fa-compass nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tour Packages Catalog
         </a>
-        <a class="nav-link" href="/admin/packages/package/add/" style="color: #0284c7; font-weight: 700; background: rgba(2, 132, 199, 0.08); border-radius: 6px;">
-          <i class="fa-solid fa-circle-plus nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Design &amp; Add Package
-        </a>
-        <a class="nav-link" href="/admin/packages/packagetemplate/">
+        <a class="nav-link {% if 'tab=templates' in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}?tab=templates">
           <i class="fa-solid fa-drafting-compass nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Package Templates Master
         </a>
-        <a class="nav-link" href="/admin/packages/collegeivexpedition/">
+        <a class="nav-link {% if 'tab=expeditions' in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}?tab=expeditions">
           <i class="fa-solid fa-graduation-cap nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> College IV Expeditions
         </a>
-        <a class="nav-link" href="/admin/packages/packageseasonalrate/">
-          <i class="fa-solid fa-chart-simple nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Seasonal Rates &amp; Surges
-        </a>
-        <a class="nav-link" href="/admin/packages/packagehotelallotment/">
+        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">
           <i class="fa-solid fa-hotel nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Hotel Allotments &amp; Rooms
         </a>
-        <a class="nav-link" href="/admin/packages/packagevehicletariff/">
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-types' %}is-active{% endif %}" href="{% url 'fleet-types' %}">
           <i class="fa-solid fa-tags nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle-Wise Tariffs
         </a>
         {% endif %}
@@ -589,11 +679,11 @@
         <!-- 6. System Administration (Superusers & Staff) -->
         {% if is_superuser or request.user.is_staff %}
         <p class="nav-section-title"><i class="fa-solid fa-gear" style="font-size: 0.7rem; color: #64748b;"></i> Administration</p>
-        <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">
+        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">
           <i class="fa-solid fa-database nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tariffs &amp; Master Data
         </a>
         <a class="nav-link" href="{% url 'admin:index' %}" style="font-weight: 700; color: #0284c7;">
-          <i class="fa-solid fa-crown nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Unfold Admin Workspace
+          <i class="fa-solid fa-crown nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Unfold Admin Workspace
         </a>
         {% endif %}
       </nav>
@@ -621,8 +711,8 @@
 
         <div class="topbar-actions-cluster">
           <!-- Direct Switch to Unfold Admin Workspace -->
-          <a href="/admin/" class="btn-topbar-admin" title="Open Full Django Unfold Enterprise Admin">
-            <i class="fa-solid fa-crown"></i>
+          <a href="/admin/" class="btn-topbar-admin" style="font-family: 'Plus Jakarta Sans', sans-serif !important;" title="Open Full Django Unfold Enterprise Admin">
+            <i class="fa-solid fa-crown" style="font-size: 0.82rem; color: #fde047;"></i>
             <span>Unfold Admin</span>
           </a>
 
