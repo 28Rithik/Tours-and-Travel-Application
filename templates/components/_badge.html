@@ -1,0 +1,8 @@
+{# Reusable Status Badge Component #}
+{# Parameters: status, text, icon, extra_class #}
+<span class="badge badge--{{ status|slugify|default:'info' }} {{ extra_class|default:'' }}">
+  {% if icon %}
+    {% if "fa-" in icon %}<i class="{{ icon }}"></i>{% else %}<i class="fa-solid fa-{{ icon }}"></i>{% endif %}
+  {% endif %}
+  {{ text|default:status|title }}
+</span>

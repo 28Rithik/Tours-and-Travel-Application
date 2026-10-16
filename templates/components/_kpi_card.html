@@ -1,0 +1,25 @@
+{# Reusable KPI Card Component #}
+{# Parameters: icon, label, value, sub, color (blue, teal, amber, violet, red), trend, trend_dir (up, down), extra_class #}
+<div class="kpi-card {{ extra_class|default:'' }}">
+  {% if icon %}
+  <div class="kpi-icon kpi-icon--{{ color|default:'blue' }}">
+    {% if "fa-" in icon %}
+      <i class="{{ icon }}"></i>
+    {% else %}
+      <i class="fa-solid fa-{{ icon }}"></i>
+    {% endif %}
+  </div>
+  {% endif %}
+  <div class="kpi-body" style="flex: 1; min-width: 0;">
+    <p class="kpi-label">{{ label }}</p>
+    <p class="kpi-value mono-val">{{ value|default:'0' }}</p>
+    {% if sub %}
+    <p class="kpi-sub">{{ sub }}</p>
+    {% endif %}
+    {% if trend %}
+    <p class="kpi-trend kpi-trend--{{ trend_dir|default:'up' }}">
+      {% if trend_dir == 'down' %}↓{% else %}↑{% endif %} {{ trend }}
+    </p>
+    {% endif %}
+  </div>
+</div>

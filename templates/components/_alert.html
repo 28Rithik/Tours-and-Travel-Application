@@ -1,0 +1,14 @@
+{# Reusable Alert Banner Component #}
+{# Parameters: type (info, warning, success, danger), message, icon, link, link_text, dismissible (default true) #}
+<div class="alert alert--{{ type|default:'info' }} {{ extra_class|default:'' }}" role="alert">
+  <i class="{% if icon %}{{ icon }}{% elif type == 'danger' or type == 'error' %}fa-solid fa-triangle-exclamation{% elif type == 'warning' %}fa-solid fa-circle-exclamation{% elif type == 'success' %}fa-solid fa-circle-check{% else %}fa-solid fa-circle-info{% endif %}"></i>
+  <div style="flex: 1; min-width: 0;">
+    {{ message }}
+    {% if link %}
+      <a href="{{ link }}" class="alert-link" style="font-weight: 700; text-decoration: underline; margin-left: 6px; color: inherit;">{{ link_text|default:'Learn more →' }}</a>
+    {% endif %}
+  </div>
+  {% if dismissible|default:True %}
+  <button type="button" onclick="this.closest('.alert').remove()" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: inherit; opacity: 0.6; padding: 0 4px;" title="Dismiss">&times;</button>
+  {% endif %}
+</div>

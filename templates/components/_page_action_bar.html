@@ -1,0 +1,16 @@
+{# Reusable Page Action Bar Component #}
+{# Slot for search, filters and action buttons #}
+<div class="page-action-bar {{ extra_class|default:'' }}">
+  <div class="filter-group">
+    {% if search_placeholder %}
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="search" class="search-input" name="{{ search_name|default:'q' }}" value="{{ request.GET.q|default:'' }}" placeholder="{{ search_placeholder }}">
+    </div>
+    {% endif %}
+    {{ filters }}
+  </div>
+  <div class="btn-group">
+    {{ actions }}
+  </div>
+</div>

@@ -1382,3 +1382,741 @@ html.dark .form-validation-summary-card .error-subtitle {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ==========================================================================
+   §12 — STAFF PORTAL v2 COMPONENT LIBRARY
+   Complete Unfold-harmonized component set for all staff portal pages.
+   Append-only — does NOT modify existing §1–§11 tokens or classes.
+   ========================================================================== */
+
+/* ── §12.1 SIDEBAR v2 — Unfold-exact pattern ── */
+
+/* Sidebar search bar — matches Unfold "Search apps and models..." */
+.sidebar-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background-color: var(--surface-subtle);
+  transition: border-color .15s, box-shadow .15s;
+}
+.sidebar-search-bar:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(2,132,199,.12);
+}
+.sidebar-search-bar i {
+  color: var(--text-subtle);
+  font-size: .8rem;
+  flex-shrink: 0;
+}
+.sidebar-search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: .8rem;
+  color: var(--text-main);
+  width: 100%;
+  padding: 0;
+  box-shadow: none;
+}
+.sidebar-search-bar input::placeholder {
+  color: var(--text-subtle);
+}
+html.dark .sidebar-search-bar {
+  background-color: rgba(30,41,59,.6);
+  border-color: var(--border-color);
+}
+html.dark .sidebar-search-bar input {
+  color: var(--text-main);
+}
+
+/* Nav link v2 — left-border active accent (exact Unfold pattern) */
+.nav-link {
+  border-left: 3px solid transparent !important;
+  border-radius: 0 6px 6px 0 !important;
+  margin-right: 6px;
+  padding-left: 10px !important;
+  transition: all .12s ease !important;
+}
+.nav-link.is-active {
+  border-left-color: var(--primary) !important;
+  background-color: var(--primary-100) !important;
+  color: var(--primary) !important;
+  font-weight: 700 !important;
+}
+html.dark .nav-link.is-active {
+  background-color: rgba(14,165,233,.15) !important;
+  color: #38bdf8 !important;
+  border-left-color: #38bdf8 !important;
+}
+
+/* ── §12.2 TOPBAR v2 ── */
+
+/* Admin workspace button (CSS class — replaces inline style) */
+.btn-topbar-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(37,99,235,.35);
+  transition: all .2s ease;
+  border: none;
+  white-space: nowrap;
+}
+.btn-topbar-admin:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 14px rgba(37,99,235,.45);
+  color: #fff;
+}
+
+/* Sidebar toggle button (mobile) */
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-subtle);
+  font-size: 1rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  display: none; /* shown in responsive query */
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.sidebar-toggle-btn:hover {
+  background: var(--surface-subtle);
+  color: var(--text-main);
+}
+@media (max-width: 1023px) {
+  .sidebar-toggle-btn { display: inline-flex; }
+}
+
+/* ── §12.3 BADGE / STATUS PILL SYSTEM v2 ── */
+
+/* All badges share this base via .badge class */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.badge--available   { background: #d1fae5; color: #065f46; }
+.badge--on-trip     { background: #dbeafe; color: #1e40af; }
+.badge--assigned    { background: #ede9fe; color: #5b21b6; }
+.badge--maintenance { background: #fef3c7; color: #92400e; }
+.badge--off-duty    { background: #f1f5f9; color: #475569; }
+.badge--compliant   { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.badge--expiring    { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.badge--expired     { background: #fee2e2; color: #991b1b; }
+.badge--pending     { background: #fef3c7; color: #92400e; }
+.badge--confirmed   { background: #d1fae5; color: #065f46; }
+.badge--cancelled   { background: #fee2e2; color: #991b1b; }
+.badge--completed   { background: #f3f4f6; color: #374151; }
+.badge--paid        { background: #d1fae5; color: #065f46; }
+.badge--overdue     { background: #fee2e2; color: #991b1b; }
+.badge--partial     { background: #fef3c7; color: #92400e; }
+.badge--primary     { background: var(--primary-100); color: var(--primary); }
+.badge--info        { background: #ede9fe; color: #5b21b6; }
+.badge--live        { background: #d1fae5; color: #065f46; }
+
+/* Dark mode badge adjustments */
+html.dark .badge--available,  html.dark .badge--compliant,
+html.dark .badge--confirmed,  html.dark .badge--paid,
+html.dark .badge--live        { background: rgba(16,185,129,.18); color: #6ee7b7; }
+html.dark .badge--on-trip,    html.dark .badge--primary
+                              { background: rgba(14,165,233,.18); color: #7dd3fc; }
+html.dark .badge--pending,    html.dark .badge--expiring,
+html.dark .badge--partial,    html.dark .badge--maintenance
+                              { background: rgba(245,158,11,.18); color: #fcd34d; }
+html.dark .badge--cancelled,  html.dark .badge--expired,
+html.dark .badge--overdue     { background: rgba(239,68,68,.18); color: #fca5a5; }
+html.dark .badge--completed,  html.dark .badge--off-duty
+                              { background: rgba(71,85,105,.25); color: #cbd5e1; }
+html.dark .badge--assigned,   html.dark .badge--info
+                              { background: rgba(139,92,246,.18); color: #c4b5fd; }
+
+/* ── §12.4 BUTTON SYSTEM v2 ── */
+/* (Uses existing .button / .btn base — adds new modifier classes) */
+
+.btn--primary {
+  background-color: var(--primary) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
+}
+.btn--primary:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+
+.btn--outline-v2 {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-main);
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.btn--outline-v2:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn--danger-v2 {
+  background: var(--danger) !important;
+  color: #fff !important;
+  border-color: var(--danger) !important;
+}
+.btn--danger-v2:hover { background: #dc2626 !important; }
+
+.btn--ai {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  border: none;
+}
+.btn--ai:hover { background: linear-gradient(135deg, #6d28d9, #4338ca); color: #fff; }
+
+.btn--dark-v2 {
+  background: var(--text-main);
+  color: #fff !important;
+  border-color: var(--text-main);
+}
+html.dark .btn--dark-v2 {
+  background: var(--border-strong);
+  border-color: var(--border-strong);
+}
+
+.btn--sm-v2 {
+  padding: 4px 10px !important;
+  font-size: .72rem !important;
+  border-radius: 6px !important;
+}
+
+/* ── §12.5 KPI CARD v2 ── */
+/* New icon-left card style matching Unfold admin widget style */
+
+.kpi-card-v2 {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.kpi-card-v2:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.kpi-icon-v2 {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.kpi-icon-v2--blue   { background: #e0f2fe; color: #0284c7; }
+.kpi-icon-v2--teal   { background: #ccfbf1; color: #0d9488; }
+.kpi-icon-v2--amber  { background: #fef3c7; color: #d97706; }
+.kpi-icon-v2--violet { background: #ede9fe; color: #7c3aed; }
+.kpi-icon-v2--green  { background: #d1fae5; color: #059669; }
+.kpi-icon-v2--red    { background: #fee2e2; color: #dc2626; }
+
+html.dark .kpi-icon-v2--blue   { background: rgba(2,132,199,.18); color: #38bdf8; }
+html.dark .kpi-icon-v2--teal   { background: rgba(13,148,136,.18); color: #2dd4bf; }
+html.dark .kpi-icon-v2--amber  { background: rgba(217,119,6,.18);  color: #fbbf24; }
+html.dark .kpi-icon-v2--violet { background: rgba(124,58,237,.18); color: #a78bfa; }
+html.dark .kpi-icon-v2--green  { background: rgba(5,150,105,.18);  color: #34d399; }
+html.dark .kpi-icon-v2--red    { background: rgba(220,38,38,.18);  color: #f87171; }
+
+.kpi-body-v2 { flex: 1; min-width: 0; }
+
+.kpi-label-v2 {
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-subtle);
+  margin: 0 0 4px;
+}
+
+.kpi-value-v2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.1;
+  margin: 0 0 4px;
+  letter-spacing: -.02em;
+}
+
+.kpi-sub-v2 {
+  font-size: .72rem;
+  color: var(--text-subtle);
+  margin: 0;
+}
+
+.kpi-trend-up   { color: #10b981; font-size: .72rem; font-weight: 700; }
+.kpi-trend-down { color: #ef4444; font-size: .72rem; font-weight: 700; }
+
+/* ── §12.6 PAGE ACTION BAR ── */
+
+.page-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.page-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-select-v2 {
+  width: auto !important;
+  padding: 6px 10px !important;
+  font-size: .8rem !important;
+  border-radius: 7px !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--input-bg) !important;
+  color: var(--input-color) !important;
+  cursor: pointer;
+}
+
+.filter-date-v2 {
+  width: 140px !important;
+  padding: 6px 10px !important;
+  font-size: .8rem !important;
+  border-radius: 7px !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--input-bg) !important;
+  color: var(--input-color) !important;
+}
+
+.page-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Search box with icon inside */
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-input-wrap i {
+  position: absolute;
+  left: 10px;
+  color: var(--text-subtle);
+  font-size: .8rem;
+  pointer-events: none;
+}
+.search-input-v2 {
+  width: 200px !important;
+  padding: 7px 12px 7px 30px !important;
+  font-size: .82rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--input-bg) !important;
+  color: var(--input-color) !important;
+  transition: border-color .15s, box-shadow .15s !important;
+  box-shadow: none !important;
+}
+.search-input-v2:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(2,132,199,.15) !important;
+  outline: none !important;
+  width: 250px !important;
+}
+
+/* ── §12.7 DATA TABLE v2 (Enhanced) ── */
+
+.table-v2-wrap {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table-v2 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .83rem;
+}
+
+.table-v2 thead th {
+  background: var(--th-bg) !important;
+  color: var(--text-subtle) !important;
+  font-size: .68rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .07em !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--border-strong) !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+}
+
+.table-v2 tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  vertical-align: middle;
+}
+
+.table-v2 tbody tr:last-child td { border-bottom: none; }
+.table-v2 tbody tr:hover { background: var(--surface-subtle); }
+
+/* ID chip — monospace registration/booking numbers */
+.id-chip {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: .72rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-color);
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+/* Row action icon buttons */
+.tbl-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-subtle);
+  text-decoration: none;
+  font-size: .8rem;
+  transition: all .12s ease;
+  cursor: pointer;
+}
+.tbl-action-btn:hover {
+  background: var(--primary-100);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.tbl-action-btn--danger:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+/* ── §12.8 ALERT BANNERS v2 ── */
+
+.alert-v2 {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: .85rem;
+  font-weight: 500;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.alert-v2 i { flex-shrink: 0; margin-top: 2px; }
+.alert-v2 a { font-weight: 700; text-decoration: underline; }
+
+.alert-v2--info    { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.alert-v2--warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+.alert-v2--success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+.alert-v2--danger  { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+html.dark .alert-v2--info    { background: rgba(30,64,175,.15); color: #93c5fd; border-color: rgba(59,130,246,.3); }
+html.dark .alert-v2--warning { background: rgba(146,64,14,.15); color: #fcd34d; border-color: rgba(245,158,11,.3); }
+html.dark .alert-v2--success { background: rgba(6,95,70,.15);   color: #6ee7b7; border-color: rgba(16,185,129,.3); }
+html.dark .alert-v2--danger  { background: rgba(153,27,27,.15); color: #fca5a5; border-color: rgba(239,68,68,.3); }
+
+/* ── §12.9 CARD v2 ── */
+
+.card-v2 {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-v2-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-subtle);
+}
+
+.card-v2-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-v2-body { padding: 20px; }
+.card-v2-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-color);
+  background: var(--surface-subtle);
+}
+
+/* ── §12.10 WELCOME BANNER ── */
+
+.welcome-banner {
+  background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+  border-radius: 14px;
+  padding: 28px 32px;
+  color: #fff;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(255,255,255,.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+.welcome-depot-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 9999px;
+  padding: 3px 10px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  margin-bottom: 10px;
+}
+.welcome-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52,211,153,.8);
+  animation: pulse-dot 2s infinite;
+}
+.welcome-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+  letter-spacing: -.02em;
+}
+.welcome-meta {
+  font-size: .82rem;
+  color: rgba(255,255,255,.8);
+  margin: 0 0 16px;
+}
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.welcome-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all .15s ease;
+  white-space: nowrap;
+}
+.welcome-btn--white {
+  background: #fff;
+  color: var(--primary);
+}
+.welcome-btn--white:hover {
+  background: #f0f9ff;
+  color: var(--primary-hover);
+}
+.welcome-btn--outline {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.3);
+}
+.welcome-btn--outline:hover {
+  background: rgba(255,255,255,.22);
+  color: #fff;
+}
+.welcome-btn--ai {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+}
+.welcome-btn--ai:hover {
+  background: linear-gradient(135deg, #6d28d9, #4338ca);
+  color: #fff;
+}
+
+/* ── §12.11 MOBILE RESPONSIVE — SIDEBAR DRAWER ── */
+
+@media (max-width: 1023px) {
+  .sidebar {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    height: 100vh !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    transform: translateX(-100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+    z-index: 200 !important;
+  }
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+    box-shadow: 0 0 0 9999px rgba(0,0,0,.3);
+  }
+  .main-shell {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .kpi-card-v2 { padding: 14px; gap: 12px; }
+  .kpi-value-v2 { font-size: 1.4rem; }
+  .kpi-icon-v2 { width: 40px; height: 40px; font-size: 1rem; }
+  .page-action-bar { flex-direction: column; align-items: stretch; }
+  .page-btn-group { flex-wrap: wrap; }
+  .search-input-v2, .search-input-v2:focus { width: 100% !important; }
+  .welcome-banner { padding: 20px; }
+  .welcome-title { font-size: 1.2rem; }
+  .table-v2 { font-size: .76rem; }
+}
+
+/* ── §12.12 COMPLIANCE & STATUS CHIPS ── */
+
+.compliance-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: .68rem;
+  font-weight: 700;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  white-space: nowrap;
+}
+.compliance-chip--ok      { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.compliance-chip--warn    { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.compliance-chip--danger  { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+
+html.dark .compliance-chip {
+  background: var(--surface-subtle);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+html.dark .compliance-chip--ok     { background: rgba(16,185,129,.15); border-color: rgba(16,185,129,.3); color: #6ee7b7; }
+html.dark .compliance-chip--warn   { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.3); color: #fcd34d; }
+html.dark .compliance-chip--danger { background: rgba(239,68,68,.15);  border-color: rgba(239,68,68,.3);  color: #fca5a5; }
+
+/* ── §12.13 VEHICLE CARD GRID ── */
+
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.vehicle-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, transform .2s;
+}
+.vehicle-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.vehicle-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--surface-subtle);
+}
+.vehicle-card-body { padding: 14px 16px; }
+.vehicle-card-compliance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border-color);
+}
+.vehicle-card-footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--surface-subtle);
+}
+
+.reg-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-color);
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+

@@ -830,7 +830,7 @@ html.dark .cr-shortcut-row {
     <div class="unfold-kpi-card unfold-kpi-blue">
       <div class="unfold-kpi-top">
         <span class="unfold-kpi-title">Active Deployments</span>
-        <div class="unfold-kpi-icon-box">🚗</div>
+        <div class="unfold-kpi-icon-box"><i class="fa-solid fa-bus"></i></div>
       </div>
       <div>
         <div class="unfold-kpi-number">{{ active_trips }}</div>
@@ -845,7 +845,7 @@ html.dark .cr-shortcut-row {
     <div class="unfold-kpi-card unfold-kpi-green">
       <div class="unfold-kpi-top">
         <span class="unfold-kpi-title">Commercial Fleet &amp; Crew</span>
-        <div class="unfold-kpi-icon-box">🚛</div>
+        <div class="unfold-kpi-icon-box"><i class="fa-solid fa-truck"></i></div>
       </div>
       <div>
         <div class="unfold-kpi-number">{{ total_fleet_count }} <span style="font-size: 1.1rem; font-weight: 600; opacity: 0.85;">Units</span></div>
@@ -859,7 +859,7 @@ html.dark .cr-shortcut-row {
     <div class="unfold-kpi-card unfold-kpi-amber">
       <div class="unfold-kpi-top">
         <span class="unfold-kpi-title">Monthly Billed Revenue</span>
-        <div class="unfold-kpi-icon-box">💰</div>
+        <div class="unfold-kpi-icon-box"><i class="fa-solid fa-indian-rupee-sign"></i></div>
       </div>
       <div>
         <div class="unfold-kpi-number mono-val">{{ revenue_inr }}</div>
@@ -873,7 +873,7 @@ html.dark .cr-shortcut-row {
     <div class="unfold-kpi-card unfold-kpi-indigo">
       <div class="unfold-kpi-top">
         <span class="unfold-kpi-title">Working Capital Liquidity</span>
-        <div class="unfold-kpi-icon-box">🏛️</div>
+        <div class="unfold-kpi-icon-box"><i class="fa-solid fa-wallet"></i></div>
       </div>
       <div>
         <div class="unfold-kpi-number mono-val">{{ working_capital_inr }}</div>
@@ -903,28 +903,28 @@ html.dark .cr-shortcut-row {
     <div class="unfold-launchpad-actions">
       {% if is_booking_manager or is_superuser %}
       <a class="unfold-btn unfold-btn-primary" href="{% url 'booking-create' %}">
-        <span>+ New Booking</span>
+        <i class="fa-solid fa-plus" style="margin-right: 4px;"></i> <span>New Booking</span>
       </a>
       {% endif %}
 
       <a class="unfold-btn unfold-btn-radar" href="{% url 'fleet-live' %}">
-        <span>🛰️ Live Fleet Radar</span>
+        <i class="fa-solid fa-map-location-dot" style="margin-right: 4px;"></i> <span>Live Fleet Radar</span>
       </a>
 
       <a class="unfold-btn unfold-btn-rathasarathi" href="{% url 'admin-rathasarathi-copilot-studio' %}">
-        <span>☸️ Rathasārathi AI</span>
+        <i class="fa-solid fa-dharmachakra" style="margin-right: 4px;"></i> <span>Rathasārathi AI</span>
       </a>
 
       <a class="unfold-btn unfold-btn-ghost" href="{% url 'admin-database-health-dashboard' %}">
-        <span>💾 DB Snapshot</span>
+        <i class="fa-solid fa-database" style="margin-right: 4px;"></i> <span>DB Snapshot</span>
       </a>
 
       <a class="unfold-btn unfold-btn-ghost" href="{% url 'staff-roles-matrix' %}">
-        <span>🛡️ RBAC Matrix</span>
+        <i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i> <span>RBAC Matrix</span>
       </a>
 
-      <button type="button" class="unfold-btn unfold-btn-ghost" onclick="togglePersonaDropdown(event)">
-        <span>⚡ Switch Persona</span>
+      <button type="button" class="unfold-btn unfold-btn-ghost" onclick="toggleProfileDropdown(event)">
+        <i class="fa-solid fa-users" style="margin-right: 4px;"></i> <span>Switch Persona</span>
       </button>
     </div>
   </section>

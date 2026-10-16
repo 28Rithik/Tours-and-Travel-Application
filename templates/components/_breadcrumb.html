@@ -1,0 +1,10 @@
+{# Reusable Breadcrumb Component #}
+{# Parameters: depot, page_title #}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <span class="bc-depot">
+    <i class="fa-solid fa-location-dot" style="font-size: 10px; margin-right: 5px; color: var(--clr-primary);"></i>
+    {{ depot|default:user_branch|default:'Coimbatore Depot' }}
+  </span>
+  <span class="bc-sep">/</span>
+  <h1 class="bc-page">{{ page_title }}</h1>
+</nav>

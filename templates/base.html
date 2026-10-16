@@ -427,86 +427,186 @@
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="/admin/" title="Go to TravelERP Admin Workspace"><span class="brand-mark">S</span><span>Sivagayathiri</span></a>
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="{% url 'dashboard' %}" title="Sivagayathiri Travels Operations Workspace">
+        <span class="brand-mark">S</span>
+        <div style="display: flex; flex-direction: column; line-height: 1.2;">
+          <span style="font-weight: 800; font-size: 0.95rem; letter-spacing: -0.01em;">Sivagayathiri</span>
+          <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">Operations Desk</span>
+        </div>
+      </a>
+
+      <!-- Quick Search Bar (Django Unfold Pattern) -->
+      <div class="sidebar-search-bar" style="margin: 10px 10px 14px;">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="search" id="sidebar-filter-input" placeholder="Search navigation..." autocomplete="off">
+      </div>
+
       <nav class="nav-list" aria-label="Main navigation">
         <!-- 1. Universal Operations Desk (All Staff) -->
-        <p class="nav-section-title"><span>⚡</span> Operations Desk</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'staff-roles-matrix' or request.resolver_match.url_name == 'roles-matrix-alias' or request.resolver_match.url_name == 'staff-directory-alias' %}is-active{% endif %}" href="{% url 'staff-roles-matrix' %}">🛡️ Staff &amp; RBAC Matrix</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">🛰️ Control Room</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">📋 Dispatch Control</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'admin-whatsapp-bot-studio' %}">📱 Handover &amp; Bot Studio</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'admin-rathasarathi-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-rathasarathi-copilot-studio' %}" style="color: #0284c7; font-weight: 700;">☸️ Rathasārathi AI Copilot</a>
+        <p class="nav-section-title"><i class="fa-solid fa-bolt" style="font-size: 0.7rem; color: var(--clr-primary);"></i> Operations Desk</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'staff-roles-matrix' or request.resolver_match.url_name == 'roles-matrix-alias' or request.resolver_match.url_name == 'staff-directory-alias' %}is-active{% endif %}" href="{% url 'staff-roles-matrix' %}">
+          <i class="fa-solid fa-shield-halved nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Staff &amp; RBAC Matrix
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">
+          <i class="fa-solid fa-satellite-dish nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Control Room
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">
+          <i class="fa-solid fa-clipboard-list nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Dispatch Control
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'admin-whatsapp-bot-studio' %}">
+          <i class="fa-brands fa-whatsapp nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #25d366;"></i> Handover &amp; Bot Studio
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-rathasarathi-copilot-studio' %}is-active{% endif %}" href="{% url 'admin-rathasarathi-copilot-studio' %}" style="color: #0284c7; font-weight: 700;">
+          <i class="fa-solid fa-dharmachakra nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Rathasārathi AI Copilot
+        </a>
 
         <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
         {% if is_fleet_manager or is_workshop or is_superuser %}
-        <p class="nav-section-title"><span>🚛</span> Fleet &amp; Telematics</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">🛰️ Live Fleet Map</a>
-        <a class="nav-link" href="/admin/core/vehicle/">🚗 Vehicle Assets (Admin)</a>
-        <a class="nav-link" href="/admin/core/vehiclecategory/">🏷️ Vehicle Categories (Admin)</a>
-        <a class="nav-link" href="/admin/core/vehicletype/">🚙 Vehicle Types (Admin)</a>
-        <a class="nav-link" href="/admin/core/driver/">👨‍✈️ Chauffeurs &amp; Drivers (Admin)</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">🚗 2D Vehicle Damage Studio</a>
-        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">🛞 2D Axle &amp; Tire Health Studio</a>
-        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">🛡️ Compliance &amp; Maint.</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">📊 Fleet Analytics &amp; CPK</a>
+        <p class="nav-section-title"><i class="fa-solid fa-truck" style="font-size: 0.7rem; color: #0284c7;"></i> Fleet &amp; Telematics</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">
+          <i class="fa-solid fa-map-location-dot nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Live Fleet Map
+        </a>
+        <a class="nav-link" href="/admin/core/vehicle/">
+          <i class="fa-solid fa-bus nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Assets (Admin)
+        </a>
+        <a class="nav-link" href="/admin/core/vehiclecategory/">
+          <i class="fa-solid fa-layer-group nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Categories (Admin)
+        </a>
+        <a class="nav-link" href="/admin/core/vehicletype/">
+          <i class="fa-solid fa-car-side nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Types (Admin)
+        </a>
+        <a class="nav-link" href="/admin/core/driver/">
+          <i class="fa-solid fa-id-card nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Chauffeurs &amp; Drivers (Admin)
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'admin-damage-marker-studio' %}">
+          <i class="fa-solid fa-car-burst nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> 2D Vehicle Damage Studio
+        </a>
+        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">
+          <i class="fa-solid fa-circle-dot nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> 2D Axle &amp; Tire Health Studio
+        </a>
+        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">
+          <i class="fa-solid fa-screwdriver-wrench nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Compliance &amp; Maint.
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">
+          <i class="fa-solid fa-chart-line nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Fleet Analytics &amp; CPK
+        </a>
         {% endif %}
 
         <!-- 3. Tour Packages & Holiday Architect (Tour Designers, Booking Managers & Superusers) -->
         {% if is_booking_manager or is_tour_designer or is_superuser %}
-        <p class="nav-section-title"><span>🌴</span> Tour Packages &amp; Architect</p>
-        <a class="nav-link" href="/admin/packages/package/">🗺️ Tour Packages Catalog</a>
-        <a class="nav-link" href="/admin/packages/package/add/" style="color: #0284c7; font-weight: 700; background: rgba(2, 132, 199, 0.08); border-radius: 6px;">➕ Design &amp; Add Package</a>
-        <a class="nav-link" href="/admin/packages/packagetemplate/">📐 Package Templates Master</a>
-        <a class="nav-link" href="/admin/packages/collegeivexpedition/">🎓 College IV Expeditions</a>
-        <a class="nav-link" href="/admin/packages/packageseasonalrate/">📈 Seasonal Rates &amp; Surges</a>
-        <a class="nav-link" href="/admin/packages/packagehotelallotment/">🏨 Hotel Allotments &amp; Rooms</a>
-        <a class="nav-link" href="/admin/packages/packagevehicletariff/">🚗 Vehicle-Wise Tariffs</a>
+        <p class="nav-section-title"><i class="fa-solid fa-umbrella-beach" style="font-size: 0.7rem; color: #0ea5e9;"></i> Tour Packages &amp; Architect</p>
+        <a class="nav-link" href="/admin/packages/package/">
+          <i class="fa-solid fa-compass nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tour Packages Catalog
+        </a>
+        <a class="nav-link" href="/admin/packages/package/add/" style="color: #0284c7; font-weight: 700; background: rgba(2, 132, 199, 0.08); border-radius: 6px;">
+          <i class="fa-solid fa-circle-plus nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Design &amp; Add Package
+        </a>
+        <a class="nav-link" href="/admin/packages/packagetemplate/">
+          <i class="fa-solid fa-drafting-compass nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Package Templates Master
+        </a>
+        <a class="nav-link" href="/admin/packages/collegeivexpedition/">
+          <i class="fa-solid fa-graduation-cap nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> College IV Expeditions
+        </a>
+        <a class="nav-link" href="/admin/packages/packageseasonalrate/">
+          <i class="fa-solid fa-chart-simple nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Seasonal Rates &amp; Surges
+        </a>
+        <a class="nav-link" href="/admin/packages/packagehotelallotment/">
+          <i class="fa-solid fa-hotel nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Hotel Allotments &amp; Rooms
+        </a>
+        <a class="nav-link" href="/admin/packages/packagevehicletariff/">
+          <i class="fa-solid fa-tags nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle-Wise Tariffs
+        </a>
         {% endif %}
 
         <!-- 4. Sales, CRM & DMC Pipelines (Booking Managers, Sales & Superusers) -->
         {% if is_booking_manager or is_superuser %}
-        <p class="nav-section-title"><span>💼</span> Sales &amp; CRM</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">📊 DMC Executive Board</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'inquiry_pipeline' %}is-active{% endif %}" href="{% url 'crm:inquiry_pipeline' %}">🔎 Query Tracker 2.0</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'quotation_create' or request.resolver_match.url_name == 'quotation_builder' or request.resolver_match.url_name == 'quotation_preview' %}is-active{% endif %}" href="{% url 'crm:quotation_create' %}">📑 Quotation Studio</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'partner_list' %}is-active{% endif %}" href="{% url 'crm:partner_list' %}">🏢 Partners &amp; FTOs</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">🏨 Suppliers &amp; Rates</a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">🏨 Hotel Vouchers</a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'marketing' %}is-active{% endif %}" href="{% url 'marketing:campaign-studio' %}">📢 Marketing Campaigns</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'voucher_console' or request.resolver_match.url_name == 'voucher_detail' %}is-active{% endif %}" href="{% url 'crm:voucher_console' %}">🧾 Service Vouchers</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'document_vault' %}is-active{% endif %}" href="{% url 'crm:document_vault' %}">📂 Document Vault</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'complaint_list' %}is-active{% endif %}" href="{% url 'crm:complaint_list' %}">🚨 Quality &amp; Grievances</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">📈 DMC Reports</a>
+        <p class="nav-section-title"><i class="fa-solid fa-briefcase" style="font-size: 0.7rem; color: #10b981;"></i> Sales &amp; CRM</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">
+          <i class="fa-solid fa-table-columns nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> DMC Executive Board
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'inquiry_pipeline' %}is-active{% endif %}" href="{% url 'crm:inquiry_pipeline' %}">
+          <i class="fa-solid fa-filter-circle-dollar nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Query Tracker 2.0
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'quotation_create' or request.resolver_match.url_name == 'quotation_builder' or request.resolver_match.url_name == 'quotation_preview' %}is-active{% endif %}" href="{% url 'crm:quotation_create' %}">
+          <i class="fa-solid fa-file-invoice nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Quotation Studio
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'partner_list' %}is-active{% endif %}" href="{% url 'crm:partner_list' %}">
+          <i class="fa-solid fa-handshake nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Partners &amp; FTOs
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">
+          <i class="fa-solid fa-store nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Suppliers &amp; Rates
+        </a>
+        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">
+          <i class="fa-solid fa-bed nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Hotel Vouchers
+        </a>
+        <a class="nav-link {% if request.resolver_match.app_name == 'marketing' %}is-active{% endif %}" href="{% url 'marketing:campaign-studio' %}">
+          <i class="fa-solid fa-bullhorn nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Marketing Campaigns
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'voucher_console' or request.resolver_match.url_name == 'voucher_detail' %}is-active{% endif %}" href="{% url 'crm:voucher_console' %}">
+          <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Service Vouchers
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'document_vault' %}is-active{% endif %}" href="{% url 'crm:document_vault' %}">
+          <i class="fa-solid fa-folder-closed nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Document Vault
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'complaint_list' %}is-active{% endif %}" href="{% url 'crm:complaint_list' %}">
+          <i class="fa-solid fa-triangle-exclamation nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Quality &amp; Grievances
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">
+          <i class="fa-solid fa-chart-pie nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> DMC Reports
+        </a>
         {% endif %}
 
-        <!-- 4. Finance, Invoicing & Accounts (Finance Team & Superusers) -->
+        <!-- 5. Finance, Invoicing & Accounts (Finance Team & Superusers) -->
         {% if is_finance_user or is_superuser %}
-        <p class="nav-section-title"><span>💰</span> Finance &amp; Billing</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">🧾 Invoices &amp; Billing</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">📑 Statements &amp; Ledgers</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'requisition_list' %}is-active{% endif %}" href="{% url 'crm:requisition_list' %}">💸 Accounts Payable</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">⏳ Pending Receivables</a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">🤝 Outsourced Settlements</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">💰 Tally, Zoho &amp; Payroll</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">📈 Vehicle Profitability</a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">📈 Party Profitability</a>
+        <p class="nav-section-title"><i class="fa-solid fa-coins" style="font-size: 0.7rem; color: #d97706;"></i> Finance &amp; Billing</p>
+        <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">
+          <i class="fa-solid fa-file-invoice-dollar nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Invoices &amp; Billing
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">
+          <i class="fa-solid fa-book-bookmark nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Statements &amp; Ledgers
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'requisition_list' %}is-active{% endif %}" href="{% url 'crm:requisition_list' %}">
+          <i class="fa-solid fa-money-bill-transfer nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Accounts Payable
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">
+          <i class="fa-solid fa-clock-rotate-left nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Pending Receivables
+        </a>
+        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">
+          <i class="fa-solid fa-people-arrows nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Outsourced Settlements
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">
+          <i class="fa-solid fa-calculator nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tally, Zoho &amp; Payroll
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">
+          <i class="fa-solid fa-chart-column nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Profitability
+        </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">
+          <i class="fa-solid fa-arrow-trend-up nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Party Profitability
+        </a>
         {% endif %}
 
-        <!-- 5. System Administration (Superusers & Staff) -->
+        <!-- 6. System Administration (Superusers & Staff) -->
         {% if is_superuser or request.user.is_staff %}
-        <p class="nav-section-title"><span>⚙️</span> Administration</p>
-        <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">🏨 Tariffs &amp; Master Data</a>
-        <a class="nav-link" href="{% url 'admin:index' %}" style="font-weight: 700; color: #0284c7;">👑 Unfold Admin Workspace</a>
+        <p class="nav-section-title"><i class="fa-solid fa-gear" style="font-size: 0.7rem; color: #64748b;"></i> Administration</p>
+        <a class="nav-link" href="{% url 'admin:crm_hotelmaster_changelist' %}">
+          <i class="fa-solid fa-database nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tariffs &amp; Master Data
+        </a>
+        <a class="nav-link" href="{% url 'admin:index' %}" style="font-weight: 700; color: #0284c7;">
+          <i class="fa-solid fa-crown nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Unfold Admin Workspace
+        </a>
         {% endif %}
       </nav>
       <div class="sidebar-footer">
-        <span class="status-dot"></span><span>System online</span>
+        <span class="status-dot"></span><span>Coimbatore HQ &middot; Online</span>
       </div>
     </aside>
     <div class="main-shell">
       <header class="topbar">
         <div class="topbar-breadcrumb-wrap">
+          <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Toggle navigation drawer" onclick="toggleSidebarDrawer()">
+            <i class="fa-solid fa-bars"></i>
+          </button>
           {% block breadcrumbs %}
           <nav class="topbar-breadcrumb" aria-label="Breadcrumb">
             <span class="breadcrumb-station">
@@ -520,13 +620,13 @@
         </div>
 
         <div class="topbar-actions-cluster">
-          <!-- 👑 Direct Switch to Unfold Admin Workspace -->
-          <a href="/admin/" class="btn-topbar-admin" title="Open Full Django Unfold Enterprise Admin" style="display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 9999px; background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #ffffff; font-size: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35); transition: all 0.2s ease;">
+          <!-- Direct Switch to Unfold Admin Workspace -->
+          <a href="/admin/" class="btn-topbar-admin" title="Open Full Django Unfold Enterprise Admin">
             <i class="fa-solid fa-crown"></i>
             <span>Unfold Admin</span>
           </a>
 
-          <!-- ☀️/🌙/💻 Adaptive Theme Switcher (Syncs with Unfold Admin) -->
+          <!-- Adaptive Theme Switcher (Syncs with Unfold Admin) -->
           <div class="theme-switch-pill" id="theme-switch-pill" title="Toggle Theme (Light / Dark / System)">
             <button type="button" class="theme-switch-btn" data-theme-val="light" onclick="setAppTheme('light')" title="Light Theme">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -874,6 +974,48 @@
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
     if (getAppTheme() === 'auto') {
       updateThemeUI('auto');
+    }
+  });
+
+  // Mobile drawer toggle
+  function toggleSidebarDrawer() {
+    var sb = document.getElementById('sidebar');
+    if (sb) {
+      sb.classList.toggle('is-open');
+    }
+  }
+
+  // Quick filter navigation items in real-time
+  document.addEventListener('DOMContentLoaded', function() {
+    var navInput = document.getElementById('sidebar-filter-input');
+    if (navInput) {
+      navInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var links = document.querySelectorAll('#sidebar .nav-link');
+        links.forEach(function(link) {
+          var text = link.textContent.toLowerCase();
+          if (!query || text.indexOf(query) !== -1) {
+            link.style.display = '';
+          } else {
+            link.style.display = 'none';
+          }
+        });
+
+        // Hide section titles with no visible links
+        var sections = document.querySelectorAll('#sidebar .nav-section-title');
+        sections.forEach(function(title) {
+          var curr = title.nextElementSibling;
+          var hasVisible = false;
+          while (curr && !curr.classList.contains('nav-section-title')) {
+            if (curr.classList.contains('nav-link') && curr.style.display !== 'none') {
+              hasVisible = true;
+              break;
+            }
+            curr = curr.nextElementSibling;
+          }
+          title.style.display = (!query || hasVisible) ? '' : 'none';
+        });
+      });
     }
   });
   </script>

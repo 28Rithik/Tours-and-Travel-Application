@@ -1,0 +1,28 @@
+{# Reusable Pagination Component #}
+{# Parameters: page_obj #}
+{% if page_obj and page_obj.has_other_pages %}
+<div class="pagination-bar" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 1px solid var(--border-color); background: var(--surface-subtle); border-radius: 0 0 12px 12px; margin-top: 8px;">
+  <div style="font-size: var(--text-xs); color: var(--text-muted);">
+    Showing <strong style="color: var(--text-main);">{{ page_obj.start_index }}</strong> to <strong style="color: var(--text-main);">{{ page_obj.end_index }}</strong> of <strong style="color: var(--text-main);">{{ page_obj.paginator.count }}</strong> records
+  </div>
+  <div class="pagination-controls" style="display: flex; gap: 4px; align-items: center;">
+    {% if page_obj.has_previous %}
+      <a href="?page=1" class="btn btn--sm btn--outline" title="First Page"><i class="fa-solid fa-angles-left"></i></a>
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn btn--sm btn--outline" title="Previous Page"><i class="fa-solid fa-chevron-left"></i> Prev</a>
+    {% else %}
+      <span class="btn btn--sm btn--outline" style="opacity: 0.5; pointer-events: none;"><i class="fa-solid fa-chevron-left"></i> Prev</span>
+    {% endif %}
+
+    <span class="btn btn--sm btn--primary" style="cursor: default;">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn btn--sm btn--outline" title="Next Page">Next <i class="fa-solid fa-chevron-right"></i></a>
+      <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn--sm btn--outline" title="Last Page"><i class="fa-solid fa-angles-right"></i></a>
+    {% else %}
+      <span class="btn btn--sm btn--outline" style="opacity: 0.5; pointer-events: none;">Next <i class="fa-solid fa-chevron-right"></i></span>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

@@ -665,19 +665,19 @@
     </div>
     <div class="inv-actions">
       <button class="inv-btn inv-btn-primary" onclick="openCreateInvModal()">
-        <span>🧾</span> + Generate Invoice
+        <i class="fa-solid fa-file-invoice"></i> Generate Invoice
       </button>
       <a class="inv-btn inv-btn-dark" href="{% url 'admin-gst-studio' %}">
-        <span>🏛️</span> Corporate GST &amp; E-Way Studio
+        <i class="fa-solid fa-building-columns"></i> Corporate GST &amp; E-Way Studio
       </a>
       <a class="inv-btn inv-btn-secondary" href="{% url 'accounting-export' %}">
-        <span>💰</span> Tally &amp; Payroll Export
+        <i class="fa-solid fa-file-export"></i> Tally &amp; Payroll Export
       </a>
       <a class="inv-btn inv-btn-secondary" href="{% url 'admin-petty-cash-studio' %}">
-        <span>💵</span> Petty Cash Treasury
+        <i class="fa-solid fa-vault"></i> Petty Cash Treasury
       </a>
       <button class="inv-btn inv-btn-secondary" onclick="window.location.reload();" title="Refresh Live Data">
-        <span>🔄</span> Refresh
+        <i class="fa-solid fa-rotate"></i> Refresh
       </button>
     </div>
   </div>
@@ -687,7 +687,7 @@
     <div class="inv-kpi-card inv-kpi-billed">
       <div class="inv-kpi-meta">
         <span class="inv-kpi-label">Total Commercial Billed</span>
-        <span class="inv-kpi-icon">📈</span>
+        <span class="inv-kpi-icon"><i class="fa-solid fa-chart-line" style="color: #0284c7;"></i></span>
       </div>
       <div class="inv-kpi-value">
         ₹{{ total_billed|floatformat:2 }}
@@ -698,7 +698,7 @@
     <div class="inv-kpi-card inv-kpi-tax">
       <div class="inv-kpi-meta">
         <span class="inv-kpi-label">Total GST Collected</span>
-        <span class="inv-kpi-icon">🏛️</span>
+        <span class="inv-kpi-icon"><i class="fa-solid fa-landmark" style="color: #0f766e;"></i></span>
       </div>
       <div class="inv-kpi-value" style="color: #0f766e;">
         ₹{{ total_tax|floatformat:2 }}
@@ -709,7 +709,7 @@
     <div class="inv-kpi-card inv-kpi-received">
       <div class="inv-kpi-meta">
         <span class="inv-kpi-label">Payments Realized</span>
-        <span class="inv-kpi-icon">✅</span>
+        <span class="inv-kpi-icon"><i class="fa-solid fa-circle-check" style="color: #16a34a;"></i></span>
       </div>
       <div class="inv-kpi-value" style="color: #16a34a;">
         ₹{{ total_received|floatformat:2 }}
@@ -720,7 +720,7 @@
     <a class="inv-kpi-card inv-kpi-due" href="?tab=unpaid">
       <div class="inv-kpi-meta">
         <span class="inv-kpi-label">Outstanding Receivables</span>
-        <span class="inv-kpi-icon">⏳</span>
+        <span class="inv-kpi-icon"><i class="fa-solid fa-clock-rotate-left" style="color: #dc2626;"></i></span>
       </div>
       <div class="inv-kpi-value" style="color: #dc2626;">
         ₹{{ total_balance|floatformat:2 }}
@@ -734,32 +734,32 @@
     <!-- Status Tabs -->
     <div class="inv-tabs-bar">
       <a class="inv-tab {% if current_tab == 'all' or not current_tab %}active{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>⚡ All Invoices</span>
+        <span><i class="fa-solid fa-file-invoice" style="margin-right: 5px;"></i> All Invoices</span>
         <span class="inv-tab-badge">{{ all_count }}</span>
       </a>
 
       <a class="inv-tab due-tab {% if current_tab == 'unpaid' %}active{% endif %}" href="?tab=unpaid{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>⚠️ Overdue / Unpaid</span>
+        <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 5px;"></i> Overdue / Unpaid</span>
         <span class="inv-tab-badge due-badge">{{ unpaid_count }}</span>
       </a>
 
       <a class="inv-tab {% if current_tab == 'partially_paid' %}active{% endif %}" href="?tab=partially_paid{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>⏳ Partially Paid</span>
+        <span><i class="fa-solid fa-clock-rotate-left" style="margin-right: 5px;"></i> Partially Paid</span>
         <span class="inv-tab-badge">{{ partially_paid_count }}</span>
       </a>
 
       <a class="inv-tab {% if current_tab == 'paid' %}active{% endif %}" href="?tab=paid{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>✅ Fully Paid</span>
+        <span><i class="fa-solid fa-circle-check" style="margin-right: 5px;"></i> Fully Paid</span>
         <span class="inv-tab-badge">{{ paid_count }}</span>
       </a>
 
       <a class="inv-tab {% if current_tab == 'tax_invoice' %}active{% endif %}" href="?tab=tax_invoice{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>🏛️ Tax Invoices</span>
+        <span><i class="fa-solid fa-landmark" style="margin-right: 5px;"></i> Tax Invoices</span>
         <span class="inv-tab-badge">{{ tax_invoice_count }}</span>
       </a>
 
       <a class="inv-tab {% if current_tab == 'proforma' %}active{% endif %}" href="?tab=proforma{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>📄 Proforma Bills</span>
+        <span><i class="fa-solid fa-file-lines" style="margin-right: 5px;"></i> Proforma Bills</span>
         <span class="inv-tab-badge">{{ proforma_count }}</span>
       </a>
     </div>
@@ -891,18 +891,18 @@
               <div class="inv-actions-cell">
                 <!-- View & Print Official PDF -->
                 <a class="inv-act-btn inv-act-print" href="{% url 'crm:invoice_detail' invoice_id=inv.id %}" target="_blank" title="View & Print Official GST Letterhead">
-                  🖨️ PDF
+                  <i class="fa-solid fa-file-pdf"></i> PDF
                 </a>
 
                 <!-- 1-Click WhatsApp Dispatch with UPI Deep Link -->
                 <button type="button" class="inv-act-btn inv-act-wa" onclick="dispatchInvoiceWhatsApp('{{ inv.id }}', '{{ inv.invoice_number|escapejs }}', '{{ inv.billing_name|escapejs }}')" title="Dispatch Tax Invoice & UPI Deep Link to Client via WhatsApp">
-                  📲 Send
+                  <i class="fa-brands fa-whatsapp"></i> Send
                 </button>
 
                 <!-- Record Payment Modal Trigger -->
                 {% if inv.balance_due > 0 %}
                 <button type="button" class="inv-act-btn inv-act-pay" onclick="openRecordPaymentModal('{{ inv.id }}', '{{ inv.invoice_number|escapejs }}', '{{ inv.billing_name|escapejs }}', '{{ inv.balance_due|floatformat:2 }}')" title="Record Received Payment">
-                  💳 Pay
+                  <i class="fa-solid fa-credit-card"></i> Pay
                 </button>
                 {% endif %}
               </div>

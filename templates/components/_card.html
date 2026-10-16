@@ -1,0 +1,26 @@
+{# Reusable Card Component #}
+{# Parameters: title, subtitle, icon, badge_text, badge_status, header_action_url, header_action_label, extra_class #}
+<div class="card {{ extra_class|default:'' }}">
+  {% if title %}
+  <div class="card-header">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      {% if icon %}<i class="fa-solid fa-{{ icon }}" style="color: var(--text-muted);"></i>{% endif %}
+      <div>
+        <h3 class="card-title">{{ title }}</h3>
+        {% if subtitle %}<p class="card-subtitle">{{ subtitle }}</p>{% endif %}
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      {% if badge_text %}
+        {% include "components/_badge.html" with status=badge_status text=badge_text %}
+      {% endif %}
+      {% if header_action_url %}
+        <a href="{{ header_action_url }}" class="btn btn--sm btn--outline">{{ header_action_label|default:'View all' }}</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  <div class="card-body">
+    {{ content }}
+  </div>
+</div>

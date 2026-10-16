@@ -1024,16 +1024,16 @@ html.dark .dcc-compliance-alert-list {
       {% endif %}
 
       <a class="dcc-btn dcc-btn-primary" href="{% url 'booking-create' %}">
-        <span>+</span> New Booking
+        <i class="fa-solid fa-plus"></i> New Booking
       </a>
       <a class="dcc-btn dcc-btn-dark" href="{% url 'fleet-live' %}{% if current_depot %}?depot={{ current_depot|urlencode }}{% endif %}">
-        <span>🛰️</span> Live Fleet Radar
+        <i class="fa-solid fa-map-location-dot"></i> Live Fleet Radar
       </a>
       <a class="dcc-btn dcc-btn-secondary" href="{% url 'admin-whatsapp-bot-studio' %}">
-        <span>🤖</span> WhatsApp Bot Studio
+        <i class="fa-brands fa-whatsapp"></i> WhatsApp Bot Studio
       </a>
       <button class="dcc-btn dcc-btn-secondary" onclick="window.location.reload();" title="Refresh Live Board">
-        <span>🔄</span> Refresh
+        <i class="fa-solid fa-rotate"></i> Refresh
       </button>
     </div>
   </div>
@@ -1043,7 +1043,7 @@ html.dark .dcc-compliance-alert-list {
     <a class="dcc-kpi-card {% if unassigned_count > 0 %}dcc-kpi-urgent{% endif %}" href="?tab=unassigned">
       <div class="dcc-kpi-meta">
         <span class="dcc-kpi-label">Needs Allocation</span>
-        <span class="dcc-kpi-icon">⚠️</span>
+        <span class="dcc-kpi-icon"><i class="fa-solid fa-triangle-exclamation" style="color: #d97706;"></i></span>
       </div>
       <div class="dcc-kpi-value" style="color: {% if unassigned_count > 0 %}#d97706{% else %}#0f172a{% endif %};">
         {{ unassigned_count }}
@@ -1056,7 +1056,7 @@ html.dark .dcc-compliance-alert-list {
     <a class="dcc-kpi-card dcc-kpi-transit" href="?tab=in_transit">
       <div class="dcc-kpi-meta">
         <span class="dcc-kpi-label">In-Transit (On Road)</span>
-        <span class="dcc-kpi-icon">🚀</span>
+        <span class="dcc-kpi-icon"><i class="fa-solid fa-route" style="color: #10b981;"></i></span>
       </div>
       <div class="dcc-kpi-value" style="color: #10b981;">
         {{ in_transit_count }}
@@ -1067,7 +1067,7 @@ html.dark .dcc-compliance-alert-list {
     <a class="dcc-kpi-card dcc-kpi-assigned" href="?tab=assigned">
       <div class="dcc-kpi-meta">
         <span class="dcc-kpi-label">Assigned &amp; Ready</span>
-        <span class="dcc-kpi-icon">📌</span>
+        <span class="dcc-kpi-icon"><i class="fa-solid fa-circle-check" style="color: #0284c7;"></i></span>
       </div>
       <div class="dcc-kpi-value" style="color: #0284c7;">
         {{ assigned_count }}
@@ -1078,7 +1078,7 @@ html.dark .dcc-compliance-alert-list {
     <a class="dcc-kpi-card dcc-kpi-completed" href="?tab=completed">
       <div class="dcc-kpi-meta">
         <span class="dcc-kpi-label">Completed Trips</span>
-        <span class="dcc-kpi-icon">✅</span>
+        <span class="dcc-kpi-icon"><i class="fa-solid fa-flag-checkered" style="color: #64748b;"></i></span>
       </div>
       <div class="dcc-kpi-value" style="color: #64748b;">
         {{ completed_count }}
@@ -1089,7 +1089,7 @@ html.dark .dcc-compliance-alert-list {
     <a class="dcc-kpi-card dcc-kpi-inquiries" href="?tab=bookings">
       <div class="dcc-kpi-meta">
         <span class="dcc-kpi-label">Booking Inquiries</span>
-        <span class="dcc-kpi-icon">📩</span>
+        <span class="dcc-kpi-icon"><i class="fa-solid fa-inbox" style="color: #8b5cf6;"></i></span>
       </div>
       <div class="dcc-kpi-value" style="color: #8b5cf6;">
         {{ pending_bookings_count }}
@@ -1103,32 +1103,32 @@ html.dark .dcc-compliance-alert-list {
     <!-- Status Tabs -->
     <div class="dcc-tabs-bar">
       <a class="dcc-tab {% if current_tab == 'all' or not current_tab %}active{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>⚡ All Dispatches</span>
+        <span><i class="fa-solid fa-list-check" style="margin-right: 5px;"></i> All Dispatches</span>
         <span class="dcc-tab-badge">{{ total_active_count }}</span>
       </a>
 
       <a class="dcc-tab urgent-tab {% if current_tab == 'unassigned' %}active{% endif %}" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>⚠️ Needs Allocation</span>
+        <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 5px;"></i> Needs Allocation</span>
         <span class="dcc-tab-badge urgent-badge">{{ unassigned_count }}</span>
       </a>
 
       <a class="dcc-tab {% if current_tab == 'assigned' %}active{% endif %}" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>📌 Assigned &amp; Briefed</span>
+        <span><i class="fa-solid fa-circle-check" style="margin-right: 5px;"></i> Assigned &amp; Briefed</span>
         <span class="dcc-tab-badge">{{ assigned_count }}</span>
       </a>
 
       <a class="dcc-tab {% if current_tab == 'in_transit' %}active{% endif %}" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>🚀 In-Transit (On Road)</span>
+        <span><i class="fa-solid fa-route" style="margin-right: 5px;"></i> In-Transit (On Road)</span>
         <span class="dcc-tab-badge">{{ in_transit_count }}</span>
       </a>
 
       <a class="dcc-tab {% if current_tab == 'completed' %}active{% endif %}" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>✅ Completed</span>
+        <span><i class="fa-solid fa-flag-checkered" style="margin-right: 5px;"></i> Completed</span>
         <span class="dcc-tab-badge">{{ completed_count }}</span>
       </a>
 
       <a class="dcc-tab {% if current_tab == 'bookings' %}active{% endif %}" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span>📩 Booking Inquiries</span>
+        <span><i class="fa-solid fa-inbox" style="margin-right: 5px;"></i> Booking Inquiries</span>
         <span class="dcc-tab-badge">{{ bookings|length }}</span>
       </a>
     </div>
@@ -1137,7 +1137,7 @@ html.dark .dcc-compliance-alert-list {
     <form class="dcc-search-form" method="get">
       <input type="hidden" name="tab" value="{{ current_tab|default:'all' }}">
       <div class="dcc-search-input-wrap">
-        <span class="dcc-search-icon">🔍</span>
+        <span class="dcc-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
         <input type="text" name="search" value="{{ search_term }}" placeholder="Search by Trip ID, Guest, Phone, Plate, or Destination...">
       </div>
 
@@ -1318,14 +1318,14 @@ html.dark .dcc-compliance-alert-list {
               <div class="dcc-allocation-box">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span class="dcc-assigned-plate">
-                    🚘 {{ trip.vehicle.registration_number }}
+                    <i class="fa-solid fa-car" style="color: var(--clr-primary); margin-right: 4px;"></i> {{ trip.vehicle.registration_number }}
                   </span>
                   <button class="dcc-reassign-btn" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '{{ trip.driver.pk }}')" title="Swap Vehicle or Driver">
                     Swap
                   </button>
                 </div>
                 <div class="dcc-assigned-driver">
-                  <span>🧑‍✈️ <strong>{{ trip.driver.name }}</strong></span>
+                  <span><i class="fa-solid fa-id-badge" style="color: #64748b; margin-right: 4px;"></i> <strong>{{ trip.driver.name }}</strong></span>
                   {% if trip.driver.phone %}
                   <small class="muted">({{ trip.driver.phone }})</small>
                   {% endif %}
@@ -1333,18 +1333,18 @@ html.dark .dcc-compliance-alert-list {
               </div>
               {% elif trip.vehicle and not trip.driver %}
               <div class="dcc-allocation-box">
-                <span class="dcc-assigned-plate">🚘 {{ trip.vehicle.registration_number }}</span>
+                <span class="dcc-assigned-plate"><i class="fa-solid fa-car" style="color: var(--clr-primary); margin-right: 4px;"></i> {{ trip.vehicle.registration_number }}</span>
                 <button class="dcc-fast-assign-btn" style="background: #f59e0b;" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '')">
-                  ⚡ Assign Driver
+                  <i class="fa-solid fa-user-plus" style="margin-right: 4px;"></i> Assign Driver
                 </button>
               </div>
               {% else %}
               <div class="dcc-allocation-box">
                 <span class="dcc-unallocated-alert">
-                  ⚠️ Unallocated Fleet
+                  <i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px;"></i> Unallocated Fleet
                 </span>
                 <button class="dcc-fast-assign-btn" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '', '')">
-                  ⚡ 1-Click Fast Allocate
+                  <i class="fa-solid fa-bolt" style="margin-right: 4px;"></i> Fast Allocate
                 </button>
               </div>
               {% endif %}
@@ -1363,11 +1363,11 @@ html.dark .dcc-compliance-alert-list {
                 <!-- Driver Duty Briefing WhatsApp Trigger -->
                 {% if trip.driver and trip.driver.phone %}
                 <button type="button" class="dcc-wa-btn dcc-wa-driver" onclick="triggerDriverWhatsApp({{ trip.pk }}, '{{ trip.driver.name|escapejs }}')" title="Dispatch duty assignment & mobile handover link to Captain via WhatsApp">
-                  📲 Brief Captain
+                  <i class="fa-brands fa-whatsapp" style="margin-right: 4px;"></i> Brief Captain
                 </button>
                 {% else %}
                 <button type="button" class="dcc-wa-btn dcc-wa-disabled" title="Assign driver with phone number first">
-                  📲 Brief Captain
+                  <i class="fa-brands fa-whatsapp" style="margin-right: 4px;"></i> Brief Captain
                 </button>
                 {% endif %}
 
@@ -1375,30 +1375,30 @@ html.dark .dcc-compliance-alert-list {
                 {% with gphone=trip.booking.guest_phone|default:trip.party.phone %}
                 {% if gphone %}
                 <button type="button" class="dcc-wa-btn dcc-wa-guest" onclick="triggerGuestWhatsApp({{ trip.pk }}, '{{ trip.guest_name|escapejs }}')" title="Dispatch car plate, driver phone & live GPS tracker to Guest via WhatsApp">
-                  📲 Alert Guest
+                  <i class="fa-solid fa-paper-plane" style="margin-right: 4px;"></i> Alert Guest
                 </button>
                 {% else %}
                 <button type="button" class="dcc-wa-btn dcc-wa-disabled" title="No guest phone available">
-                  📲 Alert Guest
+                  <i class="fa-solid fa-paper-plane" style="margin-right: 4px;"></i> Alert Guest
                 </button>
                 {% endif %}
                 {% endwith %}
 
                 <!-- RTO Trip Sheet -->
                 <a class="dcc-icon-btn" href="{% url 'trip-sheet' trip.pk %}" title="Print / Download RTO Trip Sheet" target="_blank">
-                  📄
+                  <i class="fa-solid fa-file-lines"></i>
                 </a>
 
                 <!-- Passenger Live GPS Tracker -->
                 {% if trip.tracking_token %}
                 <a class="dcc-icon-btn" href="{% url 'passenger-live-tracking' trip.tracking_token %}" title="Open Guest Live GPS Radar" target="_blank">
-                  🛰️
+                  <i class="fa-solid fa-location-crosshairs"></i>
                 </a>
                 {% endif %}
 
                 <!-- Trip Detail -->
                 <a class="dcc-icon-btn" href="{% url 'trip-detail' trip.pk %}" title="Full Trip Detail">
-                  👁️
+                  <i class="fa-solid fa-eye"></i>
                 </a>
               </div>
             </td>
