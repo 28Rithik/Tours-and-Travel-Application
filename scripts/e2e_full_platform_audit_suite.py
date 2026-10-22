@@ -77,8 +77,10 @@ def run_e2e_audit():
         ("Operations", "Control Room", "/dashboard/"),
         ("Operations", "Staff & RBAC Matrix", "/staff/roles-matrix/"),
         ("Operations", "Dispatch Control", "/dispatch/"),
-        ("Operations", "Handover & Bot Studio", "/admin/operations/whatsapp-bot/"),
-        ("Operations", "Rathasārathi AI Copilot", "/admin/operations/rathasarathi-ai/"),
+        ("Operations", "Handover & Bot Studio (Clean)", "/operations/whatsapp-bot/"),
+        ("Operations", "Handover & Bot Studio (Legacy)", "/admin/operations/whatsapp-bot/"),
+        ("Operations", "Rathasārathi AI Copilot (Clean)", "/operations/rathasarathi-ai/"),
+        ("Operations", "Rathasārathi AI Copilot (Legacy)", "/admin/operations/rathasarathi-ai/"),
         
         # 2. Fleet & Telematics
         ("Fleet", "Live Fleet Map", "/fleet/live/"),
@@ -86,7 +88,8 @@ def run_e2e_audit():
         ("Fleet", "Vehicle Categories", "/fleet/categories/"),
         ("Fleet", "Vehicle Types & Tariffs", "/fleet/types/"),
         ("Fleet", "Chauffeurs & Captains", "/fleet/drivers/"),
-        ("Fleet", "2D Vehicle Damage Studio", "/admin/maintenance/damage-marker/"),
+        ("Fleet", "2D Vehicle Damage Studio (Clean)", "/maintenance/damage-marker/"),
+        ("Fleet", "2D Vehicle Damage Studio (Legacy)", "/admin/maintenance/damage-marker/"),
         ("Fleet", "2D Axle & Tire Health Studio", "/maintenance/tire-studio/"),
         ("Fleet", "Workshop & Job Cards", "/maintenance/workshop-studio/"),
         ("Fleet", "Compliance & Maintenance", "/maintenance/compliance/"),
@@ -97,14 +100,17 @@ def run_e2e_audit():
         ("Packages", "Package Templates Master", "/packages/?tab=templates"),
         ("Packages", "College IV Expeditions", "/packages/?tab=expeditions"),
         ("Packages", "Hotel Allotments & Rooms", "/suppliers/hotel-vouchers/"),
+        ("Packages", "Vehicle-Wise Tariffs", "/fleet/types/"),
         
         # 4. Sales, CRM & DMC Pipelines
         ("CRM", "DMC Executive Board", "/crm/dashboard/"),
-        ("CRM", "CRM Visual Kanban Board", "/admin/crm/kanban/"),
+        ("CRM", "CRM Visual Kanban Board (Clean)", "/crm/kanban/"),
+        ("CRM", "CRM Visual Kanban Board (Legacy)", "/admin/crm/kanban/"),
         ("CRM", "Query Tracker 2.0", "/crm/queries/"),
         ("CRM", "Quotation Studio", "/crm/quotations/new/"),
         ("CRM", "Partners & FTOs", "/crm/partners/"),
         ("CRM", "Suppliers & Rates", "/crm/suppliers/"),
+        ("CRM", "Hotel Vouchers", "/suppliers/hotel-vouchers/"),
         ("CRM", "Marketing Campaigns", "/marketing/campaign-studio/"),
         ("CRM", "Service Vouchers", "/crm/vouchers/"),
         ("CRM", "Document Vault", "/crm/documents/"),
@@ -113,11 +119,16 @@ def run_e2e_audit():
         
         # 5. Finance, Invoicing & Accounts
         ("Finance", "Invoices & Billing", "/crm/invoices/"),
-        ("Finance", "Driver Bata & Settlement", "/admin/finance/driver-settlement/"),
-        ("Finance", "Corporate GST & E-Way Bill", "/admin/finance/gst-studio/"),
-        ("Finance", "Dynamic UPI & Payment Studio", "/admin/finance/payment-studio/"),
-        ("Finance", "Petty Cash Float Register", "/admin/finance/petty-cash-studio/"),
-        ("Finance", "Bank Statement CSV Reconciler", "/admin/finance/bank-reconciliation/"),
+        ("Finance", "Driver Bata & Settlement (Clean)", "/finance/driver-settlement/"),
+        ("Finance", "Driver Bata & Settlement (Legacy)", "/admin/finance/driver-settlement/"),
+        ("Finance", "Corporate GST & E-Way Bill (Clean)", "/finance/gst-studio/"),
+        ("Finance", "Corporate GST & E-Way Bill (Legacy)", "/admin/finance/gst-studio/"),
+        ("Finance", "Dynamic UPI & Payment Studio (Clean)", "/finance/payments/"),
+        ("Finance", "Dynamic UPI & Payment Studio (Legacy)", "/admin/finance/payment-studio/"),
+        ("Finance", "Petty Cash Float Register (Clean)", "/finance/petty-cash/"),
+        ("Finance", "Petty Cash Float Register (Legacy)", "/admin/finance/petty-cash-studio/"),
+        ("Finance", "Bank Statement CSV Reconciler (Clean)", "/finance/bank-reconciliation/"),
+        ("Finance", "Bank Statement CSV Reconciler (Legacy)", "/admin/finance/bank-reconciliation/"),
         ("Finance", "Statements & Ledgers", "/statements/generate/"),
         ("Finance", "Accounts Payable", "/crm/requisitions/"),
         ("Finance", "Pending Receivables", "/crm/reports/client-pending-payments/"),
@@ -128,7 +139,8 @@ def run_e2e_audit():
         
         # 6. System Administration & Health
         ("Admin", "Tariffs & Master Data", "/crm/suppliers/"),
-        ("Admin", "Database & System Health", "/admin/operations/database-health/"),
+        ("Admin", "Database & System Health (Clean)", "/operations/database-health/"),
+        ("Admin", "Database & System Health (Legacy)", "/admin/operations/database-health/"),
         ("Admin", "Unfold Admin Workspace", "/admin/"),
         
         # 7. Public & Authentication Views
