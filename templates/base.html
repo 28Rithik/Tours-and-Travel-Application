@@ -660,7 +660,7 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">
           <i class="fa-solid fa-file-invoice-dollar nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Invoices &amp; Billing
         </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'driver-settlement-root' or request.resolver_match.url_name == 'driver-settlement-studio' or request.resolver_match.url_name == 'admin-driver-settlement-studio' %}is-active{% endif %}" href="{% url 'finance:driver-settlement-root' %}" style="font-weight: 700; color: #0284c7;">
+        <a class="nav-link {% if request.resolver_match.url_name == 'driver-settlement-root' or request.resolver_match.url_name == 'driver-settlement-studio' or request.resolver_match.url_name == 'admin-driver-settlement-studio' %}is-active{% endif %}" href="{% url 'driver-settlement-root' %}" style="font-weight: 700; color: #0284c7;">
           <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Driver Bata &amp; Settlement
         </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'finance-gst-studio' or request.resolver_match.url_name == 'admin-gst-studio' %}is-active{% endif %}" href="{% url 'finance-gst-studio' %}">

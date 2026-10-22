@@ -226,7 +226,7 @@ urlpatterns = [
     path('api/trip/<int:trip_id>/bata/calculate/', api_trip_calculate_bata, name='api-trip-calculate-bata'),
     # Phase 7: Automated Driver Settlement & 1-Click Payout Studio
     path('admin/finance/driver-settlement/', admin_driver_settlement_studio_view, name='admin-driver-settlement-studio'),
-    path('admin/driver-settlement/', admin_driver_settlement_studio_view, name='admin-driver-settlement-alias'),
+    path('finance/driver-settlement/', admin_driver_settlement_studio_view, name='finance-driver-settlement-root'),
     path('finance/driver-settlement-studio/', admin_driver_settlement_studio_view, name='finance-driver-settlement-studio'),
     path('finance/settlement-studio/', admin_driver_settlement_studio_view, name='finance-settlement-studio-alias'),
     path('finance/settlement/<int:settlement_id>/voucher/', driver_settlement_voucher_view, name='finance-driver-settlement-voucher-root'),
