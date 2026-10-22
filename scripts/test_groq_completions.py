@@ -2,9 +2,8 @@ import requests
 import json
 import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
-
-API_KEY = "gsk_your_groq_api_key_here"
+import os
+API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 headers = {

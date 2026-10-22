@@ -20,7 +20,7 @@ django.setup()
 from django.conf import settings
 from operations.rathasarathi_copilot import ask_rathasarathi
 
-API_KEY = "gsk_your_groq_api_key_here"
+API_KEY = os.environ.get("GROQ_API_KEY", "")
 MODEL = "qwen/qwen3.8-27b"
 
 test_queries = [

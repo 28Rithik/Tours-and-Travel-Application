@@ -22,7 +22,7 @@ from operations.rathasarathi_copilot import (
     execute_groq_llm,
 )
 
-API_KEY = "gsk_your_groq_api_key_here"
+API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 def test_groq_models():
     print("=" * 70)

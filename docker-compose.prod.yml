@@ -45,7 +45,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379/1
-      - GROQ_API_KEY=${GROQ_API_KEY:-gsk_your_groq_api_key_here}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
       - GROQ_MODEL=${GROQ_MODEL:-qwen/qwen3.8-27b}
       - GUNICORN_WORKERS=5
       - GUNICORN_BIND=0.0.0.0:8000
