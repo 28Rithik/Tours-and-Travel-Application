@@ -1,17 +1,8 @@
-{% extends "unfold/layouts/base.html" %}
-{% load static i18n unfold %}
+{% extends "base.html" %}
+{% load static i18n %}
 
-{% block title %}🏛️ Corporate GST B2B Invoicing & NIC E-Way Bill Studio | {{ site_title|default:"TravelERP" }}{% endblock %}
-
-{% block breadcrumbs %}
-<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
-    <span>/</span>
-    <a href="/admin/finance/corporategstinvoice/" class="hover:text-primary-600 dark:hover:text-primary-400">Finance & Invoicing</a>
-    <span>/</span>
-    <span class="text-gray-900 dark:text-white font-semibold">🏛️ Corporate GST & E-Way Bill Studio</span>
-</div>
-{% endblock %}
+{% block title %}🏛️ Corporate GST B2B Invoicing & NIC E-Way Bill Studio | TravelERP{% endblock %}
+{% block header_title %}Corporate GST &amp; E-Way Bill Studio{% endblock %}
 
 {% block content %}
 <!-- Google Fonts -->
@@ -509,8 +500,8 @@ html:not(.dark) .invoice-preview-card * {
             <a href="/finance/export/itc-reconciliation/" class="status-badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; text-decoration: none; border: 1px solid rgba(56, 189, 248, 0.4);" title="Download Input Tax Credit (ITC) Reconciliation CSV">
                 📑 ITC Reconciliation
             </a>
-            <a href="/admin/finance/corporategstinvoice/" class="status-badge" style="background: rgba(255,255,255,0.08); color: #fff; text-decoration: none;">
-                📑 All Invoices
+            <a href="{% url 'crm:invoice_console' %}" class="status-badge" style="background: rgba(255,255,255,0.08); color: #fff; text-decoration: none;">
+                📑 Invoices Console
             </a>
         </div>
     </div>

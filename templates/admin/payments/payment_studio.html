@@ -1,17 +1,8 @@
-{% extends "unfold/layouts/base.html" %}
-{% load static i18n unfold %}
+{% extends "base.html" %}
+{% load static i18n %}
 
-{% block title %}⚡ Dynamic UPI & Payment Gateway Studio | {{ site_title|default:"TravelERP" }}{% endblock %}
-
-{% block breadcrumbs %}
-<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
-    <span>/</span>
-    <a href="{% url 'admin:finance_treasury_payment_changelist' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Finance & Treasury</a>
-    <span>/</span>
-    <span class="text-gray-900 dark:text-white font-semibold">⚡ Dynamic UPI & Payment Studio</span>
-</div>
-{% endblock %}
+{% block title %}⚡ Dynamic UPI & Payment Gateway Studio | TravelERP{% endblock %}
+{% block header_title %}Dynamic UPI &amp; Payments Studio{% endblock %}
 
 {% block content %}
 <!-- Google Fonts -->
@@ -609,11 +600,11 @@ html.dark .badge-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; 
             <button class="btn-secondary" onclick="refreshStudioMetrics()" title="Refresh live telemetry">
                 <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span> Sync Metrics
             </button>
-            <a href="{% url 'admin:finance_journalentry_changelist' %}" class="btn-secondary">
+            <a href="{% url 'accounting-export' %}" class="btn-secondary">
                 <span class="material-symbols-outlined" style="font-size: 16px;">menu_book</span> Open GL Ledger
             </a>
-            <a href="{% url 'admin:payments_gateway_gatewaytransaction_changelist' %}" class="btn-secondary">
-                <span class="material-symbols-outlined" style="font-size: 16px;">receipt_long</span> Transactions
+            <a href="{% url 'crm:invoice_console' %}" class="btn-secondary">
+                <span class="material-symbols-outlined" style="font-size: 16px;">receipt_long</span> Invoices &amp; Receipts
             </a>
         </div>
     </div>

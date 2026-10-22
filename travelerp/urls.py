@@ -150,6 +150,7 @@ from fleet_commute import views as fleet_commute_views
 urlpatterns = [
     path('', public_landing_view, name='public-landing'),
     # WhatsApp Business Bot & Driver Handover Studio
+    path('operations/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='operations-whatsapp-bot'),
     path('admin/operations/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='admin-whatsapp-bot-studio'),
     path('admin/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='admin-whatsapp-bot-studio-alias'),
     path('trip/<int:trip_id>/handover/', driver_handover_view, name='driver-handover-view'),
@@ -179,6 +180,7 @@ urlpatterns = [
     path('api/trip/<int:trip_id>/itinerary/import-package/', api_trip_itinerary_import_package, name='api-trip-itinerary-import-package'),
     path('api/trip/<int:trip_id>/itinerary/', api_trip_itinerary_get, name='api-trip-itinerary-get'),
     # Rathasārathi AI Operations Copilot (Powered by Groq / LLM) Studio
+    path('operations/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='operations-rathasarathi-ai'),
     path('admin/operations/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='admin-rathasarathi-copilot-studio'),
     path('admin/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='admin-rathasarathi-copilot-studio-alias'),
     # 2D Interactive Vehicle Damage Marker & Inspection Studio
@@ -198,6 +200,7 @@ urlpatterns = [
     path('api/payments/simulate-webhook/', api_simulate_payment_webhook, name='api-simulate-payment-webhook'),
     path('api/payments/studio-metrics/', api_payment_studio_metrics, name='api-payment-studio-metrics'),
     # Corporate GST B2B Invoicing & NIC E-Way Bill Studio
+    path('finance/gst-studio/', admin_gst_studio_view, name='finance-gst-studio'),
     path('admin/finance/gst-studio/', admin_gst_studio_view, name='admin-gst-studio'),
     path('admin/gst-studio/', admin_gst_studio_view, name='admin-gst-studio-alias'),
     path('api/finance/generate-invoice-ewaybill/', api_generate_corporate_invoice_eway, name='api-finance-generate-invoice-ewaybill'),
@@ -276,6 +279,7 @@ urlpatterns = [
     path('admin/package_tours/collegeiv/', RedirectView.as_view(url='/admin/package_tours/collegeivproxy/', permanent=False)),
     path('admin/package_tours/collegeiv/<path:subpath>', RedirectView.as_view(url='/admin/package_tours/collegeivproxy/%(subpath)s', permanent=False)),
     # Database Health Dashboard & Audit API
+    path('operations/database-health/', admin_database_health_dashboard_view, name='operations-database-health'),
     path('admin/operations/database-health/', admin_database_health_dashboard_view, name='admin-database-health-dashboard'),
     path('admin/database-health/', admin_database_health_dashboard_view, name='admin-database-health-alias'),
     path('api/database-health/audit/', api_database_health_audit, name='api-database-health-audit'),
