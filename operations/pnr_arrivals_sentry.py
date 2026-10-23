@@ -37,9 +37,9 @@ def seed_sample_pnr_arrivals():
 
     now = timezone.now()
     v_crysta = Vehicle.objects.filter(ownership_type='owned').first() or Vehicle.objects.first()
-    v_tempo = Vehicle.objects.filter(seating_capacity__gte=12).first() or Vehicle.objects.last()
-    d_driver = Driver.objects.filter(is_active=True).first()
-    d_driver2 = Driver.objects.filter(is_active=True).last()
+    v_tempo = Vehicle.objects.filter(seating_capacity__gte=12).first() or Vehicle.objects.last() or v_crysta
+    d_driver = Driver.objects.filter(status='active').first() or Driver.objects.first()
+    d_driver2 = Driver.objects.filter(status='active').last() or Driver.objects.last()
     trip = Trip.objects.first()
 
     manifests = [

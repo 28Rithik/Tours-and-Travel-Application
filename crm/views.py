@@ -3914,11 +3914,11 @@ def followup_cadence_studio_view(request):
     Tracks pending inquiries & dispatched quotations, triggers 24h & 48h
     automated follow-up drip reminders, and tracks sales conversion rates.
     """
-    from .models import Quotation, Lead
+    from .models import Quotation
     from django.utils import timezone
 
     now = timezone.now()
-    quotations = Quotation.objects.select_related('lead').order_by('-created_at')[:40]
+    quotations = Quotation.objects.order_by('-created_at')[:40]
 
     cadence_items = []
     stats = {
@@ -3933,7 +3933,7 @@ def followup_cadence_studio_view(request):
         age_hours = (now - created).total_seconds() / 3600.0
         status = q.status or 'sent'
 
-        if status in ['accepted', 'confirmed']:
+        if status in ['accepted', 'converted']:
             cadence_stage = 'converted'
             stats['converted'] += 1
         elif age_hours >= 48:
@@ -3948,10 +3948,10 @@ def followup_cadence_studio_view(request):
             cadence_stage = 'fresh'
             stats['total_pending'] += 1
 
-        guest_name = q.lead.name if q.lead else (getattr(q, 'customer_name', '') or 'Valued Traveler')
-        guest_phone = q.lead.phone if q.lead else (getattr(q, 'customer_phone', '') or '')
-        dest = getattr(q, 'destination', '') or (q.lead.destination if q.lead else 'South India Tour')
-        val = getattr(q, 'total_amount', 0) or 0
+        guest_name = q.guest_name or 'Valued Traveler'
+        guest_phone = q.guest_phone or ''
+        dest = q.destination or 'South India Tour'
+        val = q.total_quoted_price or Decimal('0.00')
 
         wa_24h = (
             f"Namaskaram {guest_name}! 🙏 Greetings from Sivagayathiri Travels & Tours. "

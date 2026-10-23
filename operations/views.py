@@ -3992,7 +3992,7 @@ def breakdown_sos_studio_view(request):
 
     stats = get_sos_dashboard_metrics()
     available_vehicles = Vehicle.objects.filter(status='available')[:20]
-    available_drivers = Driver.objects.filter(is_active=True)[:20]
+    available_drivers = Driver.objects.filter(status='active')[:20]
 
     context = {
         'title': 'Highway Breakdown & Emergency SOS Relief Dispatch Studio',
@@ -4120,7 +4120,7 @@ def pnr_arrivals_studio_view(request):
 
     stats = get_pnr_dashboard_metrics()
     available_vehicles = Vehicle.objects.filter(status='available')[:20]
-    available_drivers = Driver.objects.filter(is_active=True)[:20]
+    available_drivers = Driver.objects.filter(status='active')[:20]
 
     context = {
         'title': 'Flight & Train PNR Group Arrival Manifest Studio',

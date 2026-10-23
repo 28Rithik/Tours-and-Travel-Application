@@ -42,8 +42,8 @@ def seed_sample_breakdown_incidents():
     v_tt = Vehicle.objects.filter(seating_capacity__gte=12).first() or Vehicle.objects.last()
     v_relief = Vehicle.objects.filter(status='available').exclude(id=v_crysta.id if v_crysta else 0).first()
 
-    d_primary = Driver.objects.filter(is_active=True).first()
-    d_relief = Driver.objects.filter(is_active=True).exclude(id=d_primary.id if d_primary else 0).first()
+    d_primary = Driver.objects.filter(status='active').first() or Driver.objects.first()
+    d_relief = Driver.objects.filter(status='active').exclude(id=d_primary.id if d_primary else 0).first() or Driver.objects.last()
     trip = Trip.objects.first()
 
     samples = [

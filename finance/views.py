@@ -1921,8 +1921,16 @@ def tds_194c_ledger_view(request):
         else:
             pending_cert_count += 1
 
-        customer_name = t.booking.customer_name if t.booking else f"Corporate Party #{t.id}"
-        customer_pan = f"AAAC{1000 + idx}B"
+        if t.booking and t.booking.party:
+            customer_name = t.booking.party.name
+            gstin = getattr(t.booking.party, 'gstin', '') or ''
+            customer_pan = gstin[2:12] if len(gstin) >= 12 else f"AAAC{1000 + idx}B"
+        elif t.booking and t.booking.guest_name:
+            customer_name = t.booking.guest_name
+            customer_pan = f"AAAP{1000 + idx}G"
+        else:
+            customer_name = f"Corporate Party #{t.id}"
+            customer_pan = f"AAAC{1000 + idx}B"
 
         tds_records.append({
             'trip': t,
