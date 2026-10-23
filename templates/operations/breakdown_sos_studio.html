@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Highway Breakdown &amp; Emergency SOS Relief Dispatch Studio | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .sos-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .sos-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-rose-950 to-red-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Highway Breakdown &amp; Emergency SOS Relief Sentry</h1>
+          <p class="text-xs text-rose-200">South Indian Corridors &bull; Nearest Mechanic Dispatch &bull; 1-Click Passenger Migration &bull; Standby Fleet Relief</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="openLogSosModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span>Log Highway Breakdown</span>
+      </button>
+
+      <a href="tel:+919842123456" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+        </svg>
+        <span>24x7 Control Desk: +91 98421 23456</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards in Crisp Light Mode -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Active SOS Incidents -->
+    <div class="sos-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active SOS Incidents</div>
+          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.active_sos }}</div>
+          <div class="text-[11px] text-rose-600 font-medium mt-1">{{ stats.critical_sos }} Critical &bull; Emergency Response Active</div>
+        </div>
+        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Passengers Stranded -->
+    <div class="sos-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Stranded Guests Protected</div>
+          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats.passengers_stranded }}</div>
+          <div class="text-[11px] text-amber-600 font-medium mt-1">Comfort, water &amp; relief coordinated</div>
+        </div>
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Successfully Resolved -->
+    <div class="sos-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Resolved Incidents</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.resolved_count }}</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-1">Trips completed successfully</div>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Monitored Incidents -->
+    <div class="sos-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Corridor Incidents</div>
+          <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">{{ stats.total_incidents }}</div>
+          <div class="text-[11px] text-indigo-600 font-medium mt-1">Average response time: 24 mins</div>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Incidents Table in Crisp Light Mode -->
+  <div class="sos-card overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Live Breakdown &amp; SOS Mission Monitor</h2>
+        <p class="text-xs text-slate-500">Real-time status of stranded vehicles, mechanical repairs, and relief vehicle dispatches</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <th class="py-3 px-4">SOS Incident #</th>
+            <th class="py-3 px-4">Vehicle &amp; Chauffeur</th>
+            <th class="py-3 px-4">Highway Corridor &amp; Location</th>
+            <th class="py-3 px-4">Issue Diagnosed</th>
+            <th class="py-3 px-4">Stranded Pax</th>
+            <th class="py-3 px-4">Relief Status</th>
+            <th class="py-3 px-4 text-right">Relief Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for inc in incidents %}
+          <tr class="hover:bg-slate-50/60 transition">
+            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+              {{ inc.incident_id }}
+              <div class="text-[10px] text-slate-400 font-normal">{{ inc.reported_at|date:"M d, H:i" }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">{{ inc.vehicle.registration_number }}</div>
+              <div class="text-[11px] text-slate-500">{{ inc.vehicle.vehicle_type }} &bull; {{ inc.driver.name|default:"Unassigned" }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-800">{{ inc.get_highway_corridor_display }}</div>
+              <div class="text-[11px] text-slate-500 italic max-w-xs truncate">{{ inc.breakdown_location }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                {{ inc.get_issue_type_display }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">{{ inc.passengers_stranded }} Guests</div>
+              {% if inc.passenger_contact_name %}
+              <div class="text-[10px] text-slate-500">{{ inc.passenger_contact_name }} ({{ inc.passenger_contact_phone }})</div>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4">
+              {% if inc.status == 'resolved' %}
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                  ✅ Repaired &amp; Resumed
+                </span>
+              {% elif inc.status == 'replacement_en_route' %}
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 animate-pulse">
+                  🚐 Relief Fleet En Route ({{ inc.estimated_delay_minutes }}m)
+                </span>
+                {% if inc.replacement_vehicle %}
+                <div class="text-[10px] text-amber-700 mt-0.5">Relief: {{ inc.replacement_vehicle.registration_number }}</div>
+                {% endif %}
+              {% elif inc.status == 'mechanic_dispatched' %}
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                  🔧 Mechanic Dispatched
+                </span>
+                <div class="text-[10px] text-blue-700 mt-0.5">{{ inc.nearest_mechanic_assigned }}</div>
+              {% else %}
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">
+                  🚨 Incident Reported
+                </span>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4 text-right">
+              {% if inc.status != 'resolved' %}
+              <button onclick="openDispatchModal('{{ inc.incident_id }}', '{{ inc.vehicle.registration_number }}', '{{ inc.passengers_stranded }}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold shadow transition">
+                Dispatch Relief
+              </button>
+              {% else %}
+              <span class="text-[11px] text-slate-400 font-medium">Trip Completed</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="py-8 text-center text-slate-400 text-sm">
+              All vehicles operational. No active highway breakdowns reported.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Log Breakdown Modal in Light Mode -->
+<div id="logSosModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="text-base font-bold text-slate-900">🚨 Log Highway Breakdown SOS</h3>
+      <button onclick="closeLogSosModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="sosLogForm" onsubmit="submitSosLog(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Breakdown Fleet Vehicle *</label>
+        <select id="sosVehicleId" required class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 text-xs">
+          <option value="">-- Select Fleet Vehicle --</option>
+          {% for v in available_vehicles %}
+          <option value="{{ v.id }}">{{ v.registration_number }} ({{ v.vehicle_type }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Chauffeur on Duty</label>
+        <select id="sosDriverId" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 text-xs">
+          <option value="">-- Select Chauffeur --</option>
+          {% for d in available_drivers %}
+          <option value="{{ d.id }}">{{ d.name }} ({{ d.phone_number }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Highway Corridor</label>
+          <select id="sosCorridor" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+            <option value="nh544_salem_cbe">NH-544 (Salem - Coimbatore)</option>
+            <option value="nh44_bangalore_madurai">NH-44 (Bangalore - Madurai)</option>
+            <option value="ooty_ghats">Nilgiris Ghats (Ooty / Coonoor)</option>
+            <option value="kodai_ghats">Kodaikanal Ghat Road</option>
+            <option value="nh45_chennai_trichy">NH-45 (Chennai - Trichy)</option>
+            <option value="other_highway">Other Highway</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Issue Diagnosed</label>
+          <select id="sosIssueType" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+            <option value="engine_overheat">Engine Overheat / Radiator</option>
+            <option value="tire_blowout">Tire Blowout / Puncture</option>
+            <option value="clutch_transmission">Clutch / Transmission</option>
+            <option value="electrical_alternator">Electrical / Battery</option>
+            <option value="accident_collision">Collision / Dent</option>
+            <option value="other">Other Mechanical Failure</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Breakdown Location / Landmark *</label>
+        <input type="text" id="sosLocation" required placeholder="e.g. KM 142 near Avinashi Toll, NH-544" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500">
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Stranded Guests</label>
+          <input type="number" id="sosPaxCount" value="4" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Guest Contact Name</label>
+          <input type="text" id="sosGuestName" placeholder="Dr. Senthil" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Guest Phone</label>
+          <input type="text" id="sosGuestPhone" placeholder="+91 98421..." class="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs bg-slate-50">
+        </div>
+      </div>
+
+      <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+        <button type="button" onclick="closeLogSosModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow">Activate SOS Protocol</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Dispatch Relief Modal in Light Mode -->
+<div id="dispatchReliefModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <h3 class="text-base font-bold text-slate-900">🚐 Dispatch Relief Fleet &amp; Mechanic</h3>
+      <button onclick="closeDispatchModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="dispatchReliefForm" onsubmit="submitDispatchRelief(event)" class="space-y-3 text-xs">
+      <input type="hidden" id="dispatchIncidentId">
+
+      <div class="bg-rose-50 border border-rose-200 p-3 rounded-xl">
+        <div class="text-[10px] font-bold uppercase text-rose-800 tracking-wider">Mission Target</div>
+        <div class="text-xs font-bold text-rose-950 mt-0.5" id="dispatchTargetLabel"></div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Standby Relief Vehicle *</label>
+        <select id="dispatchVehicleId" required class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white text-xs">
+          <option value="">-- Select Available Relief Fleet --</option>
+          {% for v in available_vehicles %}
+          <option value="{{ v.id }}">{{ v.registration_number }} - {{ v.vehicle_type }} ({{ v.seating_capacity }} Seater)</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Relief Chauffeur</label>
+        <select id="dispatchDriverId" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 focus:bg-white text-xs">
+          <option value="">-- Select Relief Driver --</option>
+          {% for d in available_drivers %}
+          <option value="{{ d.id }}">{{ d.name }} ({{ d.phone_number }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Assigned Garage / Mechanic</label>
+          <input type="text" id="dispatchMechanicName" placeholder="TVS Auto Care Perundurai" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Mechanic Phone</label>
+          <input type="text" id="dispatchMechanicPhone" placeholder="+91 94432..." class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Estimated Relief Arrival ETA (Minutes)</label>
+        <input type="number" id="dispatchEta" value="30" min="5" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+      </div>
+
+      <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+        <button type="button" onclick="closeDispatchModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow">Deploy Relief Fleet Now</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openLogSosModal() {
+    document.getElementById('logSosModal').classList.remove('hidden');
+  }
+  function closeLogSosModal() {
+    document.getElementById('logSosModal').classList.add('hidden');
+  }
+
+  function openDispatchModal(incId, regNo, pax) {
+    document.getElementById('dispatchIncidentId').value = incId;
+    document.getElementById('dispatchTargetLabel').textContent = `Incident ${incId} &bull; Stranded: ${regNo} (${pax} Guests)`;
+    document.getElementById('dispatchReliefModal').classList.remove('hidden');
+  }
+  function closeDispatchModal() {
+    document.getElementById('dispatchReliefModal').classList.add('hidden');
+  }
+
+  async function submitSosLog(e) {
+    e.preventDefault();
+    const payload = {
+      vehicle_id: document.getElementById('sosVehicleId').value,
+      driver_id: document.getElementById('sosDriverId').value,
+      highway_corridor: document.getElementById('sosCorridor').value,
+      issue_type: document.getElementById('sosIssueType').value,
+      breakdown_location: document.getElementById('sosLocation').value,
+      passengers_stranded: document.getElementById('sosPaxCount').value,
+      passenger_contact_name: document.getElementById('sosGuestName').value,
+      passenger_contact_phone: document.getElementById('sosGuestPhone').value,
+      severity: 'critical'
+    };
+
+    try {
+      const res = await fetch('/api/operations/breakdown-sos/log/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch(err) {
+      alert('Network error: ' + err);
+    }
+  }
+
+  async function submitDispatchRelief(e) {
+    e.preventDefault();
+    const payload = {
+      incident_id: document.getElementById('dispatchIncidentId').value,
+      replacement_vehicle_id: document.getElementById('dispatchVehicleId').value,
+      replacement_driver_id: document.getElementById('dispatchDriverId').value,
+      mechanic_name: document.getElementById('dispatchMechanicName').value,
+      mechanic_phone: document.getElementById('dispatchMechanicPhone').value,
+      eta_minutes: document.getElementById('dispatchEta').value
+    };
+
+    try {
+      const res = await fetch('/api/operations/breakdown-sos/dispatch/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Error: ' + data.message);
+      }
+    } catch(err) {
+      alert('Network error: ' + err);
+    }
+  }
+</script>
+{% endblock %}

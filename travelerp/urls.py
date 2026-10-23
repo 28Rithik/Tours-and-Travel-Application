@@ -105,9 +105,21 @@ from operations.views import (
     api_driver_fatigue_audit,
     api_driver_fatigue_override,
     api_driver_fatigue_seed,
+    breakdown_sos_studio_view,
+    api_log_sos_incident,
+    api_dispatch_sos_replacement,
+    pnr_arrivals_studio_view,
+    api_update_arrival_status,
 )
 from statements.views import download_statement, generate_statement
-from maintenance.views import damage_marker_studio_view, tire_studio_view, workshop_mechanic_studio_view
+from maintenance.views import (
+    damage_marker_studio_view,
+    tire_studio_view,
+    workshop_mechanic_studio_view,
+    parts_inventory_studio_view,
+    api_issue_part_to_jobcard,
+    api_receive_part_stock,
+)
 from finance.views import (
     api_payment_context,
     admin_gst_studio_view,
@@ -134,6 +146,7 @@ from finance.views import (
     fastag_reconciliation_studio_view,
     api_fastag_parse_statement,
     api_fastag_reconcile_approve,
+    tds_194c_ledger_view,
 )
 
 from driver_portal.views import pwa_manifest, pwa_service_worker
@@ -165,6 +178,7 @@ from crm.views import (
     api_generate_feedback_link,
     api_feedback_seed,
     api_google_review_clicked,
+    followup_cadence_studio_view,
 )
 from suppliers.views import (
     vendor_bill_audit_studio_view,
@@ -284,6 +298,31 @@ urlpatterns = [
     path('api/crm/feedback/generate-token/<int:trip_id>/', api_generate_feedback_link, name='api-crm-feedback-generate-token'),
     path('api/crm/feedback/google-clicked/<str:token>/', api_google_review_clicked, name='api-crm-feedback-google-clicked'),
     path('api/crm/feedback/seed/', api_feedback_seed, name='api-crm-feedback-seed'),
+
+    # P7-1: Highway Breakdown & Emergency SOS Relief Dispatch Studio
+    path('operations/breakdown-sos/', breakdown_sos_studio_view, name='operations-breakdown-sos'),
+    path('admin/operations/breakdown-sos/', breakdown_sos_studio_view, name='admin-operations-breakdown-sos'),
+    path('api/operations/breakdown-sos/log/', api_log_sos_incident, name='api-operations-breakdown-sos-log'),
+    path('api/operations/breakdown-sos/dispatch/', api_dispatch_sos_replacement, name='api-operations-breakdown-sos-dispatch'),
+
+    # P7-2: Spare Parts & Workshop Consumables Store Inventory Studio
+    path('maintenance/parts-inventory/', parts_inventory_studio_view, name='maintenance-parts-inventory'),
+    path('admin/maintenance/parts-inventory/', parts_inventory_studio_view, name='admin-maintenance-parts-inventory'),
+    path('api/maintenance/parts-inventory/issue/', api_issue_part_to_jobcard, name='api-maintenance-parts-issue'),
+    path('api/maintenance/parts-inventory/receive/', api_receive_part_stock, name='api-maintenance-parts-receive'),
+
+    # P8-1: Flight & Train PNR Group Arrival Manifest Studio
+    path('operations/pnr-arrivals/', pnr_arrivals_studio_view, name='operations-pnr-arrivals'),
+    path('admin/operations/pnr-arrivals/', pnr_arrivals_studio_view, name='admin-operations-pnr-arrivals'),
+    path('api/operations/pnr-arrivals/status/', api_update_arrival_status, name='api-operations-pnr-arrivals-status'),
+
+    # P8-2: Automated CRM WhatsApp Follow-up Drip Cadence Studio
+    path('crm/followup-cadence/', followup_cadence_studio_view, name='crm-followup-cadence'),
+    path('admin/crm/followup-cadence/', followup_cadence_studio_view, name='admin-crm-followup-cadence'),
+
+    # P8-3: Section 194C TDS Corporate Withholding Management Ledger
+    path('finance/tds-194c/', tds_194c_ledger_view, name='finance-tds-194c'),
+    path('admin/finance/tds-194c/', tds_194c_ledger_view, name='admin-finance-tds-194c'),
 
     # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),

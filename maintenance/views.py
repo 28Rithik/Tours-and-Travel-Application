@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
@@ -930,6 +931,136 @@ def job_card_work_order_print_view(request, pk):
         'printed_by': request.user,
     }
     return render(request, 'maintenance/job_card_work_order_print.html', context)
+
+
+# ==============================================================================
+# SPARE PARTS & WORKSHOP CONSUMABLES STORE INVENTORY STUDIO
+# ==============================================================================
+
+@login_required
+def parts_inventory_studio_view(request):
+    """
+    Spare Parts & Consumables Store Inventory Studio.
+    Tracks parts catalog, current stock, reorder thresholds, inventory valuation,
+    and stock issues to workshop job cards.
+    """
+    from .models import SparePartItem, PartStockMovement
+    from .parts_inventory_sentry import get_inventory_dashboard_metrics, seed_sample_spare_parts
+
+    if not SparePartItem.objects.exists():
+        seed_sample_spare_parts()
+
+    parts = SparePartItem.objects.filter(is_active=True).order_by('category', 'name')
+    movements = PartStockMovement.objects.select_related('part', 'vehicle').order_by('-created_at')[:40]
+    stats = get_inventory_dashboard_metrics()
+    vehicles = Vehicle.objects.filter(status__in=['available', 'maintenance'])[:30]
+
+    context = {
+        'title': 'Spare Parts & Workshop Store Inventory Studio',
+        'parts': parts,
+        'movements': movements,
+        'stats': stats,
+        'vehicles': vehicles,
+    }
+    return render(request, 'maintenance/parts_inventory_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_issue_part_to_jobcard(request):
+    """Issues spare parts to a vehicle maintenance job card, reducing stock."""
+    import json
+    from decimal import Decimal
+    from .models import SparePartItem, PartStockMovement
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    part_id = data.get('part_id')
+    qty = Decimal(str(data.get('quantity', 1)))
+    vehicle_id = data.get('vehicle_id')
+    job_card_ref = data.get('job_card_ref', '')
+    mechanic = data.get('issued_to_mechanic', '')
+    notes = data.get('notes', '')
+
+    part = get_object_or_404(SparePartItem, id=part_id)
+    if part.current_stock < qty:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Insufficient stock! Available: {part.current_stock} {part.unit}, requested: {qty} {part.unit}'
+        }, status=400)
+
+    # Decrement stock
+    part.current_stock -= qty
+    part.save()
+
+    v = Vehicle.objects.filter(id=vehicle_id).first() if vehicle_id else None
+    tot = qty * part.unit_cost
+
+    movement = PartStockMovement.objects.create(
+        part=part,
+        movement_type='jobcard_issue',
+        quantity=qty,
+        unit_rate=part.unit_cost,
+        total_amount=tot,
+        vehicle=v,
+        job_card_ref=job_card_ref,
+        issued_to_mechanic=mechanic,
+        notes=notes,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Issued {qty} {part.unit} of {part.name}. Remaining: {part.current_stock} {part.unit}.',
+        'movement_id': movement.id,
+        'remaining_stock': float(part.current_stock),
+        'is_low_stock': part.is_low_stock,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_receive_part_stock(request):
+    """Records inward stock receipt from vendor, increasing stock."""
+    import json
+    from decimal import Decimal
+    from .models import SparePartItem, PartStockMovement
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    part_id = data.get('part_id')
+    qty = Decimal(str(data.get('quantity', 1)))
+    unit_cost = Decimal(str(data.get('unit_cost', 0)))
+    notes = data.get('notes', '')
+
+    part = get_object_or_404(SparePartItem, id=part_id)
+    part.current_stock += qty
+    if unit_cost > 0:
+        part.unit_cost = unit_cost
+    part.save()
+
+    tot = qty * (unit_cost if unit_cost > 0 else part.unit_cost)
+
+    movement = PartStockMovement.objects.create(
+        part=part,
+        movement_type='purchase_receipt',
+        quantity=qty,
+        unit_rate=part.unit_cost,
+        total_amount=tot,
+        notes=notes or 'Inward store purchase receipt',
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Received {qty} {part.unit} of {part.name}. New Stock: {part.current_stock} {part.unit}.',
+        'new_stock': float(part.current_stock),
+    })
+
 
 
 

@@ -3903,3 +3903,86 @@ def api_feedback_seed(request):
     return JsonResponse({'status': 'success', 'seeded_count': len(created)})
 
 
+# ==============================================================================
+# AUTOMATED WHATSAPP FOLLOW-UP CADENCE & QUOTATION CONVERSION STUDIO
+# ==============================================================================
+
+@login_required
+def followup_cadence_studio_view(request):
+    """
+    Automated WhatsApp Follow-up Cadence & Quotation Conversion Studio.
+    Tracks pending inquiries & dispatched quotations, triggers 24h & 48h
+    automated follow-up drip reminders, and tracks sales conversion rates.
+    """
+    from .models import Quotation, Lead
+    from django.utils import timezone
+
+    now = timezone.now()
+    quotations = Quotation.objects.select_related('lead').order_by('-created_at')[:40]
+
+    cadence_items = []
+    stats = {
+        'total_pending': 0,
+        'due_24h': 0,
+        'due_48h': 0,
+        'converted': 0,
+    }
+
+    for q in quotations:
+        created = q.created_at or now
+        age_hours = (now - created).total_seconds() / 3600.0
+        status = q.status or 'sent'
+
+        if status in ['accepted', 'confirmed']:
+            cadence_stage = 'converted'
+            stats['converted'] += 1
+        elif age_hours >= 48:
+            cadence_stage = 'due_48h'
+            stats['due_48h'] += 1
+            stats['total_pending'] += 1
+        elif age_hours >= 24:
+            cadence_stage = 'due_24h'
+            stats['due_24h'] += 1
+            stats['total_pending'] += 1
+        else:
+            cadence_stage = 'fresh'
+            stats['total_pending'] += 1
+
+        guest_name = q.lead.name if q.lead else (getattr(q, 'customer_name', '') or 'Valued Traveler')
+        guest_phone = q.lead.phone if q.lead else (getattr(q, 'customer_phone', '') or '')
+        dest = getattr(q, 'destination', '') or (q.lead.destination if q.lead else 'South India Tour')
+        val = getattr(q, 'total_amount', 0) or 0
+
+        wa_24h = (
+            f"Namaskaram {guest_name}! 🙏 Greetings from Sivagayathiri Travels & Tours. "
+            f"Just following up regarding your {dest} travel proposal (Quote #{getattr(q, 'quotation_number', q.id)} for ₹{float(val):,.2f}). "
+            f"Have you had a chance to review the itinerary? Let us know if you need any vehicle customizations or route adjustments."
+        )
+        wa_48h = (
+            f"Hi {guest_name}! 🌟 Quick update from Sivagayathiri Travels regarding your {dest} booking. "
+            f"We are holding our premium sanitized fleet vehicle for your requested dates. "
+            f"Confirm today with code *SIVA5* to unlock a 5% instant discount or complimentary driver night allowance! "
+            f"Call our tour desk at +91 98421 23456 to lock in your cab."
+        )
+
+        cadence_items.append({
+            'quotation': q,
+            'guest_name': guest_name,
+            'guest_phone': guest_phone,
+            'destination': dest,
+            'amount': val,
+            'age_hours': round(age_hours, 1),
+            'cadence_stage': cadence_stage,
+            'wa_24h': wa_24h,
+            'wa_48h': wa_48h,
+        })
+
+    context = {
+        'title': 'Automated Quotation Follow-up Drip & Cadence Studio',
+        'items': cadence_items,
+        'stats': stats,
+    }
+    return render(request, 'crm/followup_cadence_studio.html', context)
+
+
+

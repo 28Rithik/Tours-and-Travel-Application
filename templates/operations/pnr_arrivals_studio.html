@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Flight &amp; Train PNR Group Arrival Manifest Studio | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .arrival-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .arrival-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  .placard-board {
+    background: #0f172a;
+    border: 6px solid #f59e0b;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-sky-950 to-blue-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-sky-500/20 text-sky-400 rounded-xl border border-sky-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Flight &amp; Train PNR Group Arrival Manifest</h1>
+          <p class="text-xs text-sky-200">CJB Coimbatore &bull; MAA Chennai &bull; BLR Bangalore &bull; Real-time Delays &bull; 1-Click Chauffeur Placards</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="text-right">
+        <div class="text-xs text-sky-200">Terminal Airport Liaison</div>
+        <div class="text-sm font-bold text-white font-mono">+91 97890 12345</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards in Crisp Light Mode -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Scheduled Arrivals -->
+    <div class="arrival-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Scheduled Manifests Today</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">{{ stats.total_arrivals }} Arrivals</div>
+          <div class="text-[11px] text-slate-500 font-medium mt-1">Flights &amp; Vande Bharat Express</div>
+        </div>
+        <div class="p-3 bg-slate-100 text-slate-700 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incoming Passengers -->
+    <div class="arrival-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Incoming Pax Count</div>
+          <div class="text-2xl font-bold text-sky-600 mt-1">{{ stats.total_pax_incoming }} Guests</div>
+          <div class="text-[11px] text-sky-600 font-medium mt-1">VIP &bull; Corporate delegation &bull; Families</div>
+        </div>
+        <div class="p-3 bg-sky-50 text-sky-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flight Delays -->
+    <div class="arrival-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Flight / Train Delay Alerts</div>
+          <div class="text-2xl font-bold text-amber-600 mt-1">{{ stats.delayed_count }} Delayed</div>
+          <div class="text-[11px] text-amber-600 font-medium mt-1">Chauffeur dispatch rescheduled</div>
+        </div>
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placards Active -->
+    <div class="arrival-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Chauffeurs on Gate</div>
+          <div class="text-2xl font-bold text-emerald-600 mt-1">{{ stats.placard_ready }} Active</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-1">Welcome placards displayed</div>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manifest Table in Crisp Light Mode -->
+  <div class="arrival-card overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Airport &amp; Railway Terminal Arrival Manifest Board</h2>
+        <p class="text-xs text-slate-500">Live flight PNRs, scheduled landing times, gate meeting instructions, and assigned chauffeurs</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <th class="py-3 px-4">Flight / PNR</th>
+            <th class="py-3 px-4">Carrier &amp; Origin</th>
+            <th class="py-3 px-4">Arrival Terminal</th>
+            <th class="py-3 px-4">Scheduled Arrival</th>
+            <th class="py-3 px-4">Guest Leader</th>
+            <th class="py-3 px-4">Assigned Chauffeur &amp; Cab</th>
+            <th class="py-3 px-4">Gate Status</th>
+            <th class="py-3 px-4 text-right">Placard &amp; Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for m in manifests %}
+          <tr class="hover:bg-slate-50/60 transition">
+            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">
+                {% if m.transit_type == 'flight' %}✈️{% else %}🚆{% endif %}
+                {{ m.pnr_or_flight_number }}
+              </span>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">{{ m.carrier_name }}</div>
+              <div class="text-[11px] text-slate-500">From: {{ m.origin_city }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-800">{{ m.arrival_terminal }}</div>
+              {% if m.hotel_destination %}
+              <div class="text-[10px] text-slate-500">➔ {{ m.hotel_destination }}</div>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">{{ m.scheduled_arrival|date:"H:i A" }}</div>
+              <div class="text-[10px] text-slate-400">{{ m.scheduled_arrival|date:"M d, Y" }}</div>
+              {% if m.delay_minutes > 0 %}
+                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800 mt-0.5">
+                  Delayed +{{ m.delay_minutes }}m
+                </span>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">{{ m.guest_leader_name }}</div>
+              <div class="text-[11px] text-slate-500">{{ m.total_pax }} Pax &bull; {{ m.luggage_count }} Bags &bull; {{ m.guest_phone }}</div>
+            </td>
+            <td class="py-3.5 px-4">
+              {% if m.assigned_driver %}
+                <div class="font-bold text-slate-900">{{ m.assigned_driver.name }}</div>
+                <div class="text-[11px] text-slate-500 font-mono">{{ m.assigned_vehicle.registration_number }}</div>
+              {% else %}
+                <span class="text-rose-600 font-semibold text-[11px]">Unassigned Cab</span>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4">
+              {% if m.status == 'placard_displayed' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 animate-pulse">
+                  🪧 Placard at Gate
+                </span>
+              {% elif m.status == 'boarded_en_route' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+                  🚐 Boarded &amp; En Route
+                </span>
+              {% elif m.status == 'delayed' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                  ⚠️ Delayed
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                  {{ m.get_status_display }}
+                </span>
+              {% endif %}
+            </td>
+            <td class="py-3.5 px-4 text-right">
+              <button onclick="previewPlacard('{{ m.placard_title }}', '{{ m.guest_leader_name }}', '{{ m.pnr_or_flight_number }}', '{{ m.assigned_driver.name|default:"Chauffeur" }}')" class="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-lg text-[11px] border border-sky-200 transition">
+                🪧 Placard
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-8 text-center text-slate-400">No arrival manifests scheduled for today.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Printable Placard Modal -->
+<div id="placardModal" class="fixed inset-0 z-50 hidden bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4 border border-slate-200 text-center">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+      <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Airport Terminal Welcome Board</h3>
+      <button onclick="closePlacardModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <!-- The actual high-visibility placard -->
+    <div id="printablePlacardArea" class="placard-board p-8 text-white space-y-4 my-2">
+      <div class="text-xs font-mono tracking-widest text-amber-400 uppercase font-extrabold">SIVAGAYATHIRI TRAVELS &amp; TOURS</div>
+      <div class="h-0.5 bg-amber-500/40 w-32 mx-auto"></div>
+      
+      <div class="space-y-1">
+        <div class="text-xs text-slate-400 uppercase tracking-widest">WELCOME TO COIMBATORE</div>
+        <h1 id="placardGuestName" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight"></h1>
+      </div>
+
+      <div class="bg-slate-800/90 py-2 px-4 rounded-xl inline-flex items-center gap-3 text-xs border border-slate-700">
+        <span class="text-amber-400 font-bold" id="placardFlight"></span>
+        <span class="text-slate-500">&bull;</span>
+        <span class="text-slate-300" id="placardDriver"></span>
+      </div>
+    </div>
+
+    <div class="flex justify-center gap-3 pt-2">
+      <button onclick="window.print()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-lg transition">
+        🖨️ Print Full Screen A4 Placard
+      </button>
+      <button onclick="closePlacardModal()" class="px-5 py-2.5 border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 text-xs font-semibold">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function previewPlacard(title, guest, flight, driver) {
+    document.getElementById('placardGuestName').textContent = guest.toUpperCase();
+    document.getElementById('placardFlight').textContent = flight;
+    document.getElementById('placardDriver').textContent = 'Chauffeur: ' + driver;
+    document.getElementById('placardModal').classList.remove('hidden');
+  }
+
+  function closePlacardModal() {
+    document.getElementById('placardModal').classList.add('hidden');
+  }
+</script>
+{% endblock %}

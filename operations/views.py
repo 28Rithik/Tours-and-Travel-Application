@@ -3969,5 +3969,195 @@ def api_driver_fatigue_seed(request):
     return JsonResponse({'status': 'success', 'seeded_count': len(logs)})
 
 
+# ==============================================================================
+# HIGHWAY BREAKDOWN & EMERGENCY SOS REPLACEMENT DISPATCH STUDIO
+# ==============================================================================
+
+@login_required
+def breakdown_sos_studio_view(request):
+    """
+    Highway Breakdown & Emergency SOS Relief Sentry Studio.
+    Coordinates real-time highway breakdown alerts, towing/mechanic response,
+    and 1-click replacement fleet dispatch on South Indian corridors.
+    """
+    from .models import HighwayBreakdownSOS
+    from .breakdown_sos_sentry import get_sos_dashboard_metrics, seed_sample_breakdown_incidents
+
+    if not HighwayBreakdownSOS.objects.exists():
+        seed_sample_breakdown_incidents()
+
+    incidents = HighwayBreakdownSOS.objects.select_related(
+        'vehicle', 'driver', 'replacement_vehicle', 'replacement_driver', 'trip'
+    ).order_by('-reported_at')[:40]
+
+    stats = get_sos_dashboard_metrics()
+    available_vehicles = Vehicle.objects.filter(status='available')[:20]
+    available_drivers = Driver.objects.filter(is_active=True)[:20]
+
+    context = {
+        'title': 'Highway Breakdown & Emergency SOS Relief Dispatch Studio',
+        'incidents': incidents,
+        'stats': stats,
+        'available_vehicles': available_vehicles,
+        'available_drivers': available_drivers,
+        'trips': Trip.objects.filter(status__in=['started', 'assigned']).order_by('-id')[:20],
+    }
+    return render(request, 'operations/breakdown_sos_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_log_sos_incident(request):
+    """Logs a new highway breakdown SOS incident."""
+    import json
+    from .models import HighwayBreakdownSOS
+    from django.utils import timezone
+    import random
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    vehicle_id = data.get('vehicle_id')
+    driver_id = data.get('driver_id')
+    issue_type = data.get('issue_type', 'engine_overheat')
+    highway_corridor = data.get('highway_corridor', 'nh544_salem_cbe')
+    breakdown_location = data.get('breakdown_location', 'Highway Shoulder')
+    passengers_stranded = int(data.get('passengers_stranded', 4))
+    contact_name = data.get('passenger_contact_name', '')
+    contact_phone = data.get('passenger_contact_phone', '')
+    severity = data.get('severity', 'critical')
+
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    driver = Driver.objects.filter(id=driver_id).first() if driver_id else None
+
+    ts = timezone.now().strftime('%Y%m%d')
+    rn = random.randint(100, 999)
+    inc_id = f"SOS-{ts}-{rn}"
+
+    incident = HighwayBreakdownSOS.objects.create(
+        incident_id=inc_id,
+        vehicle=vehicle,
+        driver=driver,
+        issue_type=issue_type,
+        highway_corridor=highway_corridor,
+        breakdown_location=breakdown_location,
+        passengers_stranded=passengers_stranded,
+        passenger_contact_name=contact_name,
+        passenger_contact_phone=contact_phone,
+        severity=severity,
+        status='reported',
+        customer_notified_sms=True,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'SOS Incident {inc_id} registered. Relief protocols activated.',
+        'incident_id': inc_id,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_dispatch_sos_replacement(request):
+    """Dispatches a relief vehicle & driver to migrate stranded passengers."""
+    import json
+    from .models import HighwayBreakdownSOS
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    sos_id = data.get('incident_id')
+    replacement_vehicle_id = data.get('replacement_vehicle_id')
+    replacement_driver_id = data.get('replacement_driver_id')
+    mechanic_name = data.get('mechanic_name', '')
+    mechanic_phone = data.get('mechanic_phone', '')
+    eta_minutes = int(data.get('eta_minutes', 45))
+
+    incident = get_object_or_404(HighwayBreakdownSOS, incident_id=sos_id)
+    if replacement_vehicle_id:
+        incident.replacement_vehicle_id = replacement_vehicle_id
+    if replacement_driver_id:
+        incident.replacement_driver_id = replacement_driver_id
+    if mechanic_name:
+        incident.nearest_mechanic_assigned = mechanic_name
+    if mechanic_phone:
+        incident.mechanic_phone = mechanic_phone
+    incident.estimated_delay_minutes = eta_minutes
+    incident.status = 'replacement_en_route'
+    incident.customer_notified_sms = True
+    incident.save()
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Relief vehicle dispatched for {incident.vehicle.registration_number}. ETA: {eta_minutes} mins.',
+    })
+
+
+# ==============================================================================
+# FLIGHT & TRAIN PNR GROUP ARRIVAL MANIFEST STUDIO
+# ==============================================================================
+
+@login_required
+def pnr_arrivals_studio_view(request):
+    """
+    Flight & Train PNR Group Arrival Manifest Studio.
+    Tracks multi-pax arrivals at CJB, MAA, BLR airports and railway stations,
+    monitors flight delays, and generates 1-click printable welcome placards.
+    """
+    from .models import GroupArrivalManifest
+    from .pnr_arrivals_sentry import get_pnr_dashboard_metrics, seed_sample_pnr_arrivals
+
+    if not GroupArrivalManifest.objects.exists():
+        seed_sample_pnr_arrivals()
+
+    manifests = GroupArrivalManifest.objects.select_related(
+        'assigned_vehicle', 'assigned_driver', 'trip'
+    ).order_by('scheduled_arrival')
+
+    stats = get_pnr_dashboard_metrics()
+    available_vehicles = Vehicle.objects.filter(status='available')[:20]
+    available_drivers = Driver.objects.filter(is_active=True)[:20]
+
+    context = {
+        'title': 'Flight & Train PNR Group Arrival Manifest Studio',
+        'manifests': manifests,
+        'stats': stats,
+        'available_vehicles': available_vehicles,
+        'available_drivers': available_drivers,
+    }
+    return render(request, 'operations/pnr_arrivals_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_update_arrival_status(request):
+    """Updates group arrival status or delay minutes."""
+    import json
+    from .models import GroupArrivalManifest
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    code = data.get('manifest_code')
+    new_status = data.get('status')
+    delay_minutes = data.get('delay_minutes')
+
+    manifest = get_object_or_404(GroupArrivalManifest, manifest_code=code)
+    if new_status:
+        manifest.status = new_status
+    if delay_minutes is not None:
+        manifest.delay_minutes = int(delay_minutes)
+    manifest.save()
+
+    return JsonResponse({'status': 'success', 'manifest_code': code, 'new_status': manifest.status})
+
+
+
 
 

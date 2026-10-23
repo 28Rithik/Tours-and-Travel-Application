@@ -907,3 +907,86 @@ class VehicleDamageMarker(models.Model):
 	def __str__(self):
 		return f"#{self.marker_number} {self.get_damage_type_display()} on {self.get_panel_zone_display()} ({self.inspection.vehicle.registration_number})"
 
+
+# ==============================================================================
+# SPARE PARTS & CONSUMABLES STORE INVENTORY
+# ==============================================================================
+
+class SparePartItem(models.Model):
+	CATEGORY_CHOICES = [
+		('lubricant_fluid', '🛢️ Lubricants & Fluids (Engine Oil, Coolant, Brake Fluid)'),
+		('brake_system', '🛑 Brake Pads, Shoes & Discs'),
+		('filters_plugs', '💨 Filters (Air, Oil, Fuel, Cabin) & Glow Plugs'),
+		('tires_tubes', '🛞 Tires, Tubes & Valves'),
+		('electrical_lights', '💡 Bulbs, Relays, Batteries & Fuses'),
+		('suspension_steering', '🔩 Bushes, Tie Rods & Shock Absorbers'),
+		('wipers_accessories', '🌧️ Wiper Blades, Belts & Horns'),
+		('other', '📦 Other Store Item'),
+	]
+
+	part_code = models.CharField(max_length=50, unique=True, help_text="e.g. OIL-15W40-SHELL, PAD-CRYSTA-FR")
+	name = models.CharField(max_length=200)
+	category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='lubricant_fluid')
+	applicable_models = models.CharField(max_length=200, default='Innova Crysta, Tempo Traveller')
+	unit = models.CharField(max_length=30, default='Liters', help_text="e.g. Liters, Pieces, Sets, Cans")
+
+	current_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	minimum_reorder_level = models.DecimalField(max_digits=10, decimal_places=2, default=5)
+	unit_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	storage_bin = models.CharField(max_length=100, default='Rack A-2, Bin 04')
+
+	is_active = models.BooleanField(default=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	@property
+	def is_low_stock(self):
+		return self.current_stock <= self.minimum_reorder_level
+
+	@property
+	def total_inventory_value(self):
+		return self.current_stock * self.unit_cost
+
+	class Meta:
+		ordering = ['category', 'name']
+		verbose_name = 'Spare Part / Store Item'
+		verbose_name_plural = 'Spare Parts & Store Inventory'
+
+	def __str__(self):
+		return f"[{self.part_code}] {self.name} ({self.current_stock} {self.unit})"
+
+
+class PartStockMovement(models.Model):
+	MOVEMENT_TYPES = [
+		('purchase_receipt', '📥 Stock Receipt / Inward Vendor Purchase'),
+		('jobcard_issue', '📤 Issued to Vehicle / Workshop Job Card'),
+		('scrap_defect', '🗑️ Damaged / Expired / Scrap Write-off'),
+		('audit_adjustment', '⚖️ Store Audit Reconciliation Adjustment'),
+	]
+
+	part = models.ForeignKey(SparePartItem, on_delete=models.CASCADE, related_name='movements')
+	movement_type = models.CharField(max_length=30, choices=MOVEMENT_TYPES, default='jobcard_issue')
+	quantity = models.DecimalField(max_digits=10, decimal_places=2)
+	unit_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+	vehicle = models.ForeignKey('core.Vehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='parts_consumed')
+	job_card_ref = models.CharField(max_length=100, blank=True, help_text="e.g. JC-202610-042")
+	issued_to_mechanic = models.CharField(max_length=150, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Stock Movement Log'
+		verbose_name_plural = 'Stock Movement Logs'
+
+	def save(self, *args, **kwargs):
+		if not self.total_amount:
+			self.total_amount = self.quantity * (self.unit_rate or self.part.unit_cost)
+		super().save(*args, **kwargs)
+
+	def __str__(self):
+		return f"{self.get_movement_type_display()} - {self.part.name} ({self.quantity} {self.part.unit})"
+
+

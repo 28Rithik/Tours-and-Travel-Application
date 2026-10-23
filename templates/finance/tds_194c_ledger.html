@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Section 194C TDS Corporate Withholding Management Ledger | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tds-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .tds-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl border border-blue-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Section 194C TDS Corporate Withholding Ledger</h1>
+          <p class="text-xs text-blue-200">Statutory Transport Contract Withholding &bull; Form 16A Reconciliation &bull; 26AS Tax Credit Matching</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        </svg>
+        <span>Print Tax Ledger</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards in Crisp Light Mode -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Invoiced Transport Revenue -->
+    <div class="tds-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Gross Contract Revenue</div>
+          <div class="text-2xl font-bold text-slate-900 mt-1">₹{{ stats.total_invoiced|floatformat:2 }}</div>
+          <div class="text-[11px] text-slate-500 font-medium mt-1">Corporate &amp; institutional client bills</div>
+        </div>
+        <div class="p-3 bg-slate-100 text-slate-700 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total TDS Withheld -->
+    <div class="tds-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Total TDS Withheld (194C)</div>
+          <div class="text-2xl font-bold text-blue-600 mt-1">₹{{ stats.total_tds_withheld|floatformat:2 }}</div>
+          <div class="text-[11px] text-blue-600 font-medium mt-1">1% Individual &bull; 2% Company</div>
+        </div>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form 16A Reconciled -->
+    <div class="tds-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Form 16A Reconciled</div>
+          <div class="text-2xl font-bold text-emerald-600 mt-1">₹{{ stats.reconciled_tds|floatformat:2 }}</div>
+          <div class="text-[11px] text-emerald-600 font-medium mt-1">Reflected in 26AS / AIS Tax Credit</div>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Certificates -->
+    <div class="tds-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500">Pending Form 16A Certificates</div>
+          <div class="text-2xl font-bold text-amber-600 mt-1">₹{{ stats.pending_credit|floatformat:2 }}</div>
+          <div class="text-[11px] text-amber-600 font-medium mt-1">{{ stats.pending_cert_count }} client certificates due</div>
+        </div>
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TDS Ledger Table in Crisp Light Mode -->
+  <div class="tds-card overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Section 194C Commercial Transport TDS Withholding Register</h2>
+        <p class="text-xs text-slate-500">Quarterly reconciliation of tax deductions at source across corporate client trips</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <th class="py-3 px-4">Trip ID / Date</th>
+            <th class="py-3 px-4">Corporate Client</th>
+            <th class="py-3 px-4">Client PAN</th>
+            <th class="py-3 px-4">Taxable Bill ₹</th>
+            <th class="py-3 px-4">TDS Rate</th>
+            <th class="py-3 px-4">TDS Withheld ₹</th>
+            <th class="py-3 px-4">Net Received ₹</th>
+            <th class="py-3 px-4">Quarter</th>
+            <th class="py-3 px-4 text-right">Form 16A Certificate</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for r in records %}
+          <tr class="hover:bg-slate-50/60 transition">
+            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+              #{{ r.trip.id }}
+              <div class="text-[10px] text-slate-400 font-normal">{{ r.trip.start_date|date:"M d, Y" }}</div>
+            </td>
+            <td class="py-3.5 px-4 font-bold text-slate-900">{{ r.customer_name }}</td>
+            <td class="py-3.5 px-4 font-mono font-semibold text-slate-700">{{ r.customer_pan }}</td>
+            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">₹{{ r.taxable_amount|floatformat:2 }}</td>
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {% if r.tds_rate == 2.00 %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                {{ r.tds_rate }}% 194C
+              </span>
+            </td>
+            <td class="py-3.5 px-4 font-mono font-bold text-rose-600">-₹{{ r.tds_amount|floatformat:2 }}</td>
+            <td class="py-3.5 px-4 font-mono font-bold text-emerald-700">₹{{ r.net_receivable|floatformat:2 }}</td>
+            <td class="py-3.5 px-4 text-slate-600">{{ r.quarter }}</td>
+            <td class="py-3.5 px-4 text-right">
+              {% if r.is_reconciled %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                  <span>✓</span> {{ r.form_16a_cert }}
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                  ⏳ Certificate Pending
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" class="py-8 text-center text-slate-400">No corporate withholding records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1500,6 +1500,128 @@ class DriverFatigueAuditLog(models.Model):
 		return f"{self.driver.name} - {self.get_risk_level_display()} ({self.rest_hours_elapsed}h rest)"
 
 
+# ==============================================================================
+# 15. HIGHWAY BREAKDOWN & EMERGENCY SOS REPLACEMENT DISPATCH
+# ==============================================================================
+
+class HighwayBreakdownSOS(models.Model):
+	ISSUE_CHOICES = [
+		('engine_overheat', '🔥 Engine Overheating / Radiator Burst'),
+		('tire_blowout', '🛞 Tire Puncture / Blowout'),
+		('clutch_transmission', '⚙️ Clutch / Gearbox Failure'),
+		('electrical_alternator', '⚡ Battery / Alternator / Wiring Failure'),
+		('brake_failure', '🛑 Brake System Pressure Loss'),
+		('accident_collision', '💥 Minor Collision / Highway Dent'),
+		('fuel_contamination', '⛽ Adulterated / Low Fuel Issue'),
+		('other', '⚠️ Other Mechanical Breakdown'),
+	]
+	CORRIDOR_CHOICES = [
+		('nh544_salem_cbe', 'NH-544 (Salem - Coimbatore - Walayar)'),
+		('nh44_bangalore_madurai', 'NH-44 (Bangalore - Krishnagiri - Madurai)'),
+		('nh45_chennai_trichy', 'NH-45 (Chennai - Villupuram - Trichy)'),
+		('ooty_ghats', 'Nilgiris Western Ghats (Mettupalayam - Coonoor - Ooty)'),
+		('kodai_ghats', 'Kodaikanal Ghat Road (Batlagundu - Kodai)'),
+		('ecr_omr', 'ECR / OMR Coastal Expressway'),
+		('other_highway', 'Other State Highway / District Road'),
+	]
+	STATUS_CHOICES = [
+		('reported', '🚨 SOS Incident Reported'),
+		('mechanic_dispatched', '🔧 Mechanic / Tow En Route'),
+		('replacement_en_route', '🚐 Replacement Fleet Dispatched'),
+		('passengers_migrated', '👥 Passengers Transferred to Relief Vehicle'),
+		('resolved', '✅ Repaired & Roadworthy'),
+		('towed_depot', '🏗️ Towed to Sivagayathiri Depot'),
+	]
+
+	incident_id = models.CharField(max_length=50, unique=True)
+	trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='breakdown_incidents')
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='breakdowns')
+	driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='breakdown_calls')
+	
+	issue_type = models.CharField(max_length=50, choices=ISSUE_CHOICES, default='engine_overheat')
+	highway_corridor = models.CharField(max_length=50, choices=CORRIDOR_CHOICES, default='nh544_salem_cbe')
+	breakdown_location = models.CharField(max_length=255, help_text="Specific landmark e.g. KM 142 near Avinashi Toll, NH-544")
+	passengers_stranded = models.PositiveIntegerField(default=4)
+	passenger_contact_name = models.CharField(max_length=150, blank=True)
+	passenger_contact_phone = models.CharField(max_length=50, blank=True)
+
+	status = models.CharField(max_length=40, choices=STATUS_CHOICES, default='reported')
+	severity = models.CharField(max_length=20, choices=[('critical', 'Critical (Passengers Stranded)'), ('moderate', 'Moderate (Safe on Highway Shoulder)'), ('minor', 'Minor (Drivable to Nearest Workshop)')], default='critical')
+
+	replacement_vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, related_name='sos_relief_missions')
+	replacement_driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='sos_relief_runs')
+	nearest_mechanic_assigned = models.CharField(max_length=150, blank=True)
+	mechanic_phone = models.CharField(max_length=50, blank=True)
+	estimated_delay_minutes = models.PositiveIntegerField(default=45)
+
+	customer_notified_sms = models.BooleanField(default=False)
+	reported_at = models.DateTimeField(auto_now_add=True)
+	resolved_at = models.DateTimeField(null=True, blank=True)
+	resolution_notes = models.TextField(blank=True)
+
+	class Meta:
+		ordering = ['-reported_at']
+		verbose_name = 'Highway Breakdown SOS Incident'
+		verbose_name_plural = 'Highway Breakdown SOS Incidents'
+
+	def __str__(self):
+		return f"{self.incident_id} - {self.vehicle.registration_number} ({self.get_issue_type_display()})"
+
+
+# ==============================================================================
+# 16. FLIGHT & TRAIN PNR GROUP ARRIVAL MANIFEST
+# ==============================================================================
+
+class GroupArrivalManifest(models.Model):
+	TRANSIT_CHOICES = [
+		('flight', '✈️ Commercial Flight Arrival'),
+		('train', '🚆 Indian Railways Train Arrival'),
+		('intercity_bus', '🚌 Intercity Bus Terminal'),
+	]
+	STATUS_CHOICES = [
+		('scheduled', '🕒 Scheduled / Expected'),
+		('delayed', '⚠️ Delayed / Rescheduled'),
+		('landed_arrived', '🛬 Landed / Train on Platform'),
+		('placard_displayed', '🪧 Chauffeur at Arrival Gate with Placard'),
+		('boarded_en_route', '🚐 Guests Boarded & En Route'),
+		('completed', '✅ Dropped at Hotel / Resort'),
+	]
+
+	manifest_code = models.CharField(max_length=50, unique=True)
+	transit_type = models.CharField(max_length=30, choices=TRANSIT_CHOICES, default='flight')
+	pnr_or_flight_number = models.CharField(max_length=50, help_text="e.g. 6E-458, AI-657, PNR 4218-901234")
+	carrier_name = models.CharField(max_length=100, default='IndiGo Airlines')
+	arrival_terminal = models.CharField(max_length=150, default="Coimbatore Int'l Airport (CJB) - Arrival Gate 2")
+	origin_city = models.CharField(max_length=100, default='Mumbai (BOM)')
+
+	scheduled_arrival = models.DateTimeField()
+	actual_arrival = models.DateTimeField(null=True, blank=True)
+	delay_minutes = models.IntegerField(default=0)
+
+	guest_leader_name = models.CharField(max_length=150)
+	guest_phone = models.CharField(max_length=50)
+	total_pax = models.PositiveIntegerField(default=4)
+	luggage_count = models.PositiveIntegerField(default=4)
+
+	trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='pnr_arrivals')
+	assigned_vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, related_name='arrival_pickups')
+	assigned_driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='arrival_duties')
+
+	placard_title = models.CharField(max_length=200, help_text="Text printed on airport pickup board")
+	status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='scheduled')
+	hotel_destination = models.CharField(max_length=200, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['scheduled_arrival']
+		verbose_name = 'Group Arrival Manifest'
+		verbose_name_plural = 'Group Arrival Manifests'
+
+	def __str__(self):
+		return f"{self.manifest_code} - {self.guest_leader_name} ({self.pnr_or_flight_number})"
+
+
+
 
 
 

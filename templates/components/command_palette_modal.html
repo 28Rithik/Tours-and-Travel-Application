@@ -59,6 +59,26 @@
         <i class="fa-solid fa-star" style="color: #eab308;"></i>
         <span>⭐ Feedback &amp; Reviews</span>
       </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('breakdown_sos')">
+        <i class="fa-solid fa-truck-medical" style="color: #ef4444;"></i>
+        <span>🚨 Breakdown SOS</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('parts_inventory')">
+        <i class="fa-solid fa-wrench" style="color: #6366f1;"></i>
+        <span>🛞 Parts Inventory</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('pnr_arrivals')">
+        <i class="fa-solid fa-plane-arrival" style="color: #0284c7;"></i>
+        <span>✈️ PNR Arrivals</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('followup_cadence')">
+        <i class="fa-solid fa-comments" style="color: #10b981;"></i>
+        <span>📲 Follow-Up Drip</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('tds_194c')">
+        <i class="fa-solid fa-landmark" style="color: #3b82f6;"></i>
+        <span>🏛️ 194C TDS Ledger</span>
+      </div>
     </div>
 
 
@@ -383,6 +403,16 @@
       window.location.href = '/suppliers/vendor-bill-audit/';
     } else if (action === 'feedback_reviews') {
       window.location.href = '/crm/feedback-reviews/';
+    } else if (action === 'breakdown_sos') {
+      window.location.href = '/operations/breakdown-sos/';
+    } else if (action === 'parts_inventory') {
+      window.location.href = '/maintenance/parts-inventory/';
+    } else if (action === 'pnr_arrivals') {
+      window.location.href = '/operations/pnr-arrivals/';
+    } else if (action === 'followup_cadence') {
+      window.location.href = '/crm/followup-cadence/';
+    } else if (action === 'tds_194c') {
+      window.location.href = '/finance/tds-194c/';
     }
   }
 
