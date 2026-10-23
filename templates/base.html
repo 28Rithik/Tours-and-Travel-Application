@@ -605,6 +605,9 @@
         <a class="nav-link {% if 'tab=expeditions' in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}?tab=expeditions">
           <i class="fa-solid fa-graduation-cap nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> College IV Expeditions
         </a>
+        <a class="nav-link {% if 'manifest-grid' in request.path %}is-active{% endif %}" href="/packages/manifest-grid/">
+          <i class="fa-solid fa-table-cells nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #3b82f6;"></i> Manifest Grid Studio
+        </a>
         <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">
           <i class="fa-solid fa-hotel nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Hotel Allotments &amp; Rooms
         </a>
@@ -666,9 +669,13 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'fuel-receipt-ocr-studio' %}is-active{% endif %}" href="{% url 'fuel-receipt-ocr-studio' %}">
           <i class="fa-solid fa-gas-pump nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Fuel Slip OCR Sentry
         </a>
+        <a class="nav-link {% if 'fastag-reconciliation' in request.path %}is-active{% endif %}" href="/finance/fastag-reconciliation/">
+          <i class="fa-solid fa-road-barrier nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #8b5cf6;"></i> FASTag Toll Reconciler
+        </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'finance-gst-studio' or request.resolver_match.url_name == 'admin-gst-studio' %}is-active{% endif %}" href="{% url 'finance-gst-studio' %}">
           <i class="fa-solid fa-file-lines nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Corporate GST &amp; E-Way Bill
         </a>
+
         <a class="nav-link {% if request.resolver_match.url_name == 'finance-payments-studio' or request.resolver_match.url_name == 'finance-payments' or request.resolver_match.url_name == 'admin-payment-studio' %}is-active{% endif %}" href="{% url 'finance-payments-studio' %}">
           <i class="fa-solid fa-qrcode nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Dynamic UPI &amp; Payments
         </a>

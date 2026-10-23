@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from .models import Package, CollegeIVExpedition, TourPassengerManifest
+
 
 
 @login_required
@@ -290,4 +292,176 @@ def packages_catalog_view(request):
         'category_filter': category_filter,
         'categories': Package.CATEGORIES,
     })
+
+
+@login_required
+def manifest_spreadsheet_grid_view(request, expedition_id=None):
+    """
+    P4-1: Interactive Excel-Like Spreadsheet Grid Studio
+    Supports keyboard navigation (Tab/Enter), direct clipboard copy-pasting from
+    Excel / Google Sheets, auto bus-seat & room allocation, and 1-click batch saving.
+    """
+    import json
+    from .models import CollegeIVExpedition, TourPassengerManifest
+
+    expeditions = CollegeIVExpedition.objects.order_by('-start_date')
+    selected_expedition = None
+    if expedition_id:
+        selected_expedition = expeditions.filter(id=expedition_id).first()
+    if not selected_expedition and expeditions.exists():
+        selected_expedition = expeditions.first()
+
+    existing_rows = []
+    if selected_expedition:
+        passengers = TourPassengerManifest.objects.filter(iv_expedition=selected_expedition).order_by('id')
+        for p in passengers:
+            existing_rows.append({
+                'id': p.id,
+                'passenger_name': p.passenger_name,
+                'category': p.category,
+                'gender': p.gender,
+                'roll_number': p.roll_number,
+                'age': p.age or '',
+                'bus_assignment': p.bus_assignment or 'Bus 01',
+                'seat_number': p.seat_number or '',
+                'room_sharing_number': p.room_sharing_number or '',
+                'phone': p.phone or '',
+                'emergency_contact': p.emergency_contact or '',
+            })
+
+    context = {
+        'expeditions': expeditions,
+        'selected_expedition': selected_expedition,
+        'existing_rows_json': json.dumps(existing_rows),
+        'passenger_count': len(existing_rows),
+    }
+    return render(request, 'packages/manifest_spreadsheet_grid.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_manifest_grid_bulk_save(request):
+    """
+    POST /packages/api/manifest-grid/save/
+    Atomically updates, creates, or replaces TourPassengerManifest records from the spreadsheet grid.
+    """
+    import json
+    from django.db import transaction
+    from django.http import JsonResponse
+    from .models import CollegeIVExpedition, TourPassengerManifest
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        body = json.loads(request.body.decode('utf-8'))
+        expedition_id = body.get('expedition_id')
+        rows = body.get('rows', [])
+
+        if not expedition_id:
+            return JsonResponse({'status': 'error', 'message': 'Expedition ID is required'}, status=400)
+
+        expedition = CollegeIVExpedition.objects.filter(id=expedition_id).first()
+        if not expedition:
+            return JsonResponse({'status': 'error', 'message': 'Expedition not found'}, status=404)
+
+        with transaction.atomic():
+            # Delete existing records if replace mode or re-syncing
+            TourPassengerManifest.objects.filter(iv_expedition=expedition).delete()
+
+            manifest_objs = []
+            for r in rows:
+                p_name = str(r.get('passenger_name', '')).strip()
+                if not p_name:
+                    continue
+
+                age_val = None
+                try:
+                    if r.get('age'):
+                        age_val = int(r.get('age'))
+                except (ValueError, TypeError):
+                    age_val = None
+
+                manifest_objs.append(TourPassengerManifest(
+                    iv_expedition=expedition,
+                    departure=expedition.package.inventory_batches.first() if expedition.package else None,
+                    passenger_name=p_name,
+                    category=r.get('category', 'student'),
+                    gender=r.get('gender', 'male'),
+                    roll_number=str(r.get('roll_number', '')).strip(),
+                    age=age_val,
+                    bus_assignment=str(r.get('bus_assignment', 'Bus 01')).strip(),
+                    seat_number=str(r.get('seat_number', '')).strip(),
+                    room_sharing_number=str(r.get('room_sharing_number', '')).strip(),
+                    phone=str(r.get('phone', '')).strip(),
+                    emergency_contact=str(r.get('emergency_contact', '')).strip(),
+                ))
+
+            if manifest_objs:
+                TourPassengerManifest.objects.bulk_create(manifest_objs)
+
+            # Update expedition headcounts
+            m_count = sum(1 for m in manifest_objs if m.gender == 'male' and m.category == 'student')
+            f_count = sum(1 for m in manifest_objs if m.gender == 'female' and m.category == 'student')
+            fac_count = sum(1 for m in manifest_objs if m.category == 'faculty')
+            expedition.student_count_male = m_count
+            expedition.student_count_female = f_count
+            expedition.faculty_count = fac_count
+            expedition.total_pax = len(manifest_objs)
+            expedition.save(update_fields=['student_count_male', 'student_count_female', 'faculty_count', 'total_pax'])
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Successfully synced {len(manifest_objs)} passengers into Tour Passenger Manifest!",
+            'count': len(manifest_objs),
+            'males': m_count,
+            'females': f_count,
+            'faculty': fac_count,
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+def api_manifest_grid_export_csv(request, expedition_id):
+    """
+    GET /packages/api/manifest-grid/export-csv/<expedition_id>/
+    Returns formatted CSV export of the passenger manifest for the given expedition.
+    """
+    import csv
+    from django.http import HttpResponse
+    from .models import CollegeIVExpedition, TourPassengerManifest
+
+    expedition = get_object_or_404(CollegeIVExpedition, id=expedition_id)
+    passengers = TourPassengerManifest.objects.filter(iv_expedition=expedition).order_by('bus_assignment', 'seat_number', 'id')
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    filename = f"manifest_{expedition.college_name.replace(' ', '_')}_{expedition_id}.csv"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response)
+    writer.writerow([
+        '#', 'Passenger Name', 'Category', 'Gender', 'Roll / Register ID',
+        'Age', 'Bus Assignment', 'Seat Number', 'Room Allocation',
+        'Phone Number', 'Parent / Emergency Contact'
+    ])
+
+    for idx, p in enumerate(passengers, start=1):
+        writer.writerow([
+            idx,
+            p.passenger_name,
+            p.get_category_display(),
+            p.get_gender_display(),
+            p.roll_number,
+            p.age or '',
+            p.bus_assignment or '',
+            p.seat_number or '',
+            p.room_sharing_number or '',
+            p.phone or '',
+            p.emergency_contact or ''
+        ])
+
+    return response
+
 

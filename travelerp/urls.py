@@ -123,7 +123,11 @@ from finance.views import (
     fuel_receipt_ocr_studio_view,
     api_fuel_receipt_ocr,
     api_fuel_receipt_approve,
+    fastag_reconciliation_studio_view,
+    api_fastag_parse_statement,
+    api_fastag_reconcile_approve,
 )
+
 from driver_portal.views import pwa_manifest, pwa_service_worker
 from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view
 from core.views import (
@@ -225,6 +229,12 @@ urlpatterns = [
     path('admin/finance/fuel-receipt-ocr/', fuel_receipt_ocr_studio_view, name='admin-fuel-receipt-ocr'),
     path('api/finance/fuel-receipt-ocr/', api_fuel_receipt_ocr, name='api-finance-fuel-receipt-ocr'),
     path('api/finance/fuel-receipt-approve/', api_fuel_receipt_approve, name='api-finance-fuel-receipt-approve'),
+    # P4-2: Automated NHAI FASTag CSV Statement Reconciler & Toll Plaza Auditor
+    path('finance/fastag-reconciliation/', fastag_reconciliation_studio_view, name='finance-fastag-reconciliation'),
+    path('admin/finance/fastag-reconciliation/', fastag_reconciliation_studio_view, name='admin-fastag-reconciliation'),
+    path('api/finance/fastag-reconciliation/parse/', api_fastag_parse_statement, name='api-finance-fastag-parse'),
+    path('api/finance/fastag-reconciliation/approve/', api_fastag_reconcile_approve, name='api-finance-fastag-approve'),
+
     # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),
     path('admin/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-alias'),

@@ -29,9 +29,13 @@ from .views import (
     api_execute_driver_settlement,
     driver_settlement_voucher_view,
     api_driver_settlement_acknowledge,
+    fastag_reconciliation_studio_view,
+    api_fastag_parse_statement,
+    api_fastag_reconcile_approve,
 )
 
 urlpatterns = [
+
     path('', RedirectView.as_view(url='/finance/accounting/', permanent=False)),
     path('payments/', admin_payment_studio_view, name='finance-payments'),
     path('payments-studio/', admin_payment_studio_view, name='finance-payments-studio-subalias'),
@@ -70,6 +74,11 @@ urlpatterns = [
     path('api/settle/<int:trip_id>/context/', api_trip_settlement_context, name='api-trip-settle-context'),
     path('api/settle/<int:trip_id>/', api_execute_driver_settlement, name='api-trip-settle-execute'),
     path('api/settlement/<int:settlement_id>/acknowledge/', api_driver_settlement_acknowledge, name='api-driver-settle-acknowledge'),
+    # P4-2: Automated NHAI FASTag CSV Statement Reconciler & Toll Auditor
+    path('fastag-reconciliation/', fastag_reconciliation_studio_view, name='fastag-reconciliation-studio'),
+    path('api/fastag-reconciliation/parse/', api_fastag_parse_statement, name='api-fastag-reconciliation-parse'),
+    path('api/fastag-reconciliation/approve/', api_fastag_reconcile_approve, name='api-fastag-reconciliation-approve'),
 ]
+
 
 

@@ -35,7 +35,16 @@
         <i class="fa-solid fa-calculator" style="color: #8b5cf6;"></i>
         <span>📊 Tally &amp; Zoho Sync</span>
       </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('manifest_grid')">
+        <i class="fa-solid fa-table-cells" style="color: #3b82f6;"></i>
+        <span>📋 Manifest Grid</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('fastag_reconcile')">
+        <i class="fa-solid fa-road-barrier" style="color: #8b5cf6;"></i>
+        <span>🛣️ FASTag Toll Reconciler</span>
+      </div>
     </div>
+
 
     <!-- Search Results List -->
     <div class="cmd-results-wrap" id="cmdResultsContainer">
@@ -346,8 +355,13 @@
       window.location.href = '/finance/payments-studio/';
     } else if (action === 'accounting') {
       window.location.href = '/finance/accounting/';
+    } else if (action === 'manifest_grid') {
+      window.location.href = '/packages/manifest-grid/';
+    } else if (action === 'fastag_reconcile') {
+      window.location.href = '/finance/fastag-reconciliation/';
     }
   }
+
 
   // Global Keydown Handler (Ctrl + K / Cmd + K)
   document.addEventListener('keydown', function(e) {

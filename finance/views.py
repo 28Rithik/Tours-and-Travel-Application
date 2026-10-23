@@ -1732,5 +1732,150 @@ def api_fuel_receipt_approve(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
+# ==============================================================================
+# P4-2: AUTOMATED NHAI FASTAG CSV RECONCILER & TOLL AUDITOR
+# ==============================================================================
+
+@login_required
+def fastag_reconciliation_studio_view(request):
+    """
+    P4-2: NHAI FASTag CSV Statement Reconciler & Toll Plaza Auditor Studio.
+    Uploads bank CSV statements, matches against vehicle trips, verifies highway corridors,
+    detects ghost km deviations, and commits deductions in 1-click.
+    """
+    from finance.models import CorporateFastagAccount, FastagTollDeduction
+    from finance.fastag_reconciler import get_default_fastag_account
+
+    accounts = CorporateFastagAccount.objects.filter(is_active=True).order_by('-balance')
+    default_account = get_default_fastag_account()
+    recent_deductions = FastagTollDeduction.objects.select_related('vehicle', 'trip', 'account').order_by('-date', '-id')[:20]
+
+    return render(request, 'finance/fastag_reconciliation_studio.html', {
+        'accounts': accounts,
+        'selected_account': default_account,
+        'recent_deductions': recent_deductions,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_fastag_parse_statement(request):
+    """
+    P4-2 API: Ingests FASTag CSV (upload, raw text, or sample), runs matching algorithm,
+    and returns categorized entries with corridor audit status.
+    """
+    from finance.fastag_reconciler import reconcile_fastag_statement, generate_sample_nhai_statement_csv
+    import json
+
+    try:
+        content = ''
+        use_sample = request.POST.get('use_sample') or request.GET.get('use_sample')
+
+        if use_sample == 'true' or use_sample == '1':
+            content = generate_sample_nhai_statement_csv()
+        elif 'statement_file' in request.FILES:
+            content = request.FILES['statement_file'].read()
+        elif request.body:
+            try:
+                body = json.loads(request.body.decode('utf-8'))
+                if body.get('use_sample'):
+                    content = generate_sample_nhai_statement_csv()
+                else:
+                    content = body.get('statement_text', '')
+            except Exception:
+                content = request.POST.get('statement_text', '')
+        else:
+            content = request.POST.get('statement_text', '')
+
+        if not content:
+            return JsonResponse({'status': 'error', 'message': 'No FASTag statement provided. Upload a CSV file or load sample.'}, status=400)
+
+        result = reconcile_fastag_statement(content)
+        return JsonResponse(result)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@login_required
+def api_fastag_reconcile_approve(request):
+    """
+    P4-2 API: Commits approved FASTag deductions into FastagTollDeduction
+    and updates CorporateFastagAccount balance atomically.
+    """
+    import json
+    from django.db import transaction
+    from finance.models import CorporateFastagAccount, FastagTollDeduction
+    from core.models import Vehicle
+    from operations.models import Trip
+    from finance.fastag_reconciler import parse_date_smart
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        account_id = data.get('account_id')
+        entries = data.get('entries', [])
+
+        if not entries:
+            return JsonResponse({'status': 'error', 'message': 'No entries selected for reconciliation.'}, status=400)
+
+        account = CorporateFastagAccount.objects.filter(id=account_id).first()
+        if not account:
+            account = CorporateFastagAccount.objects.filter(is_active=True).first()
+
+        if not account:
+            return JsonResponse({'status': 'error', 'message': 'No active Corporate FASTag Account found.'}, status=400)
+
+        committed_count = 0
+        total_committed_amt = Decimal('0.00')
+
+        with transaction.atomic():
+            for e in entries:
+                veh_id = e.get('vehicle_id')
+                if not veh_id:
+                    continue
+                vehicle = Vehicle.objects.filter(id=veh_id).first()
+                if not vehicle:
+                    continue
+
+                trip_id = e.get('trip_id')
+                trip = Trip.objects.filter(id=trip_id).first() if trip_id else None
+
+                amt = Decimal(str(e.get('amount', 0)))
+                raw_dt = e.get('date_raw') or e.get('date')
+                parsed_dt = parse_date_smart(raw_dt) or timezone.now()
+                plaza = e.get('toll_plaza', 'Highway Toll Plaza')
+
+                FastagTollDeduction.objects.create(
+                    account=account,
+                    vehicle=vehicle,
+                    trip=trip,
+                    amount=amt,
+                    toll_plaza=plaza,
+                    date=parsed_dt
+                )
+                committed_count += 1
+                total_committed_amt += amt
+
+        # Refresh account balance
+        account.refresh_from_db()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Successfully committed {committed_count} toll deductions (₹{total_committed_amt:,.2f}) to FASTag account '{account.account_name}'!",
+            'committed_count': committed_count,
+            'total_amount': float(total_committed_amt),
+            'new_balance': float(account.balance),
+            'account_name': account.account_name,
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+
 
 

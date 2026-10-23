@@ -329,11 +329,15 @@
     </div>
 
     <!-- Quick Action Button -->
-    <div class="quick-action-bar">
-      <button type="button" class="big-btn" id="btnOpenExpense">
+    <div class="quick-action-bar" style="display: flex; gap: 10px;">
+      <button type="button" class="big-btn" id="btnOpenExpense" style="flex: 1.2;">
         <i class="fa-solid fa-camera"></i>
-        <span>Log Spot Expense & Snap Receipt</span>
+        <span>Log Spot Expense</span>
       </button>
+      <a href="{% url 'fuel-receipt-ocr-studio' %}" class="big-btn" style="flex: 1; text-decoration: none; background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 6px 18px rgba(5, 150, 105, 0.35); text-align: center;">
+        <i class="fa-solid fa-gas-pump"></i>
+        <span>Diesel OCR</span>
+      </a>
     </div>
 
     <!-- Recent Expenses Feed -->

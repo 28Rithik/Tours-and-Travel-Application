@@ -1,0 +1,824 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Passenger Manifest Spreadsheet Grid | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .spreadsheet-container {
+    background: var(--surface-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .dark .spreadsheet-container {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+  .grid-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 0.825rem;
+  }
+  .grid-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px 12px;
+    border-bottom: 2px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .dark .grid-table th {
+    background: #1e293b;
+    color: #94a3b8;
+    border-bottom-color: #334155;
+    border-right-color: #334155;
+  }
+  .grid-table td {
+    padding: 0;
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .dark .grid-table td {
+    border-bottom-color: #1e293b;
+    border-right-color: #1e293b;
+  }
+  .grid-input {
+    width: 100%;
+    height: 38px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+    transition: all 0.15s ease;
+    outline: none;
+  }
+  .grid-input:focus {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    box-shadow: inset 0 0 0 1px #3b82f6;
+    z-index: 5;
+  }
+  .dark .grid-input:focus {
+    background: #1e293b;
+    border-color: #60a5fa;
+    box-shadow: inset 0 0 0 1px #60a5fa;
+  }
+  .grid-select {
+    width: 100%;
+    height: 38px;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+  }
+  .grid-select:focus {
+    background: #eff6ff;
+    border-color: #3b82f6;
+  }
+  .dark .grid-select:focus {
+    background: #1e293b;
+    border-color: #60a5fa;
+  }
+  .row-num {
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 500;
+    text-align: center;
+    width: 44px;
+    user-select: none;
+  }
+  .dark .row-num {
+    background: #1e293b;
+    color: #64748b;
+  }
+  .tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .paste-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .paste-zone:hover, .paste-zone:focus-within {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.03);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl border border-blue-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Passenger Manifest Spreadsheet Grid</h1>
+          <p class="text-xs text-blue-200">Excel / Google Sheets Direct Paste &bull; Auto Seat &amp; 4-Sharing Room Allocation Studio</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expedition Selector & Quick Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-2 bg-white/10 px-3 py-2 rounded-xl backdrop-blur-md border border-white/10">
+        <label for="expeditionSelect" class="text-xs font-semibold text-blue-200">Expedition:</label>
+        <select id="expeditionSelect" class="bg-slate-800 text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-400" onchange="window.location.href='/packages/manifest-grid/' + this.value + '/';">
+          {% for exp in expeditions %}
+            <option value="{{ exp.id }}" {% if selected_expedition and selected_expedition.id == exp.id %}selected{% endif %}>
+              {{ exp.college_name }} ({{ exp.department }}) - {{ exp.start_date|date:"d M Y" }}
+            </option>
+          {% empty %}
+            <option value="">No Active College IV Expeditions</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if selected_expedition %}
+      <a href="{% url 'packages:api_manifest_grid_export' selected_expedition.id %}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        Export CSV
+      </a>
+      {% endif %}
+
+      <button id="btnSaveManifest" onclick="saveManifestToServer()" class="inline-flex items-center gap-2 px-5 py-2 bg-blue-500 hover:bg-blue-400 text-white text-sm font-semibold rounded-xl shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5 active:translate-y-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+        </svg>
+        Save &amp; Sync Manifest
+      </button>
+    </div>
+  </div>
+
+  <!-- Realtime KPI Bar -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total Passengers</div>
+      <div id="kpiTotalPax" class="text-2xl font-bold text-slate-900 dark:text-white mt-1">0</div>
+      <div class="text-[10px] text-blue-500 font-medium mt-0.5">Manifest verified</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Male Students</div>
+      <div id="kpiMaleCount" class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">0</div>
+      <div class="text-[10px] text-slate-400 mt-0.5">Boys quota</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Female Students</div>
+      <div id="kpiFemaleCount" class="text-2xl font-bold text-pink-600 dark:pink-400 mt-1">0</div>
+      <div class="text-[10px] text-slate-400 mt-0.5">Girls quota</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Faculty Escorts</div>
+      <div id="kpiFacultyCount" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">0</div>
+      <div class="text-[10px] text-slate-400 mt-0.5">Staff in-charge</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Buses Req. (40-Pax)</div>
+      <div id="kpiBusesReq" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">0</div>
+      <div class="text-[10px] text-indigo-500 mt-0.5">40 seats / Coach</div>
+    </div>
+    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Rooms Req. (4-Share)</div>
+      <div id="kpiRoomsReq" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      <div class="text-[10px] text-emerald-500 mt-0.5">Gender segregated</div>
+    </div>
+  </div>
+
+  <!-- Smart Actions & Clipboard Paste Bar -->
+  <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Add row button -->
+      <button onclick="addNewRow()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg hover:bg-slate-50 shadow-sm transition">
+        <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add Row
+      </button>
+
+      <!-- Auto Assign Seats -->
+      <button onclick="autoAssignBusSeats()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 shadow-sm transition" title="Assigns Bus 01, Bus 02... and sequential seat numbers S-01, S-02...">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        Auto-Assign Bus &amp; Seats
+      </button>
+
+      <!-- Auto Assign Rooms -->
+      <button onclick="autoAssignRooms()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 shadow-sm transition" title="Segregates boys (B-101...) and girls (G-201...) into 4-sharing rooms, faculty in 2-sharing (FAC-01...)">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+        </svg>
+        Auto-Allocate 4-Sharing Rooms
+      </button>
+
+      <!-- Load Sample Demo Class -->
+      <button onclick="loadSampleCollegeClass()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/50 shadow-sm transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        Load Sample Class (18 Pax)
+      </button>
+
+      <!-- Clear All -->
+      <button onclick="clearGrid()" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-400 hover:text-red-500 text-xs font-medium transition" title="Clear all rows">
+        Clear Grid
+      </button>
+    </div>
+
+    <!-- Quick Excel Direct Paste helper -->
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-slate-400 hidden sm:inline">Tip: Copy from Excel / Google Sheets and press <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-200 dark:bg-slate-700 rounded font-mono">Ctrl+V</kbd> anywhere!</span>
+      <button onclick="openPasteModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-lg hover:bg-blue-100 shadow-sm transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        Paste Box
+      </button>
+    </div>
+  </div>
+
+  <!-- Spreadsheet Table -->
+  <div class="spreadsheet-container overflow-x-auto max-h-[620px] relative">
+    <table class="grid-table" id="manifestTable">
+      <thead>
+        <tr>
+          <th style="width: 44px;">#</th>
+          <th style="min-width: 180px;">Passenger Name *</th>
+          <th style="width: 110px;">Category</th>
+          <th style="width: 95px;">Gender</th>
+          <th style="width: 120px;">Roll / ID</th>
+          <th style="width: 70px;">Age</th>
+          <th style="width: 100px;">Bus</th>
+          <th style="width: 80px;">Seat</th>
+          <th style="width: 100px;">Room</th>
+          <th style="min-width: 130px;">Phone</th>
+          <th style="min-width: 130px;">Emergency Contact</th>
+          <th style="width: 44px; text-align: center;">&times;</th>
+        </tr>
+      </thead>
+      <tbody id="gridTbody">
+        <!-- Rendered dynamically via JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Table Footnote & Shortcut Help -->
+  <div class="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-2 gap-2">
+    <div>
+      <span class="font-semibold text-slate-700 dark:text-slate-300">Keyboard shortcuts:</span>
+      <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded font-mono text-[10px]">Tab</kbd> next cell &bull;
+      <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded font-mono text-[10px]">Enter</kbd> next row &bull;
+      <kbd class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded font-mono text-[10px]">Ctrl+V</kbd> paste TSV/CSV from Excel.
+    </div>
+    <div id="syncStatusNotice" class="font-medium text-slate-600 dark:text-slate-300">
+      Last synced: <span class="italic text-slate-400">Ready to save</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Paste Modal -->
+<div id="pasteModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-2xl shadow-2xl space-y-4">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        </svg>
+        Bulk Paste from Excel / Google Sheets
+      </h3>
+      <button onclick="closePasteModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    </div>
+    <p class="text-xs text-slate-500 dark:text-slate-400">
+      Copy cells directly from Excel or Google Sheets (columns: Name, Category, Gender, Roll No, Age, Phone, Emergency). Paste below and click "Import into Grid".
+    </p>
+    <textarea id="pasteTextarea" rows="8" placeholder="Paste tab-separated rows here directly..." class="w-full text-xs font-mono p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+    <div class="flex items-center justify-between">
+      <label class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+        <input type="checkbox" id="chkReplaceAll" class="rounded text-blue-600 focus:ring-blue-500">
+        Replace current grid content (otherwise appends)
+      </label>
+      <div class="flex gap-2">
+        <button onclick="closePasteModal()" class="px-4 py-2 border border-slate-300 dark:border-slate-700 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100">Cancel</button>
+        <button onclick="processBulkPaste()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow">Import into Grid</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initial Server Data
+  const expeditionId = "{{ selected_expedition.id|default:'' }}";
+  let manifestRows = [];
+
+  try {
+    const rawData = {{ existing_rows_json|safe|default:'[]' }};
+    manifestRows = Array.isArray(rawData) ? rawData : [];
+  } catch (e) {
+    manifestRows = [];
+  }
+
+  // Ensure at least 5 rows if blank
+  if (manifestRows.length === 0) {
+    for (let i = 0; i < 5; i++) {
+      manifestRows.push(createEmptyRow());
+    }
+  }
+
+  function createEmptyRow() {
+    return {
+      passenger_name: '',
+      category: 'student',
+      gender: 'male',
+      roll_number: '',
+      age: '',
+      bus_assignment: 'Bus 01',
+      seat_number: '',
+      room_sharing_number: '',
+      phone: '',
+      emergency_contact: ''
+    };
+  }
+
+  // Render Grid
+  function renderGrid() {
+    const tbody = document.getElementById('gridTbody');
+    tbody.innerHTML = '';
+
+    manifestRows.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      tr.dataset.index = idx;
+
+      tr.innerHTML = `
+        <td class="row-num">${idx + 1}</td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.passenger_name || '')}" placeholder="Full Name" onchange="updateRowField(${idx}, 'passenger_name', this.value)" data-col="0" data-row="${idx}">
+        </td>
+        <td>
+          <select class="grid-select" onchange="updateRowField(${idx}, 'category', this.value)" data-col="1" data-row="${idx}">
+            <option value="student" ${row.category === 'student' ? 'selected' : ''}>Student</option>
+            <option value="faculty" ${row.category === 'faculty' ? 'selected' : ''}>Faculty</option>
+          </select>
+        </td>
+        <td>
+          <select class="grid-select" onchange="updateRowField(${idx}, 'gender', this.value)" data-col="2" data-row="${idx}">
+            <option value="male" ${row.gender === 'male' ? 'selected' : ''}>Male</option>
+            <option value="female" ${row.gender === 'female' ? 'selected' : ''}>Female</option>
+            <option value="other" ${row.gender === 'other' ? 'selected' : ''}>Other</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.roll_number || '')}" placeholder="Roll / Reg No" onchange="updateRowField(${idx}, 'roll_number', this.value)" data-col="3" data-row="${idx}">
+        </td>
+        <td>
+          <input type="number" class="grid-input" value="${escapeHtml(row.age || '')}" placeholder="Age" min="1" max="99" onchange="updateRowField(${idx}, 'age', this.value)" data-col="4" data-row="${idx}">
+        </td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.bus_assignment || 'Bus 01')}" placeholder="Bus" onchange="updateRowField(${idx}, 'bus_assignment', this.value)" data-col="5" data-row="${idx}">
+        </td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.seat_number || '')}" placeholder="Seat" onchange="updateRowField(${idx}, 'seat_number', this.value)" data-col="6" data-row="${idx}">
+        </td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.room_sharing_number || '')}" placeholder="Room" onchange="updateRowField(${idx}, 'room_sharing_number', this.value)" data-col="7" data-row="${idx}">
+        </td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.phone || '')}" placeholder="9876543210" onchange="updateRowField(${idx}, 'phone', this.value)" data-col="8" data-row="${idx}">
+        </td>
+        <td>
+          <input type="text" class="grid-input" value="${escapeHtml(row.emergency_contact || '')}" placeholder="Parent Contact" onchange="updateRowField(${idx}, 'emergency_contact', this.value)" data-col="9" data-row="${idx}">
+        </td>
+        <td style="text-align: center;">
+          <button onclick="deleteRow(${idx})" class="text-slate-400 hover:text-red-500 font-bold px-2 py-1 rounded transition" title="Delete Row">&times;</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    updateKPIs();
+    attachKeyNavigation();
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function updateRowField(index, field, value) {
+    if (manifestRows[index]) {
+      manifestRows[index][field] = value;
+      updateKPIs();
+    }
+  }
+
+  function addNewRow() {
+    manifestRows.push(createEmptyRow());
+    renderGrid();
+    // Focus new row's first input
+    setTimeout(() => {
+      const lastInput = document.querySelector(`input[data-row="${manifestRows.length - 1}"][data-col="0"]`);
+      if (lastInput) lastInput.focus();
+    }, 50);
+  }
+
+  function deleteRow(index) {
+    if (manifestRows.length <= 1) {
+      manifestRows[0] = createEmptyRow();
+    } else {
+      manifestRows.splice(index, 1);
+    }
+    renderGrid();
+  }
+
+  function clearGrid() {
+    if (confirm('Clear all passenger rows from this spreadsheet grid?')) {
+      manifestRows = [createEmptyRow(), createEmptyRow(), createEmptyRow()];
+      renderGrid();
+    }
+  }
+
+  // Live KPI Calculations
+  function updateKPIs() {
+    let total = 0;
+    let males = 0;
+    let females = 0;
+    let faculty = 0;
+
+    manifestRows.forEach(r => {
+      if (r.passenger_name && r.passenger_name.trim()) {
+        total++;
+        if (r.category === 'faculty') {
+          faculty++;
+        } else {
+          if (r.gender === 'female') females++;
+          else males++;
+        }
+      }
+    });
+
+    const busesReq = total > 0 ? Math.ceil(total / 40) : 0;
+    // 4-sharing segregated by gender (male students / 4 + female students / 4 + faculty / 2)
+    const maleRooms = Math.ceil(males / 4);
+    const femaleRooms = Math.ceil(females / 4);
+    const facultyRooms = Math.ceil(faculty / 2);
+    const roomsReq = maleRooms + femaleRooms + facultyRooms;
+
+    document.getElementById('kpiTotalPax').textContent = total;
+    document.getElementById('kpiMaleCount').textContent = males;
+    document.getElementById('kpiFemaleCount').textContent = females;
+    document.getElementById('kpiFacultyCount').textContent = faculty;
+    document.getElementById('kpiBusesReq').textContent = busesReq;
+    document.getElementById('kpiRoomsReq').textContent = roomsReq;
+  }
+
+  // Auto-Assign Bus Seats Algorithm
+  function autoAssignBusSeats() {
+    let busNum = 1;
+    let seatNum = 1;
+    const seatsPerBus = 40;
+
+    // Faculty get seats 1 & 2 in Bus 1
+    const validRows = manifestRows.filter(r => r.passenger_name && r.passenger_name.trim());
+    if (validRows.length === 0) {
+      alert('Please add passenger names before running auto-allocation.');
+      return;
+    }
+
+    // Sort: faculty first, then students
+    validRows.sort((a, b) => {
+      if (a.category === 'faculty' && b.category !== 'faculty') return -1;
+      if (b.category === 'faculty' && a.category !== 'faculty') return 1;
+      return 0;
+    });
+
+    validRows.forEach((r) => {
+      r.bus_assignment = `Bus ${String(busNum).padStart(2, '0')}`;
+      r.seat_number = `S-${String(seatNum).padStart(2, '0')}`;
+      seatNum++;
+      if (seatNum > seatsPerBus) {
+        busNum++;
+        seatNum = 1;
+      }
+    });
+
+    renderGrid();
+    showToast(`Assigned ${validRows.length} passengers across ${busNum} coach bus(es)!`, 'success');
+  }
+
+  // Auto-Assign 4-Sharing Rooms Algorithm (Gender Segregated)
+  function autoAssignRooms() {
+    const validRows = manifestRows.filter(r => r.passenger_name && r.passenger_name.trim());
+    if (validRows.length === 0) {
+      alert('Please add passenger names before running room allocation.');
+      return;
+    }
+
+    // Segregate by Faculty, Boys, Girls
+    const faculties = validRows.filter(r => r.category === 'faculty');
+    const boys = validRows.filter(r => r.category !== 'faculty' && r.gender !== 'female');
+    const girls = validRows.filter(r => r.category !== 'faculty' && r.gender === 'female');
+
+    // Assign faculty 2-sharing rooms
+    let facRoomNum = 1;
+    faculties.forEach((f, idx) => {
+      f.room_sharing_number = `FAC-${String(facRoomNum).padStart(2, '0')}`;
+      if ((idx + 1) % 2 === 0) facRoomNum++;
+    });
+
+    // Assign boys 4-sharing rooms (B-101, B-102...)
+    let boyRoomBase = 101;
+    boys.forEach((b, idx) => {
+      b.room_sharing_number = `B-${boyRoomBase}`;
+      if ((idx + 1) % 4 === 0) boyRoomBase++;
+    });
+
+    // Assign girls 4-sharing rooms (G-201, G-202...)
+    let girlRoomBase = 201;
+    girls.forEach((g, idx) => {
+      g.room_sharing_number = `G-${girlRoomBase}`;
+      if ((idx + 1) % 4 === 0) girlRoomBase++;
+    });
+
+    renderGrid();
+    showToast(`Allocated rooms: ${Math.ceil(boys.length/4)} Boys rooms, ${Math.ceil(girls.length/4)} Girls rooms, ${Math.ceil(faculties.length/2)} Staff rooms!`, 'success');
+  }
+
+  // Load Realistic College IV Class (18 pax sample)
+  function loadSampleCollegeClass() {
+    const sample = [
+      { passenger_name: 'Dr. S. Sundararajan', category: 'faculty', gender: 'male', roll_number: 'FAC-MECH-01', age: 48, bus_assignment: 'Bus 01', seat_number: 'S-01', room_sharing_number: 'FAC-01', phone: '9842109811', emergency_contact: '9443211234' },
+      { passenger_name: 'Prof. K. Menaka', category: 'faculty', gender: 'female', roll_number: 'FAC-MECH-02', age: 42, bus_assignment: 'Bus 01', seat_number: 'S-02', room_sharing_number: 'FAC-01', phone: '9789123450', emergency_contact: '9840192837' },
+      { passenger_name: 'Aakash Ramasamy', category: 'student', gender: 'male', roll_number: '21ME001', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-03', room_sharing_number: 'B-101', phone: '9443219871', emergency_contact: '9443200001' },
+      { passenger_name: 'Balaji Natarajan', category: 'student', gender: 'male', roll_number: '21ME002', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-04', room_sharing_number: 'B-101', phone: '9443219872', emergency_contact: '9443200002' },
+      { passenger_name: 'Chiranjeevi Kumar', category: 'student', gender: 'male', roll_number: '21ME003', age: 21, bus_assignment: 'Bus 01', seat_number: 'S-05', room_sharing_number: 'B-101', phone: '9443219873', emergency_contact: '9443200003' },
+      { passenger_name: 'Dhanush Saravanan', category: 'student', gender: 'male', roll_number: '21ME004', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-06', room_sharing_number: 'B-101', phone: '9443219874', emergency_contact: '9443200004' },
+      { passenger_name: 'Ezhil Nilavan', category: 'student', gender: 'male', roll_number: '21ME005', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-07', room_sharing_number: 'B-102', phone: '9443219875', emergency_contact: '9443200005' },
+      { passenger_name: 'Fayaz Ahmed', category: 'student', gender: 'male', roll_number: '21ME006', age: 21, bus_assignment: 'Bus 01', seat_number: 'S-08', room_sharing_number: 'B-102', phone: '9443219876', emergency_contact: '9443200006' },
+      { passenger_name: 'Gowtham Prabhu', category: 'student', gender: 'male', roll_number: '21ME007', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-09', room_sharing_number: 'B-102', phone: '9443219877', emergency_contact: '9443200007' },
+      { passenger_name: 'Hariharan Velu', category: 'student', gender: 'male', roll_number: '21ME008', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-10', room_sharing_number: 'B-102', phone: '9443219878', emergency_contact: '9443200008' },
+      { passenger_name: 'Deepika Subramanian', category: 'student', gender: 'female', roll_number: '21ME009', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-11', room_sharing_number: 'G-201', phone: '9443219879', emergency_contact: '9443200009' },
+      { passenger_name: 'Divya Bharathi', category: 'student', gender: 'female', roll_number: '21ME010', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-12', room_sharing_number: 'G-201', phone: '9443219880', emergency_contact: '9443200010' },
+      { passenger_name: 'Gayathri Krishnan', category: 'student', gender: 'female', roll_number: '21ME011', age: 21, bus_assignment: 'Bus 01', seat_number: 'S-13', room_sharing_number: 'G-201', phone: '9443219881', emergency_contact: '9443200011' },
+      { passenger_name: 'Harini Mohan', category: 'student', gender: 'female', roll_number: '21ME012', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-14', room_sharing_number: 'G-201', phone: '9443219882', emergency_contact: '9443200012' },
+      { passenger_name: 'Janani Parthiban', category: 'student', gender: 'female', roll_number: '21ME013', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-15', room_sharing_number: 'G-202', phone: '9443219883', emergency_contact: '9443200013' },
+      { passenger_name: 'Kavitha Sekar', category: 'student', gender: 'female', roll_number: '21ME014', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-16', room_sharing_number: 'G-202', phone: '9443219884', emergency_contact: '9443200014' },
+      { passenger_name: 'Lakshmi Priya', category: 'student', gender: 'female', roll_number: '21ME015', age: 21, bus_assignment: 'Bus 01', seat_number: 'S-17', room_sharing_number: 'G-202', phone: '9443219885', emergency_contact: '9443200015' },
+      { passenger_name: 'Monisha Kannan', category: 'student', gender: 'female', roll_number: '21ME016', age: 20, bus_assignment: 'Bus 01', seat_number: 'S-18', room_sharing_number: 'G-202', phone: '9443219886', emergency_contact: '9443200016' }
+    ];
+
+    manifestRows = sample;
+    renderGrid();
+    showToast('Loaded 18-Pax Sample Mechanical IV Manifest!', 'info');
+  }
+
+  // Keyboard Navigation (Tab, Enter, Arrows)
+  function attachKeyNavigation() {
+    const inputs = document.querySelectorAll('.grid-input, .grid-select');
+    inputs.forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        const curRow = parseInt(input.dataset.row);
+        const curCol = parseInt(input.dataset.col);
+
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          // Move to same column next row, or add new row if on last row
+          if (curRow === manifestRows.length - 1) {
+            addNewRow();
+          } else {
+            const nextElem = document.querySelector(`[data-row="${curRow + 1}"][data-col="${curCol}"]`);
+            if (nextElem) nextElem.focus();
+          }
+        }
+      });
+    });
+  }
+
+  // Excel / Sheets Direct Paste Processing
+  window.addEventListener('paste', (e) => {
+    // If target is inside paste modal textarea, let default handle
+    if (e.target.id === 'pasteTextarea') return;
+
+    const clipboardData = e.clipboardData || window.clipboardData;
+    if (!clipboardData) return;
+    const pastedText = clipboardData.getData('Text');
+
+    if (pastedText && pastedText.includes('\t')) {
+      e.preventDefault();
+      parseTSVData(pastedText, false);
+    }
+  });
+
+  function openPasteModal() {
+    document.getElementById('pasteModal').classList.remove('hidden');
+    document.getElementById('pasteTextarea').focus();
+  }
+
+  function closePasteModal() {
+    document.getElementById('pasteModal').classList.add('hidden');
+    document.getElementById('pasteTextarea').value = '';
+  }
+
+  function processBulkPaste() {
+    const text = document.getElementById('pasteTextarea').value;
+    const replace = document.getElementById('chkReplaceAll').checked;
+    if (!text.trim()) {
+      alert('Please paste some data first.');
+      return;
+    }
+    parseTSVData(text, replace);
+    closePasteModal();
+  }
+
+  function parseTSVData(rawText, replaceAll) {
+    const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    const parsedRows = [];
+
+    lines.forEach(line => {
+      // Split by tab or multiple spaces if tab isn't present
+      const parts = line.includes('\t') ? line.split('\t') : line.split(/  +/);
+      if (parts.length > 0 && parts[0].trim()) {
+        const pName = parts[0] ? parts[0].trim() : '';
+        // Skip header lines like "Passenger Name", "#", "Name"
+        if (/^(name|passenger|sno|#|sl\.no)/i.test(pName)) return;
+
+        let cat = 'student';
+        let gender = 'male';
+        let roll = '';
+        let age = '';
+        let bus = 'Bus 01';
+        let seat = '';
+        let room = '';
+        let phone = '';
+        let emergency = '';
+
+        if (parts[1]) {
+          const c = parts[1].toLowerCase().trim();
+          if (c.includes('fac') || c.includes('staff')) cat = 'faculty';
+          else if (c.includes('stud')) cat = 'student';
+          else roll = parts[1].trim(); // If 2nd col was roll no
+        }
+
+        if (parts[2]) {
+          const g = parts[2].toLowerCase().trim();
+          if (g === 'f' || g === 'female' || g === 'girl') gender = 'female';
+          else if (g === 'm' || g === 'male' || g === 'boy') gender = 'male';
+          else if (!roll) roll = parts[2].trim();
+        }
+
+        if (parts[3] && !roll) roll = parts[3].trim();
+        if (parts[4] && /^\d+$/.test(parts[4].trim())) age = parts[4].trim();
+        if (parts[5]) phone = parts[5].trim();
+        if (parts[6]) emergency = parts[6].trim();
+
+        parsedRows.push({
+          passenger_name: pName,
+          category: cat,
+          gender: gender,
+          roll_number: roll,
+          age: age,
+          bus_assignment: bus,
+          seat_number: seat,
+          room_sharing_number: room,
+          phone: phone,
+          emergency_contact: emergency
+        });
+      }
+    });
+
+    if (parsedRows.length > 0) {
+      if (replaceAll) {
+        manifestRows = parsedRows;
+      } else {
+        // filter out blank rows if any
+        manifestRows = manifestRows.filter(r => r.passenger_name && r.passenger_name.trim());
+        manifestRows = manifestRows.concat(parsedRows);
+      }
+      renderGrid();
+      showToast(`Successfully imported ${parsedRows.length} passenger rows!`, 'success');
+    }
+  }
+
+  // Save to Server via AJAX
+  async function saveManifestToServer() {
+    if (!expeditionId) {
+      alert('Please select an active College IV Expedition first.');
+      return;
+    }
+
+    const validRows = manifestRows.filter(r => r.passenger_name && r.passenger_name.trim());
+    if (validRows.length === 0) {
+      alert('Spreadsheet is empty. Add at least one passenger before saving.');
+      return;
+    }
+
+    const btn = document.getElementById('btnSaveManifest');
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+      Saving...
+    `;
+
+    try {
+      const response = await fetch('/packages/api/manifest-grid/save/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: JSON.stringify({
+          expedition_id: expeditionId,
+          rows: validRows
+        })
+      });
+
+      const res = await response.json();
+      if (res.status === 'success') {
+        showToast(res.message, 'success');
+        document.getElementById('syncStatusNotice').innerHTML = `
+          Last synced: <span class="text-emerald-500 font-semibold">${new Date().toLocaleTimeString()}</span> (${res.count} pax saved)
+        `;
+      } else {
+        alert('Error: ' + res.message);
+      }
+    } catch (err) {
+      alert('Network Error while saving manifest: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+        </svg>
+        Save &amp; Sync Manifest
+      `;
+    }
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function showToast(msg, type = 'info') {
+    const toast = document.createElement('div');
+    const bgCol = type === 'success' ? 'bg-emerald-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
+    toast.className = `fixed bottom-5 right-5 z-50 ${bgCol} text-white px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300`;
+    toast.innerHTML = `
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span>${msg}</span>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  // Initial render
+  document.addEventListener('DOMContentLoaded', () => {
+    renderGrid();
+  });
+</script>
+{% endblock %}
