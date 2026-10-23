@@ -3730,7 +3730,7 @@ def border_permit_studio_view(request):
     if not InterstateBorderPermit.objects.exists():
         issue_sample_interstate_permits()
 
-    permits = InterstateBorderPermit.objects.select_related('vehicle', 'trip', 'driver').order_by('-created_at')[:50]
+    permits = InterstateBorderPermit.objects.select_related('vehicle', 'trip').order_by('-created_at')[:50]
     
     # Audit recent outstation trips
     recent_trips = Trip.objects.select_related('vehicle', 'driver', 'booking').filter(

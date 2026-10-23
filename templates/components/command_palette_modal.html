@@ -43,6 +43,22 @@
         <i class="fa-solid fa-road-barrier" style="color: #8b5cf6;"></i>
         <span>🛣️ FASTag Toll Reconciler</span>
       </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('border_permits')">
+        <i class="fa-solid fa-shield-halved" style="color: #10b981;"></i>
+        <span>🛂 Border Permits Sentry</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('fatigue_sentry')">
+        <i class="fa-solid fa-bed" style="color: #f43f5e;"></i>
+        <span>😴 Chauffeur Fatigue Sentry</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('vendor_audit')">
+        <i class="fa-solid fa-receipt" style="color: #f59e0b;"></i>
+        <span>📑 Vendor Bill Auditor</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('feedback_reviews')">
+        <i class="fa-solid fa-star" style="color: #eab308;"></i>
+        <span>⭐ Feedback &amp; Reviews</span>
+      </div>
     </div>
 
 
@@ -359,6 +375,14 @@
       window.location.href = '/packages/manifest-grid/';
     } else if (action === 'fastag_reconcile') {
       window.location.href = '/finance/fastag-reconciliation/';
+    } else if (action === 'border_permits') {
+      window.location.href = '/operations/border-permits/';
+    } else if (action === 'fatigue_sentry') {
+      window.location.href = '/operations/driver-fatigue-sentry/';
+    } else if (action === 'vendor_audit') {
+      window.location.href = '/suppliers/vendor-bill-audit/';
+    } else if (action === 'feedback_reviews') {
+      window.location.href = '/crm/feedback-reviews/';
     }
   }
 

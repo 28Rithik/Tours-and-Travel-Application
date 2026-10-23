@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Post-Trip Customer Feedback &amp; Google Review Engine | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .feedback-card {
+    background: var(--surface-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .feedback-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-amber-950 to-orange-950 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Post-Trip Customer Feedback &amp; Google Review Engine</h1>
+          <p class="text-xs text-amber-200">Promoter-to-Google Review Conversion &bull; Net Promoter Score (NPS) &bull; Detractor Quality Escalation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="switchTab('trips')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-xs font-semibold rounded-xl shadow-lg shadow-amber-500/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+        </svg>
+        <span>Send WhatsApp Feedback Link</span>
+      </button>
+
+      <button onclick="seedFeedbackData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Sync Feedback Telemetry</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- NPS Score -->
+    <div class="feedback-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Net Promoter Score (NPS)</div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">+{{ metrics.nps_score }}</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">Excellent customer loyalty</div>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Average Fleet Rating -->
+    <div class="feedback-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Average Chauffeur &amp; Fleet Rating</div>
+          <div class="text-2xl font-bold text-amber-500 mt-1">{{ metrics.avg_rating }} ★</div>
+          <div class="text-[11px] text-slate-500 font-medium mt-1">{{ metrics.total_feedback }} verified guest reviews</div>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/50 text-amber-500 rounded-xl">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Google Review Conversions -->
+    <div class="feedback-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Google Review Conversions</div>
+          <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ metrics.google_clicked_count }} / {{ metrics.google_prompted_count }}</div>
+          <div class="text-[11px] text-blue-600 dark:text-blue-400 font-medium mt-1">{{ metrics.google_conversion_rate }}% conversion rate</div>
+        </div>
+        <div class="p-3 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detractor Complaints Escalated -->
+    <div class="feedback-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Detractor Quality Escalations</div>
+          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ metrics.complaints_escalated_count }}</div>
+          <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">Auto-assigned CRM complaints</div>
+        </div>
+        <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="border-b border-slate-200 dark:border-slate-800">
+    <nav class="flex space-x-6">
+      <button id="tabBtnReviews" onclick="switchTab('reviews')" class="pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400">
+        Live Verified Feedback Ledger ({{ feedbacks|length }})
+      </button>
+      <button id="tabBtnTrips" onclick="switchTab('trips')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+        Dispatch Review Links for Completed Trips ({{ recent_trips|length }})
+      </button>
+    </nav>
+  </div>
+
+  <!-- TAB 1: Live Verified Feedback Ledger -->
+  <div id="tabReviews" class="space-y-4">
+    <div class="feedback-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Customer Ratings &amp; Promoter Conversion Stream</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Real-time ratings across chauffeur conduct, cleanliness, AC, and automated Google Business routing</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Guest &amp; Phone</th>
+              <th class="py-3 px-4">Trip #</th>
+              <th class="py-3 px-4">Overall Score</th>
+              <th class="py-3 px-4">Sub-Ratings (Driver/Cab/AC)</th>
+              <th class="py-3 px-4">Customer Highlight Tags</th>
+              <th class="py-3 px-4">Written Feedback</th>
+              <th class="py-3 px-4">Google Review</th>
+              <th class="py-3 px-4 text-right">Escalation Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for fb in feedbacks %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+                <div>{{ fb.customer_name }}</div>
+                <div class="text-[11px] text-slate-400 font-normal">{{ fb.customer_phone|default:"Phone on file" }}</div>
+              </td>
+              <td class="py-3.5 px-4 font-mono font-medium text-slate-700 dark:text-slate-300">
+                #{{ fb.trip.trip_id }}
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center gap-1 font-bold text-xs {% if fb.overall_rating >= 4 %}text-amber-500{% elif fb.overall_rating == 3 %}text-blue-500{% else %}text-rose-600{% endif %}">
+                  {{ fb.overall_rating }} ★
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-[11px] text-slate-600 dark:text-slate-400">
+                <div>Chauffeur: <b class="text-slate-800 dark:text-slate-200">{{ fb.driver_politeness_rating }}★</b></div>
+                <div>Vehicle: <b class="text-slate-800 dark:text-slate-200">{{ fb.vehicle_cleanliness_rating }}★</b></div>
+                <div>AC/Time: <b class="text-slate-800 dark:text-slate-200">{{ fb.ac_punctuality_rating }}★</b></div>
+              </td>
+              <td class="py-3.5 px-4 max-w-xs">
+                {% if fb.positive_tags %}
+                  <div class="flex flex-wrap gap-1">
+                    {% for tag in fb.positive_tags.split %}
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50">
+                        {{ tag }}
+                      </span>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <span class="text-slate-400">—</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 max-w-xs truncate text-slate-600 dark:text-slate-400" title="{{ fb.feedback_text }}">
+                {{ fb.feedback_text|default:"No written comments" }}
+              </td>
+              <td class="py-3.5 px-4">
+                {% if fb.google_review_clicked %}
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                    <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                    Posted Review
+                  </span>
+                {% elif fb.google_review_prompted %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    Prompted
+                  </span>
+                {% else %}
+                  <span class="text-slate-400">N/A</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                {% if fb.complaint_escalated %}
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                    <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    CRM Ticket Open
+                  </span>
+                {% else %}
+                  <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Satisfied (Promoter)</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-8 text-slate-400">No feedback submitted yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Dispatch Review Links for Completed Trips -->
+  <div id="tabTrips" class="space-y-4 hidden">
+    <div class="feedback-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Recent Completed Outstation &amp; Corporate Trips</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">1-click WhatsApp customer feedback invitation generator</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Trip #</th>
+              <th class="py-3 px-4">Guest Name</th>
+              <th class="py-3 px-4">Completed Date</th>
+              <th class="py-3 px-4">Vehicle &amp; Chauffeur</th>
+              <th class="py-3 px-4">Route Details</th>
+              <th class="py-3 px-4 text-right">Dispatch Feedback Link</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for t in recent_trips %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                #{{ t.trip_id }}
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+                {{ t.guest_name|default:"Corporate Passenger" }}
+              </td>
+              <td class="py-3.5 px-4 text-slate-500">
+                {{ t.end_date|date:"d M Y" }}
+              </td>
+              <td class="py-3.5 px-4 text-slate-600 dark:text-slate-400">
+                <div>{{ t.vehicle.registration_number|default:"Fleet Car" }}</div>
+                <div class="text-[11px] text-slate-400">{{ t.driver.name|default:"Chauffeur" }}</div>
+              </td>
+              <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">
+                {% if t.booking %}
+                  {{ t.booking.pickup_location }} ➔ {{ t.booking.destination }}
+                {% elif t.package %}
+                  {{ t.package.title }}
+                {% else %}
+                  {{ t.notes|default:"Outstation Route" }}
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <button onclick="generateFeedbackInvite({{ t.id }})" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                  <span>Generate Link</span>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-8 text-slate-400">No recent completed trips found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: WhatsApp Feedback Link Preview & Dispatch -->
+<div id="inviteModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="px-6 py-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        <h3 class="text-lg font-bold">Post-Trip Feedback Link Ready</h3>
+      </div>
+      <button onclick="closeInviteModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+    </div>
+
+    <div class="p-6 space-y-4 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Guest Review Portal Link</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="inviteUrl" readonly class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-[11px]">
+          <button onclick="copyInviteUrl()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition">
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">WhatsApp Customer Message</label>
+        <textarea id="inviteWaText" rows="6" readonly class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-sans text-xs"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+        <a id="btnTestPortal" href="#" target="_blank" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
+          Open Guest Page ↗
+        </a>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="closeInviteModal()" class="px-4 py-2 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Close</button>
+          <a id="btnSendWhatsApp" href="#" target="_blank" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5">
+            <span>Send on WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tabKey) {
+    document.getElementById('tabReviews').classList.add('hidden');
+    document.getElementById('tabTrips').classList.add('hidden');
+
+    document.getElementById('tabBtnReviews').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+    document.getElementById('tabBtnTrips').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+
+    if (tabKey === 'reviews') {
+      document.getElementById('tabReviews').classList.remove('hidden');
+      document.getElementById('tabBtnReviews').className = "pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400";
+    } else if (tabKey === 'trips') {
+      document.getElementById('tabTrips').classList.remove('hidden');
+      document.getElementById('tabBtnTrips').className = "pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400";
+    }
+  }
+
+  function generateFeedbackInvite(tripId) {
+    fetch('/api/crm/feedback/generate-token/' + tripId + '/', { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          document.getElementById('inviteUrl').value = res.full_url;
+          document.getElementById('inviteWaText').value = res.whatsapp_message;
+          document.getElementById('btnTestPortal').href = res.guest_url;
+
+          let cleanPhone = (res.guest_phone || '').replace(/\D/g, '');
+          if (cleanPhone.length === 10) cleanPhone = '91' + cleanPhone;
+          document.getElementById('btnSendWhatsApp').href = 'https://api.whatsapp.com/send?phone=' + cleanPhone + '&text=' + encodeURIComponent(res.whatsapp_message);
+
+          document.getElementById('inviteModal').classList.remove('hidden');
+        } else {
+          alert('Error generating feedback link');
+        }
+      });
+  }
+
+  function closeInviteModal() {
+    document.getElementById('inviteModal').classList.add('hidden');
+  }
+
+  function copyInviteUrl() {
+    const copyText = document.getElementById('inviteUrl');
+    copyText.select();
+    navigator.clipboard.writeText(copyText.value);
+    alert('Guest feedback link copied to clipboard!');
+  }
+
+  function seedFeedbackData() {
+    fetch('/api/crm/feedback/seed/', { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        alert('Seeded realistic feedback and NPS records!');
+        window.location.reload();
+      });
+  }
+</script>
+{% endblock %}

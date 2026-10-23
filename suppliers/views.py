@@ -334,15 +334,16 @@ def vendor_bill_audit_studio_view(request):
     if not OutsourcedTripSettlement.objects.exists():
         seed_sample_vendor_settlements()
 
-    settlements = OutsourcedTripSettlement.objects.select_related(
+    settlements_qs = OutsourcedTripSettlement.objects.select_related(
         'supplier', 'vehicle', 'trip'
-    ).order_by('-settlement_date', '-id')[:40]
+    ).order_by('-settlement_date', '-id')
 
     # Metrics
-    total_audited = settlements.count()
+    total_audited = settlements_qs.count()
+    flagged_count = settlements_qs.filter(status='draft').count()
+    settlements = list(settlements_qs[:40])
     total_savings = sum(s.gross_margin_earned for s in settlements if s.gross_margin_earned)
     total_disbursed = sum(s.net_payable_amount for s in settlements if s.net_payable_amount)
-    flagged_count = settlements.filter(status='draft').count()
 
     context = {
         'title': 'Market Fleet Vendor Bill Auditor & Reconciliation Studio',

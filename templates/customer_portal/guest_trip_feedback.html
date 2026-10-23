@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rate Your Journey | Sivagayathiri Travels &amp; Tours</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #090d16;
+      color: #f8fafc;
+    }
+    .star-btn {
+      transition: all 0.15s ease-in-out;
+      cursor: pointer;
+    }
+    .star-btn:hover, .star-btn.active {
+      color: #f59e0b;
+      transform: scale(1.15);
+    }
+    .chip-tag {
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .chip-tag.selected {
+      background: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 flex flex-col justify-between p-4 sm:p-6 antialiased selection:bg-amber-500 selection:text-white">
+
+  <div class="max-w-md w-full mx-auto my-auto space-y-6">
+
+    <!-- Brand Header -->
+    <div class="text-center space-y-2">
+      <div class="inline-flex p-3 bg-gradient-to-tr from-amber-500 to-orange-600 rounded-2xl shadow-xl shadow-amber-500/20 mb-1">
+        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+        </svg>
+      </div>
+      <h1 class="text-xl font-extrabold tracking-tight text-white">SIVAGAYATHIRI TRAVELS</h1>
+      <p class="text-xs text-slate-400">South India Premier Fleet &bull; Outstation &amp; Corporate Logistics</p>
+    </div>
+
+    <!-- Feedback Card -->
+    <div id="feedbackFormCard" class="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-5">
+      
+      <!-- Trip Details Header -->
+      <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 flex items-center justify-between">
+        <div class="space-y-0.5">
+          <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Trip Duty Slip</div>
+          <div class="text-sm font-bold text-white">#{{ trip.trip_id }}</div>
+          <div class="text-xs text-slate-300">
+            {% if trip.booking %}
+              {{ trip.booking.pickup_location }} ➔ {{ trip.booking.destination }}
+            {% elif trip.package %}
+              {{ trip.package.title }}
+            {% else %}
+              Outstation Travel
+            {% endif %}
+          </div>
+        </div>
+        <div class="text-right space-y-0.5">
+          <div class="text-[10px] text-slate-400">Chauffeur</div>
+          <div class="text-xs font-semibold text-amber-400">{{ trip.driver.name|default:"Assigned Chauffeur" }}</div>
+          <div class="text-[10px] font-mono text-slate-400">{{ trip.vehicle.registration_number|default:"Fleet Vehicle" }}</div>
+        </div>
+      </div>
+
+      <!-- Overall Rating Stars -->
+      <div class="text-center space-y-2 py-2">
+        <label class="block text-sm font-bold text-white">How was your overall experience?</label>
+        <div class="flex justify-center items-center gap-3 text-3xl text-slate-600" id="overallStars">
+          <button type="button" class="star-btn" onclick="setRating('overall', 1)">★</button>
+          <button type="button" class="star-btn" onclick="setRating('overall', 2)">★</button>
+          <button type="button" class="star-btn" onclick="setRating('overall', 3)">★</button>
+          <button type="button" class="star-btn" onclick="setRating('overall', 4)">★</button>
+          <button type="button" class="star-btn active" onclick="setRating('overall', 5)">★</button>
+        </div>
+        <div id="overallRatingLabel" class="text-xs font-bold text-amber-400 tracking-wide">Excellent (5 / 5)</div>
+      </div>
+
+      <!-- Detailed Aspect Ratings -->
+      <div class="space-y-3 pt-2 border-t border-slate-800 text-xs">
+        <!-- Chauffeur Politeness -->
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300 font-medium">Chauffeur Politeness &amp; Safety:</span>
+          <div class="flex gap-1 text-lg text-slate-600" id="driverStars">
+            <button type="button" class="star-btn" onclick="setRating('driver', 1)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('driver', 2)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('driver', 3)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('driver', 4)">★</button>
+            <button type="button" class="star-btn active" onclick="setRating('driver', 5)">★</button>
+          </div>
+        </div>
+
+        <!-- Vehicle Cleanliness -->
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300 font-medium">Vehicle Cleanliness &amp; Comfort:</span>
+          <div class="flex gap-1 text-lg text-slate-600" id="cleanlinessStars">
+            <button type="button" class="star-btn" onclick="setRating('cleanliness', 1)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('cleanliness', 2)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('cleanliness', 3)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('cleanliness', 4)">★</button>
+            <button type="button" class="star-btn active" onclick="setRating('cleanliness', 5)">★</button>
+          </div>
+        </div>
+
+        <!-- AC & Punctuality -->
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300 font-medium">AC Cooling &amp; Punctuality:</span>
+          <div class="flex gap-1 text-lg text-slate-600" id="punctualityStars">
+            <button type="button" class="star-btn" onclick="setRating('punctuality', 1)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('punctuality', 2)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('punctuality', 3)">★</button>
+            <button type="button" class="star-btn" onclick="setRating('punctuality', 4)">★</button>
+            <button type="button" class="star-btn active" onclick="setRating('punctuality', 5)">★</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Compliment Tag Chips -->
+      <div class="space-y-2 pt-2 border-t border-slate-800">
+        <label class="block text-xs font-semibold text-slate-300">What did you appreciate the most?</label>
+        <div class="flex flex-wrap gap-2 text-xs">
+          <span class="chip-tag selected px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300" onclick="toggleChip(this)">Polite Chauffeur</span>
+          <span class="chip-tag selected px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300" onclick="toggleChip(this)">Clean AC Vehicle</span>
+          <span class="chip-tag selected px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300" onclick="toggleChip(this)">On-Time Service</span>
+          <span class="chip-tag px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300" onclick="toggleChip(this)">Smooth Mountain Driving</span>
+          <span class="chip-tag px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300" onclick="toggleChip(this)">Helpful with Luggage</span>
+        </div>
+      </div>
+
+      <!-- Written Comments -->
+      <div class="space-y-1.5 pt-2 border-t border-slate-800">
+        <label class="block text-xs font-semibold text-slate-300">Additional Comments / Remarks</label>
+        <textarea id="guestComments" rows="3" placeholder="Tell us about your trip experience..." class="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-800/80 text-white placeholder-slate-500 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+      </div>
+
+      <!-- Submit Button -->
+      <button onclick="submitFeedback()" class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-bold rounded-2xl shadow-xl shadow-amber-500/20 text-sm transition transform active:scale-95">
+        Submit Feedback
+      </button>
+
+    </div>
+
+    <!-- Promoter Result Card (4-5 Stars Google Review Conversion) -->
+    <div id="promoterCard" class="hidden bg-slate-900 border-2 border-emerald-500 rounded-3xl p-6 shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      <div class="inline-flex p-3 bg-emerald-500/20 text-emerald-400 rounded-full mb-1">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-white">Thank You for the 5-Star Rating! 🎉</h2>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        We are thrilled that you had a wonderful journey with Sivagayathiri Travels! Could you help other travelers discover our chauffeur services by sharing this on Google?
+      </p>
+
+      <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 text-left space-y-2">
+        <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Suggested Review Draft</div>
+        <p id="suggestedReviewText" class="text-xs text-slate-200 font-sans italic"></p>
+        <button onclick="copyReviewDraft()" class="text-[11px] text-amber-400 font-semibold hover:underline flex items-center gap-1">
+          <span>📋 Copy Review Text</span>
+        </button>
+      </div>
+
+      <a id="btnGoogleReview" href="{{ google_url }}" target="_blank" onclick="trackGoogleClick()" class="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl shadow-xl shadow-blue-600/30 text-sm transition">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"/>
+        </svg>
+        <span>Post to Google Business Reviews</span>
+      </a>
+
+      <p class="text-[10px] text-slate-500">Your review helps our local chauffeur team directly.</p>
+    </div>
+
+    <!-- Detractor Result Card (1-3 Stars Escalation to CRM) -->
+    <div id="detractorCard" class="hidden bg-slate-900 border-2 border-rose-500 rounded-3xl p-6 shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+      <div class="inline-flex p-3 bg-rose-500/20 text-rose-400 rounded-full mb-1">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+      </div>
+      <h2 class="text-xl font-bold text-white">We Sincerely Apologize</h2>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Your travel experience did not meet our high gold standard. We take this very seriously and are escalating this directly to our central operations management team.
+      </p>
+
+      <div class="bg-rose-950/40 p-4 rounded-2xl border border-rose-800 text-left space-y-1">
+        <div class="text-[10px] uppercase font-bold text-rose-400 tracking-wider">Escalation Ticket Registered</div>
+        <div id="dispComplaintNumber" class="text-sm font-mono font-bold text-white">#TICKET-IN-PROGRESS</div>
+        <p class="text-[11px] text-rose-200">
+          Our Senior Operations Manager will personally review this incident and contact you on your registered phone within <b>2 hours</b>.
+        </p>
+      </div>
+
+      <p class="text-xs text-slate-400">
+        Helpline: <a href="tel:+919842100000" class="text-amber-400 font-semibold">+91 98421 00000</a> (24x7 Control Room)
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-[10px] text-slate-600">
+      &copy; 2026 Sivagayathiri Tours &amp; Travels &bull; Tamil Nadu &bull; South India
+    </div>
+
+  </div>
+
+  <script>
+    const token = "{{ token }}";
+    let ratings = {
+      overall: 5,
+      driver: 5,
+      cleanliness: 5,
+      punctuality: 5
+    };
+
+    function setRating(aspect, val) {
+      ratings[aspect] = val;
+      const container = document.getElementById(aspect + 'Stars');
+      const stars = container.querySelectorAll('.star-btn');
+      stars.forEach((s, idx) => {
+        if (idx < val) {
+          s.classList.add('active');
+          s.style.color = '#f59e0b';
+        } else {
+          s.classList.remove('active');
+          s.style.color = '#475569';
+        }
+      });
+
+      if (aspect === 'overall') {
+        const labels = ['', 'Poor (1 / 5)', 'Fair (2 / 5)', 'Average (3 / 5)', 'Very Good (4 / 5)', 'Excellent (5 / 5)'];
+        document.getElementById('overallRatingLabel').textContent = labels[val];
+      }
+    }
+
+    function toggleChip(el) {
+      el.classList.toggle('selected');
+    }
+
+    function submitFeedback() {
+      const selectedChips = [];
+      document.querySelectorAll('.chip-tag.selected').forEach(c => selectedChips.push(c.textContent.trim()));
+
+      const payload = {
+        token: token,
+        overall_rating: ratings.overall,
+        driver_rating: ratings.driver,
+        cleanliness_rating: ratings.cleanliness,
+        punctuality_rating: ratings.punctuality,
+        tags: selectedChips,
+        feedback_text: document.getElementById('guestComments').value,
+      };
+
+      fetch('/api/crm/feedback/submit/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          document.getElementById('feedbackFormCard').classList.add('hidden');
+          if (res.is_promoter) {
+            document.getElementById('suggestedReviewText').textContent = res.prefilled_review;
+            document.getElementById('promoterCard').classList.remove('hidden');
+          } else {
+            document.getElementById('dispComplaintNumber').textContent = '#' + (res.complaint_number || 'ESC-2026-901');
+            document.getElementById('detractorCard').classList.remove('hidden');
+          }
+        } else {
+          alert('Error: ' + res.message);
+        }
+      })
+      .catch(err => {
+        alert('Network error submitting review');
+      });
+    }
+
+    function copyReviewDraft() {
+      const txt = document.getElementById('suggestedReviewText').textContent;
+      navigator.clipboard.writeText(txt);
+      alert('Review text copied to clipboard! Paste it into Google Reviews.');
+    }
+
+    function trackGoogleClick() {
+      fetch('/api/crm/feedback/google-clicked/' + token + '/', { method: 'POST' });
+    }
+
+    // Initialize stars on load
+    document.addEventListener('DOMContentLoaded', () => {
+      setRating('overall', 5);
+      setRating('driver', 5);
+      setRating('cleanliness', 5);
+      setRating('punctuality', 5);
+    });
+  </script>
+</body>
+</html>

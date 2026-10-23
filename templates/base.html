@@ -557,6 +557,12 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'operations-rathasarathi-ai' or request.resolver_match.url_name == 'admin-rathasarathi-copilot-studio' %}is-active{% endif %}" href="{% url 'operations-rathasarathi-ai' %}" style="color: #0284c7; font-weight: 700;">
           <i class="fa-solid fa-dharmachakra nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Rathasārathi AI Copilot
         </a>
+        <a class="nav-link {% if 'border-permits' in request.path %}is-active{% endif %}" href="/operations/border-permits/">
+          <i class="fa-solid fa-shield-halved nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #10b981;"></i> Border Permits Sentry
+        </a>
+        <a class="nav-link {% if 'driver-fatigue-sentry' in request.path %}is-active{% endif %}" href="/operations/driver-fatigue-sentry/">
+          <i class="fa-solid fa-bed nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f43f5e;"></i> Chauffeur Fatigue Sentry
+        </a>
 
         <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
         {% if is_fleet_manager or is_workshop or is_superuser %}
@@ -652,6 +658,9 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'complaint_list' %}is-active{% endif %}" href="{% url 'crm:complaint_list' %}">
           <i class="fa-solid fa-triangle-exclamation nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Quality &amp; Grievances
         </a>
+        <a class="nav-link {% if 'feedback-reviews' in request.path %}is-active{% endif %}" href="/crm/feedback-reviews/">
+          <i class="fa-solid fa-star nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Customer Reviews &amp; NPS
+        </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">
           <i class="fa-solid fa-chart-pie nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> DMC Reports
         </a>
@@ -693,6 +702,9 @@
         </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">
           <i class="fa-solid fa-clock-rotate-left nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Pending Receivables
+        </a>
+        <a class="nav-link {% if 'vendor-bill-audit' in request.path %}is-active{% endif %}" href="/suppliers/vendor-bill-audit/">
+          <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Vendor Bill Auditor
         </a>
         <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">
           <i class="fa-solid fa-people-arrows nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Outsourced Settlements

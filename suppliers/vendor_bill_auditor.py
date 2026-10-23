@@ -161,23 +161,25 @@ def seed_sample_vendor_settlements():
         name='SRS Fleet Logistics Madurai',
         defaults={
             'party_type': 'supplier',
-            'contact_person': 'Ramanathan S.',
             'phone': '9842109876',
             'gstin': '33AABCS1429B1Z5',
             'is_active': True,
         }
     )
 
-    vehicle, _ = Vehicle.objects.get_or_create(
-        registration_number='TN 59 BX 8812',
-        defaults={
-            'vehicle_type': 'Innova Crysta',
-            'seating_capacity': 7,
-            'ownership_type': 'outsourced',
-            'owner_party': supplier_party,
-            'status': 'available',
-        }
-    )
+    from core.models import VehicleType
+    vtype = VehicleType.objects.first()
+
+    vehicle = Vehicle.objects.filter(registration_number='TN 59 BX 8812').first()
+    if not vehicle:
+        vehicle = Vehicle.objects.create(
+            registration_number='TN 59 BX 8812',
+            vehicle_type=vtype,
+            seating_capacity=7,
+            ownership_type='outsourced',
+            owner_party=supplier_party,
+            status='available',
+        )
 
     trips = Trip.objects.all()[:3]
 

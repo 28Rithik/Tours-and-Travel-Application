@@ -97,6 +97,14 @@ from operations.views import (
     api_vehicle_quick_telemetry,
     api_route_estimate,
     api_global_search,
+    border_permit_studio_view,
+    api_border_permit_check,
+    api_border_permit_record_payment,
+    api_border_permit_seed,
+    driver_fatigue_sentry_view,
+    api_driver_fatigue_audit,
+    api_driver_fatigue_override,
+    api_driver_fatigue_seed,
 )
 from statements.views import download_statement, generate_statement
 from maintenance.views import damage_marker_studio_view, tire_studio_view, workshop_mechanic_studio_view
@@ -151,6 +159,18 @@ from crm.views import (
     public_digital_proposal_view,
     api_proposal_upi_confirm,
     public_proposal_brochure_pdf_view,
+    feedback_reviews_hub_view,
+    guest_trip_feedback_view,
+    api_submit_guest_feedback,
+    api_generate_feedback_link,
+    api_feedback_seed,
+    api_google_review_clicked,
+)
+from suppliers.views import (
+    vendor_bill_audit_studio_view,
+    api_vendor_bill_audit_calculate,
+    api_vendor_bill_audit_approve,
+    api_vendor_bill_seed,
 )
 from customer_portal.views import public_landing_view
 from core.gis_views import full_india_tile_proxy_view, api_india_gis_status_view
@@ -234,6 +254,36 @@ urlpatterns = [
     path('admin/finance/fastag-reconciliation/', fastag_reconciliation_studio_view, name='admin-fastag-reconciliation'),
     path('api/finance/fastag-reconciliation/parse/', api_fastag_parse_statement, name='api-finance-fastag-parse'),
     path('api/finance/fastag-reconciliation/approve/', api_fastag_reconcile_approve, name='api-finance-fastag-approve'),
+
+    # P5-1: Interstate State Border Entry Tax & AITP Permit Sentry Studio
+    path('operations/border-permits/', border_permit_studio_view, name='operations-border-permits'),
+    path('admin/operations/border-permits/', border_permit_studio_view, name='admin-operations-border-permits'),
+    path('api/operations/border-permits/check/<int:trip_id>/', api_border_permit_check, name='api-operations-border-permits-check'),
+    path('api/operations/border-permits/pay/', api_border_permit_record_payment, name='api-operations-border-permits-pay'),
+    path('api/operations/border-permits/seed/', api_border_permit_seed, name='api-operations-border-permits-seed'),
+
+    # P5-2: Chauffeur Fatigue & Mandatory Duty Rest Sentry
+    path('operations/driver-fatigue-sentry/', driver_fatigue_sentry_view, name='operations-driver-fatigue-sentry'),
+    path('admin/operations/driver-fatigue-sentry/', driver_fatigue_sentry_view, name='admin-operations-driver-fatigue-sentry'),
+    path('api/operations/driver-fatigue/audit/<int:driver_id>/', api_driver_fatigue_audit, name='api-operations-driver-fatigue-audit'),
+    path('api/operations/driver-fatigue/override/', api_driver_fatigue_override, name='api-operations-driver-fatigue-override'),
+    path('api/operations/driver-fatigue/seed/', api_driver_fatigue_seed, name='api-operations-driver-fatigue-seed'),
+
+    # P6-1: Market Fleet Vendor Bill Auditor & Reconciliation Studio
+    path('suppliers/vendor-bill-audit/', vendor_bill_audit_studio_view, name='suppliers-vendor-bill-audit'),
+    path('admin/suppliers/vendor-bill-audit/', vendor_bill_audit_studio_view, name='admin-suppliers-vendor-bill-audit'),
+    path('api/suppliers/vendor-bill-audit/calculate/', api_vendor_bill_audit_calculate, name='api-suppliers-vendor-bill-audit-calculate'),
+    path('api/suppliers/vendor-bill-audit/approve/', api_vendor_bill_audit_approve, name='api-suppliers-vendor-bill-audit-approve'),
+    path('api/suppliers/vendor-bill-audit/seed/', api_vendor_bill_seed, name='api-suppliers-vendor-bill-audit-seed'),
+
+    # P6-2: Post-Trip Customer Feedback & Google Review Conversion Engine
+    path('crm/feedback-reviews/', feedback_reviews_hub_view, name='crm-feedback-reviews'),
+    path('admin/crm/feedback-reviews/', feedback_reviews_hub_view, name='admin-crm-feedback-reviews'),
+    path('guest/feedback/<str:token>/', guest_trip_feedback_view, name='guest-trip-feedback'),
+    path('api/crm/feedback/submit/', api_submit_guest_feedback, name='api-crm-feedback-submit'),
+    path('api/crm/feedback/generate-token/<int:trip_id>/', api_generate_feedback_link, name='api-crm-feedback-generate-token'),
+    path('api/crm/feedback/google-clicked/<str:token>/', api_google_review_clicked, name='api-crm-feedback-google-clicked'),
+    path('api/crm/feedback/seed/', api_feedback_seed, name='api-crm-feedback-seed'),
 
     # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),

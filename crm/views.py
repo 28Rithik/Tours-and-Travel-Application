@@ -3761,3 +3761,145 @@ def api_inquiry_quick_create(request):
         logger.exception("Error creating quick inquiry")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
+
+# ==============================================================================
+# P6-2: POST-TRIP CUSTOMER FEEDBACK & GOOGLE REVIEW CONVERSION ENGINE
+# ==============================================================================
+
+@login_required
+def feedback_reviews_hub_view(request):
+    """
+    P6-2: Post-Trip Customer Feedback & Google Review Conversion Hub.
+    Visualizes NPS health, tracks automated promoter-to-Google Review conversions,
+    and monitors detractor quality complaint escalations.
+    """
+    from .models import TripCustomerFeedback, TravelComplaint
+    from operations.models import Trip
+    from .feedback_engine import compute_nps_and_review_metrics, seed_sample_customer_feedbacks
+
+    if not TripCustomerFeedback.objects.exists():
+        seed_sample_customer_feedbacks()
+
+    metrics = compute_nps_and_review_metrics()
+    feedbacks = TripCustomerFeedback.objects.select_related('trip', 'complaint').order_by('-created_at')[:50]
+    
+    # Recent completed trips without feedback link
+    recent_trips = Trip.objects.filter(status__in=['completed', 'billed']).order_by('-end_date', '-id')[:20]
+
+    context = {
+        'title': 'Post-Trip Customer Feedback & Google Review Conversion Engine',
+        'metrics': metrics,
+        'feedbacks': feedbacks,
+        'recent_trips': recent_trips,
+    }
+    return render(request, 'crm/feedback_reviews_hub.html', context)
+
+
+def guest_trip_feedback_view(request, token):
+    """
+    Public guest mobile portal for post-trip feedback.
+    Accessed securely via unique trip feedback token.
+    """
+    from .models import TripCustomerFeedback
+    from .feedback_engine import GOOGLE_BUSINESS_REVIEW_URL
+
+    feedback = get_object_or_404(TripCustomerFeedback, feedback_token=token)
+    trip = feedback.trip
+
+    context = {
+        'feedback': feedback,
+        'trip': trip,
+        'token': token,
+        'google_url': GOOGLE_BUSINESS_REVIEW_URL,
+    }
+    return render(request, 'customer_portal/guest_trip_feedback.html', context)
+
+
+@csrf_exempt
+def api_submit_guest_feedback(request):
+    """API endpoint to receive guest feedback submission."""
+    import json
+    from .feedback_engine import process_guest_feedback_submission
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    token = data.get('token')
+    overall_rating = data.get('overall_rating', 5)
+    driver_rating = data.get('driver_rating', 5)
+    cleanliness_rating = data.get('cleanliness_rating', 5)
+    punctuality_rating = data.get('punctuality_rating', 5)
+    tags = data.get('tags', [])
+    feedback_text = data.get('feedback_text', '')
+
+    res = process_guest_feedback_submission(
+        token=token,
+        overall_rating=overall_rating,
+        driver_rating=driver_rating,
+        cleanliness_rating=cleanliness_rating,
+        punctuality_rating=punctuality_rating,
+        tags_list=tags,
+        feedback_text=feedback_text
+    )
+
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_generate_feedback_link(request, trip_id):
+    """Generates or retrieves unique guest feedback link for a trip."""
+    from operations.models import Trip
+    from .feedback_engine import get_or_create_feedback_token_for_trip
+
+    trip = get_object_or_404(Trip, id=trip_id)
+    token = get_or_create_feedback_token_for_trip(trip)
+    guest_url = f"/guest/feedback/{token}/"
+
+    guest_phone = trip.booking.guest_phone if trip.booking and trip.booking.guest_phone else ""
+    guest_name = trip.guest_name or (trip.booking.guest_name if trip.booking else "Valued Traveler")
+    
+    wa_text = (
+        f"Namaste {guest_name}! 🙏\n"
+        f"Thank you for traveling with Sivagayathiri Travels & Tours!\n\n"
+        f"We hope you enjoyed your journey (Trip #{trip.trip_id}). Could you please take 30 seconds to share your feedback?\n"
+        f"👉 Tap here: http://127.0.0.1:8000{guest_url}\n\n"
+        f"Your ratings help us maintain the highest chauffeur & vehicle standards across South India."
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'token': token,
+        'guest_url': guest_url,
+        'full_url': f"http://127.0.0.1:8000{guest_url}",
+        'guest_phone': guest_phone,
+        'whatsapp_message': wa_text
+    })
+
+
+@csrf_exempt
+def api_google_review_clicked(request, token):
+    """Tracks when a promoter customer clicks through to Google Business Reviews."""
+    from .models import TripCustomerFeedback
+    feedback = TripCustomerFeedback.objects.filter(feedback_token=token).first()
+    if feedback:
+        feedback.google_review_clicked = True
+        feedback.save(update_fields=['google_review_clicked'])
+        return JsonResponse({'status': 'success', 'tracked': True})
+    return JsonResponse({'status': 'error', 'message': 'Feedback not found'}, status=404)
+
+
+@csrf_exempt
+@login_required
+def api_feedback_seed(request):
+    """Seeds sample customer feedback data on demand."""
+    from .feedback_engine import seed_sample_customer_feedbacks
+    created = seed_sample_customer_feedbacks()
+    return JsonResponse({'status': 'success', 'seeded_count': len(created)})
+
+
