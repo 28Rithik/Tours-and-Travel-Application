@@ -91,19 +91,30 @@ def _heuristic_nlp_parse(text: str) -> dict:
 
     # --- C. Guest Name ---
     name_patterns = [
-        r'(?:name|contact|customer|guest|mr\.?|mrs\.?|dr\.?)\s*[:\-]?\s*([a-zA-Z\s\.]{2,35})',
-        r'(?:i am|this is|caller)\s+([a-zA-Z\s]{2,25})',
+        r'\b(?:name|contact|customer|guest|mr\b\.?|mrs\b\.?|dr\b\.?)\s*[:\-]?\s*([a-zA-Z\s\.]{2,35})',
+        r'(?:regards|warm regards|with regards|thanks|thank you|sincerely|cheers|best regards)\s*[,:\-]?\s*([a-zA-Z\s\.]{2,30})',
         r'from\s*:\s*([a-zA-Z\s]{2,30})',
+        r'(?:i am|this is|caller)\s+([a-zA-Z\s]{2,25})',
     ]
     for pat in name_patterns:
         m = re.search(pat, clean_text, re.IGNORECASE)
         if m:
             candidate = m.group(1).strip()
-            # Clean common trailing punctuation or words
-            candidate = re.split(r'[,;\n\d]', candidate)[0].strip()
+            # Clean common trailing punctuation, phone digits or stop words
+            candidate = re.split(r'[,;\n\d]|\b(?:please|pls|share|quote|contact|call|phone|mobile)\b', candidate, flags=re.IGNORECASE)[0].strip()
             if candidate and len(candidate.split()) <= 4:
                 res['guest_name'] = candidate.title()
                 break
+
+    # If still not found, check if a capitalized full name immediately precedes or follows the phone number
+    if not res['guest_name'] and res.get('guest_phone'):
+        phone_raw = res['guest_phone']
+        pre_phone_match = re.search(r'([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})\s*(?:[-–:,]?\s*)?' + re.escape(phone_raw), clean_text)
+        if pre_phone_match:
+            cand = pre_phone_match.group(1).strip()
+            ignore_names = {'siva', 'gayathiri', 'travels', 'tours', 'crysta', 'innova', 'sedan'}
+            if not any(w.lower() in ignore_names for w in cand.split()):
+                res['guest_name'] = cand.title()
 
     # If still not found, check the first line for a 2-word name if not matching keywords
     if not res['guest_name']:
@@ -143,7 +154,7 @@ def _heuristic_nlp_parse(text: str) -> dict:
     from_match = re.search(r'(?:from|pickup\s*(?:at|from)?|ex[\-–])\s*([a-zA-Z\s]{3,30})', clean_text, re.IGNORECASE)
     if from_match:
         pickup_cand = from_match.group(1).strip()
-        pickup_cand = re.split(r'[,;\n\d]|to\b', pickup_cand)[0].strip()
+        pickup_cand = re.split(r'[,;\n\d]|\b(?:to|on|at|for|date|returning)\b', pickup_cand, flags=re.IGNORECASE)[0].strip()
         res['pickup_location'] = pickup_cand.title()
     else:
         res['pickup_location'] = 'Coimbatore HQ'
@@ -204,8 +215,39 @@ def _heuristic_nlp_parse(text: str) -> dict:
         if nights_match:
             duration_days = max(1, int(nights_match.group(1)) + 1)
 
+    # Check for explicit return / drop date (e.g. "returning 30th October", "till 30/10", "drop on 30 Oct", "drop Mysore 7 Nov")
+    return_date = None
+    ret_match_wm = re.search(r'(?:return(?:ing)?|returns?|till|until|drop(?:off)?)\s*(?:[a-zA-Z\s]{0,25})?\s*(?:date\s*)?(?:on\s*)?(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*(?:\s+(\d{4}))?', clean_text, re.IGNORECASE)
+    if ret_match_wm:
+        ret_day = int(ret_match_wm.group(1))
+        ret_month_str = ret_match_wm.group(2)[:3].lower()
+        months = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6, 'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
+        ret_month = months.get(ret_month_str, pickup_date.month)
+        ret_year = int(ret_match_wm.group(3)) if ret_match_wm.group(3) else pickup_date.year
+        try:
+            return_date = datetime(ret_year, ret_month, ret_day).date()
+        except ValueError:
+            pass
+    if not return_date:
+        ret_match_num = re.search(r'(?:return(?:ing)?|returns?|till|until|drop(?:off)?)\s*(?:[a-zA-Z\s]{0,25})?\s*(?:date\s*)?(?:on\s*)?(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?', clean_text, re.IGNORECASE)
+        if ret_match_num:
+            ret_day = int(ret_match_num.group(1))
+            ret_month = int(ret_match_num.group(2))
+            ret_year = int(ret_match_num.group(3)) if ret_match_num.group(3) else pickup_date.year
+            if ret_year < 100:
+                ret_year += 2000
+            try:
+                return_date = datetime(ret_year, ret_month, ret_day).date()
+            except ValueError:
+                pass
+
+    if return_date and return_date >= pickup_date:
+        duration_days = max(1, (return_date - pickup_date).days + 1)
+        drop_date = return_date
+    else:
+        drop_date = pickup_date + timedelta(days=duration_days - 1)
+
     res['duration_days'] = duration_days
-    drop_date = pickup_date + timedelta(days=duration_days - 1)
     res['drop_date'] = drop_date.strftime('%Y-%m-%d')
     res['pickup_time'] = '06:00'
 
