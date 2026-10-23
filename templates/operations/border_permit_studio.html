@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Interstate State Border Entry Tax & AITP Permit Sentry | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .permit-card {
+    background: var(--surface-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .permit-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Interstate State Border Entry Tax &amp; AITP Permit Sentry</h1>
+          <p class="text-xs text-emerald-200">South Indian Interstate Corridors &bull; Statutory Parivahan Tax &bull; Walayar, Attibele, Gorimedu Check-posts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="openIssuePermitModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-500/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span>Issue Border Pass</span>
+      </button>
+
+      <button onclick="seedSamplePermits()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Sync Parivahan Records</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Monitored Trips -->
+    <div class="permit-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Interstate Trips Audited</div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats.interstate_trips_monitored }}</div>
+          <div class="text-[11px] text-teal-600 dark:text-teal-400 font-medium mt-1">Cross-border active journeys</div>
+        </div>
+        <div class="p-3 bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cleared & Valid -->
+    <div class="permit-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active Cleared Passes</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.active_cleared }}</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">Parivahan verified &bull; Compliant</div>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending / Deficit -->
+    <div class="permit-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Check-post Taxes</div>
+          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.pending_crossings }}</div>
+          <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">Check-post fee unpaid</div>
+        </div>
+        <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Tax Paid -->
+    <div class="permit-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Statutory Taxes Paid</div>
+          <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">₹{{ stats.total_tax_paid|floatformat:2 }}</div>
+          <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium mt-1">Parivahan border revenue</div>
+        </div>
+        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="border-b border-slate-200 dark:border-slate-800">
+    <nav class="flex space-x-6">
+      <button id="tabBtnTrips" onclick="switchPermitTab('trips')" class="pb-3 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400">
+        Live Interstate Trips Sentry ({{ stats.interstate_trips_monitored }})
+      </button>
+      <button id="tabBtnPermits" onclick="switchPermitTab('permits')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+        Issued Border Passes &amp; Receipts ({{ stats.total_permits }})
+      </button>
+      <button id="tabBtnTariffs" onclick="switchPermitTab('tariffs')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+        South India Statutory Road Tax Matrix
+      </button>
+    </nav>
+  </div>
+
+  <!-- TAB 1: Live Interstate Trips Sentry -->
+  <div id="tabTrips" class="space-y-4">
+    <div class="permit-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Active Duty Slips &amp; Outstation Border Surveillance</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Detects Kerala, Karnataka, Puducherry &amp; Andhra Pradesh routes and prevents unauthorized border crossing</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Trip #</th>
+              <th class="py-3 px-4">Vehicle &amp; Seating</th>
+              <th class="py-3 px-4">Destination / Route</th>
+              <th class="py-3 px-4">Detected Border State</th>
+              <th class="py-3 px-4">Check-post Corridor</th>
+              <th class="py-3 px-4">Statutory Tax</th>
+              <th class="py-3 px-4">Permit Status</th>
+              <th class="py-3 px-4 text-right">Clearance Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for item in trips_audit %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                #{{ item.trip.trip_id }}
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="font-semibold text-slate-900 dark:text-white">{{ item.trip.vehicle.registration_number }}</div>
+                <div class="text-[11px] text-slate-500">{{ item.trip.vehicle.vehicle_type }} &bull; {{ item.trip.vehicle.seating_capacity }} Seater</div>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="font-medium text-slate-800 dark:text-slate-200">
+                  {% if item.trip.booking %}
+                    {{ item.trip.booking.pickup_location }} ➔ {{ item.trip.booking.destination }}
+                  {% elif item.trip.package %}
+                    {{ item.trip.package.title }}
+                  {% else %}
+                    {{ item.trip.notes|default:"Outstation Route" }}
+                  {% endif %}
+                </div>
+                <div class="text-[11px] text-slate-400">Guest: {{ item.trip.guest_name|default:"Corporate Passenger" }}</div>
+              </td>
+              <td class="py-3.5 px-4">
+                {% if item.audit.is_interstate %}
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                    {{ item.audit.target_state }}
+                  </span>
+                {% else %}
+                  <span class="text-slate-400">Tamil Nadu (Domestic)</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 text-slate-600 dark:text-slate-400 font-medium">
+                {{ item.audit.checkpost }}
+              </td>
+              <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                {% if item.audit.required_tax > 0 %}
+                  ₹{{ item.audit.required_tax|floatformat:2 }}
+                {% else %}
+                  <span class="text-slate-400 font-normal">Exempt</span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold {{ item.audit.badge }}">
+                  {{ item.audit.status_label }}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                {% if item.audit.is_interstate and item.audit.status != 'valid' %}
+                  <button onclick="quickPayPermit({{ item.trip.vehicle.id }}, {{ item.trip.id }}, '{{ item.audit.target_state }}', '{{ item.audit.checkpost }}', {{ item.audit.required_tax }})" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow transition">
+                    <span>Pay ₹{{ item.audit.required_tax|floatformat:0 }}</span>
+                  </button>
+                {% elif item.audit.is_interstate %}
+                  <button onclick="viewPermitPass('{{ item.trip.vehicle.registration_number }}', '{{ item.audit.target_state }}', '{{ item.audit.checkpost }}', '{{ item.audit.permit_record.receipt_number|default:"PARIVAHAN-KL-4091" }}')" class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold transition">
+                    <span>View Pass</span>
+                  </button>
+                {% else %}
+                  <span class="text-xs text-slate-400">N/A</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-8 text-slate-400">No active trips found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Issued Border Passes & Receipts -->
+  <div id="tabPermits" class="space-y-4 hidden">
+    <div class="permit-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Commercial Border Permits &amp; Parivahan Tax Register</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Official RTO receipt ledger for audits, border check-post inspections, and fleet GST expense filings</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Receipt #</th>
+              <th class="py-3 px-4">Vehicle</th>
+              <th class="py-3 px-4">Destination State</th>
+              <th class="py-3 px-4">Check-post Station</th>
+              <th class="py-3 px-4">Tax Amount</th>
+              <th class="py-3 px-4">Valid Window</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4 text-right">Digital Pass</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for p in permits %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                {{ p.receipt_number|default:"KL-TAX-2026-9812" }}
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+                {{ p.vehicle.registration_number }}
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-teal-50 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300">
+                  {{ p.target_state }}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                {{ p.checkpost_name }}
+              </td>
+              <td class="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400">
+                ₹{{ p.tax_amount|floatformat:2 }}
+              </td>
+              <td class="py-3.5 px-4 text-slate-500">
+                {{ p.valid_from|date:"d M Y" }} to {{ p.valid_until|date:"d M Y" }}
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  {{ p.get_status_display }}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <button onclick="viewPermitPass('{{ p.vehicle.registration_number }}', '{{ p.target_state }}', '{{ p.checkpost_name }}', '{{ p.receipt_number }}')" class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-medium rounded-lg transition">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  <span>Pass Card</span>
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-8 text-slate-400">No border permits recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: South India Statutory Road Tax Matrix -->
+  <div id="tabTariffs" class="space-y-4 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for state, data in tax_matrix.items %}
+      <div class="permit-card p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ state }}</h3>
+          </div>
+          <span class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded">7-Day Tariff</span>
+        </div>
+
+        <div class="text-xs text-slate-500">
+          <span class="font-semibold text-slate-700 dark:text-slate-300">Default Border Station:</span>
+          <p class="text-slate-900 dark:text-slate-200 mt-0.5">{{ data.default_checkpost }}</p>
+        </div>
+
+        <div class="space-y-2 pt-2">
+          <div class="text-[11px] uppercase tracking-wider font-bold text-slate-400">Vehicle Capacity Brackets</div>
+          {% for bracket, info in data.tariffs.items %}
+          <div class="flex items-center justify-between text-xs py-1 border-b border-slate-50 dark:border-slate-800/50">
+            <span class="text-slate-600 dark:text-slate-400">{{ info.label }}</span>
+            <span class="font-bold text-slate-900 dark:text-white">₹{{ info.amount|floatformat:0 }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="pt-2">
+          <div class="text-[11px] font-semibold text-slate-500 mb-1">Key Border Check-posts:</div>
+          <ul class="text-[11px] text-slate-600 dark:text-slate-400 space-y-0.5 list-disc pl-4">
+            {% for cp in data.all_checkposts|slice:":3" %}
+            <li>{{ cp }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Issue / Record Border Permit Pass -->
+<div id="issuePermitModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="px-6 py-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+        <h3 class="text-lg font-bold">Issue Parivahan Border Tax Pass</h3>
+      </div>
+      <button onclick="closeIssuePermitModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+    </div>
+
+    <form id="issuePermitForm" onsubmit="submitBorderPermit(event)" class="p-6 space-y-4 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Fleet Vehicle</label>
+        <select id="modalVehicleSelect" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          <option value="">-- Choose Vehicle --</option>
+          {% for v in vehicles %}
+          <option value="{{ v.id }}" data-category="{{ v.vehicle_category }}" data-seats="{{ v.seating_capacity }}">
+            {{ v.registration_number }} ({{ v.vehicle_type }} &bull; {{ v.seating_capacity }} seats)
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Destination State</label>
+          <select id="modalTargetState" onchange="onStateChanged()" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+            <option value="Kerala">Kerala</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Puducherry">Puducherry</option>
+            <option value="Andhra Pradesh">Andhra Pradesh</option>
+            <option value="Goa">Goa</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Check-post Station</label>
+          <select id="modalCheckpost" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+            <option value="Walayar Check-post (NH-544 Palakkad)">Walayar Check-post (NH-544 Palakkad)</option>
+            <option value="Attibele / Zuzuvadi Check-post (NH-44 Hosur)">Attibele / Zuzuvadi (NH-44 Hosur)</option>
+            <option value="Gorimedu Check-post (Tindivanam - Pondy)">Gorimedu Check-post (Pondy)</option>
+            <option value="Naraharipet Check-post (Chittoor - Vellore)">Naraharipet Check-post (Chittoor)</option>
+            <option value="Mollem Check-post (Belgaum - Goa)">Mollem Check-post (Goa)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Statutory Tax (₹)</label>
+          <input type="number" id="modalTaxAmount" step="0.01" value="750.00" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Validity (Days)</label>
+          <input type="number" id="modalValidityDays" value="7" min="1" max="30" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Parivahan Receipt #</label>
+        <input type="text" id="modalReceiptNumber" value="PARIVAHAN-KL-2026-9812" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono">
+      </div>
+
+      <input type="hidden" id="modalTripId" value="">
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" onclick="closeIssuePermitModal()" class="px-4 py-2 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition">Issue &amp; Clear Border Pass</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Digital Border Pass Card View -->
+<div id="passCardModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border-2 border-emerald-500 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="p-6 bg-gradient-to-br from-emerald-600 via-teal-700 to-slate-900 text-white text-center relative">
+      <div class="inline-flex p-3 bg-white/10 rounded-2xl backdrop-blur-md mb-2 border border-white/20">
+        <svg class="w-8 h-8 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-black tracking-wide">STATUTORY BORDER PASS</h3>
+      <p class="text-xs text-emerald-200 font-medium">Motor Vehicles Act (1988) &bull; Commercial Tourist Clearance</p>
+    </div>
+
+    <div class="p-6 space-y-4 text-xs">
+      <div class="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl space-y-2 border border-slate-200 dark:border-slate-800">
+        <div class="flex justify-between">
+          <span class="text-slate-500">Vehicle Reg Number:</span>
+          <span id="passCardReg" class="font-mono font-bold text-slate-900 dark:text-white text-sm">TN 58 AB 1234</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Permitted State:</span>
+          <span id="passCardState" class="font-bold text-teal-600 dark:text-teal-400">Kerala</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Authorized Check-post:</span>
+          <span id="passCardCheckpost" class="font-medium text-slate-800 dark:text-slate-200 text-right">Walayar Check-post (NH-544)</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Parivahan Receipt:</span>
+          <span id="passCardReceipt" class="font-mono font-bold text-slate-900 dark:text-white">KL-TAX-2026-9812</span>
+        </div>
+        <div class="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-2">
+          <span class="text-slate-500">Clearance Status:</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">CLEARED &amp; VALID</span>
+        </div>
+      </div>
+
+      <div class="text-center text-[11px] text-slate-500">
+        Official digital entry receipt for Sivagayathiri Travels Commercial Fleet. Valid across all South Indian state entry corridors.
+      </div>
+
+      <div class="flex justify-center gap-3 pt-2">
+        <button onclick="closePassCardModal()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold rounded-xl transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchPermitTab(tabKey) {
+    document.getElementById('tabTrips').classList.add('hidden');
+    document.getElementById('tabPermits').classList.add('hidden');
+    document.getElementById('tabTariffs').classList.add('hidden');
+
+    document.getElementById('tabBtnTrips').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+    document.getElementById('tabBtnPermits').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+    document.getElementById('tabBtnTariffs').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+
+    if (tabKey === 'trips') {
+      document.getElementById('tabTrips').classList.remove('hidden');
+      document.getElementById('tabBtnTrips').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400";
+    } else if (tabKey === 'permits') {
+      document.getElementById('tabPermits').classList.remove('hidden');
+      document.getElementById('tabBtnPermits').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400";
+    } else if (tabKey === 'tariffs') {
+      document.getElementById('tabTariffs').classList.remove('hidden');
+      document.getElementById('tabBtnTariffs').className = "pb-3 text-sm font-semibold border-b-2 border-emerald-500 text-emerald-600 dark:text-emerald-400";
+    }
+  }
+
+  function openIssuePermitModal() {
+    document.getElementById('issuePermitModal').classList.remove('hidden');
+  }
+
+  function closeIssuePermitModal() {
+    document.getElementById('issuePermitModal').classList.add('hidden');
+  }
+
+  function viewPermitPass(reg, state, cp, rcpt) {
+    document.getElementById('passCardReg').textContent = reg;
+    document.getElementById('passCardState').textContent = state;
+    document.getElementById('passCardCheckpost').textContent = cp;
+    document.getElementById('passCardReceipt').textContent = rcpt;
+    document.getElementById('passCardModal').classList.remove('hidden');
+  }
+
+  function closePassCardModal() {
+    document.getElementById('passCardModal').classList.add('hidden');
+  }
+
+  function quickPayPermit(vehicleId, tripId, targetState, checkpost, taxAmt) {
+    document.getElementById('modalVehicleSelect').value = vehicleId;
+    document.getElementById('modalTargetState').value = targetState;
+    document.getElementById('modalCheckpost').value = checkpost;
+    document.getElementById('modalTaxAmount').value = taxAmt;
+    document.getElementById('modalTripId').value = tripId;
+    document.getElementById('modalReceiptNumber').value = 'PARIVAHAN-' + targetState.substring(0,2).toUpperCase() + '-' + Math.floor(100000 + Math.random() * 900000);
+    openIssuePermitModal();
+  }
+
+  function onStateChanged() {
+    const st = document.getElementById('modalTargetState').value;
+    const cp = document.getElementById('modalCheckpost');
+    const tax = document.getElementById('modalTaxAmount');
+
+    if (st === 'Kerala') {
+      cp.value = 'Walayar Check-post (NH-544 Palakkad)';
+      tax.value = '750.00';
+    } else if (st === 'Karnataka') {
+      cp.value = 'Attibele / Zuzuvadi Check-post (NH-44 Hosur)';
+      tax.value = '1100.00';
+    } else if (st === 'Puducherry') {
+      cp.value = 'Gorimedu Check-post (Tindivanam - Pondy)';
+      tax.value = '450.00';
+    } else if (st === 'Andhra Pradesh') {
+      cp.value = 'Naraharipet Check-post (Chittoor - Vellore)';
+      tax.value = '900.00';
+    } else if (st === 'Goa') {
+      cp.value = 'Mollem Check-post (Belgaum - Goa)';
+      tax.value = '1200.00';
+    }
+  }
+
+  function submitBorderPermit(e) {
+    e.preventDefault();
+    const payload = {
+      vehicle_id: document.getElementById('modalVehicleSelect').value,
+      trip_id: document.getElementById('modalTripId').value,
+      target_state: document.getElementById('modalTargetState').value,
+      checkpost_name: document.getElementById('modalCheckpost').value,
+      tax_amount: document.getElementById('modalTaxAmount').value,
+      validity_days: document.getElementById('modalValidityDays').value,
+      receipt_number: document.getElementById('modalReceiptNumber').value,
+    };
+
+    fetch('/api/operations/border-permits/pay/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        alert(res.message);
+        window.location.reload();
+      } else {
+        alert('Error: ' + res.message);
+      }
+    })
+    .catch(err => {
+      alert('Network error registering permit');
+    });
+  }
+
+  function seedSamplePermits() {
+    fetch('/api/operations/border-permits/seed/', { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        alert('Synchronized Parivahan interstate records!');
+        window.location.reload();
+      });
+  }
+</script>
+{% endblock %}

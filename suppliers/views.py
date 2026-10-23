@@ -315,3 +315,172 @@ def api_hotel_voucher_whatsapp(request, voucher_id):
         'whatsapp_url': res['whatsapp_url'],
         'message_text': res['message_text']
     })
+
+
+# ==============================================================================
+# P6-1: MARKET FLEET VENDOR BILL AUDITOR & RECONCILIATION STUDIO
+# ==============================================================================
+
+@staff_member_required
+def vendor_bill_audit_studio_view(request):
+    """
+    P6-1: Market Fleet Vendor Bill Auditor & Reconciliation Studio.
+    Automates matching of external claimed supplier invoices against GPS telematics,
+    duty slips, and FASTag toll deductions. Detects inflated KM and duplicate toll claims.
+    """
+    from .vendor_bill_auditor import SAMPLE_VENDOR_INVOICES, seed_sample_vendor_settlements
+
+    # If no settlements exist, seed demo data
+    if not OutsourcedTripSettlement.objects.exists():
+        seed_sample_vendor_settlements()
+
+    settlements = OutsourcedTripSettlement.objects.select_related(
+        'supplier', 'vehicle', 'trip'
+    ).order_by('-settlement_date', '-id')[:40]
+
+    # Metrics
+    total_audited = settlements.count()
+    total_savings = sum(s.gross_margin_earned for s in settlements if s.gross_margin_earned)
+    total_disbursed = sum(s.net_payable_amount for s in settlements if s.net_payable_amount)
+    flagged_count = settlements.filter(status='draft').count()
+
+    context = {
+        'title': 'Market Fleet Vendor Bill Auditor & Reconciliation Studio',
+        'settlements': settlements,
+        'sample_invoices': SAMPLE_VENDOR_INVOICES,
+        'suppliers': Party.objects.filter(party_type='supplier', is_active=True),
+        'vehicles': Vehicle.objects.filter(status='available')[:25],
+        'trips': Trip.objects.filter(status__in=['started', 'completed', 'assigned']).order_by('-id')[:25],
+        'stats': {
+            'total_audited': total_audited,
+            'total_savings': total_savings,
+            'total_disbursed': total_disbursed,
+            'flagged_invoices': flagged_count,
+        }
+    }
+    return render(request, 'suppliers/vendor_bill_audit_studio.html', context)
+
+
+@csrf_exempt
+@staff_member_required
+def api_vendor_bill_audit_calculate(request):
+    """API endpoint to audit claimed KM vs GPS KM and compute deductions."""
+    from .vendor_bill_auditor import audit_vendor_claim
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    claimed_km = data.get('claimed_km', 0)
+    gps_km = data.get('gps_km', 0)
+    rate_per_km = data.get('rate_per_km', 16.0)
+    claimed_toll = data.get('claimed_toll', 0.0)
+    actual_fastag_toll = data.get('actual_fastag_toll', 0.0)
+    claimed_bata = data.get('claimed_bata', 0.0)
+    advance_paid = data.get('advance_paid', 0.0)
+    fuel_deduction = data.get('fuel_deduction', 0.0)
+    tds_rate_percent = data.get('tds_rate_percent', 1.0)
+
+    res = audit_vendor_claim(
+        claimed_km=claimed_km,
+        gps_km=gps_km,
+        agreed_rate_per_km=rate_per_km,
+        claimed_toll=claimed_toll,
+        actual_fastag_toll=actual_fastag_toll,
+        claimed_bata=claimed_bata,
+        advance_paid=advance_paid,
+        fuel_deduction=fuel_deduction,
+        tds_rate_percent=tds_rate_percent
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'audit': res
+    })
+
+
+@csrf_exempt
+@staff_member_required
+def api_vendor_bill_audit_approve(request):
+    """Approves an audited vendor bill and records it into the settlement ledger."""
+    from .vendor_bill_auditor import audit_vendor_claim
+    from .settlement_engine import generate_settlement_number
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    supplier_id = data.get('supplier_id')
+    vehicle_id = data.get('vehicle_id')
+    trip_id = data.get('trip_id')
+    invoice_number = data.get('invoice_number', f"VND-{timezone.now().strftime('%m%d%H%M')}")
+    
+    claimed_km = Decimal(str(data.get('claimed_km', 0)))
+    gps_km = Decimal(str(data.get('gps_km', 0)))
+    rate_per_km = Decimal(str(data.get('rate_per_km', 16.0)))
+    claimed_toll = Decimal(str(data.get('claimed_toll', 0)))
+    actual_toll = Decimal(str(data.get('actual_fastag_toll', 0)))
+    claimed_bata = Decimal(str(data.get('claimed_bata', 0)))
+    advance_paid = Decimal(str(data.get('advance_paid', 0)))
+    fuel_deduction = Decimal(str(data.get('fuel_deduction', 0)))
+    tds_rate = Decimal(str(data.get('tds_rate_percent', 1.0)))
+
+    audit_res = audit_vendor_claim(
+        claimed_km, gps_km, rate_per_km,
+        claimed_toll, actual_toll, claimed_bata,
+        advance_paid, fuel_deduction, tds_rate
+    )
+
+    supplier = get_object_or_404(Party, id=supplier_id) if supplier_id else Party.objects.filter(party_type='supplier').first()
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id) if vehicle_id else Vehicle.objects.first()
+    trip = Trip.objects.filter(id=trip_id).first() if trip_id else None
+
+    settlement = OutsourcedTripSettlement.objects.create(
+        settlement_number=generate_settlement_number(),
+        trip=trip,
+        supplier=supplier,
+        vehicle=vehicle,
+        duty_slip_number=invoice_number,
+        total_km_run=int(claimed_km),
+        agreed_buy_rate=Decimal(str(audit_res['audited_hire_charge'])),
+        toll_parking_allowance=Decimal(str(actual_toll)),
+        driver_bata_payable=Decimal(str(claimed_bata)),
+        advance_paid=advance_paid,
+        fuel_deducted=fuel_deduction,
+        damage_penalty=Decimal(str(audit_res['discrepancy_km_deduction'])),
+        tds_applicable=True,
+        tds_rate_percent=tds_rate,
+        tds_amount=Decimal(str(audit_res['tds_amount'])),
+        gross_supplier_payable=Decimal(str(audit_res['gross_audited_payable'])),
+        total_deductions=Decimal(str(audit_res['discrepancy_km_deduction'] + float(advance_paid) + float(fuel_deduction) + audit_res['tds_amount'])),
+        net_payable_amount=Decimal(str(audit_res['net_payable'])),
+        gross_margin_earned=Decimal(str(audit_res['total_savings_generated'])),
+        status='verified',
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Vendor Bill {invoice_number} audited and approved. Net payable ₹{audit_res["net_payable"]:.2f}',
+        'settlement_number': settlement.settlement_number,
+        'settlement_id': settlement.id,
+        'net_payable': float(settlement.net_payable_amount),
+        'savings': float(settlement.gross_margin_earned),
+    })
+
+
+@csrf_exempt
+@staff_member_required
+def api_vendor_bill_seed(request):
+    """Seed sample vendor settlements on demand."""
+    from .vendor_bill_auditor import seed_sample_vendor_settlements
+    created = seed_sample_vendor_settlements()
+    return JsonResponse({'status': 'success', 'seeded_count': len(created)})
+

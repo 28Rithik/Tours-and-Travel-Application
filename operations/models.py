@@ -1411,6 +1411,96 @@ class TripItineraryDay(models.Model):
 		return None
 
 
+# ==============================================================================
+# P5-1: INTERSTATE STATE BORDER ENTRY TAX & AITP PERMIT SENTRY
+# ==============================================================================
+
+class InterstateBorderPermit(models.Model):
+	"""
+	P5-1: Statutory interstate tourist permit & state border road tax pass.
+	Tracks commercial tourist vehicles crossing into Kerala, Karnataka, Andhra Pradesh,
+	Puducherry, and Goa, verifying check-post clearance receipts and AITP validity.
+	"""
+	PERMIT_TYPES = [
+		('aitp_annual', 'All India Tourist Permit (Annual AITP)'),
+		('single_entry', 'State Border Single Entry Permit'),
+		('weekly_permit', 'Interstate Weekly Tourism Permit'),
+		('special_permit', 'Special Occasion / Temporary Permit'),
+	]
+	STATUS_CHOICES = [
+		('valid', 'Valid & Cleared'),
+		('pending_payment', 'Pending Check-post Payment'),
+		('expiring_soon', 'Expiring Within 24h'),
+		('expired', 'Expired / Non-Compliant'),
+		('exempt', 'State Exempt / Intrastate'),
+	]
+
+	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='border_permits', null=True, blank=True)
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='border_permits')
+	origin_state = models.CharField(max_length=50, default='Tamil Nadu')
+	target_state = models.CharField(max_length=50, help_text="e.g. Kerala, Karnataka, Puducherry, Andhra Pradesh")
+	permit_type = models.CharField(max_length=30, choices=PERMIT_TYPES, default='single_entry')
+	checkpost_name = models.CharField(max_length=100, blank=True, help_text="e.g. Walayar, Attibele, Zuzuvadi, Gorimedu")
+	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	receipt_number = models.CharField(max_length=100, blank=True)
+	valid_from = models.DateTimeField(null=True, blank=True)
+	valid_until = models.DateTimeField(null=True, blank=True)
+	status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending_payment')
+	receipt_photo = models.ImageField(upload_to='border_permits/', null=True, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Interstate Border Permit'
+		verbose_name_plural = 'Interstate Border Permits'
+
+	def __str__(self):
+		return f"{self.vehicle.registration_number} -> {self.target_state} ({self.get_status_display()})"
+
+
+# ==============================================================================
+# P5-2: CHAUFFEUR FATIGUE & DUTY REST SENTRY AUDIT LOG
+# ==============================================================================
+
+class DriverFatigueAuditLog(models.Model):
+	"""
+	P5-2: Chauffeur safety duty rest sentry and fatigue audit trail.
+	Enforces mandatory 8h rest periods between duties, guards against continuous
+	driving fatigue, and flags hazardous night ghat road assignments.
+	"""
+	RISK_LEVELS = [
+		('well_rested', 'Well Rested (>10h Rest)'),
+		('adequate_rest', 'Adequate Rest (8-10h Rest)'),
+		('fatigue_risk', 'Fatigue Warning (5-8h Rest)'),
+		('critical_deficit', 'Critical Rest Deficit (<5h Rest)'),
+		('ghat_night_risk', 'Night Ghat Road Risk Alert'),
+	]
+
+	driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='fatigue_logs')
+	trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='fatigue_audits')
+	previous_trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='prior_duty_audits')
+	rest_hours_elapsed = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+	continuous_duty_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+	is_ghat_route = models.BooleanField(default=False)
+	is_night_shift = models.BooleanField(default=False)
+	risk_level = models.CharField(max_length=30, choices=RISK_LEVELS, default='well_rested')
+	manager_override = models.BooleanField(default=False)
+	override_reason = models.TextField(blank=True)
+	override_by = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Driver Fatigue Audit Log'
+		verbose_name_plural = 'Driver Fatigue Audit Logs'
+
+	def __str__(self):
+		return f"{self.driver.name} - {self.get_risk_level_display()} ({self.rest_hours_elapsed}h rest)"
+
+
+
 
 
 

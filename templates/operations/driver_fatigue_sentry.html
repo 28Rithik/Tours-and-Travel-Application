@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chauffeur Fatigue & Mandatory Duty Rest Sentry | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .fatigue-card {
+    background: var(--surface-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  .dark .fatigue-card {
+    background: #0f172a;
+    border-color: #1e293b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-rose-950 to-indigo-950 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Chauffeur Fatigue &amp; Mandatory Duty Rest Sentry</h1>
+          <p class="text-xs text-rose-200">Motor Transport Workers Act Compliance &bull; Mandatory 8h Rest &bull; Continuous Driving Hours &bull; Night Ghat Alerts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="openOverrideModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+        <span>Authorize Safety Override</span>
+      </button>
+
+      <button onclick="seedFatigueData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Simulate Safety Telemetry</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <!-- Total Roster -->
+    <div class="fatigue-card p-5">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Chauffeurs</div>
+      <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats.total_audited }}</div>
+      <div class="text-[11px] text-slate-500 font-medium mt-1">Active fleet crew</div>
+    </div>
+
+    <!-- Well Rested -->
+    <div class="fatigue-card p-5">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Well Rested (&gt;10h)</div>
+      <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.well_rested|default:0 }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">Cleared for long outstation</div>
+    </div>
+
+    <!-- Adequate Rest -->
+    <div class="fatigue-card p-5">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Adequate (8-10h)</div>
+      <div class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ stats.adequate_rest|default:0 }}</div>
+      <div class="text-[11px] text-blue-600 dark:text-blue-400 font-medium mt-1">Statutory standard</div>
+    </div>
+
+    <!-- Fatigue Warning -->
+    <div class="fatigue-card p-5">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Fatigue Warning (5-8h)</div>
+      <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats.fatigue_risk|default:0 }}</div>
+      <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">Rest warning alert</div>
+    </div>
+
+    <!-- Critical Deficit / Ghat Risk -->
+    <div class="fatigue-card p-5">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Critical / Ghat Hazard</div>
+      <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.critical_deficit|add:stats.ghat_night_risk }}</div>
+      <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">Dispatch blocked</div>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="border-b border-slate-200 dark:border-slate-800">
+    <nav class="flex space-x-6">
+      <button id="tabBtnRoster" onclick="switchFatigueTab('roster')" class="pb-3 text-sm font-semibold border-b-2 border-rose-500 text-rose-600 dark:text-rose-400">
+        Live Chauffeur Rest Matrix ({{ stats.total_audited }})
+      </button>
+      <button id="tabBtnLogs" onclick="switchFatigueTab('logs')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+        Manager Safety Overrides &amp; Audit Trail
+      </button>
+      <button id="tabBtnGuidelines" onclick="switchFatigueTab('guidelines')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+        Statutory 8h Rest &amp; Ghat Safety Policy
+      </button>
+    </nav>
+  </div>
+
+  <!-- TAB 1: Live Chauffeur Rest Matrix -->
+  <div id="tabRoster" class="space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for item in evaluations %}
+      <div class="fatigue-card p-5 space-y-4 relative overflow-hidden">
+        <!-- Top row: Driver Name & Badge -->
+        <div class="flex items-start justify-between">
+          <div class="space-y-0.5">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              {{ item.driver_name }}
+              {% if item.is_ghat_route %}
+              <span class="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">GHAT</span>
+              {% endif %}
+            </h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Phone: {{ item.driver_phone }}</p>
+          </div>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold {{ item.badge }}">
+            {{ item.risk_label }}
+          </span>
+        </div>
+
+        <!-- Rest Interval Gauge / Progress bar -->
+        <div class="space-y-1.5 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-600 dark:text-slate-400 font-medium">Inter-duty Rest Elapsed:</span>
+            <span class="font-bold {% if item.rest_hours_elapsed >= 8 %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+              {{ item.rest_hours_elapsed }} hrs (Min: 8h)
+            </span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500 {% if item.rest_hours_elapsed >= 10 %}bg-emerald-500{% elif item.rest_hours_elapsed >= 8 %}bg-blue-500{% elif item.rest_hours_elapsed >= 5 %}bg-amber-500{% else %}bg-rose-500{% endif %}"
+                 style="width: {% if item.rest_hours_elapsed >= 12 %}100{% else %}{{ item.rest_hours_elapsed|floatformat:0 }}0{% endif %}%;"></div>
+          </div>
+        </div>
+
+        <!-- Duty details -->
+        <div class="text-xs space-y-1 text-slate-600 dark:text-slate-400">
+          <div class="flex justify-between">
+            <span>Continuous Duty:</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ item.continuous_duty_hours }} hrs</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Terrain Condition:</span>
+            <span class="font-semibold {% if item.is_ghat_route %}text-purple-600 dark:text-purple-400{% else %}text-slate-700 dark:text-slate-300{% endif %}">
+              {% if item.is_ghat_route %}Mountain Ghat Pass (Hairpins){% else %}Plains Highway{% endif %}
+            </span>
+          </div>
+          <div class="flex justify-between">
+            <span>Night Driving Window:</span>
+            <span class="font-semibold {% if item.is_night_shift %}text-amber-600 dark:text-amber-400{% else %}text-slate-700 dark:text-slate-300{% endif %}">
+              {% if item.is_night_shift %}Active (22:00 - 06:00){% else %}Day Shift{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <!-- Warning Message -->
+        <div class="text-[11px] p-2.5 rounded-lg {% if item.can_dispatch %}bg-emerald-50/70 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300{% else %}bg-rose-50/80 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300{% endif %}">
+          {{ item.warning_message }}
+        </div>
+
+        <!-- Action / Override -->
+        <div class="pt-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+          {% if item.can_dispatch %}
+          <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <span>Dispatch Cleared</span>
+          </span>
+          {% else %}
+          <button onclick="quickOverrideDriver({{ item.driver.id }}, '{{ item.driver_name }}')" class="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold shadow transition">
+            <span>Authorize Override</span>
+          </button>
+          {% endif %}
+
+          {% if item.active_trip %}
+          <span class="text-[11px] text-slate-400">Trip #{{ item.active_trip.trip_id }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- TAB 2: Manager Safety Overrides & Audit Trail -->
+  <div id="tabLogs" class="space-y-4 hidden">
+    <div class="fatigue-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Safety Override &amp; Rest Audit Trail</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Official log of supervisor justifications and relief assignments for statutory compliance</p>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Timestamp</th>
+              <th class="py-3 px-4">Chauffeur</th>
+              <th class="py-3 px-4">Trip #</th>
+              <th class="py-3 px-4">Rest Elapsed</th>
+              <th class="py-3 px-4">Shift Hours</th>
+              <th class="py-3 px-4">Risk Flag</th>
+              <th class="py-3 px-4">Override Justification</th>
+              <th class="py-3 px-4 text-right">Authorized By</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for log in audit_logs %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 text-slate-500">
+                {{ log.created_at|date:"d M Y, H:i" }}
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
+                {{ log.driver.name }}
+              </td>
+              <td class="py-3.5 px-4 font-mono font-medium text-slate-700 dark:text-slate-300">
+                {% if log.trip %}#{{ log.trip.trip_id }}{% else %}Roster Audit{% endif %}
+              </td>
+              <td class="py-3.5 px-4 font-bold {% if log.rest_hours_elapsed >= 8 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                {{ log.rest_hours_elapsed }}h
+              </td>
+              <td class="py-3.5 px-4 text-slate-600 dark:text-slate-400">
+                {{ log.continuous_duty_hours }}h
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                  {{ log.get_risk_level_display }}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 max-w-xs truncate text-slate-600 dark:text-slate-400">
+                {{ log.override_reason|default:"Mandatory rest protocol" }}
+              </td>
+              <td class="py-3.5 px-4 text-right font-medium text-slate-800 dark:text-slate-200">
+                {{ log.override_by.username|default:"Safety Dispatcher" }}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-8 text-slate-400">No safety logs recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Statutory 8h Rest & Ghat Safety Policy -->
+  <div id="tabGuidelines" class="space-y-6 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="fatigue-card p-6 space-y-3">
+        <div class="p-3 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-xl w-fit">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Mandatory 8-Hour Rest Period</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+          Under the Motor Transport Workers Act, chauffeurs completing an outstation tour must receive a continuous rest window of at least 8 hours prior to starting any new commercial passenger dispatch.
+        </p>
+      </div>
+
+      <div class="fatigue-card p-6 space-y-3">
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-xl w-fit">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Continuous Driving Hours Guard</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+          No chauffeur is permitted to drive continuously beyond 4.5 hours without a mandatory 30-to-45 minute highway break. Total daily steering duty is strictly capped at 8 hours (extendable to 9 hours with co-driver).
+        </p>
+      </div>
+
+      <div class="fatigue-card p-6 space-y-3">
+        <div class="p-3 bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-xl w-fit">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Night Ghat Road Restriction</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+          Commercial passenger movements along Nilgiris (Ooty 36 hairpin bends), Kodaikanal, Yercaud, and Valparai ghat sections are restricted between 22:00 and 06:00 unless authorized with a dedicated co-driver relief crew.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Supervisor Fatigue Safety Override -->
+<div id="overrideModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div class="px-6 py-5 bg-gradient-to-r from-rose-600 to-indigo-700 text-white flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+        </svg>
+        <h3 class="text-lg font-bold">Authorize Chauffeur Dispatch Override</h3>
+      </div>
+      <button onclick="closeOverrideModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+    </div>
+
+    <form id="overrideForm" onsubmit="submitOverride(event)" class="p-6 space-y-4 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Chauffeur</label>
+        <select id="modalDriverSelect" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          <option value="">-- Choose Chauffeur --</option>
+          {% for item in evaluations %}
+          <option value="{{ item.driver.id }}">
+            {{ item.driver_name }} ({{ item.risk_label }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Associated Trip (Optional)</label>
+        <select id="modalTripSelect" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          <option value="">-- Select Outstation Trip --</option>
+          {% for t in trips %}
+          <option value="{{ t.id }}">
+            Trip #{{ t.trip_id }} &bull; {{ t.guest_name|default:"Corporate Passenger" }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Safety Mitigation Justification (Mandatory)</label>
+        <textarea id="modalReason" required rows="3" placeholder="e.g. Auxiliary relief co-driver assigned; mandatory rest halt scheduled at Salem Toll Plaza..." class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" onclick="closeOverrideModal()" class="px-4 py-2 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition">Record Clearance Override</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function switchFatigueTab(tabKey) {
+    document.getElementById('tabRoster').classList.add('hidden');
+    document.getElementById('tabLogs').classList.add('hidden');
+    document.getElementById('tabGuidelines').classList.add('hidden');
+
+    document.getElementById('tabBtnRoster').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+    document.getElementById('tabBtnLogs').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+    document.getElementById('tabBtnGuidelines').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+
+    if (tabKey === 'roster') {
+      document.getElementById('tabRoster').classList.remove('hidden');
+      document.getElementById('tabBtnRoster').className = "pb-3 text-sm font-semibold border-b-2 border-rose-500 text-rose-600 dark:text-rose-400";
+    } else if (tabKey === 'logs') {
+      document.getElementById('tabLogs').classList.remove('hidden');
+      document.getElementById('tabBtnLogs').className = "pb-3 text-sm font-semibold border-b-2 border-rose-500 text-rose-600 dark:text-rose-400";
+    } else if (tabKey === 'guidelines') {
+      document.getElementById('tabGuidelines').classList.remove('hidden');
+      document.getElementById('tabBtnGuidelines').className = "pb-3 text-sm font-semibold border-b-2 border-rose-500 text-rose-600 dark:text-rose-400";
+    }
+  }
+
+  function openOverrideModal() {
+    document.getElementById('overrideModal').classList.remove('hidden');
+  }
+
+  function closeOverrideModal() {
+    document.getElementById('overrideModal').classList.add('hidden');
+  }
+
+  function quickOverrideDriver(driverId, driverName) {
+    document.getElementById('modalDriverSelect').value = driverId;
+    document.getElementById('modalReason').value = 'Mandatory co-driver relief assigned. Supervised safety rest interval logged.';
+    openOverrideModal();
+  }
+
+  function submitOverride(e) {
+    e.preventDefault();
+    const payload = {
+      driver_id: document.getElementById('modalDriverSelect').value,
+      trip_id: document.getElementById('modalTripSelect').value,
+      reason: document.getElementById('modalReason').value,
+    };
+
+    fetch('/api/operations/driver-fatigue/override/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        alert(res.message);
+        window.location.reload();
+      } else {
+        alert('Error: ' + res.message);
+      }
+    })
+    .catch(err => {
+      alert('Network error submitting override');
+    });
+  }
+
+  function seedFatigueData() {
+    fetch('/api/operations/driver-fatigue/seed/', { method: 'POST' })
+      .then(r => r.json())
+      .then(res => {
+        alert('Simulated live safety telemetry records!');
+        window.location.reload();
+      });
+  }
+</script>
+{% endblock %}

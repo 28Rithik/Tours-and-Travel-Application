@@ -1618,3 +1618,47 @@ def _patch_inquiry_objection_fields():
 
 _patch_inquiry_objection_fields()
 
+
+# ==============================================================================
+# P6-2: POST-TRIP CUSTOMER FEEDBACK & GOOGLE REVIEW CONVERSION
+# ==============================================================================
+
+class TripCustomerFeedback(models.Model):
+    """
+    P6-2: Automated post-trip customer feedback and Google review promoter.
+    High ratings (4-5 stars) prompt direct Google Business Review conversion.
+    Low ratings (1-3 stars) automatically lodge high-priority CRM quality complaints.
+    """
+    trip = models.ForeignKey('operations.Trip', on_delete=models.CASCADE, related_name='customer_feedbacks')
+    customer_name = models.CharField(max_length=200)
+    customer_phone = models.CharField(max_length=30, blank=True)
+    feedback_token = models.CharField(max_length=64, unique=True, db_index=True)
+    
+    # Rating scores (1-5 stars)
+    overall_rating = models.PositiveSmallIntegerField(default=5)
+    driver_politeness_rating = models.PositiveSmallIntegerField(default=5)
+    vehicle_cleanliness_rating = models.PositiveSmallIntegerField(default=5)
+    ac_punctuality_rating = models.PositiveSmallIntegerField(default=5)
+    
+    # Text notes & highlights
+    positive_tags = models.CharField(max_length=255, blank=True, help_text="Comma-separated positive tags like Polite Driver, Clean Vehicle")
+    feedback_text = models.TextField(blank=True)
+    
+    # Conversion & escalation tracking
+    google_review_prompted = models.BooleanField(default=False)
+    google_review_clicked = models.BooleanField(default=False)
+    complaint_escalated = models.BooleanField(default=False)
+    complaint = models.ForeignKey('TravelComplaint', on_delete=models.SET_NULL, null=True, blank=True, related_name='feedback_escalations')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Trip Customer Feedback'
+        verbose_name_plural = 'Trip Customer Feedbacks'
+
+    def __str__(self):
+        return f"{self.customer_name} - Trip #{self.trip_id} ({self.overall_rating}★)"
+
+

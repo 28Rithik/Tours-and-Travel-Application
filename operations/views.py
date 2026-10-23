@@ -3708,4 +3708,266 @@ def api_global_search(request):
     })
 
 
+# ==============================================================================
+# P5-1: INTERSTATE STATE BORDER ENTRY TAX & AITP PERMIT SENTRY STUDIO
+# ==============================================================================
+
+@login_required
+def border_permit_studio_view(request):
+    """
+    P5-1: Interstate State Border Entry Tax & AITP Permit Sentry Studio.
+    Automates South Indian interstate permits (Walayar, Attibele, Gorimedu, etc.),
+    validates AITP compliance, calculates statutory tariffs, and issues border passes.
+    """
+    from .models import InterstateBorderPermit
+    from .border_permit_sentry import (
+        STATUTORY_BORDER_TAX_MATRIX,
+        audit_trip_border_permit,
+        issue_sample_interstate_permits
+    )
+
+    # Seed sample records if empty
+    if not InterstateBorderPermit.objects.exists():
+        issue_sample_interstate_permits()
+
+    permits = InterstateBorderPermit.objects.select_related('vehicle', 'trip', 'driver').order_by('-created_at')[:50]
+    
+    # Audit recent outstation trips
+    recent_trips = Trip.objects.select_related('vehicle', 'driver', 'booking').filter(
+        vehicle__isnull=False
+    ).order_by('-id')[:20]
+
+    trips_audit = []
+    interstate_count = 0
+    cleared_count = 0
+    pending_count = 0
+
+    for t in recent_trips:
+        audit = audit_trip_border_permit(t)
+        trips_audit.append({
+            'trip': t,
+            'audit': audit
+        })
+        if audit['is_interstate']:
+            interstate_count += 1
+            if audit['status'] == 'valid':
+                cleared_count += 1
+            else:
+                pending_count += 1
+
+    stats = {
+        'total_permits': permits.count(),
+        'active_cleared': InterstateBorderPermit.objects.filter(status='valid').count(),
+        'pending_crossings': pending_count,
+        'interstate_trips_monitored': interstate_count,
+        'total_tax_paid': sum(p.tax_amount for p in permits if p.tax_amount),
+    }
+
+    context = {
+        'title': 'Interstate State Border Entry Tax & AITP Permit Sentry Studio',
+        'permits': permits,
+        'trips_audit': trips_audit,
+        'tax_matrix': STATUTORY_BORDER_TAX_MATRIX,
+        'stats': stats,
+        'vehicles': Vehicle.objects.filter(status='available')[:30],
+        'trips_select': Trip.objects.filter(status__in=['assigned', 'started', 'booked']).order_by('-id')[:30],
+    }
+    return render(request, 'operations/border_permit_studio.html', context)
+
+
+@login_required
+def api_border_permit_check(request, trip_id):
+    """API endpoint to audit an individual trip for interstate permits."""
+    from .border_permit_sentry import audit_trip_border_permit
+    trip = get_object_or_404(Trip, id=trip_id)
+    audit = audit_trip_border_permit(trip)
+    return JsonResponse({
+        'status': 'success',
+        'trip_id': trip.id,
+        'trip_code': trip.trip_id,
+        'vehicle': trip.vehicle.registration_number if trip.vehicle else None,
+        'is_interstate': audit['is_interstate'],
+        'target_state': audit['target_state'],
+        'permit_status': audit['status'],
+        'status_label': audit['status_label'],
+        'badge': audit['badge'],
+        'required_tax': float(audit['required_tax']),
+        'checkpost': audit['checkpost'],
+        'bracket_label': audit.get('bracket_label', 'Standard Vehicle'),
+        'validity_days': audit.get('validity_days', 7),
+    })
+
+
+@csrf_exempt
+@login_required
+def api_border_permit_record_payment(request):
+    """API endpoint to record / clear statutory border road tax payment."""
+    import json
+    from decimal import Decimal
+    from datetime import timedelta
+    from django.utils import timezone
+    from .models import InterstateBorderPermit
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    vehicle_id = data.get('vehicle_id')
+    trip_id = data.get('trip_id')
+    target_state = data.get('target_state', 'Kerala')
+    checkpost_name = data.get('checkpost_name', 'Walayar Check-post (NH-544 Palakkad)')
+    permit_type = data.get('permit_type', 'single_entry')
+    tax_amount = Decimal(str(data.get('tax_amount', '750.00')))
+    receipt_number = data.get('receipt_number', f"PARIVAHAN-{timezone.now().strftime('%Y%m%d%H%M')}")
+    validity_days = int(data.get('validity_days', 7))
+
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id) if vehicle_id else None
+    trip = Trip.objects.filter(id=trip_id).first() if trip_id else None
+
+    if not vehicle and trip:
+        vehicle = trip.vehicle
+
+    if not vehicle:
+        return JsonResponse({'status': 'error', 'message': 'Vehicle is required'}, status=400)
+
+    now = timezone.now()
+    permit = InterstateBorderPermit.objects.create(
+        vehicle=vehicle,
+        trip=trip,
+        target_state=target_state,
+        origin_state='Tamil Nadu',
+        permit_type=permit_type,
+        checkpost_name=checkpost_name,
+        tax_amount=tax_amount,
+        receipt_number=receipt_number,
+        valid_from=now,
+        valid_until=now + timedelta(days=validity_days),
+        status='valid',
+        notes=f'Statutory road tax cleared via Check-post Parivahan POS. Trip #{trip.trip_id if trip else "N/A"}'
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Border permit pass issued successfully for {vehicle.registration_number} -> {target_state}',
+        'permit_id': permit.id,
+        'receipt_number': permit.receipt_number,
+        'valid_until': permit.valid_until.strftime('%d %b %Y, %H:%M'),
+        'tax_amount': float(permit.tax_amount)
+    })
+
+
+@csrf_exempt
+@login_required
+def api_border_permit_seed(request):
+    """Seed sample permits on demand."""
+    from .border_permit_sentry import issue_sample_interstate_permits
+    permits = issue_sample_interstate_permits()
+    return JsonResponse({'status': 'success', 'seeded_count': len(permits)})
+
+
+# ==============================================================================
+# P5-2: CHAUFFEUR FATIGUE & DUTY REST SENTRY
+# ==============================================================================
+
+@login_required
+def driver_fatigue_sentry_view(request):
+    """
+    P5-2: Chauffeur Fatigue & Duty Rest Sentry Studio.
+    Enforces mandatory 8h rest intervals, continuous driving surveillance,
+    and night ghat road hazard alerts.
+    """
+    from .models import DriverFatigueAuditLog
+    from .driver_fatigue_sentry import (
+        audit_all_active_drivers,
+        seed_sample_fatigue_audits
+    )
+
+    if not DriverFatigueAuditLog.objects.exists():
+        seed_sample_fatigue_audits()
+
+    evaluations, stats = audit_all_active_drivers()
+    audit_logs = DriverFatigueAuditLog.objects.select_related('driver', 'trip', 'override_by').order_by('-created_at')[:40]
+
+    context = {
+        'title': 'Chauffeur Fatigue & Mandatory Duty Rest Sentry',
+        'evaluations': evaluations,
+        'stats': stats,
+        'audit_logs': audit_logs,
+        'trips': Trip.objects.filter(status__in=['assigned', 'started', 'booked']).order_by('-id')[:25],
+    }
+    return render(request, 'operations/driver_fatigue_sentry.html', context)
+
+
+@login_required
+def api_driver_fatigue_audit(request, driver_id):
+    """Audits fatigue risk for a specific driver."""
+    from .driver_fatigue_sentry import evaluate_driver_fatigue
+    driver = get_object_or_404(Driver, id=driver_id)
+    trip_id = request.GET.get('trip_id')
+    trip = Trip.objects.filter(id=trip_id).first() if trip_id else None
+
+    res = evaluate_driver_fatigue(driver, prospective_trip=trip)
+    return JsonResponse({
+        'status': 'success',
+        'driver_id': driver.id,
+        'driver_name': driver.name,
+        'risk_level': res['risk_level'],
+        'risk_label': res['risk_label'],
+        'badge': res['badge'],
+        'rest_hours': float(res['rest_hours_elapsed']),
+        'continuous_duty_hours': float(res['continuous_duty_hours']),
+        'is_ghat_route': res['is_ghat_route'],
+        'is_night_shift': res['is_night_shift'],
+        'can_dispatch': res['can_dispatch'],
+        'message': res['warning_message'],
+    })
+
+
+@csrf_exempt
+@login_required
+def api_driver_fatigue_override(request):
+    """Records dispatcher override with justification for flagged drivers."""
+    import json
+    from .driver_fatigue_sentry import record_fatigue_override
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    driver_id = data.get('driver_id')
+    trip_id = data.get('trip_id')
+    reason = data.get('reason', '')
+
+    if not driver_id:
+        return JsonResponse({'status': 'error', 'message': 'Driver ID required'}, status=400)
+
+    log = record_fatigue_override(driver_id, trip_id=trip_id, reason=reason, user=request.user)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f'Safety override registered for Chauffeur {log.driver.name}. Dispatch clearance granted.',
+        'log_id': log.id,
+        'risk_level': log.risk_level,
+        'authorized_by': request.user.username if request.user else 'Supervisor'
+    })
+
+
+@csrf_exempt
+@login_required
+def api_driver_fatigue_seed(request):
+    """Seeds sample fatigue logs on demand."""
+    from .driver_fatigue_sentry import seed_sample_fatigue_audits
+    logs = seed_sample_fatigue_audits()
+    return JsonResponse({'status': 'success', 'seeded_count': len(logs)})
+
+
+
 
