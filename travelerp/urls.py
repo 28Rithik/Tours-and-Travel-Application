@@ -94,6 +94,9 @@ from operations.views import (
     api_database_health_audit,
     api_database_snapshot_export,
     api_run_scheduler_maintenance,
+    api_vehicle_quick_telemetry,
+    api_route_estimate,
+    api_global_search,
 )
 from statements.views import download_statement, generate_statement
 from maintenance.views import damage_marker_studio_view, tire_studio_view, workshop_mechanic_studio_view
@@ -117,6 +120,9 @@ from finance.views import (
     api_execute_driver_settlement,
     driver_settlement_voucher_view,
     api_driver_settlement_acknowledge,
+    fuel_receipt_ocr_studio_view,
+    api_fuel_receipt_ocr,
+    api_fuel_receipt_approve,
 )
 from driver_portal.views import pwa_manifest, pwa_service_worker
 from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view
@@ -214,6 +220,11 @@ urlpatterns = [
     path('finance/petty-cash-studio/', admin_petty_cash_studio_view, name='finance-petty-cash-studio-alias'),
     path('finance/petty-cash/', admin_petty_cash_studio_view, name='finance-petty-cash-alias'),
     path('driver/wallet/', driver_mobile_wallet_view, name='driver-mobile-wallet'),
+    # P3-1: Highway Fuel Receipt OCR & Bunk Verification Studio
+    path('finance/fuel-receipt-ocr/', fuel_receipt_ocr_studio_view, name='fuel-receipt-ocr-studio'),
+    path('admin/finance/fuel-receipt-ocr/', fuel_receipt_ocr_studio_view, name='admin-fuel-receipt-ocr'),
+    path('api/finance/fuel-receipt-ocr/', api_fuel_receipt_ocr, name='api-finance-fuel-receipt-ocr'),
+    path('api/finance/fuel-receipt-approve/', api_fuel_receipt_approve, name='api-finance-fuel-receipt-approve'),
     # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),
     path('admin/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-alias'),
@@ -403,6 +414,10 @@ urlpatterns = [
         path('sso/<slug:brand_slug>/callback/', fleet_commute_views.client_sso_callback_view),
         path('api/sso/lookup-domain/', fleet_commute_views.api_sso_domain_lookup),
     ])),
+    # P2: Velocity & Cascading Automations
+    path('api/vehicle/<int:vehicle_id>/quick-telemetry/', api_vehicle_quick_telemetry, name='api-vehicle-quick-telemetry'),
+    path('api/operations/route-estimate/', api_route_estimate, name='api-operations-route-estimate'),
+    path('api/operations/global-search/', api_global_search, name='api-operations-global-search'),
     path('packages/', include('packages.urls')),
     path('customer-portal/', include('customer_portal.urls')),
     path('payments/', include('payments_gateway.urls')),

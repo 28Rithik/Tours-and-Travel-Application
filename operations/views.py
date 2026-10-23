@@ -352,6 +352,7 @@ def generate_trip_sheet(request, trip_id):
     from decimal import Decimal
     from finance.models import TripExpense
     from django.contrib import messages
+    from django.db.models import Sum
 
     trip = get_object_or_404(
         Trip.objects.select_related('booking', 'vehicle', 'driver', 'party'),
@@ -3470,5 +3471,241 @@ def api_depot_transfer_history(request):
         'depot_scope': depot_scope,
         'transfers': results
     })
+
+
+# ==============================================================================
+# P2 ENHANCEMENTS: CASCADING ODOMETER, ROUTE ESTIMATOR & GLOBAL SEARCH PALETTE
+# ==============================================================================
+
+@login_required
+def api_vehicle_quick_telemetry(request, vehicle_id):
+    """
+    P2-1: Cascading Odometer & Quick Vehicle Telemetry.
+    Fetches the vehicle's last recorded odometer reading from closed trips or vehicle master,
+    default driver, fuel tank capacity, and compliance certificate validity alerts.
+    """
+    from core.models import Vehicle
+    from operations.models import Trip
+
+    vehicle = get_object_or_404(Vehicle.objects.select_related('default_driver', 'vehicle_type', 'vehicle_category'), pk=vehicle_id)
+
+    # Resolve most accurate verified odometer reading
+    latest_trip_km = Trip.objects.filter(
+        vehicle=vehicle,
+        closing_km__isnull=False,
+        closing_km__gt=0
+    ).order_by('-end_date', '-id').values_list('closing_km', flat=True).first()
+
+    verified_km = max(vehicle.current_km or 0, latest_trip_km or 0)
+
+    # Compliance sentry (expiries within 30 days)
+    today = timezone.localdate()
+    compliance_alerts = []
+    if vehicle.fc_expiry and vehicle.fc_expiry <= today + timezone.timedelta(days=30):
+        is_expired = vehicle.fc_expiry < today
+        compliance_alerts.append({
+            'type': 'fitness',
+            'label': 'Fitness Certificate (FC)',
+            'expiry_date': vehicle.fc_expiry.strftime('%d-%m-%Y'),
+            'is_expired': is_expired,
+            'message': f"FC {'EXPIRED on' if is_expired else 'expiring on'} {vehicle.fc_expiry.strftime('%d-%m-%Y')}"
+        })
+    if vehicle.insurance_expiry and vehicle.insurance_expiry <= today + timezone.timedelta(days=30):
+        is_expired = vehicle.insurance_expiry < today
+        compliance_alerts.append({
+            'type': 'insurance',
+            'label': 'Vehicle Insurance',
+            'expiry_date': vehicle.insurance_expiry.strftime('%d-%m-%Y'),
+            'is_expired': is_expired,
+            'message': f"Insurance {'EXPIRED on' if is_expired else 'expiring on'} {vehicle.insurance_expiry.strftime('%d-%m-%Y')}"
+        })
+    if vehicle.permit_expiry and vehicle.permit_expiry <= today + timezone.timedelta(days=30):
+        is_expired = vehicle.permit_expiry < today
+        compliance_alerts.append({
+            'type': 'permit',
+            'label': 'Tourist Permit',
+            'expiry_date': vehicle.permit_expiry.strftime('%d-%m-%Y'),
+            'is_expired': is_expired,
+            'message': f"Permit {'EXPIRED on' if is_expired else 'expiring on'} {vehicle.permit_expiry.strftime('%d-%m-%Y')}"
+        })
+
+    driver_data = None
+    if vehicle.default_driver:
+        driver_data = {
+            'id': vehicle.default_driver.id,
+            'name': vehicle.default_driver.name,
+            'phone': getattr(vehicle.default_driver, 'phone', ''),
+            'badge_number': getattr(vehicle.default_driver, 'badge_number', ''),
+        }
+
+    return JsonResponse({
+        'status': 'success',
+        'vehicle_id': vehicle.id,
+        'registration_number': vehicle.registration_number,
+        'brand': vehicle.brand,
+        'model': vehicle.model,
+        'category': vehicle.vehicle_category.name if vehicle.vehicle_category else '',
+        'type': vehicle.vehicle_type.name if vehicle.vehicle_type else '',
+        'current_km': verified_km,
+        'fuel_type': vehicle.fuel_type or 'Diesel',
+        'fuel_tank_capacity': float(vehicle.fuel_tank_capacity or 55.0),
+        'default_driver': driver_data,
+        'fastag_id': vehicle.fastag_id or '',
+        'compliance_alerts': compliance_alerts,
+        'status_code': vehicle.status,
+    })
+
+
+def api_route_estimate(request):
+    """
+    P2-1: Highway Corridor Distance & Toll Matrix Auto-fill API.
+    Computes distance in KM, driving hours, toll plaza counts, toll charges,
+    and interstate permit fees for South India transport corridors.
+    """
+    from operations.route_estimator import estimate_route
+
+    origin = request.GET.get('origin', 'Coimbatore').strip()
+    destination = request.GET.get('destination', '').strip()
+    is_round_trip = request.GET.get('is_round_trip', 'false').lower() in ['true', '1', 'yes']
+    vehicle_category = request.GET.get('vehicle_category', 'SEDAN').strip()
+
+    if not destination:
+        return JsonResponse({'status': 'error', 'message': 'Destination parameter is required.'}, status=400)
+
+    estimation = estimate_route(
+        origin=origin,
+        destination=destination,
+        is_round_trip=is_round_trip,
+        vehicle_category_code=vehicle_category
+    )
+    return JsonResponse(estimation)
+
+
+@login_required
+def api_global_search(request):
+    """
+    P2-2: Global Omnipresent Command Palette Search API (Ctrl + K).
+    Returns real-time fuzzy matches across Vehicles, Drivers, Trips/Duty Slips,
+    Leads/Inquiries, and Corporate Clients with jump URLs.
+    """
+    from django.db.models import Q
+    from core.models import Vehicle, Driver, Client
+    from operations.models import Trip
+    from crm.models import Inquiry
+
+    q = request.GET.get('q', '').strip()
+    if not q or len(q) < 2:
+        return JsonResponse({'status': 'success', 'results': []})
+
+    results = []
+
+    # 1. Search Vehicles
+    vehicles = Vehicle.objects.filter(
+        Q(registration_number__icontains=q) |
+        Q(model__icontains=q) |
+        Q(brand__icontains=q)
+    ).select_related('vehicle_category')[:4]
+
+    for v in vehicles:
+        results.append({
+            'category': 'Vehicle & Fleet',
+            'icon': 'fa-bus',
+            'title': v.registration_number,
+            'subtitle': f"{v.brand} {v.model} ({v.current_km:,} KM) • {v.get_status_display()}",
+            'badge': v.status.upper(),
+            'url': f"/admin/core/vehicle/{v.id}/change/",
+            'quick_action': f"Duty Slip: /trips/{v.id}/trip-sheet/" if v.trips.filter(status='dispatched').exists() else None
+        })
+
+    # 2. Search Drivers / Captains
+    drivers = Driver.objects.filter(
+        Q(name__icontains=q) |
+        Q(phone__icontains=q) |
+        Q(badge_number__icontains=q)
+    )[:4]
+
+    for d in drivers:
+        results.append({
+            'category': 'Chauffeurs & Captains',
+            'icon': 'fa-id-card',
+            'title': d.name,
+            'subtitle': f"Badge: {d.badge_number or 'N/A'} • Phone: {getattr(d, 'phone', 'N/A')}",
+            'badge': 'DRIVER',
+            'url': f"/admin/core/driver/{d.id}/change/",
+            'quick_action': None
+        })
+
+    # 3. Search Trips / Duty Slips
+    trips = Trip.objects.filter(
+        Q(trip_id__icontains=q) |
+        Q(guest_name__icontains=q) |
+        Q(travel_pnr__icontains=q) |
+        Q(notes__icontains=q)
+    ).select_related('vehicle', 'driver', 'booking', 'package')[:4]
+
+    for t in trips:
+        veh_str = t.vehicle.registration_number if t.vehicle else "No Vehicle"
+        if t.booking and t.booking.pickup_location:
+            route_str = f"{t.booking.pickup_location} ➔ {t.booking.dropoff_location or 'Destination'}"
+        elif t.package:
+            route_str = t.package.name
+        else:
+            route_str = t.notes[:40] if t.notes else "Outstation Trip"
+
+        results.append({
+            'category': 'Trips & Duty Slips',
+            'icon': 'fa-clipboard-list',
+            'title': f"Trip #{t.trip_id} — {t.guest_name or 'Corporate Guest'}",
+            'subtitle': f"{route_str} ({veh_str})",
+            'badge': t.status.upper(),
+            'url': f"/trips/{t.id}/trip-sheet/",
+            'quick_action': f"Open Duty Slip"
+        })
+
+    # 4. Search CRM Leads & Inquiries
+    inquiries = Inquiry.objects.filter(
+        Q(inquiry_number__icontains=q) |
+        Q(guest_name__icontains=q) |
+        Q(destination__icontains=q)
+    )[:4]
+
+    for inq in inquiries:
+        dur = f"{(inq.drop_date - inq.pickup_date).days}D" if (inq.drop_date and inq.pickup_date) else ""
+        dur_str = f" ({dur})" if dur else ""
+        results.append({
+            'category': 'Sales Leads & Inquiries',
+            'icon': 'fa-bolt-lightning',
+            'title': f"{inq.inquiry_number} — {inq.guest_name}",
+            'subtitle': f"{inq.pickup_location or 'Depot'} ➔ {inq.destination}{dur_str} • {inq.get_status_display()}",
+            'badge': inq.status.upper(),
+            'url': f"/crm/inquiries/{inq.id}/" if hasattr(inq, 'id') else f"/crm/inquiries/",
+            'quick_action': f"Quotation: /crm/quotations/new/?inquiry_id={inq.id}"
+        })
+
+    # 5. Search Corporate Clients
+    clients = Client.objects.filter(
+        Q(name__icontains=q) |
+        Q(phone__icontains=q) |
+        Q(email__icontains=q)
+    )[:3]
+
+    for c in clients:
+        results.append({
+            'category': 'Clients & Accounts',
+            'icon': 'fa-building',
+            'title': c.name,
+            'subtitle': f"Phone: {c.phone} • Email: {c.email or 'N/A'}",
+            'badge': 'CLIENT',
+            'url': f"/crm/clients/{c.id}/" if hasattr(c, 'id') else f"/admin/core/client/{c.id}/change/",
+            'quick_action': None
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'query': q,
+        'count': len(results),
+        'results': results
+    })
+
 
 

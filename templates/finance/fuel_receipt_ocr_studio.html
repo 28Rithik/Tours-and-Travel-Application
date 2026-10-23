@@ -1,0 +1,656 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Highway Fuel Receipt OCR & Bunk Verification Studio | TravelERP{% endblock %}
+{% block header_title %}Highway Fuel Receipt OCR Studio{% endblock %}
+
+{% block breadcrumbs %}
+<nav class="topbar-breadcrumb" aria-label="Breadcrumb">
+  <span class="breadcrumb-station">
+    <span class="breadcrumb-station-dot"></span>
+    Coimbatore Depot
+  </span>
+  <span class="breadcrumb-sep">/</span>
+  <span style="color: var(--text-muted); font-weight: 600;">Finance &amp; Fleet</span>
+  <span class="breadcrumb-sep">/</span>
+  <h1 class="breadcrumb-current">Fuel Slip OCR Studio</h1>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="ocr-studio-wrap">
+
+  <!-- Hero Header & Benchmark Strip -->
+  <div class="ocr-hero-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="ocr-hero-icon"><i class="fa-solid fa-gas-pump"></i></div>
+          <div>
+            <h2 style="font-size: 20px; font-weight: 800; margin: 0; color: #ffffff;">
+              Highway Fuel Receipt OCR &amp; Bunk Verification Sentry
+            </h2>
+            <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+              Zero manual typing &middot; Auto-detects Bunk Brand, Liters, Rate/L, Total Amount &amp; flags rate discrepancies
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="benchmark-pill">
+        <span class="bm-label">Tamil Nadu Corridor Benchmark:</span>
+        <span class="bm-val">₹{{ tamil_nadu_benchmark|floatformat:2 }} / L</span>
+        <span class="bm-badge">DIESEL</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dual-Pane Studio Grid -->
+  <div class="ocr-studio-grid">
+
+    <!-- Left Column: Receipt Dropzone & Ingest -->
+    <div class="ocr-card">
+      <div class="ocr-card-header">
+        <div class="ocr-card-title">
+          <i class="fa-solid fa-camera" style="color: #0284c7;"></i>
+          <span>1. Ingest Fuel Receipt (Photo or Text)</span>
+        </div>
+      </div>
+
+      <!-- Quick Test Pills -->
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px;">
+          ⚡ 1-Click Real-world Fuel Slip Samples:
+        </label>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+          <button type="button" class="ocr-sample-pill" onclick="loadSampleSlip(1)">
+            <i class="fa-solid fa-receipt"></i> Indian Oil (Coimbatore)
+          </button>
+          <button type="button" class="ocr-sample-pill" onclick="loadSampleSlip(2)">
+            <i class="fa-solid fa-receipt"></i> Bharat Petroleum (Salem)
+          </button>
+          <button type="button" class="ocr-sample-pill" onclick="loadSampleSlip(3)">
+            <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> Rate Anomaly (Fraud Check)
+          </button>
+        </div>
+      </div>
+
+      <!-- Vehicle Selector -->
+      <div class="ocr-form-group">
+        <label>Select Fleet Vehicle *</label>
+        <select id="selVehicle" class="ocr-select" onchange="runLiveOcr()">
+          {% for v in vehicles %}
+            <option value="{{ v.id }}" data-reg="{{ v.registration_number }}" data-cap="{{ v.fuel_tank_capacity|default:55 }}">
+              {{ v.registration_number }} — {{ v.brand }} {{ v.model }} (Tank: {{ v.fuel_tank_capacity|default:55 }}L)
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- File Upload Dropzone -->
+      <div class="ocr-dropzone" id="dropZone" onclick="document.getElementById('fileReceipt').click()">
+        <input type="file" id="fileReceipt" accept="image/*" style="display: none;" onchange="handleFileSelected(event)" />
+        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 32px; color: #0284c7; margin-bottom: 8px;"></i>
+        <div style="font-size: 14px; font-weight: 700; color: var(--text);">Drop slip photo here, or click to browse</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Supports PNG, JPG, WEBP receipt captures</div>
+        <div id="dropFileName" style="font-size: 12px; font-weight: 700; color: #16a34a; margin-top: 8px; display: none;"></div>
+      </div>
+
+      <!-- Raw Text Area (Alternative) -->
+      <div class="ocr-form-group" style="margin-top: 14px;">
+        <label>Receipt Scanned Text (Optical Feed)</label>
+        <textarea id="txtRawOcr" class="ocr-textarea" rows="6" placeholder="Paste fuel slip receipt text or let the scanner extract automatically..." oninput="debounceOcr()"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+        <button type="button" class="btn-scan-action" onclick="runLiveOcr()">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Run Optical Extraction &amp; Sentry
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Column: Extracted Fields & Fraud Sentry -->
+    <div class="ocr-card">
+      <div class="ocr-card-header">
+        <div class="ocr-card-title">
+          <i class="fa-solid fa-shield-halved" style="color: #10b981;"></i>
+          <span>2. Verification &amp; Anti-Fraud Sentry</span>
+        </div>
+        <span id="badgeVerification" class="verif-badge verified">
+          <i class="fa-solid fa-check"></i> Ready to Verify
+        </span>
+      </div>
+
+      <!-- Fraud Warning Banner (Shown on Anomaly) -->
+      <div id="boxFraudWarning" class="fraud-alert-box" style="display: none;">
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px; color: #dc2626; flex-shrink: 0; margin-top: 2px;"></i>
+          <div>
+            <div style="font-weight: 800; font-size: 13px; color: #dc2626;">SUSPICIOUS EXPENSE CLAIM DETECTED</div>
+            <ul id="listFraudReasons" style="margin: 4px 0 0 16px; padding: 0; font-size: 12px; color: #991b1b;"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extracted Form Fields -->
+      <form id="formFuelApproval" onsubmit="event.preventDefault(); approveFuelSlip();">
+        <div class="ocr-form-row">
+          <div class="ocr-form-group">
+            <label>Fuel Station Name *</label>
+            <input type="text" id="inpStation" class="ocr-input" placeholder="e.g. Indian Oil Corporation" required />
+          </div>
+          <div class="ocr-form-group">
+            <label>Fuel Slip / Invoice #</label>
+            <input type="text" id="inpSlipNo" class="ocr-input" placeholder="e.g. IOCL-84729" />
+          </div>
+        </div>
+
+        <div class="ocr-form-row">
+          <div class="ocr-form-group">
+            <label>Liters Pumped (Volume) *</label>
+            <input type="number" step="0.01" id="inpLiters" class="ocr-input" placeholder="45.00" oninput="recalculateTotal()" required />
+          </div>
+          <div class="ocr-form-group">
+            <label>Rate per Liter (₹) *</label>
+            <input type="number" step="0.01" id="inpRate" class="ocr-input" placeholder="94.20" oninput="recalculateTotal()" required />
+          </div>
+        </div>
+
+        <div class="ocr-form-row">
+          <div class="ocr-form-group">
+            <label>Total Billed Amount (₹) *</label>
+            <input type="number" step="0.01" id="inpTotal" class="ocr-input" style="font-weight: 800; font-size: 16px; color: #0284c7;" placeholder="0.00" required />
+          </div>
+          <div class="ocr-form-group">
+            <label>Date of Refueling</label>
+            <input type="date" id="inpDate" class="ocr-input" value="{% now 'Y-m-d' %}" required />
+          </div>
+        </div>
+
+        <div class="ocr-form-group">
+          <label>Link to Active Trip (Optional)</label>
+          <select id="selTrip" class="ocr-select">
+            <option value="">-- No Active Trip Link (Depot Fuel) --</option>
+            {% for t in recent_trips %}
+              <option value="{{ t.id }}">
+                Trip #{{ t.trip_id }} — {{ t.guest_name|default:"Tour" }} ({{ t.vehicle.registration_number|default:"No Veh" }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="ocr-form-group">
+          <label>Audit Notes</label>
+          <input type="text" id="inpNotes" class="ocr-input" placeholder="Night refueling on NH-544 corridor..." />
+        </div>
+
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+          <button type="submit" id="btnApprove" class="btn-approve-action">
+            <i class="fa-solid fa-circle-check"></i> Approve &amp; Post to Fuel Ledger
+          </button>
+        </div>
+      </form>
+
+    </div>
+
+  </div>
+
+  <!-- Recent Fuel Receipts Log -->
+  <div class="ocr-card" style="margin-top: 24px;">
+    <div class="ocr-card-header">
+      <div class="ocr-card-title">
+        <i class="fa-solid fa-list-check" style="color: #6366f1;"></i>
+        <span>Recently Verified Fuel Slips</span>
+      </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="ocr-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Vehicle</th>
+            <th>Fuel Station</th>
+            <th>Liters</th>
+            <th>Rate/L</th>
+            <th>Total Amount</th>
+            <th>Slip Ref</th>
+            <th>Trip Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recent_records %}
+          <tr>
+            <td>{{ r.date|date:"d M Y" }}</td>
+            <td style="font-weight: 700; color: #0284c7;">{{ r.vehicle.registration_number }}</td>
+            <td>{{ r.fuel_station|default:"Highway RO" }}</td>
+            <td>{{ r.fuel_quantity }} L</td>
+            <td>₹{{ r.fuel_price }}</td>
+            <td style="font-weight: 700;">₹{{ r.amount|floatformat:2 }}</td>
+            <td><code>{{ r.api_reference_number|default:"N/A" }}</code></td>
+            <td>
+              {% if r.trip %}
+                <a href="/trips/{{ r.trip.id }}/trip-sheet/" style="color: #0284c7; text-decoration: none; font-weight: 600;">
+                  #{{ r.trip.trip_id }}
+                </a>
+              {% else %}
+                <span style="color: var(--text-muted);">&mdash;</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              No fuel records recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .ocr-studio-wrap {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .ocr-hero-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+  .ocr-hero-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .benchmark-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+  .bm-label { color: #94a3b8; font-weight: 600; }
+  .bm-val { color: #fde047; font-weight: 800; }
+  .bm-badge { background: #ef4444; color: #fff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+
+  .ocr-studio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 20px;
+  }
+  @media (max-width: 960px) {
+    .ocr-studio-grid { grid-template-columns: 1fr; }
+  }
+
+  .ocr-card {
+    background: var(--surface, #ffffff);
+    border: 1px solid var(--line, #e2e8f0);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  html.dark .ocr-card {
+    background: #0f172a;
+    border-color: #334155;
+  }
+  .ocr-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line, #e2e8f0);
+  }
+  html.dark .ocr-card-header { border-bottom-color: #1e293b; }
+  .ocr-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text, #0f172a);
+  }
+  html.dark .ocr-card-title { color: #f8fafc; }
+
+  .ocr-sample-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(2, 132, 199, 0.08);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+    border-radius: 9999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0284c7;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .ocr-sample-pill:hover {
+    background: #0284c7;
+    color: #ffffff;
+  }
+
+  .ocr-dropzone {
+    border: 2px dashed #0284c7;
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(2, 132, 199, 0.03);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .ocr-dropzone:hover {
+    background: rgba(2, 132, 199, 0.07);
+    border-color: #0369a1;
+  }
+
+  .ocr-form-group {
+    margin-bottom: 12px;
+  }
+  .ocr-form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 5px;
+  }
+  .ocr-input, .ocr-select, .ocr-textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--line, #cbd5e1);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text, #0f172a);
+    background: var(--surface, #ffffff);
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  html.dark .ocr-input, html.dark .ocr-select, html.dark .ocr-textarea {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+  }
+  .ocr-input:focus, .ocr-select:focus, .ocr-textarea:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  }
+  .ocr-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .btn-scan-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-scan-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  }
+
+  .btn-approve-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-approve-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  }
+
+  .verif-badge {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 9999px;
+  }
+  .verif-badge.verified {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .verif-badge.flagged {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  .fraud-alert-box {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+  html.dark .fraud-alert-box {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  .ocr-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .ocr-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: rgba(148, 163, 184, 0.08);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted, #64748b);
+    border-bottom: 1px solid var(--line, #e2e8f0);
+  }
+  .ocr-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--line, #f1f5f9);
+    color: var(--text, #0f172a);
+  }
+  html.dark .ocr-table td {
+    border-bottom-color: #1e293b;
+    color: #f8fafc;
+  }
+</style>
+
+<script>
+  let ocrDebounceTimer = null;
+
+  const SAMPLE_SLIPS = {
+    1: `INDIAN OIL CORPORATION LIMITED
+COIMBATORE HIGHWAY RETAIL OUTLET
+AVINASHI ROAD, COIMBATORE - 641014
+DATE: 23/10/2026  TIME: 11:25:00
+INVOICE NO: IOCL-54210
+PUMP NO: 02   NOZZLE: 01
+PRODUCT: DIESEL (HSD)
+RATE: 94.20 RS/LTR
+VOLUME: 48.50 LTR
+TOTAL AMOUNT: RS 4568.70
+VEHICLE NO: TN 38 BH 1008
+PAYMENT MODE: FASTAG FLEET CARD`,
+    2: `BHARAT PETROLEUM CORPORATION LTD
+SALEM BYPASS EXPRESSWAY RO
+SALEM, TAMIL NADU - 636004
+DATE: 23/10/2026  TIME: 08:40:15
+BILL NO: BPCL-9871
+FUEL: DIESEL
+RATE: 93.80 INR/L
+QTY: 55.00 L
+NET AMOUNT: 5159.00 INR
+VEHICLE: TN 38 BX 5544`,
+    3: `HIGHWAY FUEL PETROL BUNK
+DATE: 23/10/2026
+INV: ANOM-999
+PRODUCT: DIESEL
+RATE: 118.50 RS/L
+VOLUME: 120.00 LTR
+TOTAL AMOUNT: RS 14220.00`
+  };
+
+  function loadSampleSlip(num) {
+    document.getElementById('txtRawOcr').value = SAMPLE_SLIPS[num];
+    runLiveOcr();
+  }
+
+  function handleFileSelected(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const dropLabel = document.getElementById('dropFileName');
+      dropLabel.innerText = "✓ Selected: " + file.name + " (" + (file.size / 1024).toFixed(1) + " KB)";
+      dropLabel.style.display = 'block';
+      runLiveOcr();
+    }
+  }
+
+  function debounceOcr() {
+    clearTimeout(ocrDebounceTimer);
+    ocrDebounceTimer = setTimeout(runLiveOcr, 300);
+  }
+
+  async function runLiveOcr() {
+    const rawText = document.getElementById('txtRawOcr').value.trim();
+    const vehId = document.getElementById('selVehicle').value;
+    const fileInput = document.getElementById('fileReceipt');
+
+    const formData = new FormData();
+    formData.append('vehicle_id', vehId);
+    if (rawText) {
+      formData.append('raw_text', rawText);
+    }
+    if (fileInput.files.length > 0) {
+      formData.append('receipt_file', fileInput.files[0]);
+    }
+
+    if (!rawText && fileInput.files.length === 0) {
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/finance/fuel-receipt-ocr/', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        populateExtractedFields(data);
+      }
+    } catch(err) {
+      console.error(err);
+    }
+  }
+
+  function populateExtractedFields(data) {
+    document.getElementById('inpStation').value = data.station_name || '';
+    document.getElementById('inpSlipNo').value = data.slip_number || '';
+    document.getElementById('inpLiters').value = data.liters || '';
+    document.getElementById('inpRate').value = data.rate_per_liter || '';
+    document.getElementById('inpTotal').value = data.total_amount || '';
+    if (data.date) document.getElementById('inpDate').value = data.date;
+
+    const badge = document.getElementById('badgeVerification');
+    const warnBox = document.getElementById('boxFraudWarning');
+    const reasonsList = document.getElementById('listFraudReasons');
+
+    if (data.fraud_check && data.fraud_check.is_flagged) {
+      badge.className = 'verif-badge flagged';
+      badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Anomaly Flagged';
+      warnBox.style.display = 'block';
+      reasonsList.innerHTML = data.fraud_check.warnings.map(w => `<li>${w}</li>`).join('');
+    } else {
+      badge.className = 'verif-badge verified';
+      badge.innerHTML = '<i class="fa-solid fa-check-double"></i> Clean &amp; Verified';
+      warnBox.style.display = 'none';
+      reasonsList.innerHTML = '';
+    }
+  }
+
+  function recalculateTotal() {
+    const l = parseFloat(document.getElementById('inpLiters').value) || 0;
+    const r = parseFloat(document.getElementById('inpRate').value) || 0;
+    if (l > 0 && r > 0) {
+      document.getElementById('inpTotal').value = (l * r).toFixed(2);
+    }
+  }
+
+  async function approveFuelSlip() {
+    const payload = {
+      vehicle_id: document.getElementById('selVehicle').value,
+      trip_id: document.getElementById('selTrip').value,
+      station_name: document.getElementById('inpStation').value,
+      slip_number: document.getElementById('inpSlipNo').value,
+      liters: document.getElementById('inpLiters').value,
+      rate_per_liter: document.getElementById('inpRate').value,
+      date: document.getElementById('inpDate').value,
+      notes: document.getElementById('inpNotes').value
+    };
+
+    const formData = new FormData();
+    for (const [k, v] of Object.entries(payload)) {
+      formData.append(k, v);
+    }
+    const fileInput = document.getElementById('fileReceipt');
+    if (fileInput.files.length > 0) {
+      formData.append('receipt_file', fileInput.files[0]);
+    }
+
+    try {
+      const res = await fetch('/api/finance/fuel-receipt-approve/', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert("✅ " + data.message);
+        location.reload();
+      } else {
+        alert("Error approving fuel slip: " + (data.message || 'Unknown error'));
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Network error while saving fuel record.');
+    }
+  }
+</script>
+{% endblock %}

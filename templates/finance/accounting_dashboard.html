@@ -210,6 +210,17 @@
 </div>
 {% endif %}
 
+<!-- Quick Date Range Presets -->
+<div class="quick-preset-pills" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center;">
+  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-right: 4px;">⚡ Quick Filter:</span>
+  <button type="button" class="btn-range-pill" onclick="setDatePreset('today')">Today</button>
+  <button type="button" class="btn-range-pill" onclick="setDatePreset('yesterday')">Yesterday</button>
+  <button type="button" class="btn-range-pill" onclick="setDatePreset('this_week')">This Week</button>
+  <button type="button" class="btn-range-pill" onclick="setDatePreset('this_month')">This Month</button>
+  <button type="button" class="btn-range-pill" onclick="setDatePreset('last_month')">Last Month</button>
+  <button type="button" class="btn-range-pill" onclick="setDatePreset('fy')">FY 2026-27</button>
+</div>
+
 <!-- Date Range Filter Toolbar -->
 <form method="get" class="filter-bar">
   <div class="filter-group">
@@ -292,9 +303,12 @@
         Exports customer sales vouchers for all completed trips and transport contract monthly billings with GST ledgers.
       </div>
     </div>
-    <div>
-      <a href="{% url 'export-tally-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-tally">
-        📥 Download Tally Sales XML
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn-preview-payload" onclick="previewExportPayload('{% url 'export-tally-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}&preview=1', 'Tally Prime Sales XML', '{% url 'export-tally-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}')" style="padding: 10px 12px; background: rgba(15, 91, 53, 0.1); color: #0f5b35; border: 1px solid rgba(15, 91, 53, 0.3); border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer;" title="Preview XML payload before downloading">
+        👁️ Preview
+      </button>
+      <a href="{% url 'export-tally-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-tally" style="flex: 1;">
+        📥 Download XML
       </a>
     </div>
   </div>
@@ -313,9 +327,12 @@
         Exports fuel logs, FASTag toll deductions, and company-paid trip expenses into standard Tally payment vouchers.
       </div>
     </div>
-    <div>
-      <a href="{% url 'export-tally-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-tally">
-        📥 Download Tally Expenses XML
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn-preview-payload" onclick="previewExportPayload('{% url 'export-tally-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}&preview=1', 'Tally Prime Expenses XML', '{% url 'export-tally-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}')" style="padding: 10px 12px; background: rgba(176, 96, 0, 0.1); color: #b06000; border: 1px solid rgba(176, 96, 0, 0.3); border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer;" title="Preview XML payload before downloading">
+        👁️ Preview
+      </button>
+      <a href="{% url 'export-tally-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-tally" style="flex: 1; background: #b06000;">
+        📥 Download XML
       </a>
     </div>
   </div>
@@ -334,9 +351,12 @@
         Standard Zoho Books CSV invoice format mapping customer name, trip details, vehicle number, and itemized taxes.
       </div>
     </div>
-    <div>
-      <a href="{% url 'export-zoho-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho">
-        📊 Download Zoho Sales CSV
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn-preview-payload" onclick="previewExportPayload('{% url 'export-zoho-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}&preview=1', 'Zoho Books Invoices CSV', '{% url 'export-zoho-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}')" style="padding: 10px 12px; background: rgba(26, 115, 232, 0.1); color: #1a73e8; border: 1px solid rgba(26, 115, 232, 0.3); border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer;" title="Preview CSV payload before downloading">
+        👁️ Preview
+      </button>
+      <a href="{% url 'export-zoho-sales' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho" style="flex: 1;">
+        📊 Download CSV
       </a>
     </div>
   </div>
@@ -355,9 +375,12 @@
         Operational expenses CSV including Petro card accounts, Fastag deductions, vendor stations, and vehicle registrations.
       </div>
     </div>
-    <div>
-      <a href="{% url 'export-zoho-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho">
-        📊 Download Zoho Expenses CSV
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn-preview-payload" onclick="previewExportPayload('{% url 'export-zoho-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}&preview=1', 'Zoho Books Expenses CSV', '{% url 'export-zoho-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}')" style="padding: 10px 12px; background: rgba(197, 34, 31, 0.1); color: #c5221f; border: 1px solid rgba(197, 34, 31, 0.3); border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer;" title="Preview CSV payload before downloading">
+        👁️ Preview
+      </button>
+      <a href="{% url 'export-zoho-expenses' %}?from_date={{ from_date }}&to_date={{ to_date }}" class="btn-export btn-zoho" style="flex: 1; background: #c5221f;">
+        📊 Download CSV
       </a>
     </div>
   </div>
@@ -629,12 +652,217 @@
   </div>
 </div>
 
+<!-- Payload Preview Modal -->
+<div id="exportPreviewModal" class="preview-modal-backdrop" style="display: none;" onclick="closePreviewModal(event)">
+  <div class="preview-modal-box" onclick="event.stopPropagation()">
+    <div class="preview-modal-header">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <h3 id="prevModalTitle" style="font-size: 16px; font-weight: 800; margin: 0; color: var(--text);">Export Payload Preview</h3>
+          <span id="prevModalBadge" class="badge-tag badge-green">XML</span>
+        </div>
+        <div id="prevModalFilename" style="font-size: 12px; color: var(--muted); margin-top: 3px; font-family: monospace;"></div>
+      </div>
+      <button type="button" onclick="closePreviewModal()" style="background: none; border: none; font-size: 20px; color: var(--muted); cursor: pointer;">&times;</button>
+    </div>
+
+    <div class="preview-modal-body">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted);" id="prevStatsLabel">Payload First 50 Records</span>
+        <button type="button" id="btnCopyPayload" onclick="copyPayloadToClipboard()" style="background: rgba(2, 132, 199, 0.1); border: 1px solid rgba(2, 132, 199, 0.3); color: #0284c7; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;">
+          <i class="fa-solid fa-copy"></i> Copy to Clipboard
+        </button>
+      </div>
+      <pre id="prevPayloadCode" class="preview-code-box"></pre>
+    </div>
+
+    <div class="preview-modal-footer">
+      <span style="font-size: 11px; color: var(--muted);">✓ Formatted according to official accounting schema</span>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" onclick="closePreviewModal()" class="button button-quiet">Close</button>
+        <a id="btnModalDownload" href="#" class="button button-primary">
+          <i class="fa-solid fa-download"></i> Download Full File
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .btn-range-pill {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 9999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-range-pill:hover {
+    border-color: #0284c7;
+    color: #0284c7;
+    background: rgba(2, 132, 199, 0.08);
+  }
+  .preview-modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .preview-modal-box {
+    width: 800px;
+    max-width: 95vw;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .preview-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .preview-modal-body {
+    padding: 16px 20px;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+  .preview-code-box {
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 380px;
+    overflow-y: auto;
+    margin: 0;
+  }
+  .preview-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    border-top: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.02);
+  }
+</style>
+
 <script>
   function switchTab(tabId, btn) {
     document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
+  }
+
+  // Quick Preset Date Ranges
+  function setDatePreset(type) {
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+    let fromD, toD;
+    if (type === 'today') {
+      fromD = toD = fmt(today);
+    } else if (type === 'yesterday') {
+      const y = new Date(today);
+      y.setDate(today.getDate() - 1);
+      fromD = toD = fmt(y);
+    } else if (type === 'this_week') {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(now.setDate(diff));
+      fromD = fmt(monday);
+      toD = fmt(new Date());
+    } else if (type === 'this_month') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      fromD = fmt(start);
+      toD = fmt(today);
+    } else if (type === 'last_month') {
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end = new Date(today.getFullYear(), today.getMonth(), 0);
+      fromD = fmt(start);
+      toD = fmt(end);
+    } else if (type === 'fy') {
+      fromD = '2026-04-01';
+      toD = '2027-03-31';
+    }
+
+    if (fromD && toD) {
+      document.getElementById('id_from_date').value = fromD;
+      document.getElementById('id_to_date').value = toD;
+      document.querySelector('.filter-bar').submit();
+    }
+  }
+
+  let currentRawPayload = '';
+
+  // Payload Live Preview Modal
+  async function previewExportPayload(previewUrl, title, downloadUrl) {
+    const modal = document.getElementById('exportPreviewModal');
+    const titleEl = document.getElementById('prevModalTitle');
+    const badgeEl = document.getElementById('prevModalBadge');
+    const fnameEl = document.getElementById('prevModalFilename');
+    const codeEl = document.getElementById('prevPayloadCode');
+    const dlBtn = document.getElementById('btnModalDownload');
+    const statsLabel = document.getElementById('prevStatsLabel');
+
+    modal.style.display = 'flex';
+    titleEl.innerText = title;
+    codeEl.innerText = 'Loading payload preview from server...';
+    dlBtn.href = downloadUrl;
+
+    try {
+      const res = await fetch(previewUrl);
+      const data = await res.json();
+      if (data.status === 'success') {
+        currentRawPayload = data.content;
+        codeEl.innerText = data.content;
+        fnameEl.innerText = data.filename + ` (${(data.total_bytes / 1024).toFixed(1)} KB)`;
+        badgeEl.innerText = data.format.toUpperCase();
+        badgeEl.className = data.format === 'xml' ? 'badge-tag badge-green' : 'badge-tag badge-blue';
+        statsLabel.innerText = `Previewing ~${data.content.length} characters (Total: ${(data.total_bytes / 1024).toFixed(1)} KB)`;
+      } else {
+        codeEl.innerText = 'Error loading preview: ' + (data.message || 'Unknown error');
+      }
+    } catch(err) {
+      console.error(err);
+      codeEl.innerText = 'Failed to fetch payload preview.';
+    }
+  }
+
+  function closePreviewModal(e) {
+    document.getElementById('exportPreviewModal').style.display = 'none';
+  }
+
+  function copyPayloadToClipboard() {
+    if (!currentRawPayload) return;
+    navigator.clipboard.writeText(currentRawPayload).then(() => {
+      const btn = document.getElementById('btnCopyPayload');
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+      btn.style.color = '#16a34a';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-copy"></i> Copy to Clipboard';
+        btn.style.color = '#0284c7';
+      }, 2000);
+    });
   }
 </script>
 

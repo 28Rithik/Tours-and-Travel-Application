@@ -663,6 +663,9 @@
         <a class="nav-link {% if request.resolver_match.url_name == 'driver-settlement-root' or request.resolver_match.url_name == 'driver-settlement-studio' or request.resolver_match.url_name == 'admin-driver-settlement-studio' %}is-active{% endif %}" href="{% url 'driver-settlement-root' %}" style="font-weight: 700; color: #0284c7;">
           <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Driver Bata &amp; Settlement
         </a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'fuel-receipt-ocr-studio' %}is-active{% endif %}" href="{% url 'fuel-receipt-ocr-studio' %}">
+          <i class="fa-solid fa-gas-pump nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Fuel Slip OCR Sentry
+        </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'finance-gst-studio' or request.resolver_match.url_name == 'admin-gst-studio' %}is-active{% endif %}" href="{% url 'finance-gst-studio' %}">
           <i class="fa-solid fa-file-lines nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Corporate GST &amp; E-Way Bill
         </a>
@@ -745,6 +748,12 @@
           <button type="button" class="btn-topbar-quick-lead" onclick="openSmartLeadModal()" title="⚡ Smart Lead Ingest & Quick Lead (Ctrl+Shift+L)" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 9999px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #ffffff; border: none; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35); transition: all 0.15s ease;">
             <i class="fa-solid fa-bolt-lightning" style="color: #fef08a;"></i>
             <span>+ Quick Lead</span>
+          </button>
+
+          <!-- 🔍 P2: Command Palette Trigger Button -->
+          <button type="button" class="btn-topbar-cmd" onclick="openCommandPalette()" title="Global Command Palette &amp; Search (Ctrl + K)" style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 13px; border-radius: 9999px; background: rgba(148, 163, 184, 0.12); color: var(--text, #0f172a); border: 1px solid var(--line, #cbd5e1); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">
+            <i class="fa-solid fa-magnifying-glass" style="font-size: 11px; color: #0284c7;"></i>
+            <span>Search or <kbd style="background: rgba(148,163,184,0.22); padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 800;">Ctrl+K</kbd></span>
           </button>
 
 
@@ -1144,6 +1153,9 @@
 
   <!-- ⚡ P1: Rathasārathi Smart Lead Ingest Modal (Global) -->
   {% include "crm/components/smart_lead_ingest_modal.html" %}
+
+  <!-- 🔍 P2: Omnipresent Global Command Palette (Ctrl + K) -->
+  {% include "components/command_palette_modal.html" %}
 </body>
 </html>
 
