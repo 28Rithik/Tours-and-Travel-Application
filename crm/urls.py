@@ -108,4 +108,9 @@ urlpatterns = [
     path('api/tenant-admin/user/update/', views.api_tenant_admin_user_update, name='api_tenant_admin_user_update'),
     path('api/sample-records/generate/', views.api_sample_records_generate, name='api_sample_records_generate'),
     path('api/sample-records/clean/', views.api_sample_records_clean, name='api_sample_records_clean'),
+
+    # Phase 8 (P1): Smart Lead Ingest & Quick Lead Creation
+    path('api/inquiries/smart-parse/', views.api_inquiry_smart_parse, name='api_inquiry_smart_parse'),
+    path('api/inquiries/quick-create/', views.api_inquiry_quick_create, name='api_inquiry_quick_create'),
 ]
+

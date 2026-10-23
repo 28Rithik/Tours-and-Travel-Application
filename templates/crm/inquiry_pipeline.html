@@ -193,14 +193,15 @@
     <p>Real-time customer inquiry pipeline with automated Turnaround Time (TAT) monitoring, priority dispatch, destination matching, and instant 1-click quotation generation.</p>
   </div>
   <div style="display: flex; gap: 10px; align-items: center;">
+    <button onclick="openSmartLeadModal()" class="button" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff; border: 0; font-weight: 700; padding: 10px 18px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);">
+      <i class="fa-solid fa-bolt-lightning"></i> ⚡ Smart Ingest Lead
+    </button>
     <a href="{% url 'crm:quotation_create' %}" class="button button-primary" style="background: #14b8a6; color: #042f2e; border: 0; font-weight: 700; padding: 10px 18px; border-radius: 8px;">
       <i class="fa-solid fa-file-invoice"></i> New Quotation
     </a>
-    <a href="/admin/crm/inquiry/add/" class="button" style="background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-weight: 600; padding: 10px 16px; border-radius: 8px;" target="_blank">
-      <i class="fa-solid fa-plus"></i> Log Inquiry
-    </a>
   </div>
 </div>
+
 
 <!-- KPI Summary Strip -->
 <div class="kpi-row">
@@ -423,3 +424,5 @@ function togglePinView() {
 }
 </script>
 {% endblock %}
+
+

@@ -1106,8 +1106,8 @@ class EmergencyIncidentAlert(models.Model):
 
 	class Meta:
 		ordering = ['-reported_at']
-		verbose_name = "Emergency Incident / SOS Alert"
-		verbose_name_plural = "Emergency Incident / SOS Alerts"
+		verbose_name = "Emergency Alert"
+		verbose_name_plural = "Emergency Alerts"
 
 	def __str__(self):
 		return f"{self.incident_id} - {self.get_incident_type_display()} ({self.vehicle.registration_number})"
@@ -1133,8 +1133,8 @@ class VehicleTelematicsPing(models.Model):
 		indexes = [
 			models.Index(fields=['vehicle', '-timestamp']),
 		]
-		verbose_name = "Vehicle Telematics Ping"
-		verbose_name_plural = "Vehicle Telematics Pings"
+		verbose_name = "GPS Ping"
+		verbose_name_plural = "GPS Pings"
 
 	def __str__(self):
 		return f"{self.vehicle.registration_number} @ {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')} ({self.speed_kmh} km/h)"
@@ -1173,8 +1173,8 @@ class DriverBehaviorLog(models.Model):
 
 	class Meta:
 		ordering = ['-timestamp']
-		verbose_name = "Driver Behavior Event"
-		verbose_name_plural = "Driver Behavior Events"
+		verbose_name = "Driver Event Log"
+		verbose_name_plural = "Driver Event Logs"
 		indexes = [
 			models.Index(fields=['driver', 'timestamp'], name='idx_drv_beh_driver_time'),
 			models.Index(fields=['vehicle', 'timestamp'], name='idx_drv_beh_veh_time'),
@@ -1206,8 +1206,8 @@ class GeofenceZone(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
-		verbose_name = "Geofence Zone"
-		verbose_name_plural = "Geofence Zones"
+		verbose_name = "Location Zone"
+		verbose_name_plural = "Location Zones"
 
 	def __str__(self):
 		return f"{self.name} ({self.get_zone_type_display()}) - Radius: {self.radius_meters}m"
@@ -1290,8 +1290,8 @@ class DriverHandoverSession(models.Model):
 
 	class Meta:
 		ordering = ['-created_at']
-		verbose_name = "Driver Handover Session"
-		verbose_name_plural = "Driver Handover Sessions"
+		verbose_name = "Vehicle Handover"
+		verbose_name_plural = "Vehicle Handovers"
 
 	def __str__(self):
 		return f"{self.trip.trip_id} - {self.get_session_type_display()} ({self.odometer_reading} KM)"
@@ -1314,8 +1314,8 @@ class TripMilestoneEvent(models.Model):
 
 	class Meta:
 		ordering = ['timestamp', 'milestone_index']
-		verbose_name = 'Trip Milestone Event'
-		verbose_name_plural = 'Trip Milestone Events'
+		verbose_name = 'Trip Step'
+		verbose_name_plural = 'Trip Steps'
 
 	def __str__(self):
 		return f"{self.trip.trip_id} - {self.get_milestone_display()} at {self.timestamp.strftime('%H:%M')}"

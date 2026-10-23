@@ -343,8 +343,202 @@ def api_get_trip(request, trip_id):
 
 @login_required
 def generate_trip_sheet(request, trip_id):
-    trip = get_object_or_404(Trip, pk=trip_id)
-    return render(request, 'operations/trip_sheet.html', {'trip': trip})
+    """
+    Interactive Digital Duty Slip & Trip Sheet Studio (Phase 8 / P1)
+    Supports real-time duty logging: Opening & Closing Odometer, Garage timings,
+    Tolls & Border Permits, live extra KM calculations, digital signatures,
+    and 1-click completion with Tax Invoice generation.
+    """
+    from decimal import Decimal
+    from finance.models import TripExpense
+    from django.contrib import messages
+
+    trip = get_object_or_404(
+        Trip.objects.select_related('booking', 'vehicle', 'driver', 'party'),
+        pk=trip_id
+    )
+
+    if request.method == 'POST':
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json'
+        
+        try:
+            if request.content_type == 'application/json' and request.body:
+                import json
+                data = json.loads(request.body.decode('utf-8'))
+            else:
+                data = request.POST
+
+            # 1. Update Odometer Readings
+            op_km = data.get('opening_km')
+            if op_km not in [None, '']:
+                try:
+                    trip.opening_km = int(op_km)
+                except (ValueError, TypeError):
+                    pass
+
+            cl_km = data.get('closing_km')
+            if cl_km not in [None, '']:
+                try:
+                    trip.closing_km = int(cl_km)
+                except (ValueError, TypeError):
+                    pass
+
+            # 2. Update Timings & Dates
+            start_date_val = data.get('start_date')
+            if start_date_val:
+                try:
+                    trip.start_date = datetime.datetime.strptime(start_date_val, '%Y-%m-%d').date()
+                except ValueError:
+                    pass
+
+            end_date_val = data.get('end_date')
+            if end_date_val:
+                try:
+                    trip.end_date = datetime.datetime.strptime(end_date_val, '%Y-%m-%d').date()
+                except ValueError:
+                    pass
+
+            start_time_val = data.get('start_time')
+            if start_time_val:
+                try:
+                    trip.start_time = datetime.datetime.strptime(start_time_val, '%H:%M').time()
+                except ValueError:
+                    pass
+
+            end_time_val = data.get('end_time')
+            if end_time_val:
+                try:
+                    trip.end_time = datetime.datetime.strptime(end_time_val, '%H:%M').time()
+                except ValueError:
+                    pass
+
+            # 3. Update Driver Bata
+            driver_bata_val = data.get('driver_bata')
+            if driver_bata_val not in [None, '']:
+                try:
+                    trip.driver_bata = Decimal(str(driver_bata_val))
+                except Exception:
+                    pass
+
+            # 4. Update Digital Sign-off & Feedback
+            sig_data = data.get('customer_signature_data')
+            if sig_data:
+                trip.customer_signature_data = sig_data
+                trip.customer_signature_at = timezone.now()
+
+            rating_val = data.get('guest_rating')
+            if rating_val not in [None, '']:
+                try:
+                    trip.guest_rating = int(rating_val)
+                except (ValueError, TypeError):
+                    pass
+
+            feedback_val = data.get('guest_feedback')
+            if feedback_val is not None:
+                trip.guest_feedback = str(feedback_val).strip()
+
+            notes_val = data.get('notes')
+            if notes_val is not None:
+                trip.notes = str(notes_val).strip()
+
+            # 5. Handle Expenses (Tolls, Parking, Permits)
+            date_for_exp = trip.end_date or trip.start_date or timezone.localdate()
+            for exp_type, form_key in [('toll', 'toll_amount'), ('parking', 'parking_amount'), ('permit', 'permit_amount')]:
+                val = data.get(form_key)
+                if val not in [None, '']:
+                    try:
+                        amt = Decimal(str(val))
+                        if amt > 0:
+                            exp_obj, _ = TripExpense.objects.get_or_create(
+                                trip=trip,
+                                expense_type=exp_type,
+                                defaults={
+                                    'amount': amt,
+                                    'date': date_for_exp,
+                                    'paid_by': 'company',
+                                    'billable_to_customer': True,
+                                    'description': f"Duty Slip {exp_type.title()} Charges"
+                                }
+                            )
+                            if exp_obj.amount != amt:
+                                exp_obj.amount = amt
+                                exp_obj.save(update_fields=['amount'])
+                        else:
+                            TripExpense.objects.filter(trip=trip, expense_type=exp_type).delete()
+                    except Exception:
+                        pass
+
+            # 6. Duty State Transition
+            action = data.get('action', 'save')
+            if action in ['complete', 'complete_and_invoice']:
+                trip.status = 'completed'
+                if trip.vehicle:
+                    if trip.closing_km:
+                        trip.vehicle.current_km = trip.closing_km
+                    trip.vehicle.status = 'available'
+                    trip.vehicle.save(update_fields=['current_km', 'status'] if trip.closing_km else ['status'])
+                if trip.booking:
+                    trip.booking.status = 'completed'
+                    trip.booking.save(update_fields=['status'])
+            elif action == 'start' and trip.status in ['booked', 'assigned']:
+                trip.status = 'started'
+                if trip.vehicle:
+                    trip.vehicle.status = 'on_trip'
+                    trip.vehicle.save(update_fields=['status'])
+
+            trip.save()
+
+            if is_ajax:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': f"Duty slip for Trip #{trip.trip_id} updated successfully!",
+                    'trip_id': trip.id,
+                    'trip_status': trip.status,
+                    'used_km': trip.used_km,
+                    'extra_km': trip.extra_km,
+                    'total_amount': float(trip.total_amount),
+                    'final_bill_message': trip.final_bill_message
+                })
+
+            messages.success(request, f"Duty slip for Trip #{trip.trip_id} updated successfully!")
+            return redirect('trip-sheet', trip_id=trip.id)
+
+        except Exception as e:
+            logger.exception("Error saving digital trip sheet")
+            if is_ajax:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            messages.error(request, f"Error saving duty slip: {str(e)}")
+            return redirect('trip-sheet', trip_id=trip.id)
+
+    # GET Request: Pre-compute duty metrics
+    opening_km_suggested = trip.opening_km or (trip.vehicle.current_km if trip.vehicle else None)
+    expected_km = trip.booking.expected_km if trip.booking and trip.booking.expected_km else (trip.days_count * 250)
+    used_km = trip.used_km
+    extra_km = max(0, used_km - expected_km) if used_km and expected_km else 0
+    extra_km_rate = trip.km_rate or Decimal('18.00')
+    extra_km_charge = extra_km * extra_km_rate
+
+    # Gather itemized expenses
+    toll_amount = trip.expenses.filter(expense_type='toll').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+    parking_amount = trip.expenses.filter(expense_type='parking').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+    permit_amount = trip.expenses.filter(expense_type='permit').aggregate(s=Sum('amount'))['s'] or Decimal('0.00')
+
+    context = {
+        'trip': trip,
+        'opening_km_suggested': opening_km_suggested,
+        'expected_km': expected_km,
+        'used_km': used_km,
+        'extra_km': extra_km,
+        'extra_km_rate': extra_km_rate,
+        'extra_km_charge': extra_km_charge,
+        'toll_amount': toll_amount,
+        'parking_amount': parking_amount,
+        'permit_amount': permit_amount,
+        'total_amount': trip.total_amount,
+        'balance_due': max(trip.total_amount - (trip.received_amount or 0), 0),
+    }
+    return render(request, 'operations/trip_sheet.html', context)
+
 
 
 def customer_trip_invoice_view(request, trip_id):

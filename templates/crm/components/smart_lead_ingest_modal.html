@@ -1,0 +1,994 @@
+{% load static %}
+<!-- ==============================================================================
+     Rathasārathi AI Smart Lead Ingest & Quick Lead Modal Component
+     Sivagayathiri Travels & Tours ERP (Operations Desk)
+     ============================================================================== -->
+<style>
+  /* Modal Overlay & Structure */
+  #smartLeadModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: leadModalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes leadModalFadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .lead-modal-container {
+    background: var(--surface-card, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 880px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    color: var(--text-main, #0f172a);
+  }
+
+  /* Header */
+  .lead-modal-header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f766e 100%);
+    padding: 20px 24px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+  .lead-modal-header h3 {
+    margin: 0 0 4px 0;
+    font-size: 19px;
+    font-weight: 800;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .lead-modal-header p {
+    margin: 0;
+    font-size: 12px;
+    color: #cbd5e1;
+  }
+  .lead-modal-close {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: background 0.2s;
+  }
+  .lead-modal-close:hover {
+    background: rgba(239, 68, 68, 0.8);
+  }
+
+  /* Tabs */
+  .lead-modal-tabs {
+    display: flex;
+    background: var(--surface-subtle, #f8fafc);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    padding: 0 20px;
+  }
+  .lead-tab-btn {
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted, #64748b);
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .lead-tab-btn.active {
+    color: var(--primary, #0284c7);
+    border-bottom-color: var(--primary, #0284c7);
+    background: var(--surface-card, #ffffff);
+  }
+
+  /* Body */
+  .lead-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* Sample Pills */
+  .sample-pills-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .sample-pill-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .sample-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    background: var(--surface-subtle, #f1f5f9);
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 20px;
+    cursor: pointer;
+    color: var(--text-main, #334155);
+    transition: all 0.15s;
+  }
+  .sample-pill:hover {
+    background: #0284c7;
+    color: white;
+    border-color: #0284c7;
+  }
+
+  /* Smart Parse Textarea */
+  .smart-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border-color, #cbd5e1);
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    background: var(--surface-subtle, #f8fafc);
+    color: var(--text-main, #0f172a);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .smart-textarea:focus {
+    border-color: var(--primary, #0284c7);
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    background: var(--surface-card, #ffffff);
+  }
+
+  .btn-parse-trigger {
+    background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    transition: all 0.2s;
+  }
+  .btn-parse-trigger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(13, 148, 136, 0.35);
+  }
+
+  /* Extracted Fields Card */
+  .extracted-card {
+    background: var(--surface-subtle, #f8fafc);
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 18px;
+    display: none;
+    animation: leadModalFadeIn 0.3s;
+  }
+  .extracted-card.active {
+    display: block;
+  }
+  .extracted-card-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f766e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+  }
+
+  /* Form Grid */
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  .form-group-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+  .form-group-compact label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted, #475569);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .form-group-compact input,
+  .form-group-compact select,
+  .form-group-compact textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    font-size: 13px;
+    background: var(--surface-card, #ffffff);
+    color: var(--text-main, #0f172a);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group-compact input:focus,
+  .form-group-compact select:focus,
+  .form-group-compact textarea:focus {
+    border-color: var(--primary, #0284c7);
+  }
+
+  /* Footer */
+  .lead-modal-footer {
+    background: var(--surface-subtle, #f8fafc);
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .lead-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn-lead-secondary {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--surface-card, #ffffff);
+    color: var(--text-main, #334155);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-lead-primary {
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    background: var(--primary, #0284c7);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-lead-primary:hover {
+    background: #0369a1;
+  }
+  .btn-lead-quote {
+    background: #0f766e;
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-lead-quote:hover {
+    background: #115e59;
+  }
+
+  /* Success View */
+  .lead-success-card {
+    text-align: center;
+    padding: 40px 20px;
+    display: none;
+  }
+  .lead-success-card.active {
+    display: block;
+  }
+  .success-icon-badge {
+    width: 68px;
+    height: 68px;
+    background: #dcfce7;
+    color: #16a34a;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  /* Dark mode tweaks */
+  html.dark .lead-modal-container {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+  }
+  html.dark .lead-modal-tabs {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  html.dark .lead-tab-btn.active {
+    background: #0f172a;
+    color: #38bdf8;
+    border-bottom-color: #38bdf8;
+  }
+  html.dark .smart-textarea,
+  html.dark .form-group-compact input,
+  html.dark .form-group-compact select,
+  html.dark .form-group-compact textarea {
+    background: #1e293b;
+    border-color: #475569;
+    color: #f8fafc;
+  }
+  html.dark .extracted-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  html.dark .lead-modal-footer {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  html.dark .btn-lead-secondary {
+    background: #334155;
+    border-color: #475569;
+    color: #f1f5f9;
+  }
+  html.dark .sample-pill {
+    background: #334155;
+    border-color: #475569;
+    color: #cbd5e1;
+  }
+</style>
+
+<!-- Modal Overlay -->
+<div id="smartLeadModalOverlay">
+  <div class="lead-modal-container">
+    
+    <!-- Header -->
+    <div class="lead-modal-header">
+      <div>
+        <h3><i class="fa-solid fa-bolt-lightning" style="color: #38bdf8;"></i> Rathasārathi Smart Lead Ingest</h3>
+        <p>Instant NLP & WhatsApp parsing · Auto-generates Inquiry, Client party, and 1-Click Quotation</p>
+      </div>
+      <button class="lead-modal-close" onclick="closeSmartLeadModal()" title="Close (Esc)">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="lead-modal-tabs" id="leadModalTabStrip">
+      <button class="lead-tab-btn active" id="tabBtnSmart" onclick="switchLeadTab('smart')">
+        <i class="fa-brands fa-whatsapp" style="color: #22c55e;"></i> ⚡ WhatsApp / Text Smart Ingest
+      </button>
+      <button class="lead-tab-btn" id="tabBtnManual" onclick="switchLeadTab('manual')">
+        <i class="fa-solid fa-pen-to-square"></i> ✍️ Quick Manual Form
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="lead-modal-body">
+      
+      <!-- SUCCESS STATE -->
+      <div id="leadSuccessCard" class="lead-success-card">
+        <div class="success-icon-badge">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <h2 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 800; color: #16a34a;" id="successLeadNumber">Inquiry Created!</h2>
+        <p style="color: var(--text-muted); font-size: 14px; margin: 0 0 24px 0;" id="successLeadDesc">The inquiry has been logged and SLA TAT deadline assigned.</p>
+        
+        <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+          <a id="btnSuccessQuote" href="#" class="btn-lead-quote" style="text-decoration: none; padding: 10px 20px; font-size: 14px;">
+            <i class="fa-solid fa-file-invoice"></i> 🚀 Open in Quotation Studio
+          </a>
+          <a id="btnSuccessWhatsapp" href="#" target="_blank" class="btn-lead-primary" style="background: #16a34a; text-decoration: none; padding: 10px 20px; font-size: 14px;">
+            <i class="fa-brands fa-whatsapp"></i> 💬 Send Client WhatsApp Ack
+          </a>
+          <button class="btn-lead-secondary" onclick="resetSmartLeadModal()">
+            <i class="fa-solid fa-plus"></i> Ingest Another Lead
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 1: SMART INGEST -->
+      <div id="leadTabContentSmart">
+        <!-- Sample Pills -->
+        <div class="sample-pills-row">
+          <span class="sample-pill-label">⚡ Try Sample:</span>
+          <span class="sample-pill" onclick="loadLeadSample('ooty')">🌲 Ooty 3D Innova (Family)</span>
+          <span class="sample-pill" onclick="loadLeadSample('munnar')">🍃 Munnar 4D Tempo (Group)</span>
+          <span class="sample-pill" onclick="loadLeadSample('airport')">✈️ Bangalore Airport Sedan</span>
+          <span class="sample-pill" onclick="loadLeadSample('madurai')">🛕 Madurai-Rameshwaram 3D</span>
+        </div>
+
+        <textarea id="smartIngestRawText" class="smart-textarea" rows="4" placeholder="Paste raw WhatsApp message, customer email, SMS, or phone conversation notes here...
+
+Example:
+Need Innova Crysta for 3 days from Coimbatore to Munnar starting 28th Oct, 5 pax, Mr. Suresh Kumar 9842100000, budget 24000"></textarea>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <button id="btnSmartParseTrigger" class="btn-parse-trigger" onclick="runSmartLeadParse()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ✨ Parse with Rathasārathi AI
+          </button>
+          <span id="smartParseSpinner" style="display: none; font-size: 12px; color: #0f766e; font-weight: 600;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing travel entities...
+          </span>
+        </div>
+
+        <!-- Extracted Review Card -->
+        <div id="smartExtractedCard" class="extracted-card">
+          <div class="extracted-card-title">
+            <span><i class="fa-solid fa-circle-check"></i> Extracted Travel Fields (Review & Edit Before Saving)</span>
+            <span style="font-size: 11px; font-weight: 600; color: #64748b;">Confidence: <span style="color: #16a34a;">High (98%)</span></span>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-compact">
+              <label>Guest Name *</label>
+              <input type="text" id="smartGuestName" placeholder="Full Name" required />
+            </div>
+            <div class="form-group-compact">
+              <label>Phone Number *</label>
+              <input type="text" id="smartGuestPhone" placeholder="10-digit Mobile" required />
+            </div>
+            <div class="form-group-compact">
+              <label>Guest Email</label>
+              <input type="email" id="smartGuestEmail" placeholder="guest@example.com" />
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-compact">
+              <label>Pickup Location *</label>
+              <input type="text" id="smartPickupLocation" placeholder="e.g. Coimbatore HQ" required />
+            </div>
+            <div class="form-group-compact">
+              <label>Destination Route *</label>
+              <input type="text" id="smartDestination" placeholder="e.g. Ooty / Nilgiris" required />
+            </div>
+            <div class="form-group-compact">
+              <label>Circuit Match</label>
+              <select id="smartDestinationDropdown">
+                <option value="ooty">🌲 Ooty / Nilgiris, TN</option>
+                <option value="kodaikanal">🌸 Kodaikanal, TN</option>
+                <option value="munnar">🍃 Munnar Tea Hills, KL</option>
+                <option value="kochi">⛵ Kochi / Alleppey, KL</option>
+                <option value="wayanad">🌿 Wayanad Wildlife, KL</option>
+                <option value="madurai">🛕 Madurai Temple Circuit, TN</option>
+                <option value="rameshwaram">🌊 Rameshwaram, TN</option>
+                <option value="kanyakumari">🌅 Kanyakumari, TN</option>
+                <option value="pondicherry">🏖️ Pondicherry</option>
+                <option value="mysore_coorg">🏰 Mysore Palace & Coorg, KA</option>
+                <option value="bangalore">🏙️ Bangalore Hub</option>
+                <option value="chennai">🏛️ Chennai Metropolitan</option>
+                <option value="tirupati">🙏 Tirupati Balaji, AP</option>
+                <option value="coimbatore">🏭 Coimbatore Hub / Isha</option>
+                <option value="other">📍 Other Destination</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-compact">
+              <label>Pickup Date *</label>
+              <input type="date" id="smartPickupDate" required />
+            </div>
+            <div class="form-group-compact">
+              <label>Duration (Days)</label>
+              <input type="number" id="smartDurationDays" min="1" max="30" value="1" onchange="syncSmartDropDate()" />
+            </div>
+            <div class="form-group-compact">
+              <label>Drop Date</label>
+              <input type="date" id="smartDropDate" />
+            </div>
+          </div>
+
+          <div class="form-grid-3">
+            <div class="form-group-compact">
+              <label>Vehicle Model Preference</label>
+              <select id="smartVehicleTypeId">
+                {% for vt in vehicle_types %}
+                  <option value="{{ vt.id }}">{{ vt.name }}</option>
+                {% empty %}
+                  <option value="">Standard AC Sedan / SUV</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group-compact">
+              <label>Pax (Adults / Kids)</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="number" id="smartAdultCount" min="1" value="2" title="Adults" style="width: 50%;" />
+                <input type="number" id="smartChildCount" min="0" value="0" title="Children" style="width: 50%;" />
+              </div>
+            </div>
+            <div class="form-group-compact">
+              <label>Quoted / Deal Value (₹)</label>
+              <input type="number" id="smartQuotedPrice" placeholder="e.g. 18500" />
+            </div>
+          </div>
+
+          <div class="form-group-compact" style="margin-bottom: 0;">
+            <label>Customer Special Requests / Notes</label>
+            <input type="text" id="smartSpecialNotes" placeholder="Driver night bata, hill permit, extra luggage..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MANUAL FORM -->
+      <div id="leadTabContentManual" style="display: none;">
+        <div class="form-grid-2">
+          <div class="form-group-compact">
+            <label>Link Existing Client / Company</label>
+            <select id="manualPartyId">
+              <option value="">-- Create New Individual Client --</option>
+              {% for c in clients %}
+                <option value="{{ c.id }}">{{ c.name }} ({{ c.phone|default:'No Phone' }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group-compact">
+            <label>Lead Priority</label>
+            <select id="manualPriority">
+              <option value="medium">🟡 Medium Priority (Standard)</option>
+              <option value="high">🟠 High Priority (Urgent)</option>
+              <option value="urgent">🔴 Urgent VIP (Immediate TAT)</option>
+              <option value="low">🟢 Low Priority</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group-compact">
+            <label>Guest Name *</label>
+            <input type="text" id="manualGuestName" placeholder="Full Name" />
+          </div>
+          <div class="form-group-compact">
+            <label>Phone Number *</label>
+            <input type="text" id="manualGuestPhone" placeholder="Mobile Number" />
+          </div>
+          <div class="form-group-compact">
+            <label>Guest Email</label>
+            <input type="email" id="manualGuestEmail" placeholder="guest@example.com" />
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group-compact">
+            <label>Pickup Location *</label>
+            <input type="text" id="manualPickupLoc" value="Coimbatore HQ" />
+          </div>
+          <div class="form-group-compact">
+            <label>Destination Route *</label>
+            <input type="text" id="manualDestination" placeholder="e.g. Ooty & Coonoor" />
+          </div>
+          <div class="form-group-compact">
+            <label>Journey Category</label>
+            <select id="manualJourneyType">
+              <option value="outstation">Outstation Round-Trip</option>
+              <option value="local">Local Sightseeing (8h/80km)</option>
+              <option value="airport">Airport Transfer</option>
+              <option value="one_way">One-Way Drop</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group-compact">
+            <label>Pickup Date *</label>
+            <input type="date" id="manualPickupDate" />
+          </div>
+          <div class="form-group-compact">
+            <label>Pickup Time</label>
+            <input type="time" id="manualPickupTime" value="06:00" />
+          </div>
+          <div class="form-group-compact">
+            <label>Drop Date</label>
+            <input type="date" id="manualDropDate" />
+          </div>
+        </div>
+
+        <div class="form-grid-3">
+          <div class="form-group-compact">
+            <label>Vehicle Type</label>
+            <select id="manualVehicleTypeId">
+              {% for vt in vehicle_types %}
+                <option value="{{ vt.id }}">{{ vt.name }}</option>
+              {% empty %}
+                <option value="">Standard AC Fleet</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group-compact">
+            <label>Pax Count (Adults / Kids)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="number" id="manualAdults" min="1" value="2" placeholder="Adults" style="width: 50%;" />
+              <input type="number" id="manualKids" min="0" value="0" placeholder="Kids" style="width: 50%;" />
+            </div>
+          </div>
+          <div class="form-group-compact">
+            <label>Estimated Value (₹)</label>
+            <input type="number" id="manualDealValue" placeholder="e.g. 15000" />
+          </div>
+        </div>
+
+        <div class="form-group-compact">
+          <label>Requirements & Itinerary Notes</label>
+          <textarea id="manualNotes" rows="2" placeholder="Driver bata, accommodation, AC instructions..."></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="lead-modal-footer" id="leadModalFooter">
+      <button class="btn-lead-secondary" onclick="closeSmartLeadModal()">Cancel (Esc)</button>
+      <div class="lead-btn-group">
+        <button class="btn-lead-primary" id="btnSubmitLead" onclick="submitQuickLead(false)">
+          <i class="fa-solid fa-floppy-disk"></i> Save as Lead
+        </button>
+        <button class="btn-lead-quote" id="btnSubmitLeadQuote" onclick="submitQuickLead(true)">
+          <i class="fa-solid fa-rocket"></i> Save & Open Quotation Studio
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Smart Lead Ingest Script -->
+<script>
+  // Sample Data Dictionary
+  const LEAD_SAMPLES = {
+    ooty: "Need Innova Crysta from Coimbatore to Ooty and Coonoor for 3 days starting 28th Oct, 5 adults 1 kid, Mr. Suresh Kumar 9842100000, please quote with driver bata and hill entry permits. Budget ₹24,000",
+    munnar: "Looking for 17 seater Force Traveller to Munnar from Coimbatore for 4 days next weekend, 12 adults, Contact: Dr. Anitha 9443212345, need AC vehicle with luggage carrier, budget 42000",
+    airport: "Need clean sedan (Dzire/Etios) for Bangalore Airport drop from Coimbatore on tomorrow morning 4:30 AM, 2 pax, Mr. Rajesh 9894056789, urgent booking",
+    madurai: "Madurai Meenakshi Temple and Rameshwaram 3 days pilgrimage package ex-Coimbatore for family of 6, starting 15th Nov, Innova preferred, Caller: Anandhan 9789012345, budget ₹26000"
+  };
+
+  function openSmartLeadModal() {
+    const overlay = document.getElementById('smartLeadModalOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      // Set default dates if empty
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      const pDate = document.getElementById('smartPickupDate');
+      if (pDate && !pDate.value) pDate.value = tomorrowStr;
+      const mDate = document.getElementById('manualPickupDate');
+      if (mDate && !mDate.value) mDate.value = tomorrowStr;
+      
+      const dDate = document.getElementById('smartDropDate');
+      if (dDate && !dDate.value) dDate.value = tomorrowStr;
+      const mdDate = document.getElementById('manualDropDate');
+      if (mdDate && !mdDate.value) mdDate.value = tomorrowStr;
+      
+      loadMasterDataPrerequisites();
+      document.getElementById('smartIngestRawText').focus();
+    }
+  }
+
+
+  function closeSmartLeadModal() {
+    const overlay = document.getElementById('smartLeadModalOverlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function switchLeadTab(tab) {
+    const isSmart = tab === 'smart';
+    document.getElementById('tabBtnSmart').classList.toggle('active', isSmart);
+    document.getElementById('tabBtnManual').classList.toggle('active', !isSmart);
+    document.getElementById('leadTabContentSmart').style.display = isSmart ? 'block' : 'none';
+    document.getElementById('leadTabContentManual').style.display = isSmart ? 'none' : 'block';
+  }
+
+  function loadLeadSample(key) {
+    const sample = LEAD_SAMPLES[key];
+    if (sample) {
+      document.getElementById('smartIngestRawText').value = sample;
+      runSmartLeadParse();
+    }
+  }
+
+  function syncSmartDropDate() {
+    const pDateVal = document.getElementById('smartPickupDate').value;
+    const daysVal = parseInt(document.getElementById('smartDurationDays').value) || 1;
+    if (pDateVal) {
+      const pDate = new Date(pDateVal);
+      pDate.setDate(pDate.getDate() + Math.max(0, daysVal - 1));
+      document.getElementById('smartDropDate').value = pDate.toISOString().split('T')[0];
+    }
+  }
+
+  // Parse Raw Text via Backend NLP Engine
+  async function runSmartLeadParse() {
+    const rawText = document.getElementById('smartIngestRawText').value.trim();
+    if (!rawText) {
+      alert("Please paste or type travel inquiry text first.");
+      document.getElementById('smartIngestRawText').focus();
+      return;
+    }
+
+    const spinner = document.getElementById('smartParseSpinner');
+    const triggerBtn = document.getElementById('btnSmartParseTrigger');
+    spinner.style.display = 'inline-block';
+    triggerBtn.disabled = true;
+
+    try {
+      const response = await fetch('/crm/api/inquiries/smart-parse/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: JSON.stringify({ raw_text: rawText })
+      });
+
+      const res = await response.json();
+      if (res.status === 'success') {
+        const d = res.data;
+        document.getElementById('smartGuestName').value = d.guest_name || '';
+        document.getElementById('smartGuestPhone').value = d.guest_phone || '';
+        document.getElementById('smartGuestEmail').value = d.guest_email || '';
+        document.getElementById('smartPickupLocation').value = d.pickup_location || 'Coimbatore HQ';
+        document.getElementById('smartDestination').value = d.destination || '';
+        
+        if (d.destination_dropdown) {
+          const dd = document.getElementById('smartDestinationDropdown');
+          if (dd) dd.value = d.destination_dropdown;
+        }
+
+        if (d.pickup_date) document.getElementById('smartPickupDate').value = d.pickup_date;
+        if (d.duration_days) document.getElementById('smartDurationDays').value = d.duration_days;
+        if (d.drop_date) document.getElementById('smartDropDate').value = d.drop_date;
+        if (d.adult_count) document.getElementById('smartAdultCount').value = d.adult_count;
+        if (d.child_count !== undefined) document.getElementById('smartChildCount').value = d.child_count;
+        if (d.quoted_price) document.getElementById('smartQuotedPrice').value = d.quoted_price;
+        if (d.special_requirements) document.getElementById('smartSpecialNotes').value = d.special_requirements;
+
+        if (d.vehicle_type_id) {
+          const vSel = document.getElementById('smartVehicleTypeId');
+          if (vSel) vSel.value = d.vehicle_type_id;
+        }
+
+        document.getElementById('smartExtractedCard').classList.add('active');
+      } else {
+        alert("Parse error: " + (res.message || 'Failed to parse text'));
+      }
+    } catch (err) {
+      console.error("Smart parse error:", err);
+      alert("Network error while parsing inquiry.");
+    } finally {
+      spinner.style.display = 'none';
+      triggerBtn.disabled = false;
+    }
+  }
+
+  // Submit Lead to Backend
+  async function submitQuickLead(openQuote) {
+    const isSmartTab = document.getElementById('leadTabContentSmart').style.display !== 'none';
+    let payload = {};
+
+    if (isSmartTab) {
+      payload = {
+        guest_name: document.getElementById('smartGuestName').value.trim(),
+        guest_phone: document.getElementById('smartGuestPhone').value.trim(),
+        guest_email: document.getElementById('smartGuestEmail').value.trim(),
+        pickup_location: document.getElementById('smartPickupLocation').value.trim(),
+        destination: document.getElementById('smartDestination').value.trim(),
+        destination_dropdown: document.getElementById('smartDestinationDropdown').value,
+        pickup_date: document.getElementById('smartPickupDate').value,
+        drop_date: document.getElementById('smartDropDate').value,
+        adult_count: document.getElementById('smartAdultCount').value,
+        child_count: document.getElementById('smartChildCount').value,
+        vehicle_type_id: document.getElementById('smartVehicleTypeId').value,
+        quoted_price: document.getElementById('smartQuotedPrice').value,
+        special_requirements: document.getElementById('smartSpecialNotes').value,
+        source: 'whatsapp'
+      };
+    } else {
+      payload = {
+        party_id: document.getElementById('manualPartyId').value,
+        priority: document.getElementById('manualPriority').value,
+        guest_name: document.getElementById('manualGuestName').value.trim(),
+        guest_phone: document.getElementById('manualGuestPhone').value.trim(),
+        guest_email: document.getElementById('manualGuestEmail').value.trim(),
+        pickup_location: document.getElementById('manualPickupLoc').value.trim(),
+        destination: document.getElementById('manualDestination').value.trim(),
+        journey_type: document.getElementById('manualJourneyType').value,
+        pickup_date: document.getElementById('manualPickupDate').value,
+        pickup_time: document.getElementById('manualPickupTime').value,
+        drop_date: document.getElementById('manualDropDate').value,
+        vehicle_type_id: document.getElementById('manualVehicleTypeId').value,
+        adult_count: document.getElementById('manualAdults').value,
+        child_count: document.getElementById('manualKids').value,
+        quoted_price: document.getElementById('manualDealValue').value,
+        notes: document.getElementById('manualNotes').value,
+        source: 'walk_in'
+      };
+    }
+
+    if (!payload.guest_name && !payload.guest_phone) {
+      alert("Please provide at least a Guest Name or Phone Number.");
+      return;
+    }
+
+    const btnSubmit = document.getElementById('btnSubmitLead');
+    const btnQuote = document.getElementById('btnSubmitLeadQuote');
+    btnSubmit.disabled = true;
+    btnQuote.disabled = true;
+
+    try {
+      const response = await fetch('/crm/api/inquiries/quick-create/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const res = await response.json();
+      if (res.status === 'success') {
+        if (openQuote && res.quotation_url) {
+          window.location.href = res.quotation_url;
+          return;
+        }
+
+        // Show Success View
+        document.getElementById('leadTabContentSmart').style.display = 'none';
+        document.getElementById('leadTabContentManual').style.display = 'none';
+        document.getElementById('leadModalTabStrip').style.display = 'none';
+        document.getElementById('leadModalFooter').style.display = 'none';
+
+        const successCard = document.getElementById('leadSuccessCard');
+        successCard.classList.add('active');
+
+        document.getElementById('successLeadNumber').innerText = `Lead #${res.inquiry_number} Created!`;
+        document.getElementById('successLeadDesc').innerText = `Registered for ${res.guest_name} (${payload.pickup_location} ➔ ${payload.destination})`;
+
+        document.getElementById('btnSuccessQuote').href = res.quotation_url;
+        const btnWa = document.getElementById('btnSuccessWhatsapp');
+        if (res.whatsapp_url) {
+          btnWa.href = res.whatsapp_url;
+          btnWa.style.display = 'inline-flex';
+        } else {
+          btnWa.style.display = 'none';
+        }
+
+      } else {
+        alert("Failed to create lead: " + (res.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error("Create lead error:", err);
+      alert("Network error while creating lead.");
+    } finally {
+      btnSubmit.disabled = false;
+      btnQuote.disabled = false;
+    }
+  }
+
+  function resetSmartLeadModal() {
+    document.getElementById('leadSuccessCard').classList.remove('active');
+    document.getElementById('leadModalTabStrip').style.display = 'flex';
+    document.getElementById('leadModalFooter').style.display = 'flex';
+    document.getElementById('smartExtractedCard').classList.remove('active');
+    document.getElementById('smartIngestRawText').value = '';
+    switchLeadTab('smart');
+    openSmartLeadModal();
+  }
+
+  // CSRF Token Helper
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Dynamic Master Data Loader (loads vehicle types & clients if not already in DOM)
+  let masterDataLoaded = false;
+  async function loadMasterDataPrerequisites() {
+    if (masterDataLoaded) return;
+    const vSel = document.getElementById('smartVehicleTypeId');
+    const mVsel = document.getElementById('manualVehicleTypeId');
+    const mParty = document.getElementById('manualPartyId');
+    
+    if (vSel && vSel.options.length <= 1) {
+      try {
+        const res = await fetch('/crm/api/master-data/lookup/?destination=all');
+        const data = await res.json();
+        if (data.vehicle_types && data.vehicle_types.length) {
+          let opts = '';
+          data.vehicle_types.forEach(v => {
+            opts += `<option value="${v.id}">${v.name}</option>`;
+          });
+          vSel.innerHTML = opts;
+          if (mVsel) mVsel.innerHTML = opts;
+        }
+        if (data.clients && data.clients.length && mParty) {
+          let cOpts = '<option value="">-- Create New Individual Client --</option>';
+          data.clients.forEach(c => {
+            cOpts += `<option value="${c.id}">${c.name} (${c.phone || 'No Phone'})</option>`;
+          });
+          mParty.innerHTML = cOpts;
+        }
+        masterDataLoaded = true;
+      } catch (err) {
+        console.warn('Could not auto-fetch master data prerequisites:', err);
+      }
+    }
+  }
+
+  // Keyboard shortcuts (Esc to close, Ctrl+Enter to save, Ctrl+Shift+L to trigger from anywhere)
+  document.addEventListener('keydown', function(e) {
+    const overlay = document.getElementById('smartLeadModalOverlay');
+    if (e.ctrlKey && e.shiftKey && (e.key === 'L' || e.key === 'l')) {
+      e.preventDefault();
+      openSmartLeadModal();
+      return;
+    }
+    if (overlay && overlay.style.display === 'flex') {
+      if (e.key === 'Escape') {
+        closeSmartLeadModal();
+      } else if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        submitQuickLead(false);
+      }
+    }
+  });
+</script>
+

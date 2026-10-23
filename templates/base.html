@@ -741,6 +741,13 @@
             <span>Unfold Admin</span>
           </a>
 
+          <!-- ⚡ P1: Smart Lead Ingest & Quick Lead Trigger Button -->
+          <button type="button" class="btn-topbar-quick-lead" onclick="openSmartLeadModal()" title="⚡ Smart Lead Ingest & Quick Lead (Ctrl+Shift+L)" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 9999px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #ffffff; border: none; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35); transition: all 0.15s ease;">
+            <i class="fa-solid fa-bolt-lightning" style="color: #fef08a;"></i>
+            <span>+ Quick Lead</span>
+          </button>
+
+
           <!-- Adaptive Theme Switcher (Syncs with Unfold Admin) -->
           <div class="theme-switch-pill" id="theme-switch-pill" title="Toggle Theme (Light / Dark / System)">
             <button type="button" class="theme-switch-btn" data-theme-val="light" onclick="setAppTheme('light')" title="Light Theme">
@@ -1134,5 +1141,9 @@
     }
   });
   </script>
+
+  <!-- ⚡ P1: Rathasārathi Smart Lead Ingest Modal (Global) -->
+  {% include "crm/components/smart_lead_ingest_modal.html" %}
 </body>
 </html>
+

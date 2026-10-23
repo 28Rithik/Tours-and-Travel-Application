@@ -16,69 +16,69 @@ class CollegeIVProxy(BaseCollegeIVExpedition):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'College IV Expedition'
-        verbose_name_plural = 'College IV Expeditions'
+        verbose_name = 'College Tour'
+        verbose_name_plural = 'College Tours'
 
 
 class TourDepartureBatchProxy(BasePackageInventory):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Tour Bus Departure Batch'
-        verbose_name_plural = 'Tour Bus Departure Batches'
+        verbose_name = 'Tour Departure'
+        verbose_name_plural = 'Tour Departures'
 
 
 class BoardingPointProxy(BaseBoardingPoint):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Tour Boarding Point'
-        verbose_name_plural = 'Boarding Points & Timetable'
+        verbose_name = 'Boarding Point'
+        verbose_name_plural = 'Boarding Points'
 
 
 class PassengerManifestProxy(BaseTourPassengerManifest):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Passenger & Rooming List'
-        verbose_name_plural = 'Passenger Manifest & Rooming'
+        verbose_name = 'Passenger List'
+        verbose_name_plural = 'Passenger Lists'
 
 
 class HotelAllotmentProxy(BasePackageHotelAllotment):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Hotel Room Block Allotment'
-        verbose_name_plural = 'Hotel Room Block Allotments'
+        verbose_name = 'Hotel Allotment'
+        verbose_name_plural = 'Hotel Allotments'
 
 
 class TourFeedbackProxy(BaseTourFeedbackLog):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Tour Customer Feedback'
-        verbose_name_plural = 'Customer Reviews & NPS Governance'
+        verbose_name = 'Tour Feedback'
+        verbose_name_plural = 'Tour Reviews'
 
 
 class SeasonalRateProxy(BasePackageSeasonalRate):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Seasonal Pricing & Peak Tariff'
-        verbose_name_plural = 'Seasonal Pricing & Peak Tariffs'
+        verbose_name = 'Seasonal Rate'
+        verbose_name_plural = 'Seasonal Rates'
 
 
 class PackageAddonProxy(BasePackageAddon):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'Experience & Safari Add-On'
-        verbose_name_plural = 'Experience & Safari Add-Ons'
+        verbose_name = 'Tour Add-On'
+        verbose_name_plural = 'Tour Add-Ons'
 
 
 class B2BMarginProxy(BasePackageB2BMargin):
     class Meta:
         proxy = True
         app_label = 'package_tours'
-        verbose_name = 'B2B Reseller Tier & Margin'
-        verbose_name_plural = 'B2B Reseller Tiers & Margins'
+        verbose_name = 'B2B Agent Margin'
+        verbose_name_plural = 'B2B Agent Margins'

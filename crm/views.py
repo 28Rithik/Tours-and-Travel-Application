@@ -1,8 +1,12 @@
+import logging
 import datetime
 import urllib.parse
 from decimal import Decimal
 import json
 from django.shortcuts import render, get_object_or_404, redirect
+
+logger = logging.getLogger(__name__)
+
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
@@ -85,6 +89,9 @@ def inquiry_pipeline_view(request):
     total_closed = won_count + inq_counts['lost_count']
     win_rate = round((won_count / total_closed * 100), 1) if total_closed > 0 else 0.0
 
+    clients = Client.objects.filter(is_active=True).order_by('name')[:60]
+    vehicle_types = VehicleType.objects.all().order_by('name')
+
     context = {
         'inquiries': inquiries[:100],
         'today_count': today_count,
@@ -99,8 +106,11 @@ def inquiry_pipeline_view(request):
         'sla_filter': sla_filter,
         'search_query': q,
         'now': now,
+        'clients': clients,
+        'vehicle_types': vehicle_types,
     }
     return render(request, 'crm/inquiry_pipeline.html', context)
+
 
 
 @login_required
@@ -616,7 +626,15 @@ def api_master_data_lookup(request):
             'baggage_allowance': f.baggage_allowance,
         })
 
+    vtypes = VehicleType.objects.all().order_by('name')
+    data['vehicle_types'] = [{'id': v.id, 'name': v.name} for v in vtypes]
+
+    clients = Client.objects.filter(is_active=True).order_by('name')[:60]
+    data['clients'] = [{'id': c.id, 'name': c.name, 'phone': c.phone or ''} for c in clients]
+
     return JsonResponse(data)
+
+
 
 
 # ==============================================================================
@@ -2276,8 +2294,11 @@ def crm_kanban_board_view(request):
         'search_query': search_q,
         'priorities': Inquiry.PRIORITY_CHOICES,
         'sources': Inquiry.SOURCE_CHOICES,
+        'clients': Client.objects.filter(is_active=True).order_by('name')[:60],
+        'vehicle_types': VehicleType.objects.all().order_by('name'),
     }
     return render(request, 'crm/kanban_board.html', context)
+
 
 
 @csrf_exempt
@@ -3552,3 +3573,191 @@ def api_sample_records_clean(request):
     out = io.StringIO()
     call_command('clean_sample_crm_data', stdout=out)
     return JsonResponse({'status': 'ok', 'message': out.getvalue()})
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_smart_parse(request):
+    """
+    POST /crm/api/inquiries/smart-parse/
+    Parses unformatted WhatsApp, SMS, email, or telephone text into structured inquiry fields.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        body = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        raw_text = body.get('raw_text', '').strip()
+        if not raw_text:
+            return JsonResponse({'status': 'error', 'message': 'No text provided to parse'}, status=400)
+
+        from .smart_parser import parse_inquiry_text
+        parsed_data = parse_inquiry_text(raw_text)
+        return JsonResponse({
+            'status': 'success',
+            'data': parsed_data
+        })
+    except Exception as e:
+        logger.exception("Error during inquiry smart parsing")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@login_required
+def api_inquiry_quick_create(request):
+    """
+    POST /crm/api/inquiries/quick-create/
+    Creates a new Inquiry from either Smart Ingest or Quick Manual Entry with zero redundant typing.
+    Auto-links or creates Client party, sets SLA deadlines, and returns 1-click links for Quotation
+    and WhatsApp client acknowledgement.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        import re
+        body = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        
+        guest_name = body.get('guest_name', '').strip() or 'Valued Guest'
+        guest_phone = body.get('guest_phone', '').strip()
+        guest_email = body.get('guest_email', '').strip()
+        pickup_location = body.get('pickup_location', '').strip() or 'Coimbatore HQ'
+        destination = body.get('destination', '').strip() or 'Ooty / Nilgiris Circuit'
+        destination_dropdown = body.get('destination_dropdown', '').strip() or 'ooty'
+        
+        pickup_date_str = body.get('pickup_date', '').strip()
+        today = timezone.localdate()
+        try:
+            pickup_date = datetime.datetime.strptime(pickup_date_str, '%Y-%m-%d').date() if pickup_date_str else today + datetime.timedelta(days=1)
+        except ValueError:
+            pickup_date = today + datetime.timedelta(days=1)
+
+        pickup_time_str = body.get('pickup_time', '').strip() or '06:00'
+        try:
+            pickup_time = datetime.datetime.strptime(pickup_time_str, '%H:%M').time()
+        except ValueError:
+            pickup_time = datetime.datetime.strptime('06:00', '%H:%M').time()
+
+        drop_date_str = body.get('drop_date', '').strip()
+        try:
+            drop_date = datetime.datetime.strptime(drop_date_str, '%Y-%m-%d').date() if drop_date_str else pickup_date
+        except ValueError:
+            drop_date = pickup_date
+
+        journey_type = body.get('journey_type', 'outstation')
+        priority = body.get('priority', 'medium')
+        source = body.get('source', 'whatsapp')
+
+        try:
+            adult_count = max(1, int(body.get('adult_count', 2)))
+        except (ValueError, TypeError):
+            adult_count = 2
+
+        try:
+            child_count = max(0, int(body.get('child_count', 0)))
+        except (ValueError, TypeError):
+            child_count = 0
+
+        # Vehicle type resolution
+        vehicle_type_id = body.get('vehicle_type_id')
+        vtype = None
+        if vehicle_type_id:
+            vtype = VehicleType.objects.filter(id=vehicle_type_id).first()
+        if not vtype:
+            vtype_name = body.get('vehicle_type_name', '')
+            if vtype_name:
+                vtype = VehicleType.objects.filter(name__icontains=vtype_name).first()
+        if not vtype:
+            vtype = VehicleType.objects.filter(name__icontains='Innova').first() or VehicleType.objects.first()
+
+        # Quoted / estimated deal value
+        quoted_price = None
+        qp_val = body.get('quoted_price')
+        if qp_val:
+            try:
+                quoted_price = Decimal(str(qp_val))
+            except Exception:
+                quoted_price = None
+
+        special_requirements = body.get('special_requirements', '').strip()
+        notes = body.get('notes', '').strip()
+
+        # Party / Client Resolution
+        party_id = body.get('party_id')
+        client = None
+        if party_id:
+            client = Client.objects.filter(id=party_id).first()
+
+        if not client:
+            if guest_phone:
+                client = Client.objects.filter(phone=guest_phone).first()
+            if not client and guest_email:
+                client = Client.objects.filter(email=guest_email).first()
+            if not client:
+                client = Client.objects.create(
+                    name=guest_name,
+                    phone=guest_phone,
+                    email=guest_email,
+                    party_type='individual',
+                    address=pickup_location or 'Coimbatore, Tamil Nadu'
+                )
+
+
+        # Create Inquiry
+        inquiry = Inquiry.objects.create(
+            party=client,
+            guest_name=guest_name,
+            guest_phone=guest_phone,
+            guest_email=guest_email,
+            pickup_location=pickup_location,
+            destination=destination,
+            destination_dropdown=destination_dropdown,
+            pickup_date=pickup_date,
+            pickup_time=pickup_time,
+            drop_date=drop_date,
+            journey_type=journey_type,
+            vehicle_type=vtype,
+            adult_count=adult_count,
+            child_count=child_count,
+            priority=priority,
+            source=source,
+            quoted_price=quoted_price,
+            special_requirements=special_requirements,
+            notes=notes,
+            assigned_to=request.user,
+        )
+
+        from django.urls import reverse
+        quotation_url = reverse('crm:quotation_create') + f'?inquiry_id={inquiry.id}'
+        kanban_url = reverse('crm:kanban_board')
+
+        # Generate WhatsApp click-to-chat message
+        ack_msg = (
+            f"Namaste {guest_name}! 🙏\n"
+            f"Thank you for contacting Sivagayathiri Travels & Tours (HQ Coimbatore).\n\n"
+            f"We have registered your travel inquiry *#{inquiry.inquiry_number}*:\n"
+            f"📍 Route: {pickup_location} ➔ {destination}\n"
+            f"📅 Travel Date: {pickup_date.strftime('%d-%b-%Y')}\n"
+            f"🚗 Vehicle: {vtype.name if vtype else 'AC Vehicle'}\n"
+            f"👥 Pax: {adult_count} Adults" + (f", {child_count} Kids" if child_count else "") + "\n\n"
+            f"Our operations desk is preparing your customized itinerary proposal with all inclusions and driver allowances. For instant assistance, please reply to this chat."
+        )
+        phone_clean = re.sub(r'[^\d]', '', guest_phone or '')
+        if len(phone_clean) == 10:
+            phone_clean = '91' + phone_clean
+        whatsapp_url = f"https://api.whatsapp.com/send?phone={phone_clean}&text={urllib.parse.quote(ack_msg)}" if phone_clean else ""
+
+        return JsonResponse({
+            'status': 'success',
+            'inquiry_id': inquiry.id,
+            'inquiry_number': inquiry.inquiry_number,
+            'guest_name': inquiry.guest_name,
+            'quotation_url': quotation_url,
+            'kanban_url': kanban_url,
+            'whatsapp_url': whatsapp_url,
+            'message': f"Inquiry #{inquiry.inquiry_number} created successfully!"
+        })
+    except Exception as e:
+        logger.exception("Error creating quick inquiry")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+

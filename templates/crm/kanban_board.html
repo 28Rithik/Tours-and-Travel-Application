@@ -997,10 +997,11 @@
       <button type="button" class="btn btn-outline" onclick="openCommandPalette()" title="Press Ctrl+K">
         <i class="fa-solid fa-terminal"></i> <span style="font-size: 11px; opacity: 0.7;">Ctrl+K</span>
       </button>
-      <a href="/admin/crm/inquiry/add/" target="_blank" class="btn btn-emerald">
-        <i class="fa-solid fa-plus"></i> Log Inquiry
-      </a>
+      <button type="button" class="btn btn-emerald" onclick="openSmartLeadModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-bolt-lightning"></i> ⚡ Smart Ingest Lead
+      </button>
     </div>
+
   </header>
 
   <!-- KPI Metrics Strip -->
@@ -2063,5 +2064,7 @@
     {% endif %}
   </script>
 
+  {% include "crm/components/smart_lead_ingest_modal.html" %}
 </body>
 </html>
+
