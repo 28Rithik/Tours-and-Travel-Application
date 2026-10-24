@@ -141,36 +141,42 @@
 </div>
 
 <!-- KPI Stat Cards -->
-<div class="kpi-grid">
-  <div class="kpi">
-    <span class="kpi-label">Expired Documents</span>
-    <strong class="kpi-value" style="color: #991b1b;">{{ expired_count }}</strong>
-    <span class="muted" style="font-size: 11px;">Immediate Lock Triggered</span>
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+  <div class="unfold-kpi-card-solid rose">
+    <div class="kpi-label">Expired Documents</div>
+    <div class="kpi-number">{{ expired_count }}</div>
+    <div class="kpi-sub">Immediate Lock Triggered</div>
+    <span class="material-symbols-outlined kpi-bg-icon">lock</span>
   </div>
-  <div class="kpi">
-    <span class="kpi-label">Critical (≤ 7 Days)</span>
-    <strong class="kpi-value" style="color: #ea580c;">{{ critical_count }}</strong>
-    <span class="muted" style="font-size: 11px;">Urgent Renewal Action</span>
+  <div class="unfold-kpi-card-solid amber">
+    <div class="kpi-label">Critical (≤ 7 Days)</div>
+    <div class="kpi-number">{{ critical_count }}</div>
+    <div class="kpi-sub">Urgent Renewal Action</div>
+    <span class="material-symbols-outlined kpi-bg-icon">warning</span>
   </div>
-  <div class="kpi">
-    <span class="kpi-label">Upcoming (≤ {{ threshold }} Days)</span>
-    <strong class="kpi-value" style="color: #ca8a04;">{{ warning_count }}</strong>
-    <span class="muted" style="font-size: 11px;">Advance Notice</span>
+  <div class="unfold-kpi-card-solid amber">
+    <div class="kpi-label">Upcoming (≤ {{ threshold }} Days)</div>
+    <div class="kpi-number">{{ warning_count }}</div>
+    <div class="kpi-sub">Advance Notice</div>
+    <span class="material-symbols-outlined kpi-bg-icon">event</span>
   </div>
-  <div class="kpi">
-    <span class="kpi-label">Preventive Services Due</span>
-    <strong class="kpi-value" style="color: #2563eb;">{{ services_due_count }}</strong>
-    <span class="muted" style="font-size: 11px;">Oil / General Service</span>
+  <div class="unfold-kpi-card-solid blue">
+    <div class="kpi-label">Preventive Services Due</div>
+    <div class="kpi-number">{{ services_due_count }}</div>
+    <div class="kpi-sub">Oil / General Service</div>
+    <span class="material-symbols-outlined kpi-bg-icon">build</span>
   </div>
-  <div class="kpi">
-    <span class="kpi-label">Tyre / Battery Wear</span>
-    <strong class="kpi-value" style="color: #9333ea;">{{ assets_due_count }}</strong>
-    <span class="muted" style="font-size: 11px;">Lifespan > 90%</span>
+  <div class="unfold-kpi-card-solid purple">
+    <div class="kpi-label">Tyre / Battery Wear</div>
+    <div class="kpi-number">{{ assets_due_count }}</div>
+    <div class="kpi-sub">Lifespan &gt; 90%</div>
+    <span class="material-symbols-outlined kpi-bg-icon">tire_repair</span>
   </div>
-  <div class="kpi">
-    <span class="kpi-label">Open Defect Tickets</span>
-    <strong class="kpi-value" style="color: #dc2626;">{{ defect_tickets.count }}</strong>
-    <span class="muted" style="font-size: 11px;">Workshop Attention</span>
+  <div class="unfold-kpi-card-solid slate">
+    <div class="kpi-label">Open Defect Tickets</div>
+    <div class="kpi-number">{{ defect_tickets.count }}</div>
+    <div class="kpi-sub">Workshop Attention</div>
+    <span class="material-symbols-outlined kpi-bg-icon">assignment_late</span>
   </div>
 </div>
 

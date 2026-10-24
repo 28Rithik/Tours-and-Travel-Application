@@ -33,30 +33,34 @@
     </div>
   </div>
 
-  <!-- Unfold Flat Metric Deck -->
+  <!-- Unfold Metric Deck -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Fleet Legal Compliance</div>
-      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.compliance_rate }}%</div>
-      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{{ stats.compliant_docs }} of {{ stats.total_docs }} papers valid</div>
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Fleet Legal Compliance</div>
+      <div class="kpi-number">{{ stats.compliance_rate }}%</div>
+      <div class="kpi-sub">{{ stats.compliant_docs }} of {{ stats.total_docs }} papers valid</div>
+      <span class="material-symbols-outlined kpi-bg-icon">verified</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Dispatch-Locked Vehicles</div>
-      <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">{{ stats.locked_vehicles }} Units</div>
-      <div class="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-medium">Grounded due to expired papers</div>
+    <div class="unfold-kpi-card-solid rose">
+      <div class="kpi-label">Dispatch-Locked Vehicles</div>
+      <div class="kpi-number">{{ stats.locked_vehicles }} Units</div>
+      <div class="kpi-sub">Grounded due to expired papers</div>
+      <span class="material-symbols-outlined kpi-bg-icon">lock</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Critical Renewals (&lt; 7 Days)</div>
-      <div class="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">{{ stats.critical_docs }} Certs</div>
-      <div class="text-[11px] text-amber-600 dark:text-amber-400 mt-1">RTO slot booking required</div>
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Critical Renewals (&lt; 7 Days)</div>
+      <div class="kpi-number">{{ stats.critical_docs }} Certs</div>
+      <div class="kpi-sub">RTO slot booking required</div>
+      <span class="material-symbols-outlined kpi-bg-icon">notification_important</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Upcoming Expiries (30 Days)</div>
-      <div class="text-xl font-bold font-mono text-sky-600 dark:text-sky-400 mt-1">{{ stats.warning_docs }} Certs</div>
-      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{{ stats.total_vehicles }} commercial fleet assets</div>
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Upcoming Expiries (30 Days)</div>
+      <div class="kpi-number">{{ stats.warning_docs }} Certs</div>
+      <div class="kpi-sub">{{ stats.total_vehicles }} commercial fleet assets</div>
+      <span class="material-symbols-outlined kpi-bg-icon">event</span>
     </div>
   </div>
 
@@ -65,9 +69,10 @@
     
     <!-- Top Toolbar: Search -->
     <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
-      <div class="relative flex-1 max-w-sm">
-        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
-        <input type="text" id="complianceSearchInput" onkeyup="filterComplianceRows()" placeholder="Search vehicle registration, model..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      <div class="unfold-search-box max-w-sm">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" id="complianceSearchInput" onkeyup="filterComplianceRows()" placeholder="Search vehicle registration, model..." class="unfold-input !py-1.5 !pl-9 !pr-8">
+        <kbd class="search-kbd">/</kbd>
       </div>
       <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
         <span class="inline-flex items-center gap-1 font-medium text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Valid</span>
@@ -81,7 +86,7 @@
       
       <!-- Main Table -->
       <div class="flex-1 overflow-x-auto min-w-0">
-        <table class="w-full text-left border-collapse text-xs" id="complianceTable">
+        <table class="unfold-table w-full text-left border-collapse text-xs" id="complianceTable">
           <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-2.5 px-3">Vehicle</th>

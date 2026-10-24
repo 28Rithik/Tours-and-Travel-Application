@@ -744,47 +744,33 @@
   <main class="studio-container">
 
     <!-- KPI Metric Strip -->
-    <section class="kpi-grid">
-      <div class="kpi-card">
-        <div>
-          <div class="kpi-label">Active Job Cards</div>
-          <div class="kpi-value">{{ kpi.active_job_cards }}</div>
-        </div>
-        <div class="kpi-icon blue">
-          <i class="fa-solid fa-screwdriver-wrench"></i>
-        </div>
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="unfold-kpi-card-solid blue">
+        <div class="kpi-label">Active Job Cards</div>
+        <div class="kpi-number">{{ kpi.active_job_cards }}</div>
+        <div class="kpi-sub">Workshop bay work orders</div>
+        <span class="material-symbols-outlined kpi-bg-icon">build</span>
       </div>
 
-      <div class="kpi-card">
-        <div>
-          <div class="kpi-label">Grounded in Bays</div>
-          <div class="kpi-value">{{ kpi.grounded_vehicles }}</div>
-        </div>
-        <div class="kpi-icon red">
-          <i class="fa-solid fa-truck-ramp-box"></i>
-        </div>
+      <div class="unfold-kpi-card-solid rose">
+        <div class="kpi-label">Grounded in Bays</div>
+        <div class="kpi-number">{{ kpi.grounded_vehicles }}</div>
+        <div class="kpi-sub">Vehicles offline for repair</div>
+        <span class="material-symbols-outlined kpi-bg-icon">car_crash</span>
       </div>
 
-      <div class="kpi-card">
-        <div>
-          <div class="kpi-label">Low Stock Parts Alert</div>
-          <div class="kpi-value" style="color:{% if kpi.low_stock_parts > 0 %}#dc2626{% else %}#059669{% endif %};">
-            {{ kpi.low_stock_parts }}
-          </div>
-        </div>
-        <div class="kpi-icon amber">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
+      <div class="unfold-kpi-card-solid amber">
+        <div class="kpi-label">Low Stock Parts Alert</div>
+        <div class="kpi-number">{{ kpi.low_stock_parts }}</div>
+        <div class="kpi-sub">Critical warehouse replenishment</div>
+        <span class="material-symbols-outlined kpi-bg-icon">warning</span>
       </div>
 
-      <div class="kpi-card">
-        <div>
-          <div class="kpi-label">MTD Parts Consumed</div>
-          <div class="kpi-value cost-num" style="font-size:1.35rem;">₹{{ kpi.mtd_parts_spend|floatformat:2 }}</div>
-        </div>
-        <div class="kpi-icon emerald">
-          <i class="fa-solid fa-receipt"></i>
-        </div>
+      <div class="unfold-kpi-card-solid green">
+        <div class="kpi-label">MTD Parts Consumed</div>
+        <div class="kpi-number">₹{{ kpi.mtd_parts_spend|floatformat:0 }}</div>
+        <div class="kpi-sub">Reconciled workshop spend</div>
+        <span class="material-symbols-outlined kpi-bg-icon">receipt_long</span>
       </div>
     </section>
 

@@ -54,30 +54,34 @@
     </div>
   </div>
 
-  <!-- Unfold Flat Metric Deck -->
+  <!-- Unfold Metric Deck -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Interstate Trips Audited</div>
-      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ stats.interstate_trips_monitored }}</div>
-      <div class="text-[11px] text-sky-600 dark:text-sky-400 mt-1 font-medium">Cross-border active journeys</div>
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Interstate Trips Audited</div>
+      <div class="kpi-number">{{ stats.interstate_trips_monitored }}</div>
+      <div class="kpi-sub">Cross-border active journeys</div>
+      <span class="material-symbols-outlined kpi-bg-icon">alt_route</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active Cleared Passes</div>
-      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.active_cleared }}</div>
-      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Parivahan verified &bull; Compliant</div>
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Active Cleared Passes</div>
+      <div class="kpi-number">{{ stats.active_cleared }}</div>
+      <div class="kpi-sub">Parivahan verified &bull; Compliant</div>
+      <span class="material-symbols-outlined kpi-bg-icon">verified_user</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Check-post Taxes</div>
-      <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">{{ stats.pending_crossings }}</div>
-      <div class="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-medium">Check-post fee unpaid</div>
+    <div class="unfold-kpi-card-solid rose">
+      <div class="kpi-label">Pending Check-post Taxes</div>
+      <div class="kpi-number">{{ stats.pending_crossings }}</div>
+      <div class="kpi-sub">Check-post fee unpaid</div>
+      <span class="material-symbols-outlined kpi-bg-icon">warning</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Statutory Taxes Paid</div>
-      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">₹{{ stats.total_tax_paid|floatformat:2 }}</div>
-      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Parivahan border revenue</div>
+    <div class="unfold-kpi-card-solid slate">
+      <div class="kpi-label">Total Statutory Taxes Paid</div>
+      <div class="kpi-number">₹{{ stats.total_tax_paid|floatformat:0 }}</div>
+      <div class="kpi-sub">Parivahan border revenue</div>
+      <span class="material-symbols-outlined kpi-bg-icon">payments</span>
     </div>
   </div>
 
@@ -107,7 +111,7 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
+        <table class="unfold-table w-full text-left border-collapse text-xs">
           <thead>
             <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
               <th class="py-3 px-4">Trip #</th>

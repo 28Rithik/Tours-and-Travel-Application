@@ -27,41 +27,33 @@
 </div>
 
 <!-- Studio KPI Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 24px;">
-  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">Fleet Tires Monitored</span>
-      <span style="font-size: 18px;">🛞</span>
-    </div>
-    <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 6px;" id="kpiTotalTires">{{ total_tires_monitored }}</div>
-    <div style="font-size: 11px; color: #10b981; margin-top: 4px;">Mounted across active fleet</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+  <div class="unfold-kpi-card-solid slate">
+    <div class="kpi-label">Fleet Tires Monitored</div>
+    <div class="kpi-number" id="kpiTotalTires">{{ total_tires_monitored }}</div>
+    <div class="kpi-sub">Mounted across active fleet</div>
+    <span class="material-symbols-outlined kpi-bg-icon">tire_repair</span>
   </div>
 
-  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-left: 4px solid #ef4444;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #ef4444; letter-spacing: 0.05em;">Critical Tread (≤2.5mm)</span>
-      <span style="font-size: 18px;">🚨</span>
-    </div>
-    <div style="font-size: 26px; font-weight: 800; color: #ef4444; margin-top: 6px;" id="kpiCriticalTires">{{ critical_tires_count }}</div>
-    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Immediate replacement needed</div>
+  <div class="unfold-kpi-card-solid rose">
+    <div class="kpi-label">Critical Tread (≤2.5mm)</div>
+    <div class="kpi-number" id="kpiCriticalTires">{{ critical_tires_count }}</div>
+    <div class="kpi-sub">Immediate replacement needed</div>
+    <span class="material-symbols-outlined kpi-bg-icon">warning</span>
   </div>
 
-  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-left: 4px solid #f59e0b;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #d97706; letter-spacing: 0.05em;">In Retread Cycles</span>
-      <span style="font-size: 18px;">♻️</span>
-    </div>
-    <div style="font-size: 26px; font-weight: 800; color: #d97706; margin-top: 6px;" id="kpiRetreadTires">{{ retreading_tires_count }}</div>
-    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">At retread partner facilities</div>
+  <div class="unfold-kpi-card-solid amber">
+    <div class="kpi-label">In Retread Cycles</div>
+    <div class="kpi-number" id="kpiRetreadTires">{{ retreading_tires_count }}</div>
+    <div class="kpi-sub">At retread partner facilities</div>
+    <span class="material-symbols-outlined kpi-bg-icon">recycling</span>
   </div>
 
-  <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border-left: 4px solid #3b82f6;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 11.5px; font-weight: 800; text-transform: uppercase; color: #2563eb; letter-spacing: 0.05em;">PM Defect Alerts</span>
-      <span style="font-size: 18px;">🛠️</span>
-    </div>
-    <div style="font-size: 26px; font-weight: 800; color: #2563eb; margin-top: 6px;" id="kpiOverduePM">{{ overdue_pm_count }}</div>
-    <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Odometer-triggered workshop tickets</div>
+  <div class="unfold-kpi-card-solid blue">
+    <div class="kpi-label">PM Defect Alerts</div>
+    <div class="kpi-number" id="kpiOverduePM">{{ overdue_pm_count }}</div>
+    <div class="kpi-sub">Odometer-triggered tickets</div>
+    <span class="material-symbols-outlined kpi-bg-icon">build</span>
   </div>
 </div>
 

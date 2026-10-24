@@ -44,30 +44,34 @@
     </div>
   </div>
 
-  <!-- Unfold Flat Metric Deck -->
+  <!-- Unfold Metric Deck -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Scheduled Manifests Today</div>
-      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ stats.total_arrivals }} Arrivals</div>
-      <div class="text-[11px] text-slate-500 mt-1">Flights &amp; Vande Bharat Express</div>
+    <div class="unfold-kpi-card-solid purple">
+      <div class="kpi-label">Scheduled Manifests Today</div>
+      <div class="kpi-number">{{ stats.total_arrivals }} Arrivals</div>
+      <div class="kpi-sub">Flights &amp; Vande Bharat Express</div>
+      <span class="material-symbols-outlined kpi-bg-icon">flight_land</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Incoming Pax Count</div>
-      <div class="text-xl font-bold font-mono text-sky-600 dark:text-sky-400 mt-1">{{ stats.total_pax_incoming }} Guests</div>
-      <div class="text-[11px] text-sky-600 dark:text-sky-400 mt-1">VIP &bull; Corporate delegation</div>
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Incoming Pax Count</div>
+      <div class="kpi-number">{{ stats.total_pax_incoming }} Guests</div>
+      <div class="kpi-sub">VIP &bull; Corporate delegation</div>
+      <span class="material-symbols-outlined kpi-bg-icon">groups</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Flight / Train Delay Alerts</div>
-      <div class="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">{{ stats.delayed_count }} Delayed</div>
-      <div class="text-[11px] text-amber-600 dark:text-amber-400 mt-1">Chauffeur dispatch rescheduled</div>
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Flight / Train Delay Alerts</div>
+      <div class="kpi-number">{{ stats.delayed_count }} Delayed</div>
+      <div class="kpi-sub">Chauffeur dispatch rescheduled</div>
+      <span class="material-symbols-outlined kpi-bg-icon">schedule</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Chauffeurs on Gate</div>
-      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.placard_ready }} Active</div>
-      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Welcome placards displayed</div>
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Chauffeurs on Gate</div>
+      <div class="kpi-number">{{ stats.placard_ready }} Active</div>
+      <div class="kpi-sub">Welcome placards displayed</div>
+      <span class="material-symbols-outlined kpi-bg-icon">assignment_ind</span>
     </div>
   </div>
 
@@ -76,9 +80,10 @@
     
     <!-- Top Toolbar: Search + Actions -->
     <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
-      <div class="relative flex-1 max-w-sm">
-        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
-        <input type="text" id="manifestSearchInput" onkeyup="filterManifestRows()" placeholder="Search flight #, PNR, guest, driver..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      <div class="unfold-search-box max-w-sm">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" id="manifestSearchInput" onkeyup="filterManifestRows()" placeholder="Search flight #, PNR, guest, driver..." class="unfold-input !py-1.5 !pl-9 !pr-8">
+        <kbd class="search-kbd">/</kbd>
       </div>
       <div class="flex items-center gap-2">
         <select id="bulkActionSelect" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary">
@@ -97,7 +102,7 @@
       
       <!-- Main Table -->
       <div class="flex-1 overflow-x-auto min-w-0">
-        <table class="w-full text-left border-collapse text-xs" id="manifestTable">
+        <table class="unfold-table w-full text-left border-collapse text-xs" id="manifestTable">
           <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-2.5 px-3 w-8 text-center">

@@ -33,30 +33,34 @@
     </div>
   </div>
 
-  <!-- Unfold Flat Metric Deck -->
+  <!-- Unfold Metric Deck -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Available Empty Legs</div>
-      <div class="text-xl font-bold font-mono text-sky-600 dark:text-sky-400 mt-1">{{ stats.active_available }} Trips</div>
-      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Returning without passengers</div>
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Available Empty Legs</div>
+      <div class="kpi-number">{{ stats.active_available }} Trips</div>
+      <div class="kpi-sub">Returning without passengers</div>
+      <span class="material-symbols-outlined kpi-bg-icon">near_me</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Deadhead Revenue Recovered</div>
-      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.total_recovered_revenue|floatformat:0 }}</div>
-      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">{{ stats.booked_count }} empty legs sold</div>
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Deadhead Revenue Recovered</div>
+      <div class="kpi-number">₹{{ stats.total_recovered_revenue|floatformat:0 }}</div>
+      <div class="kpi-sub">{{ stats.booked_count }} empty legs sold</div>
+      <span class="material-symbols-outlined kpi-bg-icon">currency_rupee</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Net Margin Above Fuel/Tolls</div>
-      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">₹{{ stats.total_net_margin|floatformat:0 }}</div>
-      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Pure profit vs dead fuel burn</div>
+    <div class="unfold-kpi-card-solid purple">
+      <div class="kpi-label">Net Margin Above Fuel/Tolls</div>
+      <div class="kpi-number">₹{{ stats.total_net_margin|floatformat:0 }}</div>
+      <div class="kpi-sub">Pure profit vs dead fuel burn</div>
+      <span class="material-symbols-outlined kpi-bg-icon">trending_up</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Deadhead KM Saved</div>
-      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ stats.deadhead_km_avoided }} KM</div>
-      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Carbon &amp; tyre wear reduction</div>
+    <div class="unfold-kpi-card-solid slate">
+      <div class="kpi-label">Deadhead KM Saved</div>
+      <div class="kpi-number">{{ stats.deadhead_km_avoided }} KM</div>
+      <div class="kpi-sub">Carbon &amp; tyre wear reduction</div>
+      <span class="material-symbols-outlined kpi-bg-icon">eco</span>
     </div>
   </div>
 
@@ -65,9 +69,10 @@
     
     <!-- Top Toolbar: Search -->
     <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
-      <div class="relative flex-1 max-w-sm">
-        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
-        <input type="text" id="emptyLegSearchInput" onkeyup="filterEmptyLegRows()" placeholder="Search origin, destination, vehicle..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      <div class="unfold-search-box max-w-sm">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" id="emptyLegSearchInput" onkeyup="filterEmptyLegRows()" placeholder="Search origin, destination, vehicle..." class="unfold-input !py-1.5 !pl-9 !pr-8">
+        <kbd class="search-kbd">/</kbd>
       </div>
       <div class="text-xs text-slate-500">
         Monetise South Indian One-Way Return Corridors
@@ -79,7 +84,7 @@
       
       <!-- Main Table -->
       <div class="flex-1 overflow-x-auto min-w-0">
-        <table class="w-full text-left border-collapse text-xs" id="emptyLegTable">
+        <table class="unfold-table w-full text-left border-collapse text-xs" id="emptyLegTable">
           <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-2.5 px-3">Offer Ref</th>

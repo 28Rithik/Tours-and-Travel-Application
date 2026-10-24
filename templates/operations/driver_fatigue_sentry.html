@@ -38,36 +38,41 @@
     </div>
   </div>
 
-  <!-- Unfold Flat Metric Deck -->
+  <!-- Unfold Metric Deck -->
   <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Chauffeurs</div>
-      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ stats.total_audited }}</div>
-      <div class="text-[11px] text-slate-500 mt-1 font-medium">Active fleet roster</div>
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Total Chauffeurs</div>
+      <div class="kpi-number">{{ stats.total_audited }}</div>
+      <div class="kpi-sub">Active fleet roster</div>
+      <span class="material-symbols-outlined kpi-bg-icon">group</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Well Rested (&gt;10h)</div>
-      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.well_rested|default:0 }}</div>
-      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Cleared for long outstation</div>
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Well Rested (&gt;10h)</div>
+      <div class="kpi-number">{{ stats.well_rested|default:0 }}</div>
+      <div class="kpi-sub">Cleared for long outstation</div>
+      <span class="material-symbols-outlined kpi-bg-icon">bedtime</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Adequate (8-10h)</div>
-      <div class="text-xl font-bold font-mono text-blue-600 dark:text-blue-400 mt-1">{{ stats.adequate_rest|default:0 }}</div>
-      <div class="text-[11px] text-blue-600 dark:text-blue-400 mt-1">Statutory 8h standard</div>
+    <div class="unfold-kpi-card-solid purple">
+      <div class="kpi-label">Adequate (8-10h)</div>
+      <div class="kpi-number">{{ stats.adequate_rest|default:0 }}</div>
+      <div class="kpi-sub">Statutory 8h standard</div>
+      <span class="material-symbols-outlined kpi-bg-icon">schedule</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Fatigue Warning (5-8h)</div>
-      <div class="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">{{ stats.fatigue_risk|default:0 }}</div>
-      <div class="text-[11px] text-amber-600 dark:text-amber-400 mt-1">Rest warning alert</div>
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Fatigue Warning (5-8h)</div>
+      <div class="kpi-number">{{ stats.fatigue_risk|default:0 }}</div>
+      <div class="kpi-sub">Rest warning alert</div>
+      <span class="material-symbols-outlined kpi-bg-icon">hourglass_empty</span>
     </div>
 
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
-      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Critical / Ghat Hazard</div>
-      <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">{{ stats.critical_deficit|add:stats.ghat_night_risk }}</div>
-      <div class="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-medium">Dispatch locked</div>
+    <div class="unfold-kpi-card-solid rose">
+      <div class="kpi-label">Critical / Ghat Hazard</div>
+      <div class="kpi-number">{{ stats.critical_deficit|add:stats.ghat_night_risk }}</div>
+      <div class="kpi-sub">Dispatch locked</div>
+      <span class="material-symbols-outlined kpi-bg-icon">error</span>
     </div>
   </div>
 
@@ -91,9 +96,10 @@
     
     <!-- Top Toolbar: Search + Actions -->
     <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
-      <div class="relative flex-1 max-w-sm">
-        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
-        <input type="text" id="fatigueSearchInput" onkeyup="filterDriverRows()" placeholder="Search chauffeur name, phone, trip..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      <div class="unfold-search-box max-w-sm">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" id="fatigueSearchInput" onkeyup="filterDriverRows()" placeholder="Search chauffeur name, phone, trip..." class="unfold-input !py-1.5 !pl-9 !pr-8">
+        <kbd class="search-kbd">/</kbd>
       </div>
       <div class="flex items-center gap-2">
         <select id="bulkActionSelect" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary">
@@ -113,7 +119,7 @@
       
       <!-- Main Table -->
       <div class="flex-1 overflow-x-auto min-w-0">
-        <table class="w-full text-left border-collapse text-xs" id="fatigueTable">
+        <table class="unfold-table w-full text-left border-collapse text-xs" id="fatigueTable">
           <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
             <tr>
               <th class="py-2.5 px-3 w-8 text-center">
