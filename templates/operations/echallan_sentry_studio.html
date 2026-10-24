@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Parivahan Traffic E-Challan Sentry Studio | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .challan-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  html.dark .challan-card, .dark .challan-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Parivahan RTO Traffic E-Challan Sentry Studio</h1>
+          <p class="text-xs text-rose-200">National &amp; State Highway Violations &bull; Speed Radar Alarms &bull; Driver Settlement &amp; Client Billing Routing</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="seedEChallanData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-rose-600/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Sync Parivahan E-Challans</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Unpaid Fines -->
+    <div class="challan-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Unpaid Challans</div>
+          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">₹{{ stats.unpaid_total_amt|floatformat:0 }}</div>
+          <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">{{ stats.unpaid_count }} active violations pending</div>
+        </div>
+        <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver Deductible Liability -->
+    <div class="challan-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Driver Settlement Deductions</div>
+          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">₹{{ stats.driver_liability_amt|floatformat:0 }}</div>
+          <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">Speeding &amp; rash driving fines</div>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Company Overhead -->
+    <div class="challan-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Company Overhead Absorbed</div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">₹{{ stats.company_liability_amt|floatformat:0 }}</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">RTO paper &amp; technical fines</div>
+        </div>
+        <div class="p-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settled Fines -->
+    <div class="challan-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Settled / Paid Fines</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.paid_total_amt|floatformat:0 }}</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">{{ stats.paid_count }} challans fully reconciled</div>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Traffic E-Challan Register Table -->
+  <div class="challan-card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Active Traffic Police E-Challans</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Automatic Parivahan fetch &bull; 1-Click routing to Driver Settlement or Customer Invoice</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
+          <tr>
+            <th class="py-3.5 px-4">Challan #</th>
+            <th class="py-3.5 px-4">Offence Date &amp; Corridor</th>
+            <th class="py-3.5 px-4">Vehicle &amp; Chauffeur</th>
+            <th class="py-3.5 px-4">Violation Type</th>
+            <th class="py-3.5 px-4">Fine Amount</th>
+            <th class="py-3.5 px-4">Financial Responsibility</th>
+            <th class="py-3.5 px-4">Payment Status</th>
+            <th class="py-3.5 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+          {% for fine in fines %}
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+            <!-- Challan Code -->
+            <td class="py-3.5 px-4">
+              <span class="font-mono font-bold text-rose-600 dark:text-rose-400">{{ fine.challan_number }}</span>
+              {% if fine.trip %}
+              <div class="text-[10px] text-slate-400">Linked to Trip #{{ fine.trip.id }}</div>
+              {% endif %}
+            </td>
+
+            <!-- Date & Corridor -->
+            <td class="py-3.5 px-4">
+              <div class="text-slate-900 dark:text-white font-semibold">{{ fine.date_of_offence|date:"d-M-Y H:i" }}</div>
+              <div class="text-[10px] text-slate-400 truncate max-w-xs">{{ fine.notes|default:"Highway Camera Speed Trap" }}</div>
+            </td>
+
+            <!-- Vehicle & Driver -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-800 dark:text-slate-200">{{ fine.vehicle.registration_number }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                {% if fine.driver %}Driver: {{ fine.driver.name }}{% else %}<span class="italic text-slate-400">Unassigned</span>{% endif %}
+              </div>
+            </td>
+
+            <!-- Violation Badge -->
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {{ fine.get_violation_type_display }}
+              </span>
+            </td>
+
+            <!-- Fine Amount -->
+            <td class="py-3.5 px-4 font-bold text-sm text-slate-900 dark:text-white">
+              ₹{{ fine.fine_amount|floatformat:0 }}
+            </td>
+
+            <!-- Responsibility Selector -->
+            <td class="py-3.5 px-4">
+              <select onchange="updateLiability('{{ fine.id }}', this.value)" class="text-[11px] font-semibold rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1">
+                <option value="driver" {% if fine.financial_responsibility == 'driver' %}selected{% endif %}>🧑‍✈️ Deduct from Driver</option>
+                <option value="customer" {% if fine.financial_responsibility == 'customer' %}selected{% endif %}>👤 Bill to Customer</option>
+                <option value="company" {% if fine.financial_responsibility == 'company' %}selected{% endif %}>🏛️ Company Expense</option>
+                <option value="supplier" {% if fine.financial_responsibility == 'supplier' %}selected{% endif %}>🏢 Supplier / Vendor</option>
+              </select>
+            </td>
+
+            <!-- Status -->
+            <td class="py-3.5 px-4">
+              {% if fine.paid_by == 'unpaid' %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Unpaid
+              </span>
+              {% elif fine.paid_by == 'company' %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Paid by Co.
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Paid on Spot
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="py-3.5 px-4 text-right">
+              {% if fine.paid_by == 'unpaid' %}
+              <button onclick="markChallanPaid('{{ fine.id }}', '{{ fine.challan_number }}')" class="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition">
+                Mark Paid
+              </button>
+              {% else %}
+              <span class="text-xs text-slate-400">Reconciled</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-400">
+              No traffic challans on record. Click "Sync Parivahan E-Challans" to fetch latest records.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+async function updateLiability(fineId, resp) {
+  try {
+    const res = await fetch('/api/operations/echallan/liability/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({fine_id: fineId, financial_responsibility: resp})
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      // reload to reflect in KPI cards
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to update financial liability.');
+  }
+}
+
+async function markChallanPaid(fineId, challanNum) {
+  const ref = prompt(`Enter Parivahan Transaction Ref / Payment Receipt # for Challan ${challanNum}:`, 'ECH-TXN-');
+  if (!ref) return;
+
+  try {
+    const res = await fetch('/api/operations/echallan/pay/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({fine_id: fineId, paid_by: 'company', transaction_ref: ref})
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      alert(`✅ Challan ${challanNum} marked as paid.`);
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to mark challan as paid.');
+  }
+}
+
+async function seedEChallanData() {
+  try {
+    const res = await fetch('/api/operations/echallan/seed/', {method: 'POST'});
+    const d = await res.json();
+    if (d.status === 'success') {
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to sync challan data.');
+  }
+}
+</script>
+{% endblock %}

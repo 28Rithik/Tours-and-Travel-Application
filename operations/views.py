@@ -3700,6 +3700,25 @@ def api_global_search(request):
             'quick_action': None
         })
 
+    # 5. Search Operations & Statutory Studios
+    studios = [
+        ('Trip Cash Advance & Kharcha Envelope Studio', 'Disbursed floats, fuel/toll/permit envelopes & driver surplus/deficit reconciliation', 'STUDIO', '/operations/cash-envelopes/', 'fa-money-bill-wave', ['cash', 'envelope', 'advance', 'kharcha', 'float']),
+        ('RTO Fitness (FC) & Statutory Compliance Sentry', '30/15/7-Day Expiry Radar for FC, Speed Governor, AIS-140 GPS & Insurance', 'STUDIO', '/operations/statutory-compliance/', 'fa-shield-halved', ['compliance', 'fc', 'fitness', 'speed', 'governor', 'ais140', 'statutory', 'rto']),
+        ('Parivahan RTO Traffic E-Challan Sentry Studio', 'Highway speed radars, wrong parking fines, driver settlement deductions', 'STUDIO', '/operations/echallan-sentry/', 'fa-triangle-exclamation', ['challan', 'fine', 'traffic', 'speeding', 'radar', 'parivahan']),
+        ('Empty-Leg Return Deadhead Trip Optimizer', 'Monetize empty return kilometers from Bangalore, Chennai, Madurai with WhatsApp broadcasts', 'STUDIO', '/operations/empty-legs/', 'fa-route', ['empty', 'leg', 'deadhead', 'return', 'corridor', 'broadcast']),
+    ]
+    for s_title, s_sub, s_badge, s_url, s_icon, s_keys in studios:
+        if any(k in q.lower() for k in s_keys) or q.lower() in s_title.lower():
+            results.insert(0, {
+                'category': 'Operations Studios',
+                'icon': s_icon,
+                'title': s_title,
+                'subtitle': s_sub,
+                'badge': s_badge,
+                'url': s_url,
+                'quick_action': None
+            })
+
     return JsonResponse({
         'status': 'success',
         'query': q,
@@ -4156,6 +4175,415 @@ def api_update_arrival_status(request):
     manifest.save()
 
     return JsonResponse({'status': 'success', 'manifest_code': code, 'new_status': manifest.status})
+
+
+# ==============================================================================
+# TRIP CASH ADVANCE & KHARCHA SETTLEMENT ENVELOPE STUDIO
+# ==============================================================================
+
+@login_required
+def trip_cash_envelope_studio_view(request):
+    """
+    On-Road Trip Cash Advance & Settlement Envelope Studio.
+    Tracks outstation physical cash advances (fuel, toll, permit, bata, contingency),
+    verifies return expense receipts, computes surplus refund or deficit reimbursement,
+    and prevents dispatching drivers with unclosed cash advances.
+    """
+    from .models import TripCashAdvanceEnvelope, Trip
+    from .cash_advance_settlement import (
+        get_cash_envelope_metrics,
+        seed_sample_cash_envelopes,
+    )
+
+    if not TripCashAdvanceEnvelope.objects.exists():
+        seed_sample_cash_envelopes()
+
+    envelopes = TripCashAdvanceEnvelope.objects.select_related(
+        'trip', 'driver', 'trip__vehicle'
+    ).order_by('-disbursed_at')
+
+    stats = get_cash_envelope_metrics()
+    active_trips = Trip.objects.select_related('driver', 'vehicle').filter(
+        driver__isnull=False
+    ).order_by('-id')[:25]
+    active_drivers = Driver.objects.filter(status='active')[:25]
+
+    context = {
+        'title': 'Trip Cash Advance & Settlement Envelope Studio',
+        'envelopes': envelopes,
+        'stats': stats,
+        'active_trips': active_trips,
+        'active_drivers': active_drivers,
+    }
+    return render(request, 'operations/trip_cash_envelope_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_cash_advance_issue(request):
+    """Disburses a new physical cash envelope to a driver."""
+    import json
+    from .cash_advance_settlement import issue_cash_advance_envelope
+    from .models import Trip
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    trip_id = data.get('trip_id')
+    driver_id = data.get('driver_id')
+    fuel = data.get('fuel', 0)
+    toll = data.get('toll', 0)
+    permit = data.get('permit', 0)
+    bata = data.get('bata', 0)
+    contingency = data.get('contingency', 0)
+    notes = data.get('notes', '')
+
+    trip = get_object_or_404(Trip, pk=trip_id)
+    driver = get_object_or_404(Driver, pk=driver_id) if driver_id else trip.driver
+
+    envelope = issue_cash_advance_envelope(
+        trip=trip,
+        driver=driver,
+        fuel=fuel,
+        toll=toll,
+        permit=permit,
+        bata=bata,
+        contingency=contingency,
+        notes=notes,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'envelope_code': envelope.envelope_code,
+        'total_disbursed': float(envelope.total_advance_disbursed),
+    })
+
+
+@csrf_exempt
+@login_required
+def api_cash_advance_expense_log(request):
+    """Logs verified on-road expenses for a returned envelope."""
+    import json
+    from .cash_advance_settlement import log_onroad_expenses_to_envelope
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    env_id = data.get('envelope_id')
+    fuel = data.get('fuel', 0)
+    tolls = data.get('tolls', 0)
+    permits = data.get('permits', 0)
+    parking = data.get('parking', 0)
+    repairs = data.get('repairs', 0)
+    bata = data.get('bata', 0)
+    submit_for_audit = data.get('submit_for_audit', True)
+
+    envelope = log_onroad_expenses_to_envelope(
+        envelope_id=env_id,
+        fuel=fuel,
+        tolls=tolls,
+        permits=permits,
+        parking=parking,
+        repairs=repairs,
+        bata=bata,
+        submit_for_audit=submit_for_audit,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'envelope_code': envelope.envelope_code,
+        'total_verified': float(envelope.total_expenses_verified),
+        'net_balance': float(envelope.net_balance),
+        'new_status': envelope.status,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_cash_advance_reconcile(request):
+    """Reconciles and settles a cash advance envelope with cashier sign-off."""
+    import json
+    from .cash_advance_settlement import settle_cash_advance_envelope
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    env_id = data.get('envelope_id')
+    notes = data.get('notes', '')
+    envelope = settle_cash_advance_envelope(env_id, notes=notes, signature_ack=True)
+
+    return JsonResponse({
+        'status': 'success',
+        'envelope_code': envelope.envelope_code,
+        'net_balance': float(envelope.net_balance),
+        'new_status': envelope.status,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_cash_advance_seed(request):
+    """Seeds sample cash advance envelopes."""
+    from .cash_advance_settlement import seed_sample_cash_envelopes
+    seed_sample_cash_envelopes()
+    return JsonResponse({'status': 'success', 'message': 'Cash envelopes seeded successfully'})
+
+
+# ==============================================================================
+# COMMERCIAL FLEET RTO FITNESS & STATUTORY COMPLIANCE SENTRY STUDIO
+# ==============================================================================
+
+@login_required
+def statutory_compliance_studio_view(request):
+    """
+    Fleet Statutory Compliance & RTO Fitness (FC) Radar Studio.
+    Monitors 7 statutory categories: RTO Fitness, Speed Governor, AIS-140 GPS,
+    AITP Permit, Commercial Insurance, Road Tax, and PUC with automated dispatch locks.
+    """
+    from .statutory_compliance_sentry import (
+        get_compliance_dashboard_metrics,
+        get_fleet_compliance_matrix,
+        seed_statutory_compliance_records,
+        COMPLIANCE_CATEGORY_LABELS,
+    )
+    from maintenance.models import ComplianceDocument
+
+    if not ComplianceDocument.objects.exists():
+        seed_statutory_compliance_records()
+
+    stats = get_compliance_dashboard_metrics()
+    fleet_matrix = get_fleet_compliance_matrix()
+
+    context = {
+        'title': 'RTO Fitness (FC), AIS-140 & Statutory Compliance Sentry',
+        'stats': stats,
+        'fleet_matrix': fleet_matrix,
+        'categories': COMPLIANCE_CATEGORY_LABELS,
+    }
+    return render(request, 'operations/statutory_compliance_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_compliance_renew_document(request):
+    """Renews or extends a statutory compliance certificate."""
+    import json
+    from datetime import datetime
+    from .statutory_compliance_sentry import renew_compliance_document
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    doc_id = data.get('doc_id')
+    new_expiry_str = data.get('expiry_date')
+    new_doc_num = data.get('document_number', '')
+    notes = data.get('notes', '')
+
+    new_expiry = datetime.strptime(new_expiry_str, '%Y-%m-%d').date()
+    doc = renew_compliance_document(doc_id, new_expiry, new_doc_num, notes)
+
+    return JsonResponse({
+        'status': 'success',
+        'doc_id': doc.id,
+        'new_expiry': doc.expiry_date.strftime('%d-%b-%Y'),
+        'document_type': doc.document_type,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_compliance_seed(request):
+    """Seeds statutory compliance records."""
+    from .statutory_compliance_sentry import seed_statutory_compliance_records
+    seed_statutory_compliance_records()
+    return JsonResponse({'status': 'success', 'message': 'Statutory records seeded successfully'})
+
+
+# ==============================================================================
+# PARIVAHAN RTO TRAFFIC E-CHALLAN SENTRY STUDIO
+# ==============================================================================
+
+@login_required
+def echallan_sentry_studio_view(request):
+    """
+    Parivahan RTO Traffic E-Challan Sentry Studio.
+    Audits traffic violations, overspeeding radars, and routes liability
+    to driver settlement deduction, customer billing, or company overhead.
+    """
+    from .models import TrafficFine
+    from .echallan_sentry import (
+        get_echallan_dashboard_metrics,
+        seed_sample_echallans,
+    )
+
+    if not TrafficFine.objects.exists():
+        seed_sample_echallans()
+
+    fines = TrafficFine.objects.select_related('vehicle', 'driver', 'trip').order_by('-date_of_offence')
+    stats = get_echallan_dashboard_metrics()
+
+    context = {
+        'title': 'Parivahan Traffic E-Challan Sentry Studio',
+        'fines': fines,
+        'stats': stats,
+    }
+    return render(request, 'operations/echallan_sentry_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_echallan_assign_responsibility(request):
+    """Assigns financial liability for an e-challan."""
+    import json
+    from .echallan_sentry import update_echallan_liability
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    fine_id = data.get('fine_id')
+    resp = data.get('financial_responsibility')
+    notes = data.get('notes', '')
+
+    fine = update_echallan_liability(fine_id, resp, notes)
+    return JsonResponse({
+        'status': 'success',
+        'fine_id': fine.id,
+        'financial_responsibility': fine.financial_responsibility,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_echallan_mark_paid(request):
+    """Marks an e-challan as paid via Parivahan portal or spot cash."""
+    import json
+    from .echallan_sentry import mark_echallan_paid
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    fine_id = data.get('fine_id')
+    paid_by = data.get('paid_by', 'company')
+    ref = data.get('transaction_ref', '')
+
+    fine = mark_echallan_paid(fine_id, paid_by, ref)
+    return JsonResponse({
+        'status': 'success',
+        'fine_id': fine.id,
+        'paid_by': fine.paid_by,
+    })
+
+
+@csrf_exempt
+@login_required
+def api_echallan_seed(request):
+    """Seeds sample e-challans."""
+    from .echallan_sentry import seed_sample_echallans
+    seed_sample_echallans()
+    return JsonResponse({'status': 'success', 'message': 'E-Challans seeded successfully'})
+
+
+# ==============================================================================
+# EMPTY-LEG RETURN DEADHEAD TRIP MARKETPLACE & OPTIMIZER STUDIO
+# ==============================================================================
+
+@login_required
+def empty_leg_studio_view(request):
+    """
+    Empty-Leg Return Deadhead Trip Marketplace & Optimizer Studio.
+    Matches outstation return corridors, calculates discounted tariffs,
+    and generates WhatsApp broadcasts for B2B agents to monetize deadhead miles.
+    """
+    from .models import EmptyLegTripOffer
+    from .empty_leg_optimizer import (
+        get_empty_leg_dashboard_metrics,
+        seed_sample_empty_leg_offers,
+        generate_whatsapp_broadcast_text,
+        SOUTH_INDIA_ONE_WAY_CORRIDORS,
+    )
+
+    if not EmptyLegTripOffer.objects.exists():
+        seed_sample_empty_leg_offers()
+
+    offers = EmptyLegTripOffer.objects.select_related('vehicle', 'driver', 'parent_trip').order_by('-available_from')
+    stats = get_empty_leg_dashboard_metrics()
+
+    # Pre-generate broadcast messages
+    broadcast_texts = {}
+    for o in offers:
+        broadcast_texts[o.id] = generate_whatsapp_broadcast_text(o)
+
+    available_vehicles = Vehicle.objects.filter(status='available')[:20]
+
+    context = {
+        'title': 'Empty-Leg Return Deadhead Marketplace & Optimizer',
+        'offers': offers,
+        'stats': stats,
+        'broadcast_texts': broadcast_texts,
+        'corridors': SOUTH_INDIA_ONE_WAY_CORRIDORS,
+        'available_vehicles': available_vehicles,
+    }
+    return render(request, 'operations/empty_leg_studio.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_empty_leg_publish(request):
+    """Marks an empty-leg offer as broadcasted."""
+    import json
+    from .models import EmptyLegTripOffer
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    offer_id = data.get('offer_id')
+    offer = get_object_or_404(EmptyLegTripOffer, pk=offer_id)
+    offer.status = 'broadcasted'
+    offer.save()
+    return JsonResponse({'status': 'success', 'offer_code': offer.offer_code, 'status_str': offer.get_status_display()})
+
+
+@csrf_exempt
+@login_required
+def api_empty_leg_book(request):
+    """Confirms booking of an empty leg return trip."""
+    import json
+    from .models import EmptyLegTripOffer
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    offer_id = data.get('offer_id')
+    offer = get_object_or_404(EmptyLegTripOffer, pk=offer_id)
+    offer.status = 'booked'
+    offer.save()
+    return JsonResponse({'status': 'success', 'offer_code': offer.offer_code, 'status_str': offer.get_status_display()})
+
+
+@csrf_exempt
+@login_required
+def api_empty_leg_seed(request):
+    """Seeds sample empty leg offers."""
+    from .empty_leg_optimizer import seed_sample_empty_leg_offers
+    seed_sample_empty_leg_offers()
+    return JsonResponse({'status': 'success', 'message': 'Empty-leg offers seeded successfully'})
+
 
 
 

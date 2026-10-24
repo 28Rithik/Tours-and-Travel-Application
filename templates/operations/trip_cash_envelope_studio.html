@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Trip Cash Advance &amp; Kharcha Settlement Studio | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .cash-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  html.dark .cash-card, .dark .cash-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-amber-950 to-emerald-950 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Trip Cash Advance &amp; Kharcha Settlement Studio</h1>
+          <p class="text-xs text-amber-200">On-Road Physical Cash Disbursed &bull; Diesel, Toll &amp; State Permit Float &bull; Driver Surplus/Deficit Reconciliation</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="openDisburseModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl shadow-lg shadow-amber-500/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span>Disburse Cash Envelope</span>
+      </button>
+
+      <button onclick="seedSampleEnvelopes()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Sync &amp; Seed Vouchers</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Active Disbursed -->
+    <div class="cash-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Cash Disbursed</div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">₹{{ stats.total_disbursed_amt|floatformat:0 }}</div>
+          <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">{{ stats.active_disbursed }} active outstation floats</div>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verified Expenses -->
+    <div class="cash-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Verified On-Road Expenses</div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">₹{{ stats.total_expenses_amt|floatformat:0 }}</div>
+          <div class="text-[11px] text-blue-600 dark:text-blue-400 font-medium mt-1">Fuel, tolls, permits &amp; bata</div>
+        </div>
+        <div class="p-3 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Surplus Refunded -->
+    <div class="cash-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Driver Surplus Refunded</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.total_surplus_refunded|floatformat:0 }}</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">Returned to depot cashier</div>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Reconciliation -->
+    <div class="cash-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Audit &amp; Pending Close</div>
+          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats.pending_audit }} Envelopes</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">{{ stats.settled_count }} fully closed &amp; signed</div>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cash Envelopes Register Table -->
+  <div class="cash-card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Active &amp; Historical Trip Cash Envelopes</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Complete audit trail of advance float disbursed vs verified expense receipts</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Zero Unsettled Float Guard Active
+        </span>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
+          <tr>
+            <th class="py-3.5 px-4">Envelope #</th>
+            <th class="py-3.5 px-4">Trip &amp; Vehicle</th>
+            <th class="py-3.5 px-4">Chauffeur</th>
+            <th class="py-3.5 px-4">Advance Disbursed</th>
+            <th class="py-3.5 px-4">Verified Expenses</th>
+            <th class="py-3.5 px-4">Net Balance</th>
+            <th class="py-3.5 px-4">Status</th>
+            <th class="py-3.5 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+          {% for env in envelopes %}
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+            <!-- Envelope Code -->
+            <td class="py-3.5 px-4">
+              <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{ env.envelope_code }}</span>
+              <div class="text-[10px] text-slate-400 mt-0.5">{{ env.disbursed_at|date:"d-M-Y H:i" }}</div>
+            </td>
+
+            <!-- Trip & Vehicle -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900 dark:text-white">Trip #{{ env.trip.id }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                {{ env.trip.vehicle.registration_number }} &bull; {{ env.trip.vehicle.model }}
+              </div>
+            </td>
+
+            <!-- Chauffeur -->
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-800 dark:text-slate-200">{{ env.driver.name }}</div>
+              <div class="text-[11px] text-slate-400">📞 {{ env.driver.phone }}</div>
+            </td>
+
+            <!-- Advance Breakdown -->
+            <td class="py-3.5 px-4">
+              <div class="text-sm font-bold text-slate-900 dark:text-white">₹{{ env.total_advance_disbursed|floatformat:0 }}</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400 space-x-1">
+                <span>Fuel: ₹{{ env.fuel_cash_allocation|floatformat:0 }}</span> &bull;
+                <span>Toll: ₹{{ env.toll_cash_allocation|floatformat:0 }}</span> &bull;
+                <span>Bata: ₹{{ env.driver_bata_allocation|floatformat:0 }}</span>
+              </div>
+            </td>
+
+            <!-- Verified Expenses -->
+            <td class="py-3.5 px-4">
+              <div class="text-sm font-bold text-blue-600 dark:text-blue-400">₹{{ env.total_expenses_verified|floatformat:0 }}</div>
+              <div class="text-[10px] text-slate-500 dark:text-slate-400">
+                Fuel ₹{{ env.actual_fuel_spent|floatformat:0 }} + Toll ₹{{ env.actual_tolls_spent|floatformat:0 }} + Misc ₹{{ env.actual_parking_spent|floatformat:0 }}
+              </div>
+            </td>
+
+            <!-- Net Balance -->
+            <td class="py-3.5 px-4">
+              {% if env.net_balance > 0 %}
+              <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-bold">
+                <span>Driver Owes +₹{{ env.net_balance|floatformat:0 }} (Surplus)</span>
+              </div>
+              {% elif env.net_balance < 0 %}
+              <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 font-bold">
+                <span>Reimburse -₹{{ env.net_balance|stringformat:"d"|slice:"1:" }} (Deficit)</span>
+              </div>
+              {% else %}
+              <span class="text-slate-400">₹0 (Balanced)</span>
+              {% endif %}
+            </td>
+
+            <!-- Status -->
+            <td class="py-3.5 px-4">
+              {% if env.status == 'reconciled_settled' %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Closed &amp; Settled
+              </span>
+              {% elif env.status == 'submitted_for_audit' %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Audit Review
+              </span>
+              {% elif env.status == 'on_trip' %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Active On-Road
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> Disbursed
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="py-3.5 px-4 text-right space-x-2">
+              {% if env.status != 'reconciled_settled' %}
+              <button onclick="openLogExpensesModal('{{ env.id }}', '{{ env.envelope_code }}', '{{ env.total_advance_disbursed }}', '{{ env.actual_fuel_spent }}', '{{ env.actual_tolls_spent }}', '{{ env.actual_permits_spent }}', '{{ env.actual_parking_spent }}', '{{ env.actual_repairs_spent }}', '{{ env.driver_bata_deducted }}')" class="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 rounded-lg text-xs font-semibold transition">
+                Log Receipts
+              </button>
+              <button onclick="reconcileEnvelope('{{ env.id }}', '{{ env.envelope_code }}')" class="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition">
+                Settle &amp; Close
+              </button>
+              {% else %}
+              <span class="text-xs text-slate-400">Signed &bull; {{ env.settled_at|date:"d-M" }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-400">
+              No cash advance envelopes recorded yet. Click "Sync &amp; Seed Vouchers" to populate sample data.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Disburse Cash Advance Envelope -->
+<div id="disburseModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cash-card max-w-lg w-full p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span>💵</span> Disburse Outstation Cash Advance Float
+      </h3>
+      <button onclick="closeDisburseModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="disburseForm" onsubmit="submitDisburseEnvelope(event)" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Outstation Trip</label>
+        <select id="modalTripId" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+          {% for t in active_trips %}
+          <option value="{{ t.id }}">Trip #{{ t.id }} &bull; {{ t.vehicle.registration_number }} &bull; Driver: {{ t.driver.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Fuel Allocation (₹)</label>
+          <input type="number" id="modalFuel" value="5000" step="100" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Toll Allocation (₹)</label>
+          <input type="number" id="modalToll" value="1200" step="50" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">State Permit Cash (₹)</label>
+          <input type="number" id="modalPermit" value="950" step="50" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Driver Bata Pocket (₹)</label>
+          <input type="number" id="modalBata" value="1500" step="100" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Contingency / Emergency Cash (₹)</label>
+        <input type="number" id="modalContingency" value="1000" step="100" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Dispatch Notes / Route</label>
+        <textarea id="modalNotes" rows="2" placeholder="e.g. 3-Day Wayanad package, out-gate cash handed over." class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" onclick="closeDisburseModal()" class="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs shadow-md">Confirm &amp; Print Envelope Slip</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Log Return Expenses -->
+<div id="logExpensesModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="cash-card max-w-lg w-full p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span>🧾</span> Submit Verified On-Road Expenses
+      </h3>
+      <button onclick="closeLogExpensesModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="logExpensesForm" onsubmit="submitLoggedExpenses(event)" class="space-y-3 text-xs">
+      <input type="hidden" id="expEnvelopeId">
+
+      <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl flex items-center justify-between text-xs">
+        <span class="font-semibold text-slate-600 dark:text-slate-300" id="expEnvelopeCodeBadge">CAE-XXXX</span>
+        <span class="font-bold text-amber-600" id="expTotalDisbursedBadge">Advance: ₹0</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Fuel Spent (₹)</label>
+          <input type="number" id="expFuel" step="10" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tolls Paid (₹)</label>
+          <input type="number" id="expTolls" step="10" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">State Permits Paid (₹)</label>
+          <input type="number" id="expPermits" step="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Parking &amp; Hill Tax (₹)</label>
+          <input type="number" id="expParking" step="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Repairs / Punctures (₹)</label>
+          <input type="number" id="expRepairs" step="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Driver Bata Deducted (₹)</label>
+          <input type="number" id="expBata" step="10" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" onclick="closeLogExpensesModal()" class="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg text-xs shadow-md">Submit for Cashier Audit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openDisburseModal() {
+  document.getElementById('disburseModal').classList.remove('hidden');
+}
+function closeDisburseModal() {
+  document.getElementById('disburseModal').classList.add('hidden');
+}
+
+function openLogExpensesModal(id, code, disbursed, f, t, p, prk, rep, b) {
+  document.getElementById('expEnvelopeId').value = id;
+  document.getElementById('expEnvelopeCodeBadge').innerText = code;
+  document.getElementById('expTotalDisbursedBadge').innerText = `Advance: ₹${disbursed}`;
+  document.getElementById('expFuel').value = f || 0;
+  document.getElementById('expTolls').value = t || 0;
+  document.getElementById('expPermits').value = p || 0;
+  document.getElementById('expParking').value = prk || 0;
+  document.getElementById('expRepairs').value = rep || 0;
+  document.getElementById('expBata').value = b || 0;
+  document.getElementById('logExpensesModal').classList.remove('hidden');
+}
+function closeLogExpensesModal() {
+  document.getElementById('logExpensesModal').classList.add('hidden');
+}
+
+async function submitDisburseEnvelope(e) {
+  e.preventDefault();
+  const payload = {
+    trip_id: document.getElementById('modalTripId').value,
+    fuel: document.getElementById('modalFuel').value,
+    toll: document.getElementById('modalToll').value,
+    permit: document.getElementById('modalPermit').value,
+    bata: document.getElementById('modalBata').value,
+    contingency: document.getElementById('modalContingency').value,
+    notes: document.getElementById('modalNotes').value,
+  };
+
+  try {
+    const res = await fetch('/api/operations/cash-advance/issue/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      alert(`✅ Cash Envelope ${d.envelope_code} Disbursed for ₹${d.total_disbursed.toFixed(2)}`);
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to issue cash advance envelope.');
+  }
+}
+
+async function submitLoggedExpenses(e) {
+  e.preventDefault();
+  const payload = {
+    envelope_id: document.getElementById('expEnvelopeId').value,
+    fuel: document.getElementById('expFuel').value,
+    tolls: document.getElementById('expTolls').value,
+    permits: document.getElementById('expPermits').value,
+    parking: document.getElementById('expParking').value,
+    repairs: document.getElementById('expRepairs').value,
+    bata: document.getElementById('expBata').value,
+    submit_for_audit: true,
+  };
+
+  try {
+    const res = await fetch('/api/operations/cash-advance/expense-log/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      alert(`✅ Receipts verified. Net Settlement Balance: ₹${d.net_balance.toFixed(2)}`);
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to submit verified receipts.');
+  }
+}
+
+async function reconcileEnvelope(id, code) {
+  if (!confirm(`Confirm final closure and settlement sign-off for Envelope ${code}?`)) return;
+
+  try {
+    const res = await fetch('/api/operations/cash-advance/reconcile/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({envelope_id: id, notes: 'Cashier confirmed physical envelope balance.'})
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      alert(`✅ Envelope ${d.envelope_code} reconciled and closed.`);
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to reconcile envelope.');
+  }
+}
+
+async function seedSampleEnvelopes() {
+  try {
+    const res = await fetch('/api/operations/cash-advance/seed/', {method: 'POST'});
+    const d = await res.json();
+    if (d.status === 'success') {
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to seed records.');
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Empty-Leg Return Deadhead Optimizer | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .empty-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  html.dark .empty-card, .dark .empty-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-teal-950 to-emerald-950 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-teal-500/20 text-teal-400 rounded-xl border border-teal-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Empty-Leg Return Deadhead Marketplace &amp; Optimizer</h1>
+          <p class="text-xs text-teal-200">South Indian Return Corridors &bull; Monetize Empty Highway Kilometers &bull; Instant B2B WhatsApp Broadcasts</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="seedEmptyLegData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold rounded-xl shadow-lg shadow-teal-500/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Scan Return Trips</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Active Offers -->
+    <div class="empty-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Available Empty Legs</div>
+          <div class="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-1">{{ stats.active_available }} Trips</div>
+          <div class="text-[11px] text-teal-600 dark:text-teal-400 font-medium mt-1">Vehicles returning without passengers</div>
+        </div>
+        <div class="p-3 bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recovered Revenue -->
+    <div class="empty-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Deadhead Revenue Recovered</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.total_recovered_revenue|floatformat:0 }}</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">{{ stats.booked_count }} empty legs successfully sold</div>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Net Profit Generated -->
+    <div class="empty-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Net Margin Above Fuel/Tolls</div>
+          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">₹{{ stats.total_net_margin|floatformat:0 }}</div>
+          <div class="text-[11px] text-blue-600 dark:text-blue-400 font-medium mt-1">Pure profit vs dead fuel burn</div>
+        </div>
+        <div class="p-3 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deadhead KM Avoided -->
+    <div class="empty-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Deadhead KM Saved</div>
+          <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">{{ stats.deadhead_km_avoided }} KM</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">Reduced carbon &amp; tyre wear</div>
+        </div>
+        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty-Leg Offers Grid / Table -->
+  <div class="empty-card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Active South Indian Empty-Leg Corridors</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Special discounted one-way fares to fill returning cabs and tempos</p>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[11px] font-semibold">
+          <tr>
+            <th class="py-3.5 px-4">Offer Ref</th>
+            <th class="py-3.5 px-4">Return Route</th>
+            <th class="py-3.5 px-4">Vehicle &amp; Chauffeur</th>
+            <th class="py-3.5 px-4">Available Window</th>
+            <th class="py-3.5 px-4">Standard vs Offer Fare</th>
+            <th class="py-3.5 px-4">Net Profit Margin</th>
+            <th class="py-3.5 px-4">Status</th>
+            <th class="py-3.5 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+          {% for offer in offers %}
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+            <!-- Code -->
+            <td class="py-3.5 px-4">
+              <span class="font-mono font-bold text-teal-600 dark:text-teal-400">{{ offer.offer_code }}</span>
+            </td>
+
+            <!-- Route -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+                <span>{{ offer.origin_city }}</span>
+                <span class="text-teal-500">&rarr;</span>
+                <span>{{ offer.destination_city }}</span>
+              </div>
+              <div class="text-[10px] text-slate-400 truncate max-w-xs">{{ offer.notes }}</div>
+            </td>
+
+            <!-- Vehicle -->
+            <td class="py-3.5 px-4">
+              <div class="font-semibold text-slate-800 dark:text-slate-200">{{ offer.vehicle.registration_number }}</div>
+              <div class="text-[10px] text-slate-400">{{ offer.vehicle.model }} ({{ offer.vehicle.seating_capacity }}S)</div>
+            </td>
+
+            <!-- Window -->
+            <td class="py-3.5 px-4 whitespace-nowrap">
+              <div class="font-semibold text-slate-700 dark:text-slate-300">{{ offer.available_from|date:"d-M H:i" }}</div>
+              <div class="text-[10px] text-slate-400">until {{ offer.available_until|date:"d-M H:i" }}</div>
+            </td>
+
+            <!-- Fares -->
+            <td class="py-3.5 px-4">
+              <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                ₹{{ offer.discounted_empty_leg_rate|floatformat:0 }}
+              </div>
+              <div class="text-[10px] text-slate-400 line-through">
+                Regular: ₹{{ offer.standard_tariff|floatformat:0 }}
+              </div>
+            </td>
+
+            <!-- Margin -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900 dark:text-white">+₹{{ offer.net_margin_generated|floatformat:0 }}</div>
+              <div class="text-[10px] text-slate-400">Fuel+Tolls: ₹{{ offer.estimated_fuel_cost|floatformat:0 }}</div>
+            </td>
+
+            <!-- Status -->
+            <td class="py-3.5 px-4">
+              {% if offer.status == 'available' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
+                🟢 Available
+              </span>
+              {% elif offer.status == 'broadcasted' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                📢 Broadcasted
+              </span>
+              {% elif offer.status == 'booked' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                🤝 Booked
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                {{ offer.get_status_display }}
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="py-3.5 px-4 text-right space-x-1 whitespace-nowrap">
+              <button onclick="copyBroadcast('{{ offer.id }}')" class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition" title="Copy WhatsApp Broadcast text">
+                📲 Copy WhatsApp
+              </button>
+              {% if offer.status != 'booked' and offer.status != 'completed' %}
+              <button onclick="bookEmptyLeg('{{ offer.id }}', '{{ offer.offer_code }}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+                Book
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-400">
+              No empty legs scheduled. Click "Scan Return Trips" to analyze returns from Bangalore, Chennai, and Madurai.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Hidden Store for Broadcast Texts -->
+<script>
+const broadcastTexts = {
+  {% for id, txt in broadcast_texts.items %}
+  "{{ id }}": `{{ txt|escapejs }}`,
+  {% endfor %}
+};
+
+async function copyBroadcast(offerId) {
+  const text = broadcastTexts[offerId];
+  if (!text) {
+    alert('Broadcast text not available.');
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('📋 Broadcast message copied to clipboard! Paste directly into WhatsApp agent groups.');
+
+    // Mark as broadcasted
+    await fetch('/api/operations/empty-legs/publish/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({offer_id: offerId})
+    });
+  } catch (err) {
+    prompt('Copy this message:', text);
+  }
+}
+
+async function bookEmptyLeg(offerId, code) {
+  if (!confirm(`Confirm booking for Empty-Leg ${code}?`)) return;
+
+  try {
+    const res = await fetch('/api/operations/empty-legs/book/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({offer_id: offerId})
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      alert(`🤝 Empty-Leg ${d.offer_code} booked successfully!`);
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to book empty leg.');
+  }
+}
+
+async function seedEmptyLegData() {
+  try {
+    const res = await fetch('/api/operations/empty-legs/seed/', {method: 'POST'});
+    const d = await res.json();
+    if (d.status === 'success') {
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to scan and seed return trips.');
+  }
+}
+</script>
+{% endblock %}

@@ -6,14 +6,15 @@
 {% block extra_head %}
 <style>
   .feedback-card {
-    background: var(--surface-bg, #ffffff);
-    border: 1px solid var(--border-color, #e2e8f0);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 14px;
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   }
-  .dark .feedback-card {
+  html.dark .feedback-card, .dark .feedback-card {
     background: #0f172a;
     border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
   }
 </style>
 {% endblock %}

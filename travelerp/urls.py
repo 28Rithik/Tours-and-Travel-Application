@@ -110,6 +110,22 @@ from operations.views import (
     api_dispatch_sos_replacement,
     pnr_arrivals_studio_view,
     api_update_arrival_status,
+    trip_cash_envelope_studio_view,
+    api_cash_advance_issue,
+    api_cash_advance_expense_log,
+    api_cash_advance_reconcile,
+    api_cash_advance_seed,
+    statutory_compliance_studio_view,
+    api_compliance_renew_document,
+    api_compliance_seed,
+    echallan_sentry_studio_view,
+    api_echallan_assign_responsibility,
+    api_echallan_mark_paid,
+    api_echallan_seed,
+    empty_leg_studio_view,
+    api_empty_leg_publish,
+    api_empty_leg_book,
+    api_empty_leg_seed,
 )
 from statements.views import download_statement, generate_statement
 from maintenance.views import (
@@ -323,6 +339,34 @@ urlpatterns = [
     # P8-3: Section 194C TDS Corporate Withholding Management Ledger
     path('finance/tds-194c/', tds_194c_ledger_view, name='finance-tds-194c'),
     path('admin/finance/tds-194c/', tds_194c_ledger_view, name='admin-finance-tds-194c'),
+
+    # P9-1: Trip Cash Advance & Kharcha Settlement Envelope Studio
+    path('operations/cash-envelopes/', trip_cash_envelope_studio_view, name='operations-cash-envelopes'),
+    path('admin/operations/cash-envelopes/', trip_cash_envelope_studio_view, name='admin-operations-cash-envelopes'),
+    path('api/operations/cash-advance/issue/', api_cash_advance_issue, name='api-operations-cash-advance-issue'),
+    path('api/operations/cash-advance/expense-log/', api_cash_advance_expense_log, name='api-operations-cash-advance-expense-log'),
+    path('api/operations/cash-advance/reconcile/', api_cash_advance_reconcile, name='api-operations-cash-advance-reconcile'),
+    path('api/operations/cash-advance/seed/', api_cash_advance_seed, name='api-operations-cash-advance-seed'),
+
+    # P9-2: Commercial Fleet RTO Fitness (FC), AIS-140 & Statutory Compliance Sentry Studio
+    path('operations/statutory-compliance/', statutory_compliance_studio_view, name='operations-statutory-compliance'),
+    path('admin/operations/statutory-compliance/', statutory_compliance_studio_view, name='admin-operations-statutory-compliance'),
+    path('api/operations/statutory-compliance/renew/', api_compliance_renew_document, name='api-operations-compliance-renew'),
+    path('api/operations/statutory-compliance/seed/', api_compliance_seed, name='api-operations-compliance-seed'),
+
+    # P9-3: Parivahan RTO Traffic E-Challan Sentry Studio
+    path('operations/echallan-sentry/', echallan_sentry_studio_view, name='operations-echallan-sentry'),
+    path('admin/operations/echallan-sentry/', echallan_sentry_studio_view, name='admin-operations-echallan-sentry'),
+    path('api/operations/echallan/liability/', api_echallan_assign_responsibility, name='api-operations-echallan-liability'),
+    path('api/operations/echallan/pay/', api_echallan_mark_paid, name='api-operations-echallan-pay'),
+    path('api/operations/echallan/seed/', api_echallan_seed, name='api-operations-echallan-seed'),
+
+    # P9-4: Empty-Leg Return Deadhead Trip Marketplace & Optimizer Studio
+    path('operations/empty-legs/', empty_leg_studio_view, name='operations-empty-legs'),
+    path('admin/operations/empty-legs/', empty_leg_studio_view, name='admin-operations-empty-legs'),
+    path('api/operations/empty-legs/publish/', api_empty_leg_publish, name='api-operations-empty-legs-publish'),
+    path('api/operations/empty-legs/book/', api_empty_leg_book, name='api-operations-empty-legs-book'),
+    path('api/operations/empty-legs/seed/', api_empty_leg_seed, name='api-operations-empty-legs-seed'),
 
     # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),

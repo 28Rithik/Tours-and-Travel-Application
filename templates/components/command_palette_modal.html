@@ -79,6 +79,22 @@
         <i class="fa-solid fa-landmark" style="color: #3b82f6;"></i>
         <span>🏛️ 194C TDS Ledger</span>
       </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('cash_envelopes')">
+        <i class="fa-solid fa-money-bill-wave" style="color: #f59e0b;"></i>
+        <span>💵 Cash Envelopes</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('statutory_compliance')">
+        <i class="fa-solid fa-shield-halved" style="color: #6366f1;"></i>
+        <span>🛡️ Statutory FC Radar</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('echallan_sentry')">
+        <i class="fa-solid fa-triangle-exclamation" style="color: #f43f5e;"></i>
+        <span>🚨 E-Challan Sentry</span>
+      </div>
+      <div class="cmd-action-pill" onclick="executeCmdAction('empty_legs')">
+        <i class="fa-solid fa-route" style="color: #14b8a6;"></i>
+        <span>🔄 Empty-Leg Deadhead</span>
+      </div>
     </div>
 
 
@@ -413,6 +429,14 @@
       window.location.href = '/crm/followup-cadence/';
     } else if (action === 'tds_194c') {
       window.location.href = '/finance/tds-194c/';
+    } else if (action === 'cash_envelopes') {
+      window.location.href = '/operations/cash-envelopes/';
+    } else if (action === 'statutory_compliance') {
+      window.location.href = '/operations/statutory-compliance/';
+    } else if (action === 'echallan_sentry') {
+      window.location.href = '/operations/echallan-sentry/';
+    } else if (action === 'empty_legs') {
+      window.location.href = '/operations/empty-legs/';
     }
   }
 

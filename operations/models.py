@@ -1621,6 +1621,113 @@ class GroupArrivalManifest(models.Model):
 		return f"{self.manifest_code} - {self.guest_leader_name} ({self.pnr_or_flight_number})"
 
 
+class TripCashAdvanceEnvelope(models.Model):
+	STATUS_CHOICES = [
+		('disbursed', '💵 Disbursed at Garage Out-Gate'),
+		('on_trip', '🛣️ Active On-Road Duty'),
+		('submitted_for_audit', '📋 Submitted for Accounts Audit'),
+		('reconciled_settled', '✅ Reconciled & Fully Settled'),
+		('disputed', '⚠️ Variance Disputed / Pending Proof'),
+	]
+
+	envelope_code = models.CharField(max_length=50, unique=True)
+	trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='cash_envelopes')
+	driver = models.ForeignKey(Driver, on_delete=models.CASCADE, related_name='cash_envelopes')
+	disbursed_at = models.DateTimeField(default=timezone.now)
+
+	# Cash advance allocations breakdown (disbursed to driver before trip)
+	fuel_cash_allocation = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="Cash given for diesel/petrol")
+	toll_cash_allocation = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="Cash given for non-FASTag tolls")
+	permit_cash_allocation = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="Cash for state border tax / check-posts")
+	driver_bata_allocation = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="Daily driver pocket allowance / food")
+	contingency_cash = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="Emergency reserve for tyre puncture/minor spares")
+	total_advance_disbursed = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+
+	# Actual verified on-road expenses submitted at trip closure
+	actual_fuel_spent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	actual_tolls_spent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	actual_permits_spent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	actual_parking_spent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	actual_repairs_spent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	driver_bata_deducted = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	total_expenses_verified = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+
+	# Net Settlement Balance = total_advance_disbursed - total_expenses_verified
+	# If > 0: Driver owes and refunds cash surplus to Cashier
+	# If < 0: Company reimburses driver out-of-pocket deficit
+	net_balance = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='disbursed')
+	settled_at = models.DateTimeField(null=True, blank=True)
+	settlement_notes = models.TextField(blank=True)
+	driver_signature_acknowledged = models.BooleanField(default=False)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-disbursed_at']
+		verbose_name = 'Trip Cash Advance Envelope'
+		verbose_name_plural = 'Trip Cash Advance Envelopes'
+
+	def __str__(self):
+		return f"{self.envelope_code} - {self.driver.name} (Disbursed: ₹{self.total_advance_disbursed})"
+
+	def recalculate(self):
+		self.total_advance_disbursed = (
+			self.fuel_cash_allocation +
+			self.toll_cash_allocation +
+			self.permit_cash_allocation +
+			self.driver_bata_allocation +
+			self.contingency_cash
+		)
+		self.total_expenses_verified = (
+			self.actual_fuel_spent +
+			self.actual_tolls_spent +
+			self.actual_permits_spent +
+			self.actual_parking_spent +
+			self.actual_repairs_spent +
+			self.driver_bata_deducted
+		)
+		self.net_balance = self.total_advance_disbursed - self.total_expenses_verified
+
+
+class EmptyLegTripOffer(models.Model):
+	STATUS_CHOICES = [
+		('available', '🟢 Available for Booking'),
+		('broadcasted', '📢 Broadcasted to B2B Agents'),
+		('booked', '🤝 Confirmed & Booked'),
+		('completed', '✅ Completed'),
+		('expired', '⌛ Expired / Departed Empty'),
+	]
+
+	offer_code = models.CharField(max_length=50, unique=True)
+	parent_trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='empty_leg_offers')
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='empty_legs')
+	driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
+
+	origin_city = models.CharField(max_length=100, default='Bengaluru (BLR)')
+	destination_city = models.CharField(max_length=100, default='Coimbatore (CJB)')
+	available_from = models.DateTimeField()
+	available_until = models.DateTimeField()
+
+	standard_tariff = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	discounted_empty_leg_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	estimated_fuel_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	estimated_toll_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	net_margin_generated = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+
+	status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='available')
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-available_from']
+		verbose_name = 'Empty-Leg Return Offer'
+		verbose_name_plural = 'Empty-Leg Return Offers'
+
+	def __str__(self):
+		return f"{self.offer_code}: {self.origin_city} ➔ {self.destination_city} (₹{self.discounted_empty_leg_rate})"
+
+
+
 
 
 

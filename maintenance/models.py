@@ -13,6 +13,8 @@ class ComplianceDocument(models.Model):
 		('permit', 'National/State Permit'),
 		('tax', 'Road Tax'),
 		('pollution', 'Pollution / Emission (PUC)'),
+		('speed_governor', 'Speed Governor (80 km/h) Certificate'),
+		('ais140', 'AIS-140 GPS & Panic Button Calibration'),
 		('other', 'Other Document')
 	]
 	

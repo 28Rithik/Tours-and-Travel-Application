@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Fleet RTO Fitness (FC) &amp; Statutory Compliance Sentry | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .comp-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  html.dark .comp-card, .dark .comp-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Header Banner -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl shadow-xl">
+    <div class="space-y-1">
+      <div class="flex items-center gap-3">
+        <span class="p-2.5 bg-indigo-500/20 text-indigo-400 rounded-xl border border-indigo-400/30">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">RTO Fitness (FC), AIS-140 &amp; Statutory Compliance Sentry</h1>
+          <p class="text-xs text-indigo-200">South Indian Commercial Transport Law &bull; Speed Governor &bull; AIS-140 Panic Button &bull; Automated Dispatch Lockout</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button onclick="seedStatutoryData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span>Audit &amp; Sync Parivahan</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Metric KPI Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Overall Compliance Rate -->
+    <div class="comp-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Fleet Legal Compliance</div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.compliance_rate }}%</div>
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">{{ stats.compliant_docs }} of {{ stats.total_docs }} papers valid</div>
+        </div>
+        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Locked Vehicles -->
+    <div class="comp-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Dispatch-Locked Vehicles</div>
+          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.locked_vehicles }} Units</div>
+          <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">🔴 Grounded due to expired papers</div>
+        </div>
+        <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Critical Renewals (< 7 days) -->
+    <div class="comp-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Critical Renewals (&lt; 7 Days)</div>
+          <div class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats.critical_docs }} Certs</div>
+          <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-1">RTO slot booking required</div>
+        </div>
+        <div class="p-3 bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 30-Day Warning -->
+    <div class="comp-card p-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Upcoming Expiries (30 Days)</div>
+          <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">{{ stats.warning_docs }} Certs</div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">{{ stats.total_vehicles }} commercial fleet assets</div>
+        </div>
+        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fleet Statutory Compliance Matrix Table -->
+  <div class="comp-card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Commercial Fleet Statutory Readiness Matrix</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Automated gate check enforcing statutory fitness before trip assignment</p>
+      </div>
+      <div class="flex items-center gap-3 text-[11px]">
+        <span class="inline-flex items-center gap-1 font-semibold text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Valid</span>
+        <span class="inline-flex items-center gap-1 font-semibold text-amber-600"><span class="w-2 h-2 rounded-full bg-amber-500"></span> &lt; 30 Days</span>
+        <span class="inline-flex items-center gap-1 font-semibold text-rose-600"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Expired (Locked)</span>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] font-semibold">
+          <tr>
+            <th class="py-3 px-3">Vehicle</th>
+            <th class="py-3 px-3">Gate Status</th>
+            <th class="py-3 px-3">RTO Fitness (FC)</th>
+            <th class="py-3 px-3">Speed Governor (80 km/h)</th>
+            <th class="py-3 px-3">AIS-140 Panic GPS</th>
+            <th class="py-3 px-3">Commercial Insurance</th>
+            <th class="py-3 px-3">Tourist Permit</th>
+            <th class="py-3 px-3">Road Tax &amp; PUC</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+          {% for row in fleet_matrix %}
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+            <!-- Vehicle -->
+            <td class="py-3 px-3 whitespace-nowrap">
+              <span class="font-mono font-bold text-slate-900 dark:text-white">{{ row.reg_no }}</span>
+              <div class="text-[10px] text-slate-400">{{ row.model }} ({{ row.seating }}S)</div>
+            </td>
+
+            <!-- Gate Status -->
+            <td class="py-3 px-3 whitespace-nowrap">
+              {% if row.dispatch_status == 'CLEARED' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                🟢 CLEARED
+              </span>
+              {% elif row.dispatch_status == 'ACTION_REQUIRED' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                ⏰ ACTION REQD
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300">
+                🔴 LOCKED
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- RTO Fitness FC -->
+            <td class="py-3 px-3">
+              {% with d=row.docs.fc %}
+              <div onclick="openRenewModal('{{ d.doc_id }}', 'RTO Fitness Certificate (FC)', '{{ d.doc_number }}', '{{ row.reg_no }}')" class="cursor-pointer group">
+                <span class="text-[11px] font-semibold {% if d.status == 'expired' %}text-rose-600 dark:text-rose-400 font-bold{% elif d.status == 'critical' or d.status == 'warning' %}text-amber-600 dark:text-amber-400 font-bold{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                  {{ d.badge }}
+                </span>
+                <div class="text-[10px] text-slate-400 group-hover:text-indigo-500">{{ d.expiry|default:"No Record" }}</div>
+              </div>
+              {% endwith %}
+            </td>
+
+            <!-- Speed Governor -->
+            <td class="py-3 px-3">
+              {% with d=row.docs.speed_governor %}
+              <div onclick="openRenewModal('{{ d.doc_id }}', 'Speed Governor (80 km/h) Certificate', '{{ d.doc_number }}', '{{ row.reg_no }}')" class="cursor-pointer group">
+                <span class="text-[11px] font-semibold {% if d.status == 'expired' %}text-rose-600 dark:text-rose-400 font-bold{% elif d.status == 'critical' or d.status == 'warning' %}text-amber-600 dark:text-amber-400 font-bold{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                  {{ d.badge }}
+                </span>
+                <div class="text-[10px] text-slate-400 group-hover:text-indigo-500">{{ d.expiry|default:"No Record" }}</div>
+              </div>
+              {% endwith %}
+            </td>
+
+            <!-- AIS-140 GPS -->
+            <td class="py-3 px-3">
+              {% with d=row.docs.ais140 %}
+              <div onclick="openRenewModal('{{ d.doc_id }}', 'AIS-140 GPS & Panic Button', '{{ d.doc_number }}', '{{ row.reg_no }}')" class="cursor-pointer group">
+                <span class="text-[11px] font-semibold {% if d.status == 'expired' %}text-rose-600 dark:text-rose-400 font-bold{% elif d.status == 'critical' or d.status == 'warning' %}text-amber-600 dark:text-amber-400 font-bold{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                  {{ d.badge }}
+                </span>
+                <div class="text-[10px] text-slate-400 group-hover:text-indigo-500">{{ d.expiry|default:"No Record" }}</div>
+              </div>
+              {% endwith %}
+            </td>
+
+            <!-- Commercial Insurance -->
+            <td class="py-3 px-3">
+              {% with d=row.docs.insurance %}
+              <div onclick="openRenewModal('{{ d.doc_id }}', 'Commercial Passenger Insurance', '{{ d.doc_number }}', '{{ row.reg_no }}')" class="cursor-pointer group">
+                <span class="text-[11px] font-semibold {% if d.status == 'expired' %}text-rose-600 dark:text-rose-400 font-bold{% elif d.status == 'critical' or d.status == 'warning' %}text-amber-600 dark:text-amber-400 font-bold{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                  {{ d.badge }}
+                </span>
+                <div class="text-[10px] text-slate-400 group-hover:text-indigo-500">{{ d.expiry|default:"No Record" }}</div>
+              </div>
+              {% endwith %}
+            </td>
+
+            <!-- Tourist Permit -->
+            <td class="py-3 px-3">
+              {% with d=row.docs.permit %}
+              <div onclick="openRenewModal('{{ d.doc_id }}', 'AITP / Tourist Permit', '{{ d.doc_number }}', '{{ row.reg_no }}')" class="cursor-pointer group">
+                <span class="text-[11px] font-semibold {% if d.status == 'expired' %}text-rose-600 dark:text-rose-400 font-bold{% elif d.status == 'critical' or d.status == 'warning' %}text-amber-600 dark:text-amber-400 font-bold{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                  {{ d.badge }}
+                </span>
+                <div class="text-[10px] text-slate-400 group-hover:text-indigo-500">{{ d.expiry|default:"No Record" }}</div>
+              </div>
+              {% endwith %}
+            </td>
+
+            <!-- Tax & PUC -->
+            <td class="py-3 px-3">
+              {% with d_tax=row.docs.tax d_puc=row.docs.pollution %}
+              <div class="space-y-0.5">
+                <div class="text-[10px] text-slate-500">Tax: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ d_tax.expiry|default:"—" }}</span></div>
+                <div class="text-[10px] text-slate-500">PUC: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ d_puc.expiry|default:"—" }}</span></div>
+              </div>
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-400">
+              No vehicles monitored yet. Click "Audit &amp; Sync Parivahan" to populate records.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Renew Certificate -->
+<div id="renewModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="comp-card max-w-md w-full p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <span>📋</span> Renew Certificate
+      </h3>
+      <button onclick="closeRenewModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    </div>
+
+    <form id="renewForm" onsubmit="submitRenewDocument(event)" class="space-y-3 text-xs">
+      <input type="hidden" id="renewDocId">
+
+      <div class="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-xl space-y-1">
+        <div class="font-bold text-indigo-900 dark:text-indigo-300" id="renewDocTitle">Document Title</div>
+        <div class="text-[11px] text-indigo-700 dark:text-indigo-400" id="renewVehicleReg">Vehicle: TN-XX-XXXX</div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">New Expiry Date</label>
+        <input type="date" id="renewExpiryDate" required class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">New Certificate / Policy #</label>
+        <input type="text" id="renewDocNumber" placeholder="e.g. FC/TN38/2027/9912" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Renewal Notes / RTO Testing Center</label>
+        <textarea id="renewNotes" rows="2" placeholder="Tested at Coimbatore North RTO Unit." class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" onclick="closeRenewModal()" class="px-4 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs shadow-md">Confirm Renewal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openRenewModal(docId, title, currentNum, regNo) {
+  if (!docId) {
+    alert('Please sync or seed document records first.');
+    return;
+  }
+  document.getElementById('renewDocId').value = docId;
+  document.getElementById('renewDocTitle').innerText = title;
+  document.getElementById('renewVehicleReg').innerText = `Vehicle: ${regNo}`;
+  document.getElementById('renewDocNumber').value = currentNum && currentNum !== '—' ? currentNum : '';
+  
+  // Set default next year date
+  const nextYear = new Date();
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  document.getElementById('renewExpiryDate').value = nextYear.toISOString().split('T')[0];
+  
+  document.getElementById('renewModal').classList.remove('hidden');
+}
+
+function closeRenewModal() {
+  document.getElementById('renewModal').classList.add('hidden');
+}
+
+async function submitRenewDocument(e) {
+  e.preventDefault();
+  const payload = {
+    doc_id: document.getElementById('renewDocId').value,
+    expiry_date: document.getElementById('renewExpiryDate').value,
+    document_number: document.getElementById('renewDocNumber').value,
+    notes: document.getElementById('renewNotes').value,
+  };
+
+  try {
+    const res = await fetch('/api/operations/statutory-compliance/renew/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const d = await res.json();
+    if (d.status === 'success') {
+      alert(`✅ Certificate renewed! New validity: ${d.new_expiry}`);
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to update renewal certificate.');
+  }
+}
+
+async function seedStatutoryData() {
+  try {
+    const res = await fetch('/api/operations/statutory-compliance/seed/', {method: 'POST'});
+    const d = await res.json();
+    if (d.status === 'success') {
+      window.location.reload();
+    }
+  } catch (err) {
+    alert('Failed to sync statutory data.');
+  }
+}
+</script>
+{% endblock %}
