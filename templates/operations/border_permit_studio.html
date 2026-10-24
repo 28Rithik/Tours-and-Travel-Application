@@ -22,104 +22,62 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
-  <!-- Header Banner -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 text-white p-6 rounded-2xl shadow-xl">
-    <div class="space-y-1">
-      <div class="flex items-center gap-3">
-        <span class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-400/30 flex items-center justify-center">
-          <svg width="28" height="28" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-          </svg>
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="/operations/border-permits/" class="hover:text-primary transition">Operations Desk</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Border Permits Sentry</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Interstate State Border Entry Tax &amp; AITP Permit Sentry</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          {{ stats.interstate_trips_monitored }} trips
         </span>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white !text-white">Interstate State Border Entry Tax &amp; AITP Permit Sentry</h1>
-          <p class="text-xs text-emerald-200">South Indian Interstate Corridors &bull; Statutory Parivahan Tax &bull; Walayar, Attibele, Gorimedu Check-posts</p>
-        </div>
-      </div>
+      </h1>
     </div>
 
-    <!-- Actions -->
-    <div class="flex flex-wrap items-center gap-3">
-      <button onclick="openIssuePermitModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-500/30 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
+    <!-- Actions (Unfold Buttons) -->
+    <div class="flex items-center gap-2">
+      <button onclick="openIssuePermitModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition" style="background: #0284c7; color: #ffffff;">
+        <span class="material-symbols-outlined text-[16px]">add</span>
         <span>Issue Border Pass</span>
       </button>
 
-      <button onclick="seedSamplePermits()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
-        <span>Sync Parivahan Records</span>
+      <button onclick="seedSamplePermits()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">sync</span>
+        <span>Sync Parivahan</span>
       </button>
     </div>
   </div>
 
-  <!-- Metric KPI Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Monitored Trips -->
-    <div class="permit-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Interstate Trips Audited</div>
-          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats.interstate_trips_monitored }}</div>
-          <div class="text-[11px] text-teal-600 dark:text-teal-400 font-medium mt-1">Cross-border active journeys</div>
-        </div>
-        <div class="p-3 bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-          </svg>
-        </div>
-      </div>
+  <!-- Unfold Flat Metric Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Interstate Trips Audited</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ stats.interstate_trips_monitored }}</div>
+      <div class="text-[11px] text-sky-600 dark:text-sky-400 mt-1 font-medium">Cross-border active journeys</div>
     </div>
 
-    <!-- Cleared & Valid -->
-    <div class="permit-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active Cleared Passes</div>
-          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.active_cleared }}</div>
-          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">Parivahan verified &bull; Compliant</div>
-        </div>
-        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active Cleared Passes</div>
+      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.active_cleared }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Parivahan verified &bull; Compliant</div>
     </div>
 
-    <!-- Pending / Deficit -->
-    <div class="permit-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Check-post Taxes</div>
-          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.pending_crossings }}</div>
-          <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">Check-post fee unpaid</div>
-        </div>
-        <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Pending Check-post Taxes</div>
+      <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">{{ stats.pending_crossings }}</div>
+      <div class="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-medium">Check-post fee unpaid</div>
     </div>
 
-    <!-- Total Tax Paid -->
-    <div class="permit-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Statutory Taxes Paid</div>
-          <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">₹{{ stats.total_tax_paid|floatformat:2 }}</div>
-          <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium mt-1">Parivahan border revenue</div>
-        </div>
-        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Statutory Taxes Paid</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">₹{{ stats.total_tax_paid|floatformat:2 }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Parivahan border revenue</div>
     </div>
   </div>
 

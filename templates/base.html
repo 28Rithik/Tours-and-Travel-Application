@@ -29,6 +29,7 @@
     };
   </script>
   <link rel="stylesheet" href="{% static 'app.css' %}?v=2.4">
+  <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}">
   <script>
     /* Immediate Anti-FOUC Theme Detection (Matches Django Unfold) */
     (function() {
@@ -598,6 +599,12 @@
         </a>
         <a class="nav-link {% if 'echallan-sentry' in request.path %}is-active{% endif %}" href="/operations/echallan-sentry/">
           <i class="fa-solid fa-triangle-exclamation nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Traffic E-Challan Sentry
+        </a>
+        <a class="nav-link {% if 'breakdown-sos' in request.path %}is-active{% endif %}" href="/operations/breakdown-sos/">
+          <i class="fa-solid fa-truck-medical nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Breakdown &amp; SOS Relief
+        </a>
+        <a class="nav-link {% if 'pnr-arrivals' in request.path %}is-active{% endif %}" href="/operations/pnr-arrivals/">
+          <i class="fa-solid fa-plane-arrival nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #0284c7;"></i> PNR Group Arrivals
         </a>
         <a class="nav-link {% if 'empty-legs' in request.path %}is-active{% endif %}" href="/operations/empty-legs/">
           <i class="fa-solid fa-route nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #14b8a6;"></i> Empty-Leg Marketplace

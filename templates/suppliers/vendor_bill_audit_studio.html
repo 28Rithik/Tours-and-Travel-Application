@@ -1,164 +1,246 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Market Fleet Vendor Bill Auditor &amp; Telematics Studio | Sivagayathiri ERP{% endblock %}
-
-{% block extra_head %}
-<style>
-  .vendor-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  }
-  html.dark .vendor-card, .dark .vendor-card {
-    background: #0f172a;
-    border-color: #1e293b;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  }
-</style>
-{% endblock %}
+{% block title %}Market Fleet Vendor Bill Auditor &amp; Telematics Studio | Sivagayathiri TravelERP{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-  <!-- Header Banner -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-amber-950 to-indigo-950 text-white p-6 rounded-2xl shadow-xl">
-    <div class="space-y-1">
-      <div class="flex items-center gap-3">
-        <span class="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-400/30 flex items-center justify-center">
-          <svg width="28" height="28" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-          </svg>
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="/suppliers/vendor-bill-audit/" class="hover:text-primary transition">Operations Desk</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Vendor Bill Auditor</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Market Fleet Vendor Bill Auditor &amp; Telematics Studio</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          {{ settlements|length }} settlements
         </span>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white !text-white">Market Fleet Vendor Bill Auditor &amp; Telematics Studio</h1>
-          <p class="text-xs text-amber-200">Outsourced Fleet Claims vs GPS Telematics &bull; Ghost KM Detection &bull; FASTag Toll Audit &bull; Sec 194C TDS</p>
-        </div>
-      </div>
+      </h1>
     </div>
 
-    <!-- Actions -->
-    <div class="flex flex-wrap items-center gap-3">
-      <button onclick="switchVendorTab('auditor')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-white text-xs font-semibold rounded-xl shadow-lg shadow-amber-500/30 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
+    <!-- Actions (Unfold Primary & Secondary Buttons) -->
+    <div class="flex items-center gap-2">
+      <button onclick="switchVendorTab('auditor')" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">calculate</span>
         <span>Audit New Invoice</span>
       </button>
 
-      <button onclick="seedVendorData()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl backdrop-blur-md border border-white/20 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-        </svg>
+      <button onclick="seedVendorData()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">sync</span>
         <span>Seed Demo Claims</span>
       </button>
     </div>
   </div>
 
-  <!-- Metric KPI Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Total Invoices Audited -->
-    <div class="vendor-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Invoices Audited</div>
-          <div class="text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats.total_audited }}</div>
-          <div class="text-[11px] text-slate-500 font-medium mt-1">External partner duty slips</div>
-        </div>
-        <div class="p-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-      </div>
+  <!-- Unfold Flat Metric Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Invoices Audited</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ stats.total_audited }}</div>
+      <div class="text-[11px] text-slate-500 mt-1">External partner duty slips</div>
     </div>
 
-    <!-- Gross Audit Savings -->
-    <div class="vendor-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Audit Savings Generated</div>
-          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.total_savings|floatformat:2 }}</div>
-          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">Ghost KM &amp; Toll Leakage saved</div>
-        </div>
-        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Audit Savings Generated</div>
+      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.total_savings|floatformat:2 }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">Ghost KM &amp; Toll saved</div>
     </div>
 
-    <!-- Net Authorized Payouts -->
-    <div class="vendor-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Net Approved Disbursements</div>
-          <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mt-1">₹{{ stats.total_disbursed|floatformat:2 }}</div>
-          <div class="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium mt-1">Verified partner payments</div>
-        </div>
-        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Net Approved Disbursements</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">₹{{ stats.total_disbursed|floatformat:2 }}</div>
+      <div class="text-[11px] text-slate-500 mt-1">Verified partner payouts</div>
     </div>
 
-    <!-- Flagged Discrepancies -->
-    <div class="vendor-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Flagged Discrepancies</div>
-          <div class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.flagged_invoices }}</div>
-          <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-1">Claims with &gt;5% KM inflation</div>
-        </div>
-        <div class="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Flagged Discrepancies</div>
+      <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">{{ stats.flagged_invoices }}</div>
+      <div class="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-medium">&gt;5% KM inflation detected</div>
     </div>
   </div>
 
-  <!-- Tabs Navigation -->
+  <!-- Unfold View Navigation Tabs -->
   <div class="border-b border-slate-200 dark:border-slate-800">
-    <nav class="flex space-x-6">
-      <button id="tabBtnAuditor" onclick="switchVendorTab('auditor')" class="pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400">
-        Live Vendor Bill Auditor
+    <nav class="flex space-x-6 text-xs">
+      <button id="tabBtnLedger" onclick="switchVendorTab('ledger')" class="pb-2.5 font-bold border-b-2 border-primary text-primary">
+        Settlements Ledger ({{ stats.total_audited }})
       </button>
-      <button id="tabBtnLedger" onclick="switchVendorTab('ledger')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
-        Reconciled Settlements Ledger ({{ stats.total_audited }})
+      <button id="tabBtnAuditor" onclick="switchVendorTab('auditor')" class="pb-2.5 font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
+        Live Bill Auditor &amp; Reconciliation
       </button>
-      <button id="tabBtnSamples" onclick="switchVendorTab('samples')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+      <button id="tabBtnSamples" onclick="switchVendorTab('samples')" class="pb-2.5 font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
         Demo Partner Claims &amp; Case Studies
       </button>
     </nav>
   </div>
 
-  <!-- TAB 1: Live Auditor & Discrepancy Calculator -->
-  <div id="tabAuditor" class="space-y-6">
+  <!-- TAB 1: Reconciled Settlements Ledger (Changelist Container) -->
+  <div id="tabLedger" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+    
+    <!-- Top Toolbar: Search + Actions -->
+    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
+      <div class="relative flex-1 max-w-sm">
+        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
+        <input type="text" id="settlementSearchInput" onkeyup="filterSettlementRows()" placeholder="Search settlement #, duty slip, supplier, vehicle..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="bulkActionSelect" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary">
+          <option value="">Action: -------------------</option>
+          <option value="export">Export selected settlements to CSV</option>
+        </select>
+        <button onclick="applyBulkAction()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 transition">
+          Go
+        </button>
+        <span class="text-[11px] text-slate-400" id="selectedCountDisplay">0 of {{ settlements|length }} selected</span>
+      </div>
+    </div>
+
+    <!-- Table + Sidebar Split -->
+    <div class="flex flex-col lg:flex-row">
+      
+      <!-- Main Table -->
+      <div class="flex-1 overflow-x-auto min-w-0">
+        <table class="w-full text-left border-collapse text-xs" id="settlementsTable">
+          <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
+            <tr>
+              <th class="py-2.5 px-3 w-8 text-center">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-primary focus:ring-0">
+              </th>
+              <th class="py-2.5 px-3">Settlement #</th>
+              <th class="py-2.5 px-3">Duty Slip #</th>
+              <th class="py-2.5 px-3">Partner Supplier</th>
+              <th class="py-2.5 px-3">Vehicle</th>
+              <th class="py-2.5 px-3">Total KM</th>
+              <th class="py-2.5 px-3">Audited Hire</th>
+              <th class="py-2.5 px-3">TDS (194C)</th>
+              <th class="py-2.5 px-3">Net Payout</th>
+              <th class="py-2.5 px-3">Savings</th>
+              <th class="py-2.5 px-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
+            {% for st in settlements %}
+            <tr class="settlement-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition"
+                data-status="{{ st.status }}"
+                data-supplier="{{ st.supplier.id }}">
+              <!-- Checkbox -->
+              <td class="py-2.5 px-3 text-center">
+                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-primary focus:ring-0" value="{{ st.id }}" onchange="updateSelectedCount()">
+              </td>
+
+              <!-- Settlement # -->
+              <td class="py-2.5 px-3 whitespace-nowrap">
+                <span class="font-mono font-bold text-sky-700 dark:text-sky-400">{{ st.settlement_number }}</span>
+                <div class="text-[10px] text-slate-400">{{ st.settled_at|date:"d-M-Y" }}</div>
+              </td>
+
+              <!-- Duty Slip # -->
+              <td class="py-2.5 px-3 font-mono text-slate-700 dark:text-slate-300">
+                {{ st.duty_slip_number|default:"N/A" }}
+              </td>
+
+              <!-- Supplier -->
+              <td class="py-2.5 px-3">
+                <div class="font-semibold text-slate-900 dark:text-white">{{ st.supplier.name }}</div>
+              </td>
+
+              <!-- Vehicle -->
+              <td class="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-400">
+                {{ st.vehicle.registration_number }}
+              </td>
+
+              <!-- Total KM -->
+              <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">
+                {{ st.total_km_run }} KM
+              </td>
+
+              <!-- Audited Hire -->
+              <td class="py-2.5 px-3 font-mono text-slate-700 dark:text-slate-300">
+                ₹{{ st.agreed_buy_rate|floatformat:2 }}
+              </td>
+
+              <!-- TDS -->
+              <td class="py-2.5 px-3 font-mono text-rose-600 dark:text-rose-400">
+                ₹{{ st.tds_amount|floatformat:2 }}
+              </td>
+
+              <!-- Net Payout -->
+              <td class="py-2.5 px-3 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                ₹{{ st.net_payable_amount|floatformat:2 }}
+              </td>
+
+              <!-- Savings -->
+              <td class="py-2.5 px-3 font-mono text-emerald-600 font-semibold">
+                +₹{{ st.gross_margin_earned|floatformat:0 }}
+              </td>
+
+              <!-- Status -->
+              <td class="py-2.5 px-3 text-right">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold {% if st.status == 'verified' or st.status == 'approved' %}bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800{% else %}bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800{% endif %}">
+                  <span class="w-1.5 h-1.5 rounded-full {% if st.status == 'verified' or st.status == 'approved' %}bg-emerald-500{% else %}bg-amber-500{% endif %}"></span>
+                  {{ st.get_status_display }}
+                </span>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="11" class="text-center py-10 text-slate-400">
+                No partner settlements recorded yet. Use the Auditor tab to verify a vendor duty slip.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right-Side Unfold Filter Sidebar -->
+      <div class="w-full lg:w-60 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-800/20 text-xs space-y-4 shrink-0">
+        <div class="font-bold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between">
+          <span>Filter Settlements</span>
+          <button onclick="resetFilters()" class="text-primary hover:underline text-[10px] lowercase font-normal">reset</button>
+        </div>
+
+        <!-- Filter 1: By Status -->
+        <div class="space-y-1.5">
+          <div class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">By Status</div>
+          <div class="space-y-1 pl-1 text-[11px]">
+            <a href="javascript:void(0)" onclick="setFilter('status', 'all', this)" class="filter-item text-primary font-bold block">All Settlements</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'approved', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Approved</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'verified', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Verified</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'flagged', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Flagged Claims</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Live Auditor & Discrepancy Calculator -->
+  <div id="tabAuditor" class="space-y-6 hidden">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
       <!-- Left Column: Claim Inputs -->
-      <div class="lg:col-span-7 vendor-card p-6 space-y-4">
-        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+      <div class="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        <div class="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
           <div>
-            <h2 class="text-base font-bold text-slate-900 dark:text-white">External Vendor Invoice Details</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Enter claimed odometer, trip expenses, and rates for automated audit</p>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">External Vendor Invoice Details</h2>
+            <p class="text-[11px] text-slate-500">Enter claimed odometer, trip expenses, and rates for automated audit</p>
           </div>
-          <button type="button" onclick="loadSampleInvoice(0)" class="text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline">
+          <button type="button" onclick="loadSampleInvoice(0)" class="text-xs text-primary font-semibold hover:underline">
             Load SRS Sample (130 Ghost KM)
           </button>
         </div>
 
-        <form id="vendorAuditForm" oninput="runAuditCalculation()" onsubmit="approveVendorBill(event)" class="space-y-4 text-xs">
+        <form id="vendorAuditForm" oninput="runAuditCalculation()" onsubmit="approveVendorBill(event)" class="space-y-3 text-xs">
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Supplier / Partner Fleet</label>
-              <select id="inputSupplier" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <select id="inputSupplier" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
                 {% for s in suppliers %}
                 <option value="{{ s.id }}">{{ s.name }} ({{ s.phone|default:"Active" }})</option>
                 {% empty %}
@@ -168,7 +250,7 @@
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Vehicle Registration</label>
-              <select id="inputVehicle" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <select id="inputVehicle" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
                 {% for v in vehicles %}
                 <option value="{{ v.id }}">{{ v.registration_number }} ({{ v.vehicle_type }})</option>
                 {% empty %}
@@ -181,52 +263,52 @@
           <div class="grid grid-cols-3 gap-3">
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Invoice / Duty Slip #</label>
-              <input type="text" id="inputInvoiceNo" value="SRS-INV-2026-881" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono">
+              <input type="text" id="inputInvoiceNo" value="SRS-INV-2026-881" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono focus:outline-none focus:border-primary">
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Vendor Claimed KM</label>
-              <input type="number" id="inputClaimedKm" value="740" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-amber-600">
+              <input type="number" id="inputClaimedKm" value="740" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-amber-600 focus:outline-none focus:border-primary">
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">GPS Telematics Actual KM</label>
-              <input type="number" id="inputGpsKm" value="610" required class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-indigo-600">
+              <input type="number" id="inputGpsKm" value="610" required class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-primary focus:outline-none focus:border-primary">
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-3">
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Agreed Rate / KM (₹)</label>
-              <input type="number" id="inputRatePerKm" value="16.00" step="0.5" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold">
+              <input type="number" id="inputRatePerKm" value="16.00" step="0.5" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-primary">
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Claimed Toll / Parking (₹)</label>
-              <input type="number" id="inputClaimedToll" value="1450.00" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold">
+              <input type="number" id="inputClaimedToll" value="1450.00" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold focus:outline-none focus:border-primary">
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">FASTag Actual Toll (₹)</label>
-              <input type="number" id="inputActualToll" value="850.00" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-emerald-600">
+              <input type="number" id="inputActualToll" value="850.00" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-emerald-600 focus:outline-none focus:border-primary">
             </div>
           </div>
 
           <div class="grid grid-cols-3 gap-3">
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Driver Bata / Halts (₹)</label>
-              <input type="number" id="inputClaimedBata" value="1500.00" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <input type="number" id="inputClaimedBata" value="1500.00" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Cash / UPI Advance (₹)</label>
-              <input type="number" id="inputAdvancePaid" value="3000.00" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-rose-600 font-semibold">
+              <input type="number" id="inputAdvancePaid" value="3000.00" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-rose-600 font-semibold focus:outline-none focus:border-primary">
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Fuel on Company Card (₹)</label>
-              <input type="number" id="inputFuelDeduction" value="1200.00" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-rose-600 font-semibold">
+              <input type="number" id="inputFuelDeduction" value="1200.00" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-rose-600 font-semibold focus:outline-none focus:border-primary">
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Statutory Sec 194C TDS Rate</label>
-              <select id="inputTdsRate" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <select id="inputTdsRate" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
                 <option value="1.0">Sec 194C - Individual / HUF Transporter (1.00%)</option>
                 <option value="2.0">Sec 194C - Company / Corporate Fleet (2.00%)</option>
                 <option value="0.0">Exempt - Form 194C(6) Declaration (&lt;10 Vehicles) (0.00%)</option>
@@ -235,7 +317,7 @@
             </div>
             <div>
               <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Associated Internal Trip</label>
-              <select id="inputTrip" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+              <select id="inputTrip" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
                 <option value="">-- General Market Fleet Charter --</option>
                 {% for t in trips %}
                 <option value="{{ t.id }}">Trip #{{ t.trip_id }} &bull; {{ t.guest_name|default:"Outstation Trip" }}</option>
@@ -244,11 +326,9 @@
             </div>
           </div>
 
-          <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-            <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
+          <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+            <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5 text-xs">
+              <span class="material-symbols-outlined text-[16px]">check_circle</span>
               <span>Approve &amp; Post Settlement Ledger</span>
             </button>
           </div>
@@ -256,75 +336,73 @@
       </div>
 
       <!-- Right Column: Live Truth Telematics & Reconciliation Result -->
-      <div class="lg:col-span-5 vendor-card p-6 space-y-4">
-        <div class="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
-          <h2 class="text-base font-bold text-slate-900 dark:text-white">Reconciliation Audit Summary</h2>
-          <span id="auditBadge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+      <div class="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+        <div class="border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-slate-900 dark:text-white">Reconciliation Audit Summary</h2>
+          <span id="auditBadge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800">
             KM Inflation Detected
           </span>
         </div>
 
         <!-- Discrepancy Meter -->
-        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-3">
+        <div class="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 space-y-2">
           <div class="flex justify-between items-center text-xs">
             <span class="text-slate-600 dark:text-slate-400 font-semibold">Ghost KM Variance:</span>
-            <span id="kmDiffText" class="font-bold text-rose-600 dark:text-rose-400">+130 KM (+21.3%)</span>
+            <span id="kmDiffText" class="font-bold font-mono text-rose-600 dark:text-rose-400">+130 KM (+21.3%)</span>
           </div>
 
-          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+          <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
             <div id="kmVarianceBar" class="h-full bg-rose-500 rounded-full transition-all duration-300" style="width: 65%;"></div>
           </div>
 
           <div class="text-[11px] text-slate-500 flex justify-between">
-            <span>GPS Actual: <b id="dispGpsKm" class="text-slate-800 dark:text-slate-200 font-bold">610 KM</b></span>
-            <span>Approved: <b id="dispApprovedKm" class="text-emerald-600 dark:text-emerald-400 font-bold">610 KM</b></span>
+            <span>GPS Actual: <b id="dispGpsKm" class="text-slate-800 dark:text-slate-200 font-bold font-mono">610 KM</b></span>
+            <span>Approved: <b id="dispApprovedKm" class="text-emerald-600 dark:text-emerald-400 font-bold font-mono">610 KM</b></span>
           </div>
         </div>
 
         <!-- Financial Breakdown -->
-        <div class="space-y-2 text-xs">
+        <div class="space-y-1.5 text-xs">
           <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
             <span>Vendor Raw Claim:</span>
-            <span id="dispRawClaim" class="font-bold text-slate-900 dark:text-white">₹14,790.00</span>
+            <span id="dispRawClaim" class="font-bold font-mono text-slate-900 dark:text-white">₹14,790.00</span>
           </div>
 
           <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
-            <span>Audited Hire Charge (610 KM × ₹16):</span>
-            <span id="dispHireCharge" class="font-semibold text-slate-800 dark:text-slate-200">₹9,760.00</span>
+            <span>Audited Hire Charge:</span>
+            <span id="dispHireCharge" class="font-semibold font-mono text-slate-800 dark:text-slate-200">₹9,760.00</span>
           </div>
 
           <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
             <span>FASTag Toll Pass-through:</span>
-            <span id="dispTollActual" class="font-semibold text-slate-800 dark:text-slate-200">₹850.00</span>
+            <span id="dispTollActual" class="font-semibold font-mono text-slate-800 dark:text-slate-200">₹850.00</span>
           </div>
 
           <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400">
             <span>Driver Bata Allowance:</span>
-            <span id="dispBata" class="font-semibold text-slate-800 dark:text-slate-200">₹1,500.00</span>
+            <span id="dispBata" class="font-semibold font-mono text-slate-800 dark:text-slate-200">₹1,500.00</span>
           </div>
 
           <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-rose-600 dark:text-rose-400">
             <span>Less: Advance Paid &amp; Card Fuel:</span>
-            <span id="dispAdvances" class="font-semibold">- ₹4,200.00</span>
+            <span id="dispAdvances" class="font-semibold font-mono">- ₹4,200.00</span>
           </div>
 
           <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800 text-rose-600 dark:text-rose-400">
             <span>Less: Statutory TDS (Sec 194C @ 1%):</span>
-            <span id="dispTds" class="font-semibold">- ₹97.60</span>
+            <span id="dispTds" class="font-semibold font-mono">- ₹97.60</span>
           </div>
 
-          <div class="flex justify-between py-2 border-t-2 border-slate-200 dark:border-slate-700 text-base">
+          <div class="flex justify-between py-2 border-t border-slate-200 dark:border-slate-700 text-sm">
             <span class="font-bold text-slate-900 dark:text-white">Net Authorized Payout:</span>
-            <span id="dispNetPayable" class="font-extrabold text-emerald-600 dark:text-emerald-400">₹7,812.40</span>
+            <span id="dispNetPayable" class="font-extrabold font-mono text-emerald-600 dark:text-emerald-400">₹7,812.40</span>
           </div>
         </div>
 
         <!-- Audit Protection Banner -->
-        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1">
-          <div class="flex items-center gap-2 font-bold text-xs">
-            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-            </svg>
+        <div class="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-1">
+          <div class="flex items-center gap-1.5 font-bold text-xs">
+            <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
             <span>Total Leakage Prevented:</span>
           </div>
           <p id="dispSavingsText" class="text-xs">
@@ -336,142 +414,148 @@
     </div>
   </div>
 
-  <!-- TAB 2: Reconciled Settlements Ledger -->
-  <div id="tabLedger" class="space-y-4 hidden">
-    <div class="vendor-card overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-        <div>
-          <h2 class="text-base font-bold text-slate-900 dark:text-white">Audited Outsource Settlements Ledger</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400">Historical register of audited partner bills, approved deductions, and Sec 194C TDS postings</p>
-        </div>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
-              <th class="py-3 px-4">Settlement #</th>
-              <th class="py-3 px-4">Duty Slip #</th>
-              <th class="py-3 px-4">Partner Supplier</th>
-              <th class="py-3 px-4">Vehicle</th>
-              <th class="py-3 px-4">Total KM</th>
-              <th class="py-3 px-4">Audited Hire</th>
-              <th class="py-3 px-4">TDS (194C)</th>
-              <th class="py-3 px-4">Net Payout</th>
-              <th class="py-3 px-4">Savings</th>
-              <th class="py-3 px-4">Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            {% for st in settlements %}
-            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-              <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
-                {{ st.settlement_number }}
-              </td>
-              <td class="py-3.5 px-4 font-mono text-slate-700 dark:text-slate-300">
-                {{ st.duty_slip_number|default:"N/A" }}
-              </td>
-              <td class="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200">
-                {{ st.supplier.name }}
-              </td>
-              <td class="py-3.5 px-4 text-slate-600 dark:text-slate-400">
-                {{ st.vehicle.registration_number }}
-              </td>
-              <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
-                {{ st.total_km_run }} KM
-              </td>
-              <td class="py-3.5 px-4">
-                ₹{{ st.agreed_buy_rate|floatformat:2 }}
-              </td>
-              <td class="py-3.5 px-4 text-rose-600 dark:text-rose-400">
-                ₹{{ st.tds_amount|floatformat:2 }}
-              </td>
-              <td class="py-3.5 px-4 font-bold text-emerald-600 dark:text-emerald-400">
-                ₹{{ st.net_payable_amount|floatformat:2 }}
-              </td>
-              <td class="py-3.5 px-4 text-emerald-600 font-semibold">
-                +₹{{ st.gross_margin_earned|floatformat:0 }}
-              </td>
-              <td class="py-3.5 px-4">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold {% if st.status == 'verified' or st.status == 'approved' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% else %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% endif %}">
-                  {{ st.get_status_display }}
-                </span>
-              </td>
-            </tr>
-            {% empty %}
-            <tr>
-              <td colspan="10" class="text-center py-8 text-slate-400">No partner settlements recorded yet.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <!-- TAB 3: Demo Partner Claims & Case Studies -->
-  <div id="tabSamples" class="space-y-6 hidden">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {% for s in sample_invoices %}
-      <div class="vendor-card p-6 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-          <div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ s.vendor_name }}</h3>
-            <p class="text-xs text-slate-500 font-mono">{{ s.invoice_number }}</p>
-          </div>
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-            {{ s.vehicle_reg }}
-          </span>
+  <div id="tabSamples" class="grid grid-cols-1 md:grid-cols-3 gap-4 hidden">
+    {% for s in sample_invoices %}
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+        <div>
+          <h3 class="text-xs font-bold text-slate-900 dark:text-white">{{ s.vendor_name }}</h3>
+          <p class="text-[10px] text-slate-500 font-mono">{{ s.invoice_number }}</p>
         </div>
-
-        <div class="text-xs space-y-1.5 text-slate-600 dark:text-slate-400">
-          <div><b>Route:</b> {{ s.trip_route }}</div>
-          <div><b>Vehicle:</b> {{ s.vehicle_type }}</div>
-          <div class="flex justify-between pt-1">
-            <span>Claimed KM: <b class="text-amber-600">{{ s.claimed_km }} KM</b></span>
-            <span>GPS Actual: <b class="text-indigo-600">{{ s.gps_actual_km }} KM</b></span>
-          </div>
-          <div class="flex justify-between">
-            <span>Claimed Toll: <b>₹{{ s.claimed_toll_parking }}</b></span>
-            <span>FASTag Toll: <b class="text-emerald-600">₹{{ s.fastag_actual_toll }}</b></span>
-          </div>
-        </div>
-
-        <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-[11px] text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
-          {{ s.notes }}
-        </div>
-
-        <button onclick="loadSampleInvoice({{ forloop.counter0 }})" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-white rounded-xl text-xs font-semibold shadow transition">
-          Load into Auditor
-        </button>
+        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">
+          {{ s.vehicle_reg }}
+        </span>
       </div>
-      {% endfor %}
+
+      <div class="text-xs space-y-1 text-slate-600 dark:text-slate-400">
+        <div><b>Route:</b> {{ s.trip_route }}</div>
+        <div><b>Vehicle:</b> {{ s.vehicle_type }}</div>
+        <div class="flex justify-between pt-1 font-mono text-[11px]">
+          <span>Claimed: <b class="text-amber-600">{{ s.claimed_km }} KM</b></span>
+          <span>GPS Actual: <b class="text-primary">{{ s.gps_actual_km }} KM</b></span>
+        </div>
+        <div class="flex justify-between font-mono text-[11px]">
+          <span>Claimed Toll: <b>₹{{ s.claimed_toll_parking }}</b></span>
+          <span>FASTag Toll: <b class="text-emerald-600">₹{{ s.fastag_actual_toll }}</b></span>
+        </div>
+      </div>
+
+      <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-lg text-[11px] text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800">
+        {{ s.notes }}
+      </div>
+
+      <button onclick="loadSampleInvoice({{ forloop.counter0 }})" class="w-full py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition">
+        Load into Auditor
+      </button>
     </div>
+    {% endfor %}
   </div>
 
 </div>
 
 <script>
   const sampleCases = {{ sample_invoices|safe }};
+  let activeFilters = { status: 'all' };
 
   function switchVendorTab(tabKey) {
     document.getElementById('tabAuditor').classList.add('hidden');
     document.getElementById('tabLedger').classList.add('hidden');
     document.getElementById('tabSamples').classList.add('hidden');
 
-    document.getElementById('tabBtnAuditor').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
-    document.getElementById('tabBtnLedger').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
-    document.getElementById('tabBtnSamples').className = "pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+    const defaultBtnClass = "pb-2.5 font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200";
+    const activeBtnClass = "pb-2.5 font-bold border-b-2 border-primary text-primary";
+
+    document.getElementById('tabBtnAuditor').className = defaultBtnClass;
+    document.getElementById('tabBtnLedger').className = defaultBtnClass;
+    document.getElementById('tabBtnSamples').className = defaultBtnClass;
 
     if (tabKey === 'auditor') {
       document.getElementById('tabAuditor').classList.remove('hidden');
-      document.getElementById('tabBtnAuditor').className = "pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400";
+      document.getElementById('tabBtnAuditor').className = activeBtnClass;
     } else if (tabKey === 'ledger') {
       document.getElementById('tabLedger').classList.remove('hidden');
-      document.getElementById('tabBtnLedger').className = "pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400";
+      document.getElementById('tabBtnLedger').className = activeBtnClass;
     } else if (tabKey === 'samples') {
       document.getElementById('tabSamples').classList.remove('hidden');
-      document.getElementById('tabBtnSamples').className = "pb-3 text-sm font-semibold border-b-2 border-amber-500 text-amber-600 dark:text-amber-400";
+      document.getElementById('tabBtnSamples').className = activeBtnClass;
+    }
+  }
+
+  function setFilter(type, value, element) {
+    activeFilters[type] = value;
+    if (element && element.parentElement) {
+      element.parentElement.querySelectorAll('.filter-item').forEach(el => {
+        el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+      });
+      element.className = "filter-item text-primary font-bold block";
+    }
+    filterSettlementRows();
+  }
+
+  function resetFilters() {
+    activeFilters = { status: 'all' };
+    document.querySelectorAll('.filter-item').forEach(el => {
+      el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+    });
+    document.querySelectorAll('.w-60 .space-y-1 .filter-item:first-child').forEach(el => {
+      el.className = "filter-item text-primary font-bold block";
+    });
+    document.getElementById('settlementSearchInput').value = '';
+    filterSettlementRows();
+  }
+
+  function filterSettlementRows() {
+    const q = (document.getElementById('settlementSearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.settlement-row');
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+
+      const rStatus = row.dataset.status;
+      const matchesStatus = (activeFilters.status === 'all') || (rStatus === activeFilters.status);
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function toggleSelectAll(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      const tr = cb.closest('tr');
+      if (tr && tr.style.display !== 'none') {
+        cb.checked = master.checked;
+      }
+    });
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('.row-checkbox:checked').length;
+    const total = document.querySelectorAll('.row-checkbox').length;
+    const display = document.getElementById('selectedCountDisplay');
+    if (display) {
+      display.innerText = `${checked} of ${total} selected`;
+    }
+  }
+
+  function applyBulkAction() {
+    const action = document.getElementById('bulkActionSelect').value;
+    const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+    if (!action) {
+      alert('Please select an action first.');
+      return;
+    }
+    if (selected.length === 0) {
+      alert('Please select at least one settlement row.');
+      return;
+    }
+    if (action === 'export') {
+      alert(`Exporting ${selected.length} settlements to CSV...`);
     }
   }
 
@@ -526,7 +610,7 @@
         document.getElementById('dispNetPayable').textContent = '₹' + a.net_payable.toFixed(2);
 
         const badge = document.getElementById('auditBadge');
-        badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ' + a.risk_badge;
+        badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ' + a.risk_badge;
         badge.textContent = a.risk_status;
 
         const bar = document.getElementById('kmVarianceBar');
@@ -584,7 +668,6 @@
       });
   }
 
-  // Initial calculation on load
   document.addEventListener('DOMContentLoaded', runAuditCalculation);
 </script>
 {% endblock %}
