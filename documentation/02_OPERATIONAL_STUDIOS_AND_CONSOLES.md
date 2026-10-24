@@ -126,13 +126,36 @@ TravelERP incorporates specialized, domain-specific visual studios that replace 
   - Built-in ⚙️ Settings Modal for live Groq API key configuration, runtime validation, and model discovery.
   - Resilient offline fallback to internal local semantic rule engine with zero downtime.
 
-#### 2.15 Interstate State Border Entry Tax & AITP Permit Sentry
+#### 2.15 Interstate Border Entry Tax, Eco-Sensitive e-Pass & Statutory RTO Permit Sentry
 - **URL**: `http://127.0.0.1:8000/operations/border-permits/` (Alias: `/admin/operations/border-permits/`)
-- **Design Architecture**: Django Unfold Solid KPI Deck (`blue`, `green`, `rose`, `slate`), Tabs Navigation, `.unfold-table`.
+- **Design Architecture**: Django Unfold Solid KPI Deck (`blue`, `green`, `purple`, `rose`, `slate`), 5 Interactive Tab Views, Modal Dialogs with Live Action Triggers, `.unfold-table` with custom badges.
 - **Key Capabilities**:
-  - Real-time detection of cross-border routes (Kerala, Karnataka, Andhra Pradesh, Puducherry).
-  - Automated check-post tax rate lookup by seating capacity and state tariff rules.
-  - Parivahan AITP clearance verification and digital permit receipt archiving.
+  - **Interstate Border Road Tax & Fee Engine**:
+    - **Dual-Component Calculation**: Automatically computes total border charges as `Total = State Permit Fee (₹200) + State Border Road Tax (n amount)`.
+    - **Kerala Reciprocal Agreement**: Under the Tamil Nadu - Kerala bilateral transport pact for contract carriages, tourist vehicles pay **only the Kerala state permit fee of ₹200** with **₹0 border road tax** at Walayar and other border checkposts.
+    - **Karnataka, Andhra Pradesh & Puducherry**: Vehicles pay the statutory ₹200 permit fee **plus** the destination state's commercial road tax calculated according to vehicle seating capacity and category (e.g., Motor Cab: ₹750 KA / ₹550 AP; Maxi Cab: ₹1,500 KA / ₹1,100 AP; Omnibus: ₹3,600 KA / ₹2,600 AP).
+    - **All India Tourist Permit (AITP) Exemption**: Vehicles holding a valid MoRTH All India Tourist Permit under Section 88(9) are legally exempt from checkpost border taxes (₹0 road tax required) and are automatically tagged with an emerald `AITP EXEMPT` badge.
+  - **Madras High Court Eco-Sensitive Hill Station e-Pass Sentry**:
+    - Enforces vehicular carrying capacity quotas mandated by the Hon'ble Madras High Court (W.P. No. 25777/2023) and managed through the TNeGA portal (`epass.tnega.org`).
+    - **Monitored Zones**:
+      - **The Nilgiris** (covers Ooty, Coonoor, Kotagiri, Gudalur, Pykara, Wellington) via Burliyar and Kakkanallah checkposts.
+      - **Kodaikanal** (Dindigul district) via Silver Cascade Toll Gate.
+      - **Valparai** (Coimbatore district / Anamalai Tiger Reserve ATR pass) via Aliyar Checkpost.
+      - **Yercaud** (Shevaroy Hills, Salem) via Adivaram Checkpost.
+    - **Integrated Actions**: One-click e-Pass auto-issuance, QR code token generation, PDF pass storage, and live checkpost verification simulator with instant clearance logging.
+  - **Statutory RTO Commercial Permit Master Reference**:
+    - Built-in operational guide covering all 10 RTO permit types under the Motor Vehicles Act 1988:
+      1. *Contract Carriage Permit* (whole vehicle hire, fixed package fare, zero stage boarding)
+      2. *Tourist Permit* (statutory authorization for package/pilgrimage sightseeing)
+      3. *All India Tourist Permit - AITP* (seamless nationwide interstate transit)
+      4. *Motor Cab Permit* (commercial passenger vehicles up to 6 seats: Dzire, Etios, Innova, Ertiga)
+      5. *Maxi Cab Permit* (6 to 12 seats: Force Urbania, Tempo Traveller 9/12 Seater)
+      6. *Omnibus Permit* (heavy passenger coaches > 6/12 seats: 18-50 seater mini buses & luxury coaches)
+      7. *Stage Carriage Permit* (public route service - TNSTC/SETC)
+      8. *Special Permit* (temporary single-trip authorizations for weddings/excursions)
+      9. *National Permit* (goods carriers only - not for tourism)
+      10. *Private Service Vehicle Permit* (corporate/institutional in-house staff transport)
+    - Fleet setup blueprints mapping Innova Crysta, Force Urbania, Tempo Traveller, and Luxury Coaches to their required commercial registration, RTO permit, and AITP licenses.
 
 #### 2.16 Chauffeur Fatigue & Ghat Safety Sentry
 - **URL**: `http://127.0.0.1:8000/operations/driver-fatigue-sentry/` (Alias: `/admin/operations/driver-fatigue-sentry/`)

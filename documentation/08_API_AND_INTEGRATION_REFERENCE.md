@@ -81,9 +81,10 @@ TravelERP employs a multi-protocol integration layer catering to:
 ### 6. Operations Studios & Regulatory Sentry APIs
 
 | Endpoint | Method | Auth | Description |
-| :--- | :---: | :---: | :--- |
-| `/api/operations/border-permits/check/<trip_id>/` | GET | Session | Computes interstate border road tax by vehicle seating & corridor |
-| `/api/operations/border-permits/pay/` | POST | Session | Records Parivahan AITP border pass payment and receipt reference |
+| `/api/operations/border-permits/check/<trip_id>/` | GET | Session | Computes interstate border road tax (₹200 permit fee + road tax) & hill e-pass requirements |
+| `/api/operations/border-permits/pay/` | POST | Session | Records interstate border tax/permit fee payment, receipt number, and validity dates |
+| `/api/operations/epass/issue/` | POST | Session | Issues mandatory Madras High Court / TNeGA hill e-Pass for Nilgiris, Kodaikanal, Valparai |
+| `/api/operations/epass/verify/<epass_id>/` | POST | Session | Simulates/records check-post QR verification at mountain entry toll gates |
 | `/api/operations/driver-fatigue/audit/<driver_id>/`| GET | Session | Audits chauffeur continuous driving hours, rest deficit, and ghat road risk |
 | `/api/operations/driver-fatigue/override/` | POST | Admin | Submits authorized manager safety override with mandatory justification |
 | `/api/operations/breakdown-sos/log/` | POST | Session | Logs highway breakdown incident, GPS corridor, and stranded pax count |

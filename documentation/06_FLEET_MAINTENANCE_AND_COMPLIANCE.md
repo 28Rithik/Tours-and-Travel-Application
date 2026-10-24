@@ -58,9 +58,20 @@ The compliance engine audits six critical statutory documents for every vehicle 
 | **Fitness Certificate (FC)** | Mandatory annual RTO vehicle fitness | 30 Days prior to expiry | Vehicle locked from 1-Click Roster Dispatch |
 | **Commercial Insurance** | Comprehensive + Third-Party Passenger Liability | 15 Days prior | Locked from active trip assignment |
 | **Pollution (PUC)** | Emission test certificate (6-month validity) | 7 Days prior | Flagged on dispatch dashboard |
-| **State / All-India Permit** | Contract carriage / Tourist permit validity | 30 Days prior | Inter-state border dispatch locked |
+| **Contract Carriage & Tourist Permit** | Section 74/88 statutory tourism authorization | 30 Days prior | Locked from outstation tourist operations |
+| **All-India Tourist Permit (AITP)** | MoRTH Section 88(9) interstate transit license | 30 Days prior | Locked from interstate dispatch without road tax |
 | **Road Tax Token** | Quarterly / Annual State Road Tax | 15 Days prior | Accounts alert for tax payment |
 | **Commercial TR Badge** | Driver commercial heavy vehicle endorsement | 30 Days prior | Driver blocked from shift allocation |
+
+#### 4.1 Statutory RTO Permit Categorization (Motor Vehicles Act, 1988)
+
+1. **Contract Carriage Permit**: Foundation of tourist operations. Entire vehicle is hired under fixed package charter with no intermediate stage boarding.
+2. **Tourist Permit**: Statutory authorization mandating vehicle complies with tourist passenger amenities and safety norms.
+3. **All India Tourist Permit (AITP)**: Premium interstate authorization granting nationwide exemption from state-by-state border entry road taxes.
+4. **Motor Cab Permit**: Small commercial passenger vehicles up to 6 seats (Innova Crysta, Ertiga, Dzire, Etios).
+5. **Maxi Cab Permit**: Medium commercial passenger vehicles carrying 6 to 12 passengers (Force Urbania, 9/12 Seater Tempo Travellers).
+6. **Omnibus Permit**: Heavy passenger vehicles with seating capacity > 6/12 passengers (18 to 25 seater Mini Buses, 35 to 50 seater Luxury Coaches).
+7. **Special Permit**: Temporary single-trip authorizations issued by the RTO for dedicated marriage parties, school excursions, or pilgrimage tours.
 
 ---
 
