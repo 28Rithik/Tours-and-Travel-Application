@@ -990,35 +990,33 @@ html.dark .dcc-compliance-alert-list {
 }
 </style>
 
-<div class="dcc-root">
-  <!-- Unfold Top Breadcrumbs -->
-  <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-3">
-    <a href="/" class="hover:text-primary transition">Home</a>
-    <span>/</span>
-    <a href="{% url 'dispatch-console' %}" class="hover:text-primary transition">Operations Desk</a>
-    <span>/</span>
-    <span class="text-slate-900 dark:text-white font-semibold">Dispatch Control</span>
-  </nav>
-
-  <!-- Top Header Strip -->
-  <div class="dcc-header">
+<div class="unfold-shell">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="unfold-page-header">
     <div>
-      <div class="dcc-eyebrow">
-        <span class="dcc-pulse-dot"></span>
-        <span>Real-Time Fleet Dispatch • {{ depot_scope.display_label }}</span>
-      </div>
-      <h1 class="dcc-title">Dispatch Control Center</h1>
-      <p class="dcc-subtitle">
-        Assign vehicles and chauffeurs, fire 1-click WhatsApp duty briefings, and monitor live in-transit convoys across regional operational hubs.
+      <nav class="unfold-breadcrumb" aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="{% url 'dispatch-console' %}">Operations Desk</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Dispatch Control</span>
+      </nav>
+      <h1 class="unfold-page-title">
+        <span>Dispatch Mission Control</span>
+        <span class="unfold-header-count">{{ depot_scope.display_label }}</span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Fleet assignment, real-time captain briefings, automated WhatsApp dispatch, and GPS tracking.
       </p>
     </div>
-    <div class="dcc-actions">
-      <!-- Enterprise Regional Hub Clearance Selector -->
+
+    <!-- Actions (Unfold Buttons) -->
+    <div class="flex items-center gap-2 flex-wrap">
       {% if can_change_depot %}
-      <div style="display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <label for="dccDepotSelect" style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">📍 Depot:</label>
-        <select id="dccDepotSelect" onchange="switchDispatchDepot(this.value)" style="border: none; background: transparent; font-size: 13px; font-weight: 700; color: #0f172a; outline: none; cursor: pointer;">
-          <option value="all" {% if not current_depot %}selected{% endif %}>🌐 All Hubs (Global)</option>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md shadow-sm text-xs font-semibold">
+        <span class="text-slate-400">📍 Hub:</span>
+        <select id="dccDepotSelect" onchange="switchDispatchDepot(this.value)" class="bg-transparent border-none text-xs font-bold text-slate-900 dark:text-white outline-none cursor-pointer">
+          <option value="all" {% if not current_depot %}selected{% endif %}>Global Fleet (All Hubs)</option>
           <option value="Chennai Central HQ" {% if current_depot == 'Chennai Central HQ' %}selected{% endif %}>Chennai Central HQ</option>
           <option value="Coimbatore Hub" {% if current_depot == 'Coimbatore Hub' %}selected{% endif %}>Coimbatore Hub</option>
           <option value="Madurai Depo" {% if current_depot == 'Madurai Depo' %}selected{% endif %}>Madurai Depo</option>
@@ -1026,223 +1024,218 @@ html.dark .dcc-compliance-alert-list {
           <option value="Central Control Room" {% if current_depot == 'Central Control Room' %}selected{% endif %}>Central Control Room</option>
         </select>
       </div>
-      {% else %}
-      <div style="display: inline-flex; align-items: center; gap: 6px; background: #e0f2fe; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 10px; color: #0284c7; font-size: 12px; font-weight: 700;">
-        <i class="fa-solid fa-lock" style="font-size: 11px;"></i> {{ depot_scope.display_label }}
-      </div>
       {% endif %}
 
-      <a class="dcc-btn dcc-btn-primary" href="{% url 'booking-create' %}">
-        <i class="fa-solid fa-plus"></i> New Booking
+      <a class="unfold-btn unfold-btn-primary" href="{% url 'booking-create' %}">
+        <i class="fa-solid fa-plus"></i>
+        <span>New Booking</span>
       </a>
-      <a class="dcc-btn dcc-btn-dark" href="{% url 'fleet-live' %}{% if current_depot %}?depot={{ current_depot|urlencode }}{% endif %}">
-        <i class="fa-solid fa-map-location-dot"></i> Live Fleet Radar
+
+      <a class="unfold-btn unfold-btn-secondary" href="{% url 'fleet-live' %}{% if current_depot %}?depot={{ current_depot|urlencode }}{% endif %}">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>Live Radar</span>
       </a>
-      <a class="dcc-btn dcc-btn-secondary" href="{% url 'admin-whatsapp-bot-studio' %}">
-        <i class="fa-brands fa-whatsapp"></i> WhatsApp Bot Studio
+
+      <a class="unfold-btn unfold-btn-secondary" href="{% url 'admin-whatsapp-bot-studio' %}">
+        <i class="fa-brands fa-whatsapp text-emerald-500"></i>
+        <span>Bot Studio</span>
       </a>
-      <button class="dcc-btn dcc-btn-secondary" onclick="window.location.reload();" title="Refresh Live Board">
-        <i class="fa-solid fa-rotate"></i> Refresh
+
+      <button class="unfold-btn unfold-btn-secondary" onclick="window.location.reload();" title="Refresh Live Board">
+        <i class="fa-solid fa-rotate"></i>
       </button>
     </div>
   </div>
 
-  <!-- KPI Lane Metrics Strip -->
-  <div class="dcc-kpi-grid">
-    <a class="dcc-kpi-card {% if unassigned_count > 0 %}dcc-kpi-urgent{% endif %}" href="?tab=unassigned">
-      <div class="dcc-kpi-meta">
-        <span class="dcc-kpi-label">Needs Allocation</span>
-        <span class="dcc-kpi-icon"><i class="fa-solid fa-triangle-exclamation" style="color: #d97706;"></i></span>
-      </div>
-      <div class="dcc-kpi-value" style="color: {% if unassigned_count > 0 %}#d97706{% else %}#0f172a{% endif %};">
-        {{ unassigned_count }}
-      </div>
-      <div class="dcc-kpi-sub">
-        {% if unassigned_count > 0 %}Action required: assign fleet &amp; driver{% else %}All confirmed trips allocated{% endif %}
-      </div>
+  <!-- Unfold Solid Changelist KPI Metric Deck -->
+  <div class="unfold-kpis-grid cols-5">
+    <!-- 1. Needs Allocation (Amber / Urgent) -->
+    <a class="unfold-kpi-card-solid amber" href="?tab=unassigned">
+      <div class="kpi-label">Needs Allocation</div>
+      <div class="kpi-number">{{ unassigned_count }}</div>
+      <div class="kpi-sub">{% if unassigned_count > 0 %}⚠️ Unassigned fleet &amp; driver{% else %}All trips assigned{% endif %}</div>
+      <div class="kpi-bg-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
     </a>
 
-    <a class="dcc-kpi-card dcc-kpi-transit" href="?tab=in_transit">
-      <div class="dcc-kpi-meta">
-        <span class="dcc-kpi-label">In-Transit (On Road)</span>
-        <span class="dcc-kpi-icon"><i class="fa-solid fa-route" style="color: #10b981;"></i></span>
-      </div>
-      <div class="dcc-kpi-value" style="color: #10b981;">
-        {{ in_transit_count }}
-      </div>
-      <div class="dcc-kpi-sub">Active rolling convoys with live GPS</div>
+    <!-- 2. In-Transit (Green / Live) -->
+    <a class="unfold-kpi-card-solid green" href="?tab=in_transit">
+      <div class="kpi-label">In-Transit (On Road)</div>
+      <div class="kpi-number">{{ in_transit_count }}</div>
+      <div class="kpi-sub">Rolling convoys with live GPS</div>
+      <div class="kpi-bg-icon"><i class="fa-solid fa-route"></i></div>
     </a>
 
-    <a class="dcc-kpi-card dcc-kpi-assigned" href="?tab=assigned">
-      <div class="dcc-kpi-meta">
-        <span class="dcc-kpi-label">Assigned &amp; Ready</span>
-        <span class="dcc-kpi-icon"><i class="fa-solid fa-circle-check" style="color: #0284c7;"></i></span>
-      </div>
-      <div class="dcc-kpi-value" style="color: #0284c7;">
-        {{ assigned_count }}
-      </div>
-      <div class="dcc-kpi-sub">Vehicles &amp; captains briefed for departure</div>
+    <!-- 3. Assigned & Ready (Blue) -->
+    <a class="unfold-kpi-card-solid blue" href="?tab=assigned">
+      <div class="kpi-label">Assigned &amp; Ready</div>
+      <div class="kpi-number">{{ assigned_count }}</div>
+      <div class="kpi-sub">Vehicles &amp; captains briefed</div>
+      <div class="kpi-bg-icon"><i class="fa-solid fa-circle-check"></i></div>
     </a>
 
-    <a class="dcc-kpi-card dcc-kpi-completed" href="?tab=completed">
-      <div class="dcc-kpi-meta">
-        <span class="dcc-kpi-label">Completed Trips</span>
-        <span class="dcc-kpi-icon"><i class="fa-solid fa-flag-checkered" style="color: #64748b;"></i></span>
-      </div>
-      <div class="dcc-kpi-value" style="color: #64748b;">
-        {{ completed_count }}
-      </div>
-      <div class="dcc-kpi-sub">Concluded &amp; ready for final invoicing</div>
+    <!-- 4. Completed (Slate) -->
+    <a class="unfold-kpi-card-solid slate" href="?tab=completed">
+      <div class="kpi-label">Completed Trips</div>
+      <div class="kpi-number">{{ completed_count }}</div>
+      <div class="kpi-sub">Concluded &amp; ready for billing</div>
+      <div class="kpi-bg-icon"><i class="fa-solid fa-flag-checkered"></i></div>
     </a>
 
-    <a class="dcc-kpi-card dcc-kpi-inquiries" href="?tab=bookings">
-      <div class="dcc-kpi-meta">
-        <span class="dcc-kpi-label">Booking Inquiries</span>
-        <span class="dcc-kpi-icon"><i class="fa-solid fa-inbox" style="color: #8b5cf6;"></i></span>
-      </div>
-      <div class="dcc-kpi-value" style="color: #8b5cf6;">
-        {{ pending_bookings_count }}
-      </div>
-      <div class="dcc-kpi-sub">{{ bookings|length }} pipeline bookings awaiting confirmation</div>
+    <!-- 5. Inquiries (Purple) -->
+    <a class="unfold-kpi-card-solid purple" href="?tab=bookings">
+      <div class="kpi-label">Booking Inquiries</div>
+      <div class="kpi-number">{{ pending_bookings_count }}</div>
+      <div class="kpi-sub">{{ bookings|length }} pipeline bookings</div>
+      <div class="kpi-bg-icon"><i class="fa-solid fa-inbox"></i></div>
     </a>
   </div>
 
-  <!-- Filter Strip with Tabs and Search Form -->
-  <div class="dcc-filter-strip">
-    <!-- Status Tabs -->
-    <div class="dcc-tabs-bar">
-      <a class="dcc-tab {% if current_tab == 'all' or not current_tab %}active{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span><i class="fa-solid fa-list-check" style="margin-right: 5px;"></i> All Dispatches</span>
-        <span class="dcc-tab-badge">{{ total_active_count }}</span>
-      </a>
+  <!-- Unfold Changelist Filter Tabs & Search Toolbar -->
+  <div class="unfold-changelist-wrap mb-4">
+    <div class="unfold-toolbar">
+      <!-- Tabs Strip -->
+      <div class="flex items-center gap-1.5 overflow-x-auto py-1">
+        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'all' or not current_tab %}bg-sky-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
+          <i class="fa-solid fa-list-check"></i>
+          <span>All Dispatches</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'all' or not current_tab %}bg-sky-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ total_active_count }}</span>
+        </a>
 
-      <a class="dcc-tab urgent-tab {% if current_tab == 'unassigned' %}active{% endif %}" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span><i class="fa-solid fa-triangle-exclamation" style="margin-right: 5px;"></i> Needs Allocation</span>
-        <span class="dcc-tab-badge urgent-badge">{{ unassigned_count }}</span>
-      </a>
+        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'unassigned' %}bg-amber-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Needs Allocation</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'unassigned' %}bg-amber-700 text-white{% else %}bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300{% endif %}">{{ unassigned_count }}</span>
+        </a>
 
-      <a class="dcc-tab {% if current_tab == 'assigned' %}active{% endif %}" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span><i class="fa-solid fa-circle-check" style="margin-right: 5px;"></i> Assigned &amp; Briefed</span>
-        <span class="dcc-tab-badge">{{ assigned_count }}</span>
-      </a>
+        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'assigned' %}bg-sky-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Assigned</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'assigned' %}bg-sky-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ assigned_count }}</span>
+        </a>
 
-      <a class="dcc-tab {% if current_tab == 'in_transit' %}active{% endif %}" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span><i class="fa-solid fa-route" style="margin-right: 5px;"></i> In-Transit (On Road)</span>
-        <span class="dcc-tab-badge">{{ in_transit_count }}</span>
-      </a>
+        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'in_transit' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
+          <i class="fa-solid fa-route"></i>
+          <span>In-Transit</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'in_transit' %}bg-emerald-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ in_transit_count }}</span>
+        </a>
 
-      <a class="dcc-tab {% if current_tab == 'completed' %}active{% endif %}" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span><i class="fa-solid fa-flag-checkered" style="margin-right: 5px;"></i> Completed</span>
-        <span class="dcc-tab-badge">{{ completed_count }}</span>
-      </a>
+        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'completed' %}bg-slate-700 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
+          <i class="fa-solid fa-flag-checkered"></i>
+          <span>Completed</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'completed' %}bg-slate-800 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ completed_count }}</span>
+        </a>
 
-      <a class="dcc-tab {% if current_tab == 'bookings' %}active{% endif %}" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
-        <span><i class="fa-solid fa-inbox" style="margin-right: 5px;"></i> Booking Inquiries</span>
-        <span class="dcc-tab-badge">{{ bookings|length }}</span>
-      </a>
-    </div>
-
-    <!-- Search & Filter Controls -->
-    <form class="dcc-search-form" method="get">
-      <input type="hidden" name="tab" value="{{ current_tab|default:'all' }}">
-      <div class="dcc-search-input-wrap">
-        <span class="dcc-search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-        <input type="text" name="search" value="{{ search_term }}" placeholder="Search by Trip ID, Guest, Phone, Plate, or Destination...">
+        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'bookings' %}bg-purple-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
+          <i class="fa-solid fa-inbox"></i>
+          <span>Inquiries</span>
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'bookings' %}bg-purple-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ bookings|length }}</span>
+        </a>
       </div>
 
-      <button class="dcc-btn dcc-btn-primary" type="submit" style="padding: 0.55rem 1rem;">
-        Filter
-      </button>
-
-      {% if search_term %}
-      <a class="dcc-btn dcc-btn-secondary" href="?tab={{ current_tab|default:'all' }}" style="padding: 0.55rem 0.85rem;">
-        ✕ Clear
-      </a>
-      {% endif %}
-    </form>
+      <!-- Unfold Search Input -->
+      <form class="flex items-center gap-2" method="get">
+        <input type="hidden" name="tab" value="{{ current_tab|default:'all' }}">
+        <div class="unfold-search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" name="search" value="{{ search_term }}" placeholder="Search trip ID, guest, phone, plate..." autocomplete="off">
+          <span class="kbd-hint">/</span>
+        </div>
+        <button class="unfold-btn unfold-btn-primary" type="submit">
+          <span>Search</span>
+        </button>
+        {% if search_term %}
+        <a class="unfold-btn unfold-btn-secondary" href="?tab={{ current_tab|default:'all' }}">
+          <span>Clear</span>
+        </a>
+        {% endif %}
+      </form>
+    </div>
   </div>
 
   {% if current_tab == 'bookings' %}
   <!-- ======================================================================
-       VIEW: BOOKINGS PIPELINE QUEUE
+       VIEW: BOOKINGS PIPELINE QUEUE (UNFOLD CHANGELIST STYLE)
        ====================================================================== -->
-  <div class="dcc-board-panel">
-    <div class="dcc-board-header">
-      <h2>
-        <span>📩</span> Booking Inquiries &amp; Customer Requests
-      </h2>
-      <span class="dcc-counter-pill">{{ bookings|length }} Inquiries</span>
+  <div class="unfold-changelist-wrap">
+    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">📩 Booking Inquiries &amp; Customer Requests</span>
+        <span class="unfold-header-count">{{ bookings|length }} Inquiries</span>
+      </div>
     </div>
-    <div style="overflow-x: auto;">
-      <table class="dcc-table">
+    <div class="overflow-x-auto">
+      <table class="unfold-table">
         <thead>
           <tr>
             <th>Booking #</th>
             <th>Guest &amp; Contact</th>
             <th>Scheduled Route</th>
-            <th>Pickup Date &amp; Time</th>
+            <th>Pickup Schedule</th>
             <th>Vehicle Category</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th class="text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for b in bookings %}
-          <tr>
-            <td>
-              <span class="dcc-trip-id">{{ b.booking_number }}</span>
-              <small class="muted">{{ b.created_at|date:"d M Y" }}</small>
+          <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+            <td class="font-mono font-bold text-sky-600 dark:text-sky-400">
+              <a href="{% url 'booking-detail' b.pk %}" class="hover:underline">#{{ b.booking_number|default:b.id }}</a>
+              <div class="text-[10px] text-slate-400 font-normal">{{ b.created_at|date:"d M Y" }}</div>
             </td>
             <td>
-              <div class="dcc-guest-cell">
-                <span class="dcc-guest-name">{{ b.guest_name }}</span>
-                {% if b.guest_phone %}
-                <a class="dcc-guest-phone" href="tel:{{ b.guest_phone }}">📞 {{ b.guest_phone }}</a>
-                {% endif %}
+              <div class="font-semibold text-slate-900 dark:text-white">{{ b.guest_name }}</div>
+              {% if b.guest_phone %}
+              <a href="tel:{{ b.guest_phone }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1 mt-0.5">
+                <i class="fa-solid fa-phone text-[9px]"></i> {{ b.guest_phone }}
+              </a>
+              {% else %}
+              <span class="text-[10px] text-slate-400 italic">Unlisted</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
+                <span>{{ b.pickup_location|default:"Coimbatore" }}</span>
+                <span class="text-slate-400">→</span>
+                <span>{{ b.destination|default:"TBD" }}</span>
               </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">{{ b.get_journey_type_display|default:"Outstation" }}</div>
             </td>
             <td>
-              <div class="dcc-route-cell">
-                <div class="dcc-route-track">
-                  <span>{{ b.pickup_location }}</span>
-                  <span style="color: #94a3b8;">➡️</span>
-                  <span>{{ b.destination }}</span>
-                </div>
-                <div class="dcc-route-sub">
-                  <span>{{ b.get_journey_type_display|default:"Outstation" }}</span>
-                </div>
-              </div>
+              <div class="font-medium text-slate-900 dark:text-white">{{ b.pickup_date|date:"d M Y" }}</div>
+              <div class="text-[10px] text-slate-400">{{ b.pickup_time|default:"Reporting Time" }}</div>
             </td>
             <td>
-              <strong>{{ b.pickup_date|date:"d M Y" }}</strong>
-              <div class="muted" style="font-size: 0.76rem;">{{ b.pickup_time|default:"Reporting Time" }}</div>
-            </td>
-            <td>
-              <span class="dcc-assigned-plate" style="font-family: inherit;">
+              <span class="unfold-pill-badge slate">
                 {{ b.vehicle_type.name|default:"Any Fleet Class" }}
               </span>
             </td>
             <td>
-              <span class="dcc-badge dcc-badge-{{ b.status|default:'booked' }}">
-                {{ b.get_status_display|default:b.status }}
-              </span>
+              {% if b.status == 'confirmed' %}
+              <span class="unfold-pill-badge green">Confirmed</span>
+              {% elif b.status == 'cancelled' %}
+              <span class="unfold-pill-badge rose">Cancelled</span>
+              {% else %}
+              <span class="unfold-pill-badge amber">{{ b.get_status_display|default:b.status|title }}</span>
+              {% endif %}
             </td>
-            <td>
-              <div class="dcc-actions-cell">
-                <a class="dcc-btn dcc-btn-primary" href="{% url 'trip-create' b.pk %}" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
-                  ⚡ Convert to Trip
+            <td class="text-right">
+              <div class="inline-flex items-center gap-1.5">
+                <a class="unfold-btn unfold-btn-primary" href="{% url 'trip-create' b.pk %}" style="height: 28px; padding: 0 8px; font-size: 11px;">
+                  <i class="fa-solid fa-bolt"></i>
+                  <span>Convert to Trip</span>
                 </a>
-                <a class="dcc-icon-btn" href="{% url 'booking-detail' b.pk %}" title="View Details">
-                  👁️
+                <a class="unfold-btn unfold-btn-secondary" href="{% url 'booking-detail' b.pk %}" style="height: 28px; width: 28px; padding: 0;" title="View Details">
+                  <i class="fa-solid fa-eye text-xs"></i>
                 </a>
               </div>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" style="text-align: center; padding: 3rem; color: #64748b;">
-              <div style="font-size: 2rem; margin-bottom: 0.5rem;">📂</div>
-              <strong>No booking inquiries found matching the criteria.</strong>
+            <td colspan="7" class="text-center py-12 text-slate-500">
+              <div class="text-2xl mb-1">📂</div>
+              <div class="font-semibold text-slate-800 dark:text-slate-200">No booking inquiries found matching the criteria.</div>
             </td>
           </tr>
           {% endfor %}
@@ -1253,19 +1246,17 @@ html.dark .dcc-compliance-alert-list {
 
   {% else %}
   <!-- ======================================================================
-       VIEW: REAL-TIME TRIPS DISPATCH BOARD
+       VIEW: REAL-TIME TRIPS DISPATCH BOARD (UNFOLD CHANGELIST STYLE)
        ====================================================================== -->
-  <div class="dcc-board-panel">
-    <div class="dcc-board-header">
-      <h2>
-        <span>📋</span> Active Dispatch Grid
-      </h2>
-      <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <span class="dcc-counter-pill">{{ trips|length }} Dispatches Shown</span>
+  <div class="unfold-changelist-wrap">
+    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">📋 Active Dispatch Grid</span>
+        <span class="unfold-header-count">{{ trips|length }} Dispatches Shown</span>
       </div>
     </div>
-    <div style="overflow-x: auto;">
-      <table class="dcc-table">
+    <div class="overflow-x-auto">
+      <table class="unfold-table">
         <thead>
           <tr>
             <th>Trip ID &amp; Ref</th>
@@ -1273,87 +1264,88 @@ html.dark .dcc-compliance-alert-list {
             <th>Itinerary &amp; Timeline</th>
             <th>Fleet &amp; Chauffeur Allocation</th>
             <th>Dispatch Status</th>
-            <th style="min-width: 290px;">1-Click Dispatch &amp; Actions</th>
+            <th class="text-right" style="min-width: 260px;">1-Click Actions</th>
           </tr>
         </thead>
         <tbody id="dispatchTableBody">
           {% for trip in trips %}
-          <tr id="trip-row-{{ trip.pk }}" class="{% if not trip.vehicle or not trip.driver %}highlight-urgent{% endif %}">
+          <tr id="trip-row-{{ trip.pk }}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition {% if not trip.vehicle or not trip.driver %}bg-amber-50/30 dark:bg-amber-950/10{% endif %}">
             <!-- 1. Trip ID & Ref -->
             <td>
-              <a class="dcc-trip-id" href="{% url 'trip-detail' trip.pk %}">#{{ trip.trip_id|default:trip.id }}</a>
-              <span style="font-size: 0.74rem; color: #64748b; font-weight: 600;">
+              <a class="font-mono font-bold text-sky-600 dark:text-sky-400 hover:underline block" href="{% url 'trip-detail' trip.pk %}">#{{ trip.trip_id|default:trip.id }}</a>
+              <span class="text-[10px] text-slate-500 font-medium">
                 {{ trip.get_billing_model_display|default:"Day/KM" }}
               </span>
             </td>
 
             <!-- 2. Guest & Contact -->
             <td>
-              <div class="dcc-guest-cell">
-                <span class="dcc-guest-name">{{ trip.guest_name|default:trip.party.name }}</span>
-                {% with phone=trip.booking.guest_phone|default:trip.party.phone %}
-                {% if phone %}
-                <a class="dcc-guest-phone" href="tel:{{ phone }}">📞 {{ phone }}</a>
-                {% else %}
-                <span style="font-size: 0.74rem; color: #94a3b8;">Phone unlisted</span>
-                {% endif %}
-                {% endwith %}
-                {% if trip.party %}
-                <small class="muted" style="font-size: 0.72rem;">{{ trip.party.name }}</small>
-                {% endif %}
-              </div>
+              <div class="font-semibold text-slate-900 dark:text-white">{{ trip.guest_name|default:trip.party.name }}</div>
+              {% with phone=trip.booking.guest_phone|default:trip.party.phone %}
+              {% if phone %}
+              <a class="text-xs text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1 mt-0.5" href="tel:{{ phone }}">
+                <i class="fa-solid fa-phone text-[9px]"></i> {{ phone }}
+              </a>
+              {% else %}
+              <span class="text-[10px] text-slate-400 italic">Phone unlisted</span>
+              {% endif %}
+              {% endwith %}
+              {% if trip.party %}
+              <div class="text-[10px] text-slate-500 mt-0.5 font-medium">{{ trip.party.name }}</div>
+              {% endif %}
             </td>
 
             <!-- 3. Itinerary & Timeline -->
             <td>
-              <div class="dcc-route-cell">
-                <div class="dcc-route-track">
-                  <span>{{ trip.pickup_location|truncatechars:20|default:"Coimbatore Depot" }}</span>
-                  <span style="color: #94a3b8;">➡️</span>
-                  <span>{{ trip.destination|truncatechars:20|default:"En Route" }}</span>
-                </div>
-                <div class="dcc-route-sub">
-                  <span>📅 {{ trip.start_date|date:"d M Y" }}</span>
-                  {% if trip.start_time %}
-                  <span>⏰ {{ trip.start_time }}</span>
-                  {% endif %}
-                </div>
+              <div class="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
+                <span>{{ trip.pickup_location|truncatechars:20|default:"Coimbatore Depot" }}</span>
+                <span class="text-slate-400">→</span>
+                <span>{{ trip.destination|truncatechars:20|default:"En Route" }}</span>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                <span>📅 {{ trip.start_date|date:"d M Y" }}</span>
+                {% if trip.start_time %}
+                <span>⏰ {{ trip.start_time }}</span>
+                {% endif %}
               </div>
             </td>
 
             <!-- 4. Fleet & Chauffeur Allocation -->
             <td id="alloc-cell-{{ trip.pk }}">
               {% if trip.vehicle and trip.driver %}
-              <div class="dcc-allocation-box">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                  <span class="dcc-assigned-plate">
-                    <i class="fa-solid fa-car" style="color: var(--clr-primary); margin-right: 4px;"></i> {{ trip.vehicle.registration_number }}
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="unfold-pill-badge slate font-mono font-bold">
+                    <i class="fa-solid fa-car text-sky-600 mr-1"></i> {{ trip.vehicle.registration_number }}
                   </span>
-                  <button class="dcc-reassign-btn" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '{{ trip.driver.pk }}')" title="Swap Vehicle or Driver">
+                  <button class="px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded border border-slate-300 dark:border-slate-700 transition" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '{{ trip.driver.pk }}')" title="Swap Vehicle or Driver">
                     Swap
                   </button>
                 </div>
-                <div class="dcc-assigned-driver">
-                  <span><i class="fa-solid fa-id-badge" style="color: #64748b; margin-right: 4px;"></i> <strong>{{ trip.driver.name }}</strong></span>
+                <div class="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-300">
+                  <i class="fa-solid fa-id-badge text-slate-400 text-[10px]"></i>
+                  <span class="font-medium">{{ trip.driver.name }}</span>
                   {% if trip.driver.phone %}
-                  <small class="muted">({{ trip.driver.phone }})</small>
+                  <span class="text-[10px] text-slate-400 font-mono">({{ trip.driver.phone }})</span>
                   {% endif %}
                 </div>
               </div>
               {% elif trip.vehicle and not trip.driver %}
-              <div class="dcc-allocation-box">
-                <span class="dcc-assigned-plate"><i class="fa-solid fa-car" style="color: var(--clr-primary); margin-right: 4px;"></i> {{ trip.vehicle.registration_number }}</span>
-                <button class="dcc-fast-assign-btn" style="background: #f59e0b;" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '')">
-                  <i class="fa-solid fa-user-plus" style="margin-right: 4px;"></i> Assign Driver
+              <div class="space-y-1">
+                <span class="unfold-pill-badge slate font-mono font-bold">
+                  <i class="fa-solid fa-car text-sky-600 mr-1"></i> {{ trip.vehicle.registration_number }}
+                </span>
+                <button class="unfold-btn unfold-btn-primary" style="height: 24px; padding: 0 8px; font-size: 10px;" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '{{ trip.vehicle.pk }}', '')">
+                  <i class="fa-solid fa-user-plus mr-1"></i> Assign Driver
                 </button>
               </div>
               {% else %}
-              <div class="dcc-allocation-box">
-                <span class="dcc-unallocated-alert">
-                  <i class="fa-solid fa-triangle-exclamation" style="margin-right: 4px;"></i> Unallocated Fleet
+              <div class="flex items-center gap-1.5">
+                <span class="unfold-pill-badge amber">
+                  <i class="fa-solid fa-triangle-exclamation mr-1"></i> Unallocated
                 </span>
-                <button class="dcc-fast-assign-btn" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '', '')">
-                  <i class="fa-solid fa-bolt" style="margin-right: 4px;"></i> Fast Allocate
+                <button class="unfold-btn unfold-btn-primary" style="height: 24px; padding: 0 8px; font-size: 10px;" onclick="openQuickAssign({{ trip.pk }}, '{{ trip.trip_id|default:trip.id }}', '{{ trip.guest_name|escapejs }}', '{{ trip.pickup_location|escapejs }} ➡️ {{ trip.destination|escapejs }}', '{{ trip.start_date|date:'d M' }} @ {{ trip.start_time }}', '', '')">
+                  <i class="fa-solid fa-bolt mr-1"></i> Fast Allocate
                 </button>
               </div>
               {% endif %}
@@ -1361,63 +1353,86 @@ html.dark .dcc-compliance-alert-list {
 
             <!-- 5. Dispatch Status -->
             <td>
-              <span id="badge-status-{{ trip.pk }}" class="dcc-badge dcc-badge-{{ trip.status }}">
-                {{ trip.get_status_display|default:trip.status }}
+              {% if trip.status == 'started' or trip.status == 'in_transit' %}
+              <span id="badge-status-{{ trip.pk }}" class="unfold-pill-badge green">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>{{ trip.get_status_display|default:"In-Transit" }}</span>
               </span>
+              {% elif trip.status == 'completed' %}
+              <span id="badge-status-{{ trip.pk }}" class="unfold-pill-badge slate">
+                <span>{{ trip.get_status_display|default:"Completed" }}</span>
+              </span>
+              {% elif trip.status == 'assigned' %}
+              <span id="badge-status-{{ trip.pk }}" class="unfold-pill-badge blue">
+                <span>{{ trip.get_status_display|default:"Assigned" }}</span>
+              </span>
+              {% elif trip.status == 'cancelled' %}
+              <span id="badge-status-{{ trip.pk }}" class="unfold-pill-badge rose">
+                <span>{{ trip.get_status_display|default:"Cancelled" }}</span>
+              </span>
+              {% else %}
+              <span id="badge-status-{{ trip.pk }}" class="unfold-pill-badge amber">
+                <span>{{ trip.get_status_display|default:trip.status|title }}</span>
+              </span>
+              {% endif %}
             </td>
 
             <!-- 6. 1-Click WhatsApp & Actions -->
-            <td>
-              <div class="dcc-actions-cell">
+            <td class="text-right">
+              <div class="inline-flex items-center gap-1">
                 <!-- Driver Duty Briefing WhatsApp Trigger -->
                 {% if trip.driver and trip.driver.phone %}
-                <button type="button" class="dcc-wa-btn dcc-wa-driver" onclick="triggerDriverWhatsApp({{ trip.pk }}, '{{ trip.driver.name|escapejs }}')" title="Dispatch duty assignment & mobile handover link to Captain via WhatsApp">
-                  <i class="fa-brands fa-whatsapp" style="margin-right: 4px;"></i> Brief Captain
+                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition" onclick="triggerDriverWhatsApp({{ trip.pk }}, '{{ trip.driver.name|escapejs }}')" title="Dispatch duty assignment & mobile handover link to Captain via WhatsApp">
+                  <i class="fa-brands fa-whatsapp text-sm"></i>
+                  <span>Brief</span>
                 </button>
                 {% else %}
-                <button type="button" class="dcc-wa-btn dcc-wa-disabled" title="Assign driver with phone number first">
-                  <i class="fa-brands fa-whatsapp" style="margin-right: 4px;"></i> Brief Captain
+                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded text-xs font-medium cursor-not-allowed" title="Assign driver with phone number first">
+                  <i class="fa-brands fa-whatsapp text-sm"></i>
+                  <span>Brief</span>
                 </button>
                 {% endif %}
 
                 <!-- Guest Tracking WhatsApp Trigger -->
                 {% with gphone=trip.booking.guest_phone|default:trip.party.phone %}
                 {% if gphone %}
-                <button type="button" class="dcc-wa-btn dcc-wa-guest" onclick="triggerGuestWhatsApp({{ trip.pk }}, '{{ trip.guest_name|escapejs }}')" title="Dispatch car plate, driver phone & live GPS tracker to Guest via WhatsApp">
-                  <i class="fa-solid fa-paper-plane" style="margin-right: 4px;"></i> Alert Guest
+                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded text-xs font-semibold shadow-sm transition" onclick="triggerGuestWhatsApp({{ trip.pk }}, '{{ trip.guest_name|escapejs }}')" title="Dispatch car plate, driver phone & live GPS tracker to Guest via WhatsApp">
+                  <i class="fa-solid fa-paper-plane text-xs"></i>
+                  <span>Alert</span>
                 </button>
                 {% else %}
-                <button type="button" class="dcc-wa-btn dcc-wa-disabled" title="No guest phone available">
-                  <i class="fa-solid fa-paper-plane" style="margin-right: 4px;"></i> Alert Guest
+                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded text-xs font-medium cursor-not-allowed" title="No guest phone available">
+                  <i class="fa-solid fa-paper-plane text-xs"></i>
+                  <span>Alert</span>
                 </button>
                 {% endif %}
                 {% endwith %}
 
                 <!-- RTO Trip Sheet -->
-                <a class="dcc-icon-btn" href="{% url 'trip-sheet' trip.pk %}" title="Print / Download RTO Trip Sheet" target="_blank">
-                  <i class="fa-solid fa-file-lines"></i>
+                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'trip-sheet' trip.pk %}" title="Print / Download RTO Trip Sheet" target="_blank">
+                  <i class="fa-solid fa-file-lines text-xs"></i>
                 </a>
 
                 <!-- Passenger Live GPS Tracker -->
                 {% if trip.tracking_token %}
-                <a class="dcc-icon-btn" href="{% url 'passenger-live-tracking' trip.tracking_token %}" title="Open Guest Live GPS Radar" target="_blank">
-                  <i class="fa-solid fa-location-crosshairs"></i>
+                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'passenger-live-tracking' trip.tracking_token %}" title="Open Guest Live GPS Radar" target="_blank">
+                  <i class="fa-solid fa-location-crosshairs text-xs text-sky-600"></i>
                 </a>
                 {% endif %}
 
                 <!-- Trip Detail -->
-                <a class="dcc-icon-btn" href="{% url 'trip-detail' trip.pk %}" title="Full Trip Detail">
-                  <i class="fa-solid fa-eye"></i>
+                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'trip-detail' trip.pk %}" title="Full Trip Detail">
+                  <i class="fa-solid fa-eye text-xs"></i>
                 </a>
               </div>
             </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" style="text-align: center; padding: 3.5rem; color: #64748b;">
-              <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🚘</div>
-              <strong style="font-size: 1.05rem; color: #1e293b; display: block;">No trips currently match this dispatch filter.</strong>
-              <p style="margin-top: 0.35rem; font-size: 0.85rem;">Check another status tab or clear your search term.</p>
+            <td colspan="6" class="text-center py-12 text-slate-500">
+              <div class="text-3xl mb-2">🚘</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">No trips currently match this dispatch filter.</div>
+              <div class="text-xs text-slate-400 mt-1">Check another status tab or clear your search term.</div>
             </td>
           </tr>
           {% endfor %}

@@ -1,204 +1,325 @@
 {% extends 'base.html' %}
-{% block title %}Trip details | TravelERP{% endblock %}
-{% block header_title %}Confirmed itinerary{% endblock %}
+{% load static %}
+
+{% block title %}Trip #{{ trip.trip_id }} · {{ trip.guest_name }} | TravelERP{% endblock %}
+{% block header_title %}Trip Dispatch Dossier{% endblock %}
+
 {% block content %}
-<div class="page-intro">
-  <div>
-    <p class="eyebrow">Operations handover</p>
-    <h1>{{ trip.trip_id }} / {{ trip.guest_name }}</h1>
+<div class="unfold-shell">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="unfold-page-header">
+    <div>
+      <nav class="unfold-breadcrumb" aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="{% url 'dispatch-console' %}">Operations Desk</a>
+        <span>/</span>
+        <a href="{% url 'dispatch-console' %}">Active Dispatches</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">#{{ trip.trip_id }}</span>
+      </nav>
+      <h1 class="unfold-page-title">
+        <span>Trip #{{ trip.trip_id }}</span>
+        <span class="unfold-pill-badge {% if trip.status == 'started' or trip.status == 'in_transit' %}green{% elif trip.status == 'completed' %}slate{% elif trip.status == 'assigned' %}blue{% elif trip.status == 'cancelled' %}rose{% else %}amber{% endif %}">
+          {% if trip.status == 'started' or trip.status == 'in_transit' %}
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          {% endif %}
+          {{ trip.get_status_display|default:trip.status|title }}
+        </span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Passenger: <strong class="text-slate-800 dark:text-slate-200">{{ trip.guest_name|default:trip.party.name }}</strong>
+        &bull; Route: <span class="text-slate-600 dark:text-slate-300 font-medium">{{ trip.pickup_location }} → {{ trip.destination }}</span>
+      </p>
+    </div>
+
+    <!-- Actions (Unfold Buttons) -->
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="{% url 'dispatch-console' %}" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Dispatch Board</span>
+      </a>
+
+      <a href="{% url 'trip-sheet-pdf' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-file-lines text-slate-600"></i>
+        <span>Trip Sheet PDF</span>
+      </a>
+
+      <a href="{% url 'trip-invoice-pdf' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-receipt text-emerald-600"></i>
+        <span>Invoice PDF</span>
+      </a>
+
+      <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-map-location-dot text-indigo-600"></i>
+        <span>Itinerary Studio</span>
+      </a>
+
+      {% if trip.tracking_token %}
+      <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank" class="unfold-btn unfold-btn-primary">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        <span>Live GPS</span>
+      </a>
+      {% endif %}
+
+      <a href="{% url 'trip-broadcast-whatsapp' trip.pk %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition">
+        <i class="fa-brands fa-whatsapp text-sm"></i>
+        <span>WhatsApp Brief</span>
+      </a>
+    </div>
   </div>
-  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-    <a class="button" style="background: #0f172a; color: white; display: inline-flex; align-items: center; gap: 4px;" href="{% url 'trip-sheet-pdf' trip.pk %}" target="_blank">📄 Trip Sheet PDF</a>
-    <a class="button" style="background: #059669; color: white; display: inline-flex; align-items: center; gap: 4px;" href="{% url 'trip-invoice-pdf' trip.pk %}" target="_blank">🧾 Tax Invoice PDF</a>
-    <a class="button" style="background: #6366f1; color: white; display: inline-flex; align-items: center; gap: 4px;" href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank">🗺️ Itinerary Studio</a>
-    <a class="button" style="background: #4338ca; color: white; display: inline-flex; align-items: center; gap: 4px;" href="{% url 'trip-itinerary-portal' trip.pk %}" target="_blank">🌟 Guest Tour Portal</a>
-    {% if trip.tracking_token %}
-      <a class="button" style="background: #0284c7; color: white;" href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank">🚀 Open Live Tracking</a>
-    {% endif %}
-    <a class="button" style="background: #25d366; color: white;" href="{% url 'trip-broadcast-whatsapp' trip.pk %}">📲 Send WhatsApp Confirmation</a>
-    <a class="button button-primary" href="{% url 'customer-confirmation-preview' trip.pk %}">Preview customer message</a>
+
+  <!-- Live Passenger GPS Tracking Panel -->
+  {% if trip.tracking_token %}
+  <div class="unfold-form-card !border-l-4 !border-l-sky-500">
+    <div class="unfold-form-header !pb-2 !mb-3 flex items-center justify-between">
+      <div>
+        <h3 class="flex items-center gap-2">
+          <span>🛰️ Real-Time Passenger GPS Radar</span>
+          <span class="unfold-pill-badge {% if trip.status == 'started' %}green{% else %}blue{% endif %}">
+            {% if trip.status == 'started' %}Live Moving En Route{% else %}{{ trip.get_status_display }}{% endif %}
+          </span>
+        </h3>
+        <p>Public shareable GPS tracking link for corporate passengers &amp; family members.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="copyTrackingUrl()" id="btnCopyTrack" class="unfold-btn unfold-btn-secondary">
+          <i class="fa-solid fa-copy"></i>
+          <span>Copy Link</span>
+        </button>
+        <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank" class="unfold-btn unfold-btn-primary">
+          <span>Open Radar &rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-md border border-slate-200 dark:border-slate-800">
+      <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">Tracking URL:</span>
+      <input type="text" id="liveTrackUrl" readonly value="http://{{ request.get_host }}{% url 'passenger-live-tracking' trip.tracking_token %}" class="unfold-input !font-mono !text-xs !py-1">
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left 2 Cols: Allocation, Itinerary, and Bata Breakdown -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Primary Fleet & Driver Allocation Card -->
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Fleet Asset &amp; Captain Allocation</h3>
+          <p>Assigned commercial vehicle, registered driver, and schedule timings.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Vehicle Box -->
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Assigned Vehicle</span>
+            {% if trip.vehicle %}
+            <div class="flex items-center gap-2">
+              <span class="unfold-pill-badge slate font-mono font-bold text-sm">
+                <i class="fa-solid fa-car text-sky-600 mr-1"></i> {{ trip.vehicle.registration_number }}
+              </span>
+              <span class="unfold-pill-badge green text-[10px]">
+                {{ trip.vehicle.get_ownership_type_display|default:trip.vehicle.ownership_type|title }}
+              </span>
+            </div>
+            <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-2">
+              {{ trip.vehicle.brand }} {{ trip.vehicle.model }} &bull; {{ trip.vehicle.seating_capacity }} Seats
+            </div>
+            {% else %}
+            <div class="text-amber-600 font-bold text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>No vehicle allocated yet</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Driver Box -->
+          <div class="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Assigned Chauffeur</span>
+            {% if trip.driver %}
+            <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <i class="fa-solid fa-id-badge text-sky-600"></i>
+              <span>{{ trip.driver.name }}</span>
+            </div>
+            {% if trip.driver.phone %}
+            <a href="tel:{{ trip.driver.phone }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1 font-mono mt-1">
+              <i class="fa-solid fa-phone text-[10px]"></i> {{ trip.driver.phone }}
+            </a>
+            {% endif %}
+            {% else %}
+            <div class="text-amber-600 font-bold text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>No captain assigned yet</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Start Schedule</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ trip.start_date|date:"d M Y" }}</span>
+            <div class="text-[10px] text-slate-500">⏰ {{ trip.start_time|default:"06:00 AM" }}</div>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">End Schedule</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ trip.end_date|date:"d M Y"|default:trip.start_date|date:"d M Y" }}</span>
+            <div class="text-[10px] text-slate-500">⏰ {{ trip.end_time|default:"20:00 PM" }}</div>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Billing Model</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ trip.get_billing_model_display|default:"Day/KM" }}</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Total Days</span>
+            <span class="font-bold font-mono text-slate-900 dark:text-white">{{ trip.days_count|default:1 }} Day(s)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Driver Bata Allowance Panel -->
+      <div class="unfold-form-card !border-l-4 !border-l-emerald-500">
+        <div class="unfold-form-header flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 class="flex items-center gap-2">
+              <span>💵 Driver Allowance (Bata) Breakdown</span>
+              <span class="unfold-pill-badge green font-mono font-bold">
+                ₹{{ trip.driver_bata|floatformat:2 }}
+              </span>
+            </h3>
+            <p>Multi-component calculation: Base Bata, Night Halt, Early Morning, and Overtime.</p>
+          </div>
+          <button type="button" class="unfold-btn unfold-btn-primary" onclick="recalculateDriverBata()" id="btnRecalcBata">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Auto-Calculate Bata</span>
+          </button>
+        </div>
+
+        {% if trip.driver_bata_breakdown %}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Base Daily Bata</span>
+            <div class="text-sm font-bold font-mono text-slate-900 dark:text-white mt-0.5">₹{{ trip.driver_bata_breakdown.base_bata|default:0 }}</div>
+            <div class="text-[10px] text-slate-500">{{ trip.days_count }} Day(s)</div>
+          </div>
+
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Night Halt</span>
+            <div class="text-sm font-bold font-mono text-sky-600 dark:text-sky-400 mt-0.5">₹{{ trip.driver_bata_breakdown.night_halt_bata|default:0 }}</div>
+            <div class="text-[10px] text-slate-500">{{ trip.driver_bata_breakdown.night_halts_count|default:0 }} Night(s)</div>
+          </div>
+
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Early / Late Duty</span>
+            <div class="text-sm font-bold font-mono text-purple-600 dark:text-purple-400 mt-0.5">
+              ₹{{ trip.driver_bata_breakdown.early_morning_bata|add:trip.driver_bata_breakdown.late_night_bata|default:0 }}
+            </div>
+            <div class="text-[10px] text-slate-500">&lt;06:00 / &ge;23:00</div>
+          </div>
+
+          <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
+            <span class="text-[10px] font-bold uppercase text-slate-400 block">Overtime</span>
+            <div class="text-sm font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5">
+              ₹{{ trip.driver_bata_breakdown.overtime_bata|add:trip.driver_bata_breakdown.outstation_bonus|default:0 }}
+            </div>
+            <div class="text-[10px] text-slate-500">Shift &gt;12h</div>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-xs text-slate-500 py-2">
+          Current flat bata is ₹{{ trip.driver_bata|floatformat:2 }}. Click "Auto-Calculate Bata" to apply enterprise calculation rules.
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Tour Itinerary Schedule -->
+      <div class="unfold-form-card">
+        <div class="unfold-form-header flex items-center justify-between">
+          <div>
+            <h3 class="flex items-center gap-2">
+              <span>🗺️ Day-Wise Tour Itinerary</span>
+              <span class="unfold-header-count">{{ trip.itinerary_days.count }} Day{{ trip.itinerary_days.count|pluralize }}</span>
+            </h3>
+            <p>Route stops, sightseeing schedule, and hotel allotments.</p>
+          </div>
+          <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+            <i class="fa-solid fa-plus"></i>
+            <span>Studio</span>
+          </a>
+        </div>
+
+        {% if trip.itinerary_days.exists %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {% for day in trip.itinerary_days.all %}
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="unfold-pill-badge purple font-mono font-bold">Day {{ day.day_number|stringformat:"02d" }}</span>
+              <span class="text-[10px] text-slate-400">{{ day.date|date:"d M Y"|default:"" }}</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 dark:text-white">{{ day.title }}</div>
+            {% if day.route_segment %}
+            <div class="text-[11px] text-sky-600 dark:text-sky-400 mt-1 flex items-center gap-1">
+              <i class="fa-solid fa-route text-[10px]"></i> {{ day.route_segment }}
+            </div>
+            {% endif %}
+            {% if day.hotel_name %}
+            <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+              <i class="fa-solid fa-hotel text-[10px]"></i> {{ day.hotel_name }}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-6 text-center bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
+          <p class="text-xs text-slate-500 mb-2">No day-by-day itinerary schedule built yet for this trip.</p>
+          <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-primary">
+            <span>Open Itinerary Builder</span>
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Col: Status Control & Handover Message -->
+    <div class="space-y-6">
+      <!-- Status Controller -->
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Trip Controls</h3>
+          <p>Update live mission control status.</p>
+        </div>
+
+        <form method="post" action="{% url 'trip-update-status' trip.pk %}" class="space-y-3">
+          {% csrf_token %}
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Update Status</label>
+            <select name="status" class="unfold-select">
+              {% for value,label in trip.STATUSES %}
+              <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button class="unfold-btn unfold-btn-primary w-full" type="submit">
+            <span>Apply Status Change</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Automated WhatsApp Handover Message -->
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Duty Briefing Template</h3>
+          <p>Formatted WhatsApp text sent to captain &amp; traveler.</p>
+        </div>
+
+        <pre class="text-[11px] leading-relaxed p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 whitespace-pre-wrap font-sans">{{ trip.handover_message }}</pre>
+      </div>
+    </div>
   </div>
 </div>
-
-<!-- Live Passenger GPS Tracking Panel -->
-{% if trip.tracking_token %}
-<section class="panel" style="margin-bottom: 24px; border-left: 4px solid #0284c7;">
-  <div class="panel-heading">
-    <div>
-      <h2 style="display: flex; align-items: center; gap: 8px;">
-        🛰️ Live Passenger GPS Tracking
-        <span class="badge" style="background: #e0f2fe; color: #0369a1; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
-          {% if trip.status == 'started' %}🟢 Live Moving En Route{% elif trip.status == 'assigned' %}🟡 Captain Assigned{% else %}{{ trip.get_status_display }}{% endif %}
-        </span>
-      </h2>
-      <p style="font-size: 12.5px; color: #64748b; margin: 4px 0 0 0;">
-        Shareable public GPS link for guests &amp; corporate travelers. Shows real-time moving map, speed, and dynamic ETA.
-      </p>
-    </div>
-  </div>
-
-  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
-    <div style="flex: 1; min-width: 280px;">
-      <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">Public Tracking URL</label>
-      <input type="text" id="liveTrackUrl" readonly value="http://{{ request.get_host }}{% url 'passenger-live-tracking' trip.tracking_token %}" style="width: 100%; box-sizing: border-box; padding: 8px 12px; font-size: 13px; font-family: monospace; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 4px;">
-    </div>
-    <div style="display: flex; gap: 8px;">
-      <button type="button" onclick="copyTrackingUrl()" id="btnCopyTrack" class="button" style="background: #0f766e; color: white; padding: 8px 14px; font-size: 12.5px; border-radius: 6px; cursor: pointer;">
-        📋 Copy Link
-      </button>
-      <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank" class="button" style="background: #0284c7; color: white; padding: 8px 14px; font-size: 12.5px; border-radius: 6px; text-decoration: none;">
-        Launch Map &rarr;
-      </a>
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- Day-by-Day Tour Itinerary Summary Panel -->
-<section class="panel" style="margin-bottom: 24px; border-left: 4px solid #6366f1;">
-  <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-    <div>
-      <h2 style="display: flex; align-items: center; gap: 8px;">
-        🗺️ Tour Itinerary &amp; Sightseeing Schedule
-        <span class="badge" style="background: #e0e7ff; color: #4338ca; font-size: 11px; padding: 2px 8px; border-radius: 999px;">
-          {{ trip.itinerary_days.count }} Day{{ trip.itinerary_days.count|pluralize }}
-        </span>
-      </h2>
-      <p style="font-size: 12.5px; color: #64748b; margin: 4px 0 0 0;">
-        Multi-day route stops, morning &amp; evening plans, hotel vouchers, and guest companion portal.
-      </p>
-    </div>
-    <div style="display: flex; gap: 8px;">
-      <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="button" style="background: #6366f1; color: white; font-size: 12px; padding: 6px 12px; border-radius: 6px; text-decoration: none;">
-        🛠️ Open Studio
-      </a>
-      <a href="{% url 'trip-itinerary-portal' trip.pk %}" target="_blank" class="button" style="background: #4338ca; color: white; font-size: 12px; padding: 6px 12px; border-radius: 6px; text-decoration: none;">
-        📱 Guest Portal &rarr;
-      </a>
-    </div>
-  </div>
-
-  {% if trip.itinerary_days.exists %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 14px;">
-      {% for day in trip.itinerary_days.all %}
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 11px; font-weight: 800; background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 4px;">Day {{ day.day_number|stringformat:"02d" }}</span>
-            <span style="font-size: 11px; color: #64748b;">{{ day.date|date:"d M Y"|default:"" }}</span>
-          </div>
-          <div style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 4px;">{{ day.title }}</div>
-          {% if day.route_segment %}
-            <div style="font-size: 11.5px; color: #0284c7; margin-bottom: 4px;">🛣️ {{ day.route_segment }}</div>
-          {% endif %}
-          {% if day.hotel_name %}
-            <div style="font-size: 11.5px; color: #64748b;">🏨 {{ day.hotel_name }} ({{ day.get_hotel_booking_status_display }})</div>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; text-align: center; margin-top: 10px;">
-      <p style="color: #64748b; font-size: 13px; margin: 0 0 10px 0;">No day-by-day itinerary days built yet for this trip.</p>
-      <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="button" style="background: #6366f1; color: white; font-size: 12px;">
-        + Build Itinerary in Studio
-      </a>
-    </div>
-  {% endif %}
-</section>
-
-<section class="panel">
-  <div class="panel-heading"><h2>Trip summary</h2><span class="muted">{{ trip.get_status_display }}</span></div>
-  <ul class="stat-list">
-    <li><span>Guest</span><strong>{{ trip.guest_name }}</strong></li>
-    <li><span>Vehicle</span><strong>{{ trip.vehicle|default:'Pending assignment' }}</strong></li>
-    <li><span>Driver</span><strong>{{ trip.driver|default:'Pending assignment' }}</strong></li>
-    <li><span>Hotel</span><strong>{{ trip.hotel_name|default:'Pending confirmation' }}</strong></li>
-    <li><span>Hotel status</span><strong>{{ trip.get_hotel_confirmation_status_display }}</strong></li>
-    <li><span>Pickup</span><strong>{{ trip.start_date }} / {{ trip.start_time|default:'N/A' }}</strong></li>
-  </ul>
-</section>
-
-<!-- Driver Allowance (Bata) & Duty Compensation Panel -->
-<section class="panel" style="margin-top: 24px; border-left: 4px solid #10b981;">
-  <div class="panel-heading" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-    <div>
-      <h2 style="display: flex; align-items: center; gap: 8px;">
-        💵 Driver Allowance (Bata) Breakdown
-        <span class="badge" style="background: #dcfce7; color: #15803d; font-size: 13px; font-weight: 800; padding: 2px 10px; border-radius: 999px;">
-          ₹{{ trip.driver_bata|floatformat:2 }}
-        </span>
-      </h2>
-      <p style="font-size: 12.5px; color: #64748b; margin: 4px 0 0 0;">
-        Multi-component duty calculation: Base Bata, Night Halt, Early Morning Pickup, and Duty Overtime.
-      </p>
-    </div>
-    <div>
-      <button type="button" class="button" onclick="recalculateDriverBata()" id="btnRecalcBata" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-size: 12px; cursor: pointer;">
-        ⚡ Auto-Calculate Bata
-      </button>
-    </div>
-  </div>
-
-  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-top: 10px;">
-    {% if trip.driver_bata_breakdown %}
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 10px;">
-        <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-          <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Base Daily Bata</div>
-          <div style="font-size: 16px; font-weight: 800; color: #1e293b; margin-top: 2px;">₹{{ trip.driver_bata_breakdown.base_bata|default:0 }}</div>
-          <div style="font-size: 10.5px; color: #64748b;">{{ trip.days_count }} Day(s) @ ₹{{ trip.driver_bata_breakdown.daily_rate|default:0 }}</div>
-        </div>
-
-        <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-          <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Night Halt Allowance</div>
-          <div style="font-size: 16px; font-weight: 800; color: #0284c7; margin-top: 2px;">₹{{ trip.driver_bata_breakdown.night_halt_bata|default:0 }}</div>
-          <div style="font-size: 10.5px; color: #64748b;">{{ trip.driver_bata_breakdown.night_halts_count|default:0 }} Night(s) @ ₹400</div>
-        </div>
-
-        <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-          <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Early / Late Duty</div>
-          <div style="font-size: 16px; font-weight: 800; color: #8b5cf6; margin-top: 2px;">
-            ₹{{ trip.driver_bata_breakdown.early_morning_bata|add:trip.driver_bata_breakdown.late_night_bata|default:0 }}
-          </div>
-          <div style="font-size: 10.5px; color: #64748b;">Pickup &lt;06:00 / Drop &ge;23:00</div>
-        </div>
-
-        <div style="background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-          <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Overtime / Bonus</div>
-          <div style="font-size: 16px; font-weight: 800; color: #f59e0b; margin-top: 2px;">
-            ₹{{ trip.driver_bata_breakdown.overtime_bata|add:trip.driver_bata_breakdown.outstation_bonus|default:0 }}
-          </div>
-          <div style="font-size: 10.5px; color: #64748b;">Extended Shift (&gt;12h)</div>
-        </div>
-      </div>
-
-      <div style="font-size: 12px; color: #475569; background: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px dashed #cbd5e1;">
-        <strong>Audit Rule:</strong> {{ trip.driver_bata_breakdown.calculation_notes|default:"Calculated via Enterprise Bata Engine." }}
-      </div>
-    {% else %}
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 13px; color: #64748b;">Current allowance is flat ₹{{ trip.driver_bata|floatformat:2 }}. Click "Auto-Calculate Bata" to generate compliant multi-tier breakdown.</span>
-      </div>
-    {% endif %}
-  </div>
-</section>
-
-<section class="panel" style="margin-top: 24px;">
-  <div class="panel-heading"><h2>Trip controls</h2></div>
-  <form method="post" action="{% url 'trip-update-status' trip.pk %}" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-    {% csrf_token %}
-    <select name="status">
-      {% for value,label in trip.STATUSES %}
-      <option value="{{ value }}" {% if value == trip.status %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-    <button class="button button-primary" type="submit">Update status</button>
-  </form>
-</section>
-
-<section class="panel" style="margin-top: 24px;">
-  <div class="panel-heading"><h2>WhatsApp / handover message</h2></div>
-  <pre style="white-space: pre-wrap; font-family: inherit; margin: 0; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; color: #0f172a; font-size: 13px; line-height: 1.6;">{{ trip.handover_message }}</pre>
-</section>
 
 <script>
   function copyTrackingUrl() {
@@ -207,9 +328,9 @@
     input.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(input.value);
     const btn = document.getElementById('btnCopyTrack');
-    const oldText = btn.innerText;
-    btn.innerText = '✓ Copied!';
-    setTimeout(() => { btn.innerText = oldText; }, 2500);
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i><span>Copied!</span>';
+    setTimeout(() => { btn.innerHTML = oldText; }, 2500);
   }
 
   function recalculateDriverBata() {
@@ -227,13 +348,13 @@
       } else {
         alert(data.message || 'Error calculating bata');
         btn.disabled = false;
-        btn.innerText = '⚡ Auto-Calculate Bata';
+        btn.innerText = 'Auto-Calculate Bata';
       }
     })
     .catch(err => {
       alert('Network error: ' + err);
       btn.disabled = false;
-      btn.innerText = '⚡ Auto-Calculate Bata';
+      btn.innerText = 'Auto-Calculate Bata';
     });
   }
 </script>

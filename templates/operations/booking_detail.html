@@ -1,32 +1,187 @@
 {% extends 'base.html' %}
-{% block title %}Booking | TravelERP{% endblock %}
-{% block header_title %}Booking details{% endblock %}
+{% load static %}
+
+{% block title %}Booking #{{ booking.booking_number }} · {{ booking.guest_name }} | TravelERP{% endblock %}
+{% block header_title %}Booking Details{% endblock %}
+
 {% block content %}
-<div class="page-intro">
-  <div>
-    <p class="eyebrow">Trip record</p>
-    <h1>{{ booking.booking_number }} / {{ booking.guest_name }}</h1>
+<div class="unfold-shell">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="unfold-page-header">
+    <div>
+      <nav class="unfold-breadcrumb" aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="{% url 'dispatch-console' %}">Operations Desk</a>
+        <span>/</span>
+        <a href="{% url 'booking-list' %}?tab=bookings">Booking Inquiries</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">#{{ booking.booking_number }}</span>
+      </nav>
+      <h1 class="unfold-page-title">
+        <span>Booking #{{ booking.booking_number }}</span>
+        <span class="unfold-pill-badge {% if booking.status == 'confirmed' %}green{% elif booking.status == 'cancelled' %}rose{% else %}amber{% endif %}">
+          {{ booking.get_status_display|default:booking.status|title }}
+        </span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Primary Passenger: <strong class="text-slate-700 dark:text-slate-200">{{ booking.guest_name }}</strong>
+        {% if booking.party %} &bull; Account: <span class="text-sky-600 dark:text-sky-400 font-medium">{{ booking.party.name }}</span>{% endif %}
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="{% url 'booking-list' %}?tab=bookings" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Queue</span>
+      </a>
+
+      <a href="{% url 'booking-voucher-pdf' booking.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-file-pdf text-rose-500"></i>
+        <span>Voucher PDF</span>
+      </a>
+
+      <a href="{% url 'booking-edit' booking.pk %}" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Edit</span>
+      </a>
+
+      <a href="{% url 'trip-create' booking.pk %}" class="unfold-btn unfold-btn-primary">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Dispatch Trip</span>
+      </a>
+    </div>
   </div>
-  <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-    <a class="button" style="background: #059669; color: white; display: inline-flex; align-items: center; gap: 4px;" href="{% url 'booking-voucher-pdf' booking.pk %}" target="_blank">📄 Booking Voucher PDF</a>
-    <a class="button button-primary" href="{% url 'trip-create' booking.pk %}">Create confirmed trip</a>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left 2 Cols: Main Itinerary & Traveler Details -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Traveler & Route Card -->
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Routing &amp; Schedule Overview</h3>
+          <p>Pickup point, destination, journey class, and dates.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Departure Point</span>
+            <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-location-dot text-emerald-500"></i>
+              <span>{{ booking.pickup_location|default:"Coimbatore Depot" }}</span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">📅 {{ booking.pickup_date|date:"d M Y" }} {% if booking.pickup_time %}⏰ {{ booking.pickup_time }}{% endif %}</div>
+          </div>
+
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">Destination</span>
+            <div class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-flag-checkered text-sky-500"></i>
+              <span>{{ booking.destination|default:"Outstation Route" }}</span>
+            </div>
+            <div class="text-xs text-slate-500 mt-1">📅 {{ booking.drop_date|date:"d M Y"|default:"Same day return" }}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div>
+            <span class="text-[11px] text-slate-400 block">Journey Class</span>
+            <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ booking.get_journey_type_display|default:"Standard" }}</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 block">Fleet Category</span>
+            <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ booking.vehicle_type.name|default:"Any Class" }}</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 block">Quoted Price</span>
+            <span class="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">₹{{ booking.quoted_price|default:"0" }}</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 block">Expected Distance</span>
+            <span class="text-xs font-semibold font-mono text-slate-800 dark:text-slate-200">{{ booking.expected_km|default:"--" }} KM</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Plan & Sightseeing Details -->
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Sightseeing Itinerary &amp; Special Requirements</h3>
+          <p>Day-wise itinerary schedule and client requests.</p>
+        </div>
+
+        <div class="prose prose-sm dark:prose-invert max-w-none text-xs text-slate-700 dark:text-slate-300">
+          {{ booking.plan_details|linebreaksbr|default:'No custom itinerary entered.' }}
+        </div>
+
+        {% if booking.special_requirements %}
+        <div class="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block mb-1">
+            <i class="fa-solid fa-star mr-1"></i> Special Requests
+          </span>
+          <p class="text-xs text-amber-900 dark:text-amber-200 m-0">{{ booking.special_requirements }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Right Col: Passenger Meta & Hotel Confirmation -->
+    <div class="space-y-6">
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Guest Contact</h3>
+          <p>Primary passenger coordinates.</p>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <span class="text-slate-400 block text-[11px]">Primary Traveler</span>
+            <span class="font-bold text-slate-900 dark:text-white text-sm">{{ booking.guest_name }}</span>
+          </div>
+
+          <div>
+            <span class="text-slate-400 block text-[11px]">Mobile Telephone</span>
+            {% if booking.guest_phone %}
+            <a href="tel:{{ booking.guest_phone }}" class="font-mono font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1.5 mt-0.5">
+              <i class="fa-solid fa-phone text-xs"></i> {{ booking.guest_phone }}
+            </a>
+            {% else %}
+            <span class="text-slate-400 italic">Not provided</span>
+            {% endif %}
+          </div>
+
+          {% if booking.party %}
+          <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+            <span class="text-slate-400 block text-[11px]">B2B Partner / Client</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ booking.party.name }}</span>
+            {% if booking.party.phone %}
+            <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{ booking.party.phone }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="unfold-form-card">
+        <div class="unfold-form-header">
+          <h3>Accommodation</h3>
+          <p>Hotel voucher clearance.</p>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">Confirmation</span>
+            <span class="unfold-pill-badge {% if booking.hotel_confirmation_status == 'confirmed' %}green{% else %}amber{% endif %}">
+              {{ booking.get_hotel_confirmation_status_display|default:"Pending" }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500">Paid By</span>
+            <span class="font-medium text-slate-800 dark:text-slate-200">{{ booking.get_hotel_paid_by_display|default:"Company" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-
-<section class="panel">
-  <div class="panel-heading"><h2>Customer itinerary</h2><span class="muted">{{ booking.get_itinerary_status_display }}</span></div>
-  <ul class="stat-list">
-    <li><span>Guest</span><strong>{{ booking.guest_name }}</strong></li>
-    <li><span>Phone</span><strong>{{ booking.guest_phone|default:'N/A' }}</strong></li>
-    <li><span>Route</span><strong>{{ booking.pickup_location }} → {{ booking.destination }}</strong></li>
-    <li><span>Pickup date</span><strong>{{ booking.pickup_date }}</strong></li>
-    <li><span>Journey type</span><strong>{{ booking.get_journey_type_display }}</strong></li>
-    <li><span>Hotel status</span><strong>{{ booking.get_hotel_confirmation_status_display }}</strong></li>
-  </ul>
-</section>
-
-<section class="panel" style="margin-top: 24px;">
-  <div class="panel-heading"><h2>Plan details</h2></div>
-  <p>{{ booking.plan_details|linebreaksbr|default:'No generic itinerary added yet.' }}</p>
-</section>
 {% endblock %}

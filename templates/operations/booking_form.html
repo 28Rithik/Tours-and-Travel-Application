@@ -1,19 +1,270 @@
 {% extends 'base.html' %}
-{% block title %}Create booking | TravelERP{% endblock %}
-{% block header_title %}Booking setup{% endblock %}
-{% block content %}
-<div class="page-intro">
-  <div>
-    <p class="eyebrow">Before booking</p>
-    <h1>Generic itinerary / travel plan</h1>
-  </div>
-</div>
+{% load static %}
 
-<section class="panel form-panel">
-  <form method="post">
+{% block title %}{% if form.instance.pk %}Edit Booking #{{ form.instance.booking_number }}{% else %}Add New Booking{% endif %} | TravelERP{% endblock %}
+{% block header_title %}Booking Workspace{% endblock %}
+
+{% block content %}
+<div class="unfold-shell">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="unfold-page-header">
+    <div>
+      <nav class="unfold-breadcrumb" aria-label="Breadcrumbs">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="{% url 'dispatch-console' %}">Operations Desk</a>
+        <span>/</span>
+        <a href="{% url 'booking-list' %}?tab=bookings">Booking Inquiries</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">{% if form.instance.pk %}Edit #{{ form.instance.booking_number }}{% else %}Add Booking{% endif %}</span>
+      </nav>
+      <h1 class="unfold-page-title">
+        <span>{% if form.instance.pk %}Edit Booking #{{ form.instance.booking_number }}{% else %}New Booking Inquiry &amp; Dispatch Order{% endif %}</span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Configure guest credentials, itinerary routes, fleet requirements, and commercial tariff terms.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{% url 'booking-list' %}?tab=bookings" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Queue</span>
+      </a>
+      {% if form.instance.pk %}
+      <a href="{% url 'trip-create' form.instance.pk %}" class="unfold-btn unfold-btn-primary">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Convert to Trip</span>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" novalidate class="space-y-6">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button class="button button-primary" type="submit">Save booking</button>
+
+    {% if form.errors %}
+    <div class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-lg p-4 mb-6">
+      <div class="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-bold text-xs uppercase tracking-wider mb-2">
+        <i class="fa-solid fa-circle-exclamation text-base"></i>
+        <span>Please correct the errors below to save this booking:</span>
+      </div>
+      <ul class="text-xs text-rose-600 dark:text-rose-300 space-y-1 list-disc list-inside">
+        {% for field, errors in form.errors.items %}
+          {% for err in errors %}
+          <li><strong>{{ field|title }}:</strong> {{ err }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- Fieldset 1: Guest & Party Information -->
+    <div class="unfold-form-card">
+      <div class="unfold-form-header">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center text-xs font-bold">1</span>
+          <h3>Guest &amp; Corporate Client Profile</h3>
+        </div>
+        <p>Client party account, primary traveler name, mobile contact, and order confirmation status.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.party.id_for_label }}">
+            Corporate / B2B Party
+          </label>
+          {{ form.party }}
+          {% if form.party.errors %}<span class="text-rose-500 text-[11px]">{{ form.party.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.guest_name.id_for_label }}">
+            Guest / Passenger Name <span class="text-rose-500">*</span>
+          </label>
+          {{ form.guest_name }}
+          {% if form.guest_name.errors %}<span class="text-rose-500 text-[11px]">{{ form.guest_name.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.guest_phone.id_for_label }}">
+            Guest Mobile Contact <span class="text-rose-500">*</span>
+          </label>
+          {{ form.guest_phone }}
+          {% if form.guest_phone.errors %}<span class="text-rose-500 text-[11px]">{{ form.guest_phone.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.status.id_for_label }}">
+            Booking Status
+          </label>
+          {{ form.status }}
+          {% if form.status.errors %}<span class="text-rose-500 text-[11px]">{{ form.status.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Fieldset 2: Route & Operational Schedule -->
+    <div class="unfold-form-card">
+      <div class="unfold-form-header">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-bold">2</span>
+          <h3>Routing &amp; Departure Timelines</h3>
+        </div>
+        <p>Pickup hub, drop destination, journey type, reporting time, and date parameters.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.pickup_location.id_for_label }}">
+            Pickup Location / Airport / Station <span class="text-rose-500">*</span>
+          </label>
+          {{ form.pickup_location }}
+          {% if form.pickup_location.errors %}<span class="text-rose-500 text-[11px]">{{ form.pickup_location.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.destination.id_for_label }}">
+            Drop Destination / Itinerary Hub <span class="text-rose-500">*</span>
+          </label>
+          {{ form.destination }}
+          {% if form.destination.errors %}<span class="text-rose-500 text-[11px]">{{ form.destination.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.journey_type.id_for_label }}">
+            Journey Class &amp; Routing Model
+          </label>
+          {{ form.journey_type }}
+          {% if form.journey_type.errors %}<span class="text-rose-500 text-[11px]">{{ form.journey_type.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.pickup_date.id_for_label }}">
+            Pickup Date <span class="text-rose-500">*</span>
+          </label>
+          {{ form.pickup_date }}
+          {% if form.pickup_date.errors %}<span class="text-rose-500 text-[11px]">{{ form.pickup_date.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.pickup_time.id_for_label }}">
+            Pickup Time
+          </label>
+          {{ form.pickup_time }}
+          {% if form.pickup_time.errors %}<span class="text-rose-500 text-[11px]">{{ form.pickup_time.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.drop_date.id_for_label }}">
+            Drop / Conclusion Date
+          </label>
+          {{ form.drop_date }}
+          {% if form.drop_date.errors %}<span class="text-rose-500 text-[11px]">{{ form.drop_date.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Fieldset 3: Fleet Selection & Commercial Tariffs -->
+    <div class="unfold-form-card">
+      <div class="unfold-form-header">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">3</span>
+          <h3>Fleet Specifications &amp; Commercial Pricing</h3>
+        </div>
+        <p>Vehicle class allocation, billing mechanism, quoted rate, and expected distance.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.vehicle_type.id_for_label }}">
+            Vehicle Class / Type
+          </label>
+          {{ form.vehicle_type }}
+          {% if form.vehicle_type.errors %}<span class="text-rose-500 text-[11px]">{{ form.vehicle_type.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.billing_type.id_for_label }}">
+            Billing Mechanism
+          </label>
+          {{ form.billing_type }}
+          {% if form.billing_type.errors %}<span class="text-rose-500 text-[11px]">{{ form.billing_type.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.quoted_price.id_for_label }}">
+            Quoted Amount (₹)
+          </label>
+          {{ form.quoted_price }}
+          {% if form.quoted_price.errors %}<span class="text-rose-500 text-[11px]">{{ form.quoted_price.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.expected_km.id_for_label }}">
+            Expected Distance (KM)
+          </label>
+          {{ form.expected_km }}
+          {% if form.expected_km.errors %}<span class="text-rose-500 text-[11px]">{{ form.expected_km.errors.0 }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Fieldset 4: Hotel, Itinerary & Instructions -->
+    <div class="unfold-form-card">
+      <div class="unfold-form-header">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold">4</span>
+          <h3>Tour Itinerary, Hotel Allotment &amp; Staff Notes</h3>
+        </div>
+        <p>Accommodation clearance, day-wise route notes, and special customer requests.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.hotel_confirmation_status.id_for_label }}">
+            Hotel Confirmation Status
+          </label>
+          {{ form.hotel_confirmation_status }}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.hotel_paid_by.id_for_label }}">
+            Hotel Paid By
+          </label>
+          {{ form.hotel_paid_by }}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.plan_details.id_for_label }}">
+            Tour Itinerary / Sightseeing Plan
+          </label>
+          {{ form.plan_details }}
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="{{ form.special_requirements.id_for_label }}">
+            Special Customer Requirements
+          </label>
+          {{ form.special_requirements }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Unfold Form Action Bar -->
+    <div class="unfold-form-card !p-4 !mb-0 flex items-center justify-between">
+      <a href="{% url 'booking-list' %}?tab=bookings" class="unfold-btn unfold-btn-secondary">
+        Cancel
+      </a>
+      <div class="flex items-center gap-2">
+        <button type="submit" class="unfold-btn unfold-btn-primary">
+          <i class="fa-solid fa-check"></i>
+          <span>Save Booking</span>
+        </button>
+      </div>
+    </div>
   </form>
-</section>
+</div>
 {% endblock %}

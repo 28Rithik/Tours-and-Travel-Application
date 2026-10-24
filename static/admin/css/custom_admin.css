@@ -213,7 +213,10 @@ html:not(.dark) .result-list thead th,
 html:not(.dark) #changelist table thead th,
 html:not(.dark) .card-body table thead th,
 html:not(.dark) table.table thead th,
-html:not(.dark) .results table thead th {
+html:not(.dark) .results table thead th,
+html:not(.dark) .unfold-table thead th,
+html:not(.dark) .permit-card table thead th,
+html:not(.dark) .content table:not(.cal-table) thead th {
     background-color: #f8fafc !important;
     color: #0f172a !important;
     font-size: 11.5px !important;
@@ -229,7 +232,9 @@ html:not(.dark) .results table thead th {
 
 html:not(.dark) #result_list thead th a,
 html:not(.dark) .result-list thead th a,
-html:not(.dark) #changelist table thead th a {
+html:not(.dark) #changelist table thead th a,
+html:not(.dark) .unfold-table thead th a,
+html:not(.dark) .content table:not(.cal-table) thead th a {
     color: #0f172a !important;
     font-weight: 700 !important;
     text-decoration: none !important;
@@ -237,7 +242,9 @@ html:not(.dark) #changelist table thead th a {
 
 html:not(.dark) #result_list thead th a:hover,
 html:not(.dark) .result-list thead th a:hover,
-html:not(.dark) #changelist table thead th a:hover {
+html:not(.dark) #changelist table thead th a:hover,
+html:not(.dark) .unfold-table thead th a:hover,
+html:not(.dark) .content table:not(.cal-table) thead th a:hover {
     color: #0284c7 !important;
     text-decoration: underline !important;
 }
@@ -250,7 +257,10 @@ html:not(.dark) .result-list tbody th,
 html:not(.dark) #changelist table tbody td,
 html:not(.dark) #changelist table tbody th,
 html:not(.dark) .card-body table tbody td,
-html:not(.dark) .results table tbody td {
+html:not(.dark) .results table tbody td,
+html:not(.dark) .unfold-table tbody td,
+html:not(.dark) .permit-card table tbody td,
+html:not(.dark) .content table:not(.cal-table) tbody td {
     color: #0f172a !important;
     font-size: 13px !important;
     font-weight: 500 !important;
@@ -1107,6 +1117,620 @@ html:not(.dark) .badge-retread-max {
     color: #b91c1c !important;
     border: 1px solid #fca5a5 !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   §11 DJANGO UNFOLD UNIVERSAL STAFF PORTAL SYSTEM (END-TO-END MIRROR)
+   ──────────────────────────────────────────────────────────────────────────
+   Enforces exact Django Unfold Admin layout, tables, cards, forms, and badges
+   across ALL custom operations, fleet, dispatch, and finance staff pages.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 11A. Page Shell & Headers ── */
+.unfold-shell {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+@media (min-width: 640px) {
+    .unfold-shell { padding: 1.5rem 1.5rem; }
+}
+
+.unfold-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+html.dark .unfold-page-header {
+    border-bottom-color: #1e293b;
+}
+@media (min-width: 640px) {
+    .unfold-page-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.unfold-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 0.35rem;
+}
+html.dark .unfold-breadcrumb { color: #94a3b8; }
+.unfold-breadcrumb a {
+    color: #64748b;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+.unfold-breadcrumb a:hover { color: #0284c7; }
+html.dark .unfold-breadcrumb a { color: #94a3b8; }
+html.dark .unfold-breadcrumb a:hover { color: #38bdf8; }
+
+.unfold-page-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+html.dark .unfold-page-title { color: #f8fafc; }
+
+.unfold-header-count {
+    font-family: monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    background: #f1f5f9;
+    color: #475569;
+}
+html.dark .unfold-header-count {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+/* ── 11B. Unfold Solid & Flat Changelist KPI Cards ── */
+.unfold-kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (min-width: 768px) {
+    .unfold-kpis-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+@media (min-width: 1024px) {
+    .unfold-kpis-grid.cols-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+.unfold-kpi-card-solid {
+    position: relative;
+    border-radius: 0.5rem;
+    padding: 1.15rem 1.25rem;
+    overflow: hidden;
+    color: #ffffff !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.unfold-kpi-card-solid:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+}
+.unfold-kpi-card-solid.blue {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+}
+.unfold-kpi-card-solid.green {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+.unfold-kpi-card-solid.purple {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+}
+.unfold-kpi-card-solid.amber {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+.unfold-kpi-card-solid.slate {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%);
+}
+.unfold-kpi-card-solid.rose {
+    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+
+.unfold-kpi-card-solid .kpi-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 0.35rem;
+}
+.unfold-kpi-card-solid .kpi-number {
+    font-family: monospace;
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+}
+.unfold-kpi-card-solid .kpi-sub {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-top: 0.35rem;
+}
+.unfold-kpi-card-solid .kpi-bg-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+}
+
+/* ── 11C. Unfold Changelist Container, Toolbar & Search ── */
+.unfold-changelist-wrap {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+html.dark .unfold-changelist-wrap {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.unfold-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+html.dark .unfold-toolbar {
+    background: #1e293b;
+    border-bottom-color: #334155;
+}
+@media (min-width: 640px) {
+    .unfold-toolbar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.unfold-search-box {
+    position: relative;
+    max-width: 24rem;
+    width: 100%;
+}
+.unfold-search-box input {
+    width: 100%;
+    height: 34px;
+    padding: 0 2rem 0 2.25rem;
+    font-size: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.unfold-search-box input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 1px #0284c7;
+}
+html.dark .unfold-search-box input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+html.dark .unfold-search-box input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px #38bdf8;
+}
+.unfold-search-box .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: #94a3b8;
+    pointer-events: none;
+}
+.unfold-search-box .kbd-hint {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #94a3b8;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 1px 4px;
+    border-radius: 3px;
+    pointer-events: none;
+}
+html.dark .unfold-search-box .kbd-hint {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+/* ── 11D. Exact Unfold Table Styling ── */
+.unfold-table,
+table.unfold-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.75rem;
+}
+.unfold-table thead,
+table.unfold-table thead {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+html.dark .unfold-table thead,
+html.dark table.unfold-table thead {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+.unfold-table thead th,
+table.unfold-table thead th {
+    padding: 0.75rem 1rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    vertical-align: middle;
+    white-space: nowrap;
+    border-top: none;
+    border-bottom: 1px solid #e2e8f0;
+}
+html.dark .unfold-table thead th,
+html.dark table.unfold-table thead th {
+    color: #94a3b8;
+    border-bottom-color: #334155;
+}
+
+.unfold-table tbody td,
+table.unfold-table tbody td {
+    padding: 0.85rem 1rem;
+    font-size: 0.75rem;
+    color: #0f172a;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+html.dark .unfold-table tbody td,
+html.dark table.unfold-table tbody td {
+    color: #f8fafc;
+    border-bottom-color: #1e293b;
+}
+
+.unfold-table tbody tr:hover,
+table.unfold-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+html.dark .unfold-table tbody tr:hover,
+html.dark table.unfold-table tbody tr:hover {
+    background-color: rgba(30, 41, 59, 0.5);
+}
+
+/* ── 11E. Unfold Badge Suite (Pill & Solid) ── */
+.unfold-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+.unfold-pill-badge.green {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+html.dark .unfold-pill-badge.green {
+    background: rgba(6, 78, 59, 0.4);
+    color: #6ee7b7;
+    border-color: rgba(5, 150, 105, 0.5);
+}
+
+.unfold-pill-badge.blue {
+    background: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+html.dark .unfold-pill-badge.blue {
+    background: rgba(12, 74, 110, 0.4);
+    color: #7dd3fc;
+    border-color: rgba(2, 132, 199, 0.5);
+}
+
+.unfold-pill-badge.amber {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+html.dark .unfold-pill-badge.amber {
+    background: rgba(120, 53, 15, 0.4);
+    color: #fde68a;
+    border-color: rgba(217, 119, 6, 0.5);
+}
+
+.unfold-pill-badge.rose {
+    background: #fff1f2;
+    color: #be123c;
+    border: 1px solid #fecdd3;
+}
+html.dark .unfold-pill-badge.rose {
+    background: rgba(136, 19, 55, 0.4);
+    color: #fda4af;
+    border-color: rgba(225, 29, 72, 0.5);
+}
+
+.unfold-pill-badge.purple {
+    background: #f5f3ff;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+}
+html.dark .unfold-pill-badge.purple {
+    background: rgba(76, 29, 149, 0.4);
+    color: #c4b5fd;
+    border-color: rgba(124, 58, 237, 0.5);
+}
+
+.unfold-pill-badge.slate {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+html.dark .unfold-pill-badge.slate {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+/* Unfold Solid Badges (with Icons) */
+.unfold-solid-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.unfold-solid-badge.green { background-color: #059669; }
+.unfold-solid-badge.purple { background-color: #4f46e5; }
+.unfold-solid-badge.blue { background-color: #0284c7; }
+.unfold-solid-badge.amber { background-color: #d97706; }
+.unfold-solid-badge.rose { background-color: #e11d48; }
+
+/* ── 11F. Unfold Buttons ── */
+.unfold-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 34px;
+    padding: 0 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.unfold-btn-primary {
+    background-color: #0284c7;
+    color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.2);
+}
+.unfold-btn-primary:hover {
+    background-color: #0369a1;
+}
+.unfold-btn-secondary {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+    color: #334155 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.unfold-btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a !important;
+}
+html.dark .unfold-btn-secondary {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1 !important;
+}
+html.dark .unfold-btn-secondary:hover {
+    background-color: #334155;
+    color: #f8fafc !important;
+}
+
+/* ── 11G. Unfold Form Panels & Inputs Suite ── */
+.unfold-form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+}
+html.dark .unfold-form-card {
+    background: #0f172a;
+    border-color: #1e293b;
+}
+
+.unfold-form-header {
+    padding-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+html.dark .unfold-form-header {
+    border-bottom-color: #1e293b;
+}
+.unfold-form-header h2,
+.unfold-form-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.25rem;
+}
+html.dark .unfold-form-header h2,
+html.dark .unfold-form-header h3 {
+    color: #f8fafc;
+}
+.unfold-form-header p {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0;
+}
+html.dark .unfold-form-header p {
+    color: #94a3b8;
+}
+
+/* Auto-styling for legacy form.as_p inside panels */
+.panel form p,
+.form-panel form p,
+.unfold-form p {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+.panel form label,
+.form-panel form label,
+.unfold-form label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 0.35rem;
+}
+html.dark .panel form label,
+html.dark .form-panel form label,
+html.dark .unfold-form label {
+    color: #cbd5e1;
+}
+
+.panel form input[type="text"],
+.panel form input[type="number"],
+.panel form input[type="email"],
+.panel form input[type="date"],
+.panel form input[type="datetime-local"],
+.panel form select,
+.panel form textarea,
+.form-panel form input[type="text"],
+.form-panel form input[type="number"],
+.form-panel form input[type="email"],
+.form-panel form input[type="date"],
+.form-panel form input[type="datetime-local"],
+.form-panel form select,
+.form-panel form textarea,
+.unfold-input,
+.unfold-select,
+.unfold-textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: 0.375rem;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.panel form input:focus,
+.panel form select:focus,
+.panel form textarea:focus,
+.form-panel form input:focus,
+.form-panel form select:focus,
+.form-panel form textarea:focus,
+.unfold-input:focus,
+.unfold-select:focus,
+.unfold-textarea:focus {
+    outline: none;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 1px #0284c7;
+}
+html.dark .panel form input[type="text"],
+html.dark .panel form input[type="number"],
+html.dark .panel form input[type="email"],
+html.dark .panel form input[type="date"],
+html.dark .panel form input[type="datetime-local"],
+html.dark .panel form select,
+html.dark .panel form textarea,
+html.dark .form-panel form input[type="text"],
+html.dark .form-panel form input[type="number"],
+html.dark .form-panel form input[type="email"],
+html.dark .form-panel form input[type="date"],
+html.dark .form-panel form input[type="datetime-local"],
+html.dark .form-panel form select,
+html.dark .form-panel form textarea,
+html.dark .unfold-input,
+html.dark .unfold-select,
+html.dark .unfold-textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+}
+html.dark .panel form input:focus,
+html.dark .panel form select:focus,
+html.dark .panel form textarea:focus,
+html.dark .form-panel form input:focus,
+html.dark .form-panel form select:focus,
+html.dark .form-panel form textarea:focus,
+html.dark .unfold-input:focus,
+html.dark .unfold-select:focus,
+html.dark .unfold-textarea:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px #38bdf8;
+}
+
+/* Submit bar matching Unfold */
+.unfold-submit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    border-radius: 0 0 0.5rem 0.5rem;
+    margin: 1.5rem -1.5rem -1.5rem;
+}
+html.dark .unfold-submit-bar {
+    background: #1e293b;
+    border-top-color: #334155;
+}
+
 
 
 
