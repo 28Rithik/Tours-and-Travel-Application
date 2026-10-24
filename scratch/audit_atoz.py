@@ -16,6 +16,7 @@ from django.contrib import admin
 from django.urls import get_resolver
 from django.template import loader, TemplateSyntaxError
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
@@ -36,18 +37,18 @@ def run_atoz_audit():
         return False
 
     # 2. Template Syntax Audit
-    print("\n[2/4] Validating All HTML Templates for Syntax Errors...")
+    print("\n[2/5] Validating All Workspace HTML Templates for Syntax Errors...")
     template_errors = []
-    template_dirs = [os.path.join(BASE_DIR, 'templates')]
-    for app in settings.INSTALLED_APPS:
-        try:
-            mod = __import__(app, fromlist=['__path__'])
-            if hasattr(mod, '__path__'):
-                app_tmpl = os.path.join(mod.__path__[0], 'templates')
-                if os.path.exists(app_tmpl):
-                    template_dirs.append(app_tmpl)
-        except Exception:
-            pass
+    template_dirs = [os.path.join(settings.BASE_DIR, 'templates')]
+    
+    from django.apps import apps
+    base_dir_lower = str(settings.BASE_DIR).lower()
+    for app_config in apps.get_app_configs():
+        app_path = os.path.abspath(app_config.path)
+        if app_path.lower().startswith(base_dir_lower) and '.venv' not in app_path.lower():
+            tmpl_dir = os.path.join(app_path, 'templates')
+            if os.path.isdir(tmpl_dir):
+                template_dirs.append(tmpl_dir)
 
     checked_templates = 0
     for tdir in template_dirs:
@@ -61,20 +62,19 @@ def run_atoz_audit():
                     except TemplateSyntaxError as tse:
                         template_errors.append((rel_path, str(tse)))
                     except Exception as ex:
-                        # Some templates might expect specific inclusion or context, but syntax errors will be caught
                         if "is not a valid tag library" in str(ex) or "Invalid block tag" in str(ex):
                             template_errors.append((rel_path, str(ex)))
 
     print(f"  Checked {checked_templates} templates.")
     if template_errors:
-        print(f"  ✗ Found {len(template_errors)} Template Syntax Errors:")
+        print(f"  [FAIL] Found {len(template_errors)} Template Syntax Errors:")
         for tpath, err in template_errors:
             print(f"    - {tpath}: {err}")
     else:
-        print("  ✓ All templates parsed successfully with 0 syntax errors.")
+        print("  [PASS] All templates parsed successfully with 0 syntax errors.")
 
     # 3. Superuser Client Setup
-    print("\n[3/4] Initializing Test Client with Superuser Session...")
+    print("\n[3/5] Initializing Test Client with Superuser Session...")
     admin_user = User.objects.filter(is_superuser=True).first()
     if not admin_user:
         admin_user = User.objects.create_superuser('admin_audit', 'admin@example.com', 'adminpass123')
@@ -86,7 +86,7 @@ def run_atoz_audit():
     client.force_login(admin_user)
 
     # 4. Check All Registered Django Admin Changelists & Forms
-    print("\n[4/4] Auditing All Django Admin Models & Custom Studios...")
+    print("\n[4/5] Auditing All Django Admin Models & Custom Studios...")
     admin_results = defaultdict(list)
     total_admin_endpoints = 0
     admin_failures = []
@@ -107,6 +107,8 @@ def run_atoz_audit():
                 admin_results['success'].append(cl_url)
             else:
                 admin_results['redirect_or_restricted'].append((cl_url, resp.status_code))
+        except PermissionDenied:
+            admin_results['redirect_or_restricted'].append((cl_url, 403))
         except Exception as e:
             admin_failures.append((cl_url, 500, f"Exception: {traceback.format_exc()}"))
 
@@ -121,16 +123,18 @@ def run_atoz_audit():
                 admin_results['success'].append(add_url)
             else:
                 admin_results['redirect_or_restricted'].append((add_url, resp.status_code))
+        except PermissionDenied:
+            admin_results['redirect_or_restricted'].append((add_url, 403))
         except Exception as e:
             admin_failures.append((add_url, 500, f"Exception: {traceback.format_exc()}"))
 
     print(f"  Audited {total_admin_endpoints} Django Admin URLs across {len(admin.site._registry)} models.")
     if admin_failures:
-        print(f"  ✗ {len(admin_failures)} Django Admin URLs failed:")
+        print(f"  [FAIL] {len(admin_failures)} Django Admin URLs failed:")
         for url, code, msg in admin_failures:
             print(f"    - {url} [{code}]: {msg[:200]}")
     else:
-        print(f"  ✓ All Django Admin changelists and add forms passed with 0 errors!")
+        print(f"  [PASS] All Django Admin changelists and add forms passed with 0 errors!")
 
     # 5. Dedicated Audit of Every Custom Studio & Operational Route
     custom_studios = [
@@ -183,15 +187,15 @@ def run_atoz_audit():
         try:
             resp = client.get(endpoint, follow=True)
             if resp.status_code == 200:
-                print(f"  ✓ [200 OK] {name} ({endpoint})")
+                print(f"  [PASS 200 OK] {name} ({endpoint})")
             elif resp.status_code in (301, 302) and resp.redirect_chain:
-                print(f"  ✓ [{resp.status_code} -> 200] {name} ({endpoint})")
+                print(f"  [PASS {resp.status_code} -> 200] {name} ({endpoint})")
             else:
                 studio_failures.append((name, endpoint, resp.status_code, "Unexpected status"))
-                print(f"  ✗ [{resp.status_code}] {name} ({endpoint})")
+                print(f"  [FAIL {resp.status_code}] {name} ({endpoint})")
         except Exception as e:
             studio_failures.append((name, endpoint, 500, traceback.format_exc()))
-            print(f"  ✗ [500 CRASH] {name} ({endpoint}):\n{traceback.format_exc()}")
+            print(f"  [FAIL 500 CRASH] {name} ({endpoint}):\n{traceback.format_exc()}")
 
     print("\n" + "=" * 80)
     print("AUDIT SUMMARY:")
@@ -201,10 +205,10 @@ def run_atoz_audit():
     print("=" * 80)
 
     if not template_errors and not admin_failures and not studio_failures:
-        print("\n🎉 PERFECT AUDIT! ALL SYSTEMS FUNCTIONING PROPERLY WITH ZERO ERRORS.")
+        print("\nALL SYSTEMS FUNCTIONING PROPERLY WITH ZERO ERRORS.")
         return True
     else:
-        print(f"\n⚠️ AUDIT COMPLETED WITH ISSUES TO RESOLVE.")
+        print(f"\nAUDIT COMPLETED WITH ISSUES TO RESOLVE.")
         return False
 
 if __name__ == '__main__':

@@ -412,6 +412,8 @@ urlpatterns = [
     # Workshop Mechanic Studio & QR Barcode Spare Parts Checkout
     path('admin/maintenance/workshop/', workshop_mechanic_studio_view, name='admin-workshop-studio'),
     path('admin/workshop-studio/', workshop_mechanic_studio_view, name='admin-workshop-studio-alias'),
+    path('maintenance/workshop/', workshop_mechanic_studio_view, name='maintenance-workshop-studio'),
+    path('maintenance/workshop-studio/', workshop_mechanic_studio_view, name='maintenance-workshop-studio-alias'),
     # Omnichannel Integrations Hub, Meta Webhook, Email SES/SMTP Studio, Agent Dashboard & Approvals
     path('admin/integrations/', include('integrations.urls')),
     path('api/integrations/meta/webhook/', integrations_views.api_meta_lead_webhook, name='api_meta_lead_webhook_root'),
