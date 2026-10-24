@@ -225,9 +225,21 @@ h4 { font-size: 1.05rem; }
   color: #ffffff !important;
 }
 
-[style*="background: linear-gradient(135deg, #1e293b"] p,
-[style*="background: linear-gradient(135deg, #0f172a"] p,
 [style*="background: #1e293b"] p,
+[style*="background: #0f172a"] p,
+.text-white,
+.text-white h1,
+.text-white h2,
+.text-white h3,
+.text-white h4,
+[class*="from-slate-900"] h1,
+[class*="from-slate-900"] h2,
+[class*="from-slate-900"] h3,
+[class*="bg-slate-900"] h1,
+[class*="bg-slate-900"] h2,
+[class*="bg-slate-900"] h3 {
+  color: #ffffff !important;
+}
 [style*="background: #0f172a"] p {
   color: #94a3b8 !important;
 }

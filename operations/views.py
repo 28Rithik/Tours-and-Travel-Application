@@ -3646,7 +3646,7 @@ def api_global_search(request):
     for t in trips:
         veh_str = t.vehicle.registration_number if t.vehicle else "No Vehicle"
         if t.booking and t.booking.pickup_location:
-            route_str = f"{t.booking.pickup_location} ➔ {t.booking.dropoff_location or 'Destination'}"
+            route_str = f"{t.booking.pickup_location} ➔ {t.booking.destination or 'Destination'}"
         elif t.package:
             route_str = t.package.name
         else:

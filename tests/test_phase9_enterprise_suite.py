@@ -110,8 +110,8 @@ class Phase9EnterpriseSuiteTestCase(TestCase):
             driver=self.driver,
             start_date=timezone.now().date(),
             end_date=timezone.now().date() + datetime.timedelta(days=3),
-            start_km=84500,
-            status='dispatched'
+            opening_km=84500,
+            status='started'
         )
 
     # --------------------------------------------------------------------------
