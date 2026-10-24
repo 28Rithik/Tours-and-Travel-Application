@@ -125,3 +125,67 @@ TravelERP incorporates specialized, domain-specific visual studios that replace 
   - Semantic Package Search: Instant search across 6,252 packages, 30,508 day-by-day itineraries, and 31,221 vehicle tariffs with pgvector and TF-IDF cosine similarity.
   - Built-in ⚙️ Settings Modal for live Groq API key configuration, runtime validation, and model discovery.
   - Resilient offline fallback to internal local semantic rule engine with zero downtime.
+
+#### 2.15 Interstate State Border Entry Tax & AITP Permit Sentry
+- **URL**: `http://127.0.0.1:8000/operations/border-permits/` (Alias: `/admin/operations/border-permits/`)
+- **Design Architecture**: Django Unfold Solid KPI Deck (`blue`, `green`, `rose`, `slate`), Tabs Navigation, `.unfold-table`.
+- **Key Capabilities**:
+  - Real-time detection of cross-border routes (Kerala, Karnataka, Andhra Pradesh, Puducherry).
+  - Automated check-post tax rate lookup by seating capacity and state tariff rules.
+  - Parivahan AITP clearance verification and digital permit receipt archiving.
+
+#### 2.16 Chauffeur Fatigue & Ghat Safety Sentry
+- **URL**: `http://127.0.0.1:8000/operations/driver-fatigue-sentry/` (Alias: `/admin/operations/driver-fatigue-sentry/`)
+- **Design Architecture**: 5-Tier Unfold Solid KPI Deck, `.unfold-search-box` with `/` shortcut, `.unfold-table`.
+- **Key Capabilities**:
+  - Continuous duty hours counter and mandatory statutory 8h rest validation.
+  - Night-shift and Ghat road risk detection (Ooty, Kodaikanal, Munnar hairpin bends).
+  - Dispatch locks preventing fatigued driver assignment without authorized managerial override.
+
+#### 2.17 Trip Cash Advance & Kharcha Settlement Envelope Studio
+- **URL**: `http://127.0.0.1:8000/operations/cash-envelopes/` (Alias: `/admin/operations/cash-envelopes/`)
+- **Design Architecture**: Unfold KPI Deck, `.unfold-search-box` with `/` shortcut, `.unfold-table`.
+- **Key Capabilities**:
+  - Digital cash float issuance for multi-day outstation trips.
+  - Verified on-road expense logging (diesel, tolls, state tax, driver bata).
+  - Depot cashier surplus refund and deficit settlement workflows.
+
+#### 2.18 Highway Breakdown & Emergency SOS Relief Dispatch Studio
+- **URL**: `http://127.0.0.1:8000/operations/breakdown-sos/` (Alias: `/admin/operations/breakdown-sos/`)
+- **Design Architecture**: High-urgency Unfold KPI Deck (`rose`, `amber`, `green`, `blue`), SOS Search, Emergency Action Bar.
+- **Key Capabilities**:
+  - Live incident logging with GPS highway corridor markers and passenger headcount.
+  - 1-Click relief vehicle and replacement chauffeur dispatch.
+  - 24x7 control room phone hotline integration and passenger distress monitoring.
+
+#### 2.19 Parivahan RTO Traffic E-Challan Sentry Studio
+- **URL**: `http://127.0.0.1:8000/operations/echallan-sentry/` (Alias: `/admin/operations/echallan-sentry/`)
+- **Design Architecture**: Unfold KPI Deck, violation status pills, `.unfold-table`.
+- **Key Capabilities**:
+  - Automated sync with National & State Highway Parivahan violation cameras.
+  - Liability allocation: driver settlement deduction (speeding/rash driving) vs. company absorbed (technical/RTO papers).
+  - Payment reconciliation and fine settlement ledger logging.
+
+#### 2.20 Empty-Leg Return Deadhead Trip Marketplace & Optimizer
+- **URL**: `http://127.0.0.1:8000/operations/empty-legs/` (Alias: `/admin/operations/empty-legs/`)
+- **Design Architecture**: Unfold KPI Deck (`blue`, `green`, `purple`, `slate`), `.unfold-search-box`, `.unfold-table`.
+- **Key Capabilities**:
+  - Auto-detection of vehicles returning empty after one-way drops (e.g. Madurai ➔ Chennai).
+  - Dynamic offer pricing above marginal fuel/toll costs.
+  - Deadhead KM avoidance and carbon footprint reduction reporting.
+
+#### 2.21 Commercial Fleet RTO Fitness (FC), AIS-140 & Statutory Compliance Sentry
+- **URL**: `http://127.0.0.1:8000/operations/statutory-compliance/` (Alias: `/admin/operations/statutory-compliance/`)
+- **Design Architecture**: Unfold KPI Deck (`green`, `rose`, `amber`, `blue`), `.unfold-search-box`, `.unfold-table`.
+- **Key Capabilities**:
+  - Automated audit of Fitness Certificates (FC), Commercial Insurance, Road Tax, Tourist Permits, PUC.
+  - Zero-tolerance dispatch lock for vehicles with expired or non-compliant statutory papers.
+  - 7-day and 30-day proactive RTO inspection renewal alerts.
+
+#### 2.22 Flight & Train PNR Group Arrival Manifest Studio
+- **URL**: `http://127.0.0.1:8000/operations/pnr-arrivals/` (Alias: `/admin/operations/pnr-arrivals/`)
+- **Design Architecture**: Unfold KPI Deck (`purple`, `blue`, `amber`, `green`), `.unfold-search-box`, `.unfold-table`.
+- **Key Capabilities**:
+  - Real-time flight and Vande Bharat train delay monitoring.
+  - Chauffeur airport gate and welcome placard coordination.
+  - VIP and corporate delegation arrival manifests.

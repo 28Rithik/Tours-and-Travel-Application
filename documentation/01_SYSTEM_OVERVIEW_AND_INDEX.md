@@ -15,7 +15,7 @@ Operating across Tamil Nadu, Karnataka, Kerala, Andhra Pradesh, and All-India to
 
 | Tier | Technologies / Engines | Purpose |
 | :--- | :--- | :--- |
-| **Backend Core** | Python 3.12, Django 6.0, Django REST Framework | Core business logic, ORM, security, session management |
+| **Backend Core** | Python 3.12, Django 5.1 LTS, Django Channels / Daphne ASGI | Core business logic, ORM, WebSockets, security, session management |
 | **Theme & UI Shell** | Django Unfold, Tailwind CSS, Heroicons, FontAwesome 6 | Enterprise navigation, command palette, high-contrast layouts |
 | **Reactivity** | HTMX 1.9, Vanilla JavaScript (ES6+), Alpine.js | Reactive sub-second UI updates without heavy SPA build overhead |
 | **Database & GIS** | PostgreSQL 15 + PostGIS 3.4 + pgvector (with SQLite 3 fallback) | Geometries, vector embeddings for package search, telemetry logging |
@@ -55,7 +55,7 @@ graph TD
     Admin["Operations & Dispatch\n(Unfold Modern Admin)"]
     Driver["Drivers & Tour Crew\n(Mobile PWA / Wallet)"]
 
-    Web["Django 6 Application Layer\n(travelerp)"]
+    Web["Django 5.1 Application Layer\n(travelerp)"]
 
     Client -->|HTTPS / QR / OTP| Web
     Admin -->|HTMX / Unfold Shell| Web

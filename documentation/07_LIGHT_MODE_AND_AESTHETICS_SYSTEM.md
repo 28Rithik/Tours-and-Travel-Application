@@ -127,3 +127,12 @@ Every studio header includes an intuitive theme toggle button:
 8. **Guest Tour Companion** (`/tour/itinerary/<token>/`): Mobile-friendly daylight contrast for travelers exploring outdoor tourist sites.
 9. **Petty Cash Float Register & Driver Wallet** (`/admin/finance/petty-cash-studio/` & `/driver/wallet/`): Clear financial figures, bright receipts.
 10. **Bank Reconciliation Studio** (`/admin/finance/bank-reconciliation/`): Multi-tier match badges (Exact, Fuzzy, Unmatched).
+11. **Dispatch Control Center** (`/dispatch/`): Unfold solid gradient KPI cards, Unfold data table, status pill badges.
+12. **Interstate Border Permit Sentry** (`/operations/border-permits/`): Solid KPI deck, Parivahan verification indicators.
+13. **Chauffeur Fatigue Sentry** (`/operations/driver-fatigue-sentry/`): 5-tier rest hours KPI cards, `/` shortcut search bar.
+14. **Trip Cash Envelopes** (`/operations/cash-envelopes/`): Verified expense balances, cashier refund reconciliation.
+15. **Breakdown SOS Emergency Relief** (`/operations/breakdown-sos/`): High-urgency alert pills, replacement vehicle allocation.
+16. **Parivahan E-Challan Sentry** (`/operations/echallan-sentry/`): Speeding violation pills, fine settlement tracking.
+17. **Empty Leg Return Optimizer** (`/operations/empty-legs/`): Deadhead KM avoided metric, discount return offer cards.
+18. **Statutory Document Watchdog** (`/operations/statutory-compliance/`): 30-day and 7-day RTO FC inspection alerts.
+19. **PNR Group Arrival Manifest** (`/operations/pnr-arrivals/`): Live airport gate placards, flight/train delay badges.

@@ -75,3 +75,23 @@ TravelERP employs a multi-protocol integration layer catering to:
 
 #### 5.4 Google Sheets Real-Time Sync (`/api/integrations/google-sheets/sync/`)
 - Two-way synchronization between operations spreadsheets and TravelERP core database.
+
+---
+
+### 6. Operations Studios & Regulatory Sentry APIs
+
+| Endpoint | Method | Auth | Description |
+| :--- | :---: | :---: | :--- |
+| `/api/operations/border-permits/check/<trip_id>/` | GET | Session | Computes interstate border road tax by vehicle seating & corridor |
+| `/api/operations/border-permits/pay/` | POST | Session | Records Parivahan AITP border pass payment and receipt reference |
+| `/api/operations/driver-fatigue/audit/<driver_id>/`| GET | Session | Audits chauffeur continuous driving hours, rest deficit, and ghat road risk |
+| `/api/operations/driver-fatigue/override/` | POST | Admin | Submits authorized manager safety override with mandatory justification |
+| `/api/operations/breakdown-sos/log/` | POST | Session | Logs highway breakdown incident, GPS corridor, and stranded pax count |
+| `/api/operations/breakdown-sos/dispatch/` | POST | Session | 1-Click replacement standby vehicle and relief chauffeur dispatch |
+| `/api/operations/cash-advance/issue/` | POST | Session | Issues outstation digital cash float envelope to assigned driver |
+| `/api/operations/cash-advance/expense-log/` | POST | Session | Logs verified on-road cash expenses (fuel, tolls, permits, bata) |
+| `/api/operations/cash-advance/reconcile/` | POST | Session | Final depot cashier audit, surplus refund, or deficit settlement |
+| `/api/operations/echallan/liability/` | POST | Session | Allocates violation liability: driver payroll deduction vs. company overhead |
+| `/api/operations/echallan/pay/` | POST | Session | Reconciles traffic fine payment with Parivahan portal transaction |
+| `/api/operations/statutory-compliance/renew/` | POST | Session | Records statutory renewal (Fitness FC, Insurance, Road Tax, PUC, Permit) |
+| `/api/operations/pnr-arrivals/status/` | POST | Session | Updates flight/train delay status, terminal gate, and placard display |

@@ -64,8 +64,13 @@ The compliance engine audits six critical statutory documents for every vehicle 
 
 ---
 
-### 5. Preventive Maintenance (PM) Job Cards & Spares Inventory
+### 5. Preventive Maintenance (PM) Job Cards, Workshop 4.0 & Spares Inventory
 
+- **Workshop Mechanic Studio (`/maintenance/workshop/`)**:
+  - Live bay status board: Active Job Cards, Grounded in Bays, Low Stock Parts Alert, MTD Parts Consumed.
+  - Digital job cards with mechanic allocation, service task checklists, and time tracking.
+- **Spare Parts & Consumables Store (`/maintenance/parts-inventory/`)**:
+  - Unfold solid KPI cards, SKU catalog with reorder thresholds, and direct issue to active job cards.
 - **PM Service Intervals**:
   - Minor Service (Every 10,000 KM): Engine oil change, oil filter, air filter cleaning, brake pad inspection.
   - Major Service (Every 30,000 KM): Fuel filter, coolant flush, gearbox oil, suspension bush inspection, wheel alignment.

@@ -160,10 +160,18 @@ graph TD
 5. **Enriching Fleet Asset Data:** Accesses the [Staff Vehicle Roster](http://127.0.0.1:8000/core/vehicles/) to enrich vehicle engine numbers, RTO fitness expiries, FASTag IDs, and luxury amenities.
 
 #### Primary URLs & Consoles:
+* Trip Dispatch Control Center: [`/dispatch/`](http://127.0.0.1:8000/dispatch/)
+* Vehicle Fleet Roster: [`/fleet/vehicles/`](http://127.0.0.1:8000/fleet/vehicles/)
+* Chauffeur Directory: [`/fleet/drivers/`](http://127.0.0.1:8000/fleet/drivers/)
+* Interstate Border Permit Sentry: [`/operations/border-permits/`](http://127.0.0.1:8000/operations/border-permits/)
+* Chauffeur Fatigue & Ghat Safety Sentry: [`/operations/driver-fatigue-sentry/`](http://127.0.0.1:8000/operations/driver-fatigue-sentry/)
+* Trip Cash Advance & Float Envelopes: [`/operations/cash-envelopes/`](http://127.0.0.1:8000/operations/cash-envelopes/)
+* Highway Breakdown SOS Emergency: [`/operations/breakdown-sos/`](http://127.0.0.1:8000/operations/breakdown-sos/)
+* Parivahan RTO E-Challan Sentry: [`/operations/echallan-sentry/`](http://127.0.0.1:8000/operations/echallan-sentry/)
+* Empty-Leg Deadhead Optimizer: [`/operations/empty-legs/`](http://127.0.0.1:8000/operations/empty-legs/)
+* Fleet Statutory Compliance Watchdog: [`/operations/statutory-compliance/`](http://127.0.0.1:8000/operations/statutory-compliance/)
+* Flight & Train PNR Arrivals Manifest: [`/operations/pnr-arrivals/`](http://127.0.0.1:8000/operations/pnr-arrivals/)
 * Live Fleet Radar Command: [`/operations/fleet-radar/`](http://127.0.0.1:8000/operations/fleet-radar/)
-* Vehicle Asset Enrichment Studio: [`/core/vehicles/`](http://127.0.0.1:8000/core/vehicles/)
-* Trip Dispatch & Lifecycle: [`/dispatch/`](http://127.0.0.1:8000/dispatch/)
-* WhatsApp Bot & Handover Console: [`/admin/operations/whatsapp-bot/`](http://127.0.0.1:8000/admin/operations/whatsapp-bot/)
 
 ---
 

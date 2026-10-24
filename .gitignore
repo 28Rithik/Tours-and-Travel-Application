@@ -1,39 +1,79 @@
-# Python
+# ==============================================================================
+# TRAVELERP PLATFORM - .gitignore
+# ==============================================================================
+
+# Python Bytecode & Cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+*.pyo
+*.pyd
 
-# Virtual environments
+# Virtual Environments
 .venv/
 venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
-# Django
-*.log
+# Django Database & Runtime Caches
 db.sqlite3
-media/
+db.sqlite3-journal
+db.sqlite3-shm
+db.sqlite3-wal
+*.sqlite3
 staticfiles/
+media/
 
-# Environment and local settings
+# Backups, Scratch & Temporary Directories
+backups/
+scratch/
+tmp/
+temp/
+*.tmp
+*.bak
+*~
+*.swp
+*.swo
+
+# Sensitive Keys & Environment Files
 .env
 .env.*
 !.env.example
+*.pem
+*.key
+*.pub
+id_rsa*
+exit
+exit.pub
 
-# Test and coverage
+# Logs & Debug Dumps
+*.log
+*.dump
+non_ascii_results.txt
+*_results.txt
+
+# Test, Coverage & Playwright Artifacts
 .coverage
 htmlcov/
 .pytest_cache/
+test-results/
+playwright-report/
+.nyc_output/
 
-# Editors and operating systems
-!.vscode/
-!.vscode/settings.json
-.idea/
+# IDE, Editors & Operating Systems
 .DS_Store
 Thumbs.db
+desktop.ini
+.idea/
+*.sublime-project
+*.sublime-workspace
+!.vscode/
+!.vscode/settings.json
 
-# Generated files
+# Large Generated Artifacts & Data Dumps
 *.xlsx
 scripts/*.json

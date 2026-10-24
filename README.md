@@ -1,195 +1,235 @@
-# TravelERP
+# 🌐 SIVA GAYATHRI TOURS & TRAVELS — TRAVELERP
+### Enterprise Omnichannel Fleet Dispatch, Tour Operations & Accounting ERP
 
-TravelERP is a single-user Django website for cab and travel operations. It replaces a spreadsheet workflow with structured records for parties, bookings, trips, vehicles, drivers, billing, expenses, payments, ledgers, statements, and profitability.
+[![Django](https://img.shields.io/badge/Django-5.1.5-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Django Unfold](https://img.shields.io/badge/Admin-Django%20Unfold%200.40-0284C7?style=for-the-badge)](https://github.com/unfoldadmin/django-unfold)
+[![Architecture](https://img.shields.io/badge/Stack-ASGI%20%2F%20Channels%20%2B%20HTMX-6366F1?style=for-the-badge)](https://channels.readthedocs.io/)
+[![Database](https://img.shields.io/badge/Database-SQLite%20%2F%20PostgreSQL%2015%20%2B%20PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-## Features
+---
 
-- Django Admin CRUD for all operational and finance records
-- Booking to trip workflow with automatic `BK-0001` and `TR-0001` identifiers
-- Rate card selection by party, vehicle type, and effective date
-- Kilometer, day, day-plus-kilometer, fixed, and custom billing
-- Independent driver money requests stored as Driver Advances, with allocations across one or more trips
-- Owned and outsourced vehicles, with supplier/cab-owner tracking and per-trip supplier rental costs
-- Trip expenses, fuel records, driver settlements, payments, and adjustments
-- Party ledger with opening balance, charges, receipts, supplier payments, advances, and adjustments
-- Split customer receipts across cash, UPI/GPay, card, bank transfer, or cheque
-- Billable customer extras such as water bottles and snacks
-- CAB statement PDF and Excel exports
-- Landscape multi-page PDF with repeating table header, page numbers, and reconciliation page
-- Vehicle and party profitability reports
-- Login-protected dashboard and reporting pages
-- Employee transport contracts with daily vehicle requirements and mixed owned/outsourced assignments
-- Driver/cleaner crew assignments and separate employee payments
+## 📖 Executive Summary
 
-## Technology
+**TravelERP** is an enterprise-grade, omnichannel fleet management and travel operations ERP built for **Siva Gayathri Tours & Travels**. Operating across South India (Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Puducherry) and All-India national tour circuits, the platform coordinates a commercial fleet of **300+ vehicles** (Sedans, Innova Crysta MPVs, Tempo Travellers, Urbanias, Mini Buses, and 54-Seater Luxury Coaches).
 
-- Python 3.12+
-- Django 6.0.2
-- SQLite
-- ReportLab 4.2.2
-- openpyxl 3.1.5
-- Django templates with responsive CSS
+The system features an **end-to-end Django Unfold Admin design language across both management and operational staff portals**, unifying dispatch control, mobile driver handovers, commercial billing, GPS telemetry, AI copilot assistants, and automated accounting into a seamless interface.
 
-## Project Layout & Documentation
+---
 
-Detailed system documentation and architectural roadmaps are organized in the [`documentation/`](documentation/) directory:
-- [System Overview & Index](documentation/01_SYSTEM_OVERVIEW_AND_INDEX.md)
-- [Operational Studios & Consoles](documentation/02_OPERATIONAL_STUDIOS_AND_CONSOLES.md)
-- [User Roles & Operations Manual](documentation/USER_ROLES_AND_OPERATIONS_MANUAL.md)
+## 🚀 Key Modules & Capabilities
+
+### 1. Real-Time Dispatch Control & Operations Studios
+* **Dispatch Control Center (`/dispatch/`)**: Real-time cockpit managing unassigned, assigned, in-transit, and completed duty slips. Features Unfold solid gradient KPI cards, instant tab filters, and full search.
+* **Interstate State Border Permit Sentry (`/operations/border-permits/`)**: Automatically detects cross-border routes, calculates seating-based check-post tax, and tracks Parivahan AITP compliance.
+* **Chauffeur Fatigue & Duty Rest Sentry (`/operations/driver-fatigue-sentry/`)**: Tracks continuous driving hours, enforces statutory 8h rest periods, and flags night-shift or Ghat road (Ooty/Kodaikanal) risks with dispatch lockouts.
+* **Trip Cash Advance & Kharcha Envelope Studio (`/operations/cash-envelopes/`)**: Digital floats issued per trip with verified on-road logging of diesel, tolls, state taxes, and driver bata.
+* **Highway Breakdown & SOS Emergency Relief (`/operations/breakdown-sos/`)**: Emergency coordination room with GPS landmark logging, passenger distress monitoring, and 1-click replacement vehicle dispatch.
+* **Parivahan RTO E-Challan Sentry (`/operations/echallan-sentry/`)**: Synchronizes highway traffic fines, allocates liability (driver deduction vs. company overhead), and reconciles payments.
+* **Empty-Leg Return Optimizer (`/operations/empty-legs/`)**: Discovers deadhead return corridors (e.g. Madurai ➔ Chennai) to monetize unbooked seats at discounted rates above fuel/toll costs.
+* **Fleet Statutory Compliance Watchdog (`/operations/statutory-compliance/`)**: Actively monitors Fitness (FC), Commercial Insurance, Road Tax, Tourist Permits, and PUC with zero-tolerance dispatch locks.
+* **Flight & Train PNR Arrival Manifest (`/operations/pnr-arrivals/`)**: Live flight and Vande Bharat train tracking, chauffeur airport gate coordination, and placard display management.
+
+### 2. Fleet & Chauffeur Directory
+* **Vehicle Fleet Roster (`/fleet/vehicles/`)**: Complete commercial vehicle directory with fuel type, seating capacity, FASTag wallet linkage, GPS tracker IMEI, and fitness status.
+* **Chauffeur Directory (`/fleet/drivers/`)**: Driver licensing (Badge TR/HMV), police verification, emergency contacts, biometric IDs, and safety scorecards.
+* **Fleet Taxonomy & Hierarchy (`/fleet/categories/`, `/fleet/types/`)**: Structured vehicle categorization from Compact Sedans to Luxury Multi-Axle Coaches.
+
+### 3. Maintenance Workshop 4.0
+* **2D Vehicle Damage Marker Studio (`/maintenance/damage-marker/`)**: Interactive 2D chassis blueprint (Sedan, SUV, Coach) to pin dents, scratches, and damage severity.
+* **2D Axle & Tire Health Studio (`/maintenance/tire-studio/`)**: Visual axle diagrams with color-coded tread depth wear (<=2.5mm critical alert) and retread tracking.
+* **Spare Parts & Consumables Inventory (`/maintenance/parts-inventory/`)**: Warehouse SKU catalog, stock-level sentry, and automated job card allocation.
+* **Mechanic Garage Floor Studio (`/maintenance/workshop/`)**: Digital job cards, mechanic assignment, time logging, and parts consumption tracking.
+
+### 4. Corporate Employee Transport (ETS) & Institutional Commute
+* **Batch Roster Dispatcher (`/commute/roster-dispatcher/`)**: Capacity matching and route clustering for corporate IT and school commute operations.
+* **SLA Performance & Penalty Studio (`/commute/sla-penalties/`)**: Delay breach detection linked directly to corporate billing deductions.
+* **Women Safety & Night Escort Command (`/commute/women-safety/`)**: Mandatory security escorts for isolated female drops during night shifts (8 PM - 6 AM).
+
+### 5. Holiday Tour Packages & Industrial Visits (IV)
+* **Master Package Catalog**: 6,252+ curated holiday packages across Pilgrimage, Hill Stations, Heritage, and International destinations.
+* **Day-by-Day Itinerary Builder (`/trips/<id>/itinerary-builder/`)**: Dynamic drag-and-drop itinerary sequencer with venue coordinates and timing slots.
+* **Guest Tour Companion (`/tour/itinerary/<token>/`)**: Zero-login mobile companion accessible via SMS/WhatsApp magic link.
+* **College Industrial Visits (IV)**: Special multi-bus expedition coordination with student manifests and faculty liaison.
+
+### 6. Finance, Billing & Accounting
+* **Corporate GST B2B Invoicing (`/finance/gst-studio/`)**: Automated CGST/SGST/IGST tax calculation, invoice generation, and e-Way Bill JSON generation.
+* **Dynamic UPI QR & Settlement (`/payments/`)**: NPCI-compliant dynamic UPI QR generation with instant webhook payment simulation.
+* **Driver Advances & Bata Calculator**: Multi-tier outstation bata calculation based on plain vs. ghat terrain and day/night duty hours.
+* **Party Ledger & CAB Statements (`/statements/generate/`)**: High-density landscape multi-page PDF statements with reconciliation sections.
+
+### 7. Rathasārathi AI Operations Copilot
+* Sub-second natural language fleet operations assistant powered by Groq Cloud (LLaMA 3.3-70B / Qwen) with local rule fallback.
+* 8 live database function calling tools: active tours, compliance expiry alerts, revenue metrics, driver safety, fleet availability, CRM inquiries, trip lookups, and semantic tour package search.
+
+---
+
+## 🎨 Django Unfold Design Language
+
+The entire operational staff portal has been standardized to match the **Django Unfold Admin UI**:
+* **Solid Gradient KPI Decks**: `.unfold-kpi-card-solid` cards in 6 calibrated themes (`blue`, `green`, `purple`, `amber`, `rose`, `slate`) with monospace numbers, micro tracking-wider titles, and faint background icons.
+* **Standardized Data Tables**: `.unfold-table` with uppercase 11px headers, 1px border grid, subtle hover highlights, and `.unfold-pill-badge` status pills.
+* **Multi-Fieldset Form Cards**: `.unfold-form-card` sections with numbered step badges, clean inputs, and sticky action footers (`.unfold-submit-bar`).
+* **Universal Search Bar**: `.unfold-search-box` with integrated `<kbd>/</kbd>` keyboard shortcut for instant filtering.
+* **Dual Cockpit Aesthetics**: Sunlight-optimized Light Mode for outdoor yard dispatchers and high-contrast Dark Mode for night control desks.
+
+---
+
+## 💻 Tech Stack & Architecture
+
+| Layer | Technologies | Purpose |
+| :--- | :--- | :--- |
+| **Backend Framework** | Python 3.12+, Django 5.1.5 | High-performance ORM, security, auth, and business logic |
+| **Real-Time & ASGI** | Django Channels 4.3, Daphne 4.2 | Live GPS WebSockets and asynchronous event pipelines |
+| **Admin & UI Shell** | Django Unfold 0.40, Custom Unfold Tokens | Modern, responsive dashboard and operations interface |
+| **Reactivity** | HTMX 1.21, Vanilla ES6+ JavaScript | Fast asynchronous table updates without SPA overhead |
+| **Databases** | SQLite 3 (Dev) / PostgreSQL 15 + PostGIS (Prod) | Structured records, spatial geometries, vector embeddings |
+| **Document Engine** | ReportLab 4.2, openpyxl 3.1, xlsxwriter, QRCode | PDF invoices, landscape CAB statements, Excel rosters |
+| **Task Queue & Cache**| Celery 5.6, Redis 8.1, Huey | Background jobs, statement parsing, and distributed caching |
+| **AI Copilot** | Groq Cloud LLaMA 3.3 / Qwen, Rathasārathi Engine | Natural language operations assistant and semantic search |
+
+---
+
+## 📂 Project Structure
 
 ```text
-travelerp/               Django core configuration, routing, and shared views
-core/                    Party, Driver, Vehicle registry, and RateCard pricing
-operations/              Trip dispatch, 7-milestone lifecycle, OSRM routing, Rathasārathi AI copilot
-finance/                 Expenses, corporate GST invoices, e-Way bills, petty cash, ledger
+travelerp/               Core project settings, ASGI/WSGI configs, and root URL routing
+core/                    Party, Chauffeur, Vehicle registry, and RateCard pricing models
+operations/              Trip dispatch, 7-milestone lifecycle, OSRM routing, studios
+finance/                 Corporate GST invoices, e-Way bills, petty cash, customer ledgers
 finance_fleet/           Fleet CPK (Cost-Per-KM) optimization radar studio
-finance_payroll/         Driver & staff payroll processing
-payments_gateway/        Dynamic UPI QR generation, Razorpay/webhook simulation, GL engine
-crm/                     Interactive Kanban pipeline, inquiries, quotations, follow-ups
-integrations/            Email SES/SMTP studio, Meta Lead Ads webhook, Google Sheets sync
-fleet_commute/           Corporate employee transport (ETS), shift rosters, ESG metrics
-fleet_contracts/         Institutional contracts, vehicle requirements, SLA tracking
-maintenance/             Interactive 2D vehicle damage marker studio, service tickets
-packages/                Holiday tour packages, catalog management, itinerary days
+finance_payroll/         Chauffeur and operational staff payroll processing
+payments_gateway/        Dynamic UPI QR generation, Razorpay webhook simulation, GL engine
+crm/                     Interactive Kanban pipeline, customer inquiries, quotations
+fleet_commute/           Corporate employee transit (ETS), shift rosters, ESG reporting
+fleet_contracts/         Institutional contracts, daily vehicle requirements, SLA tracking
+maintenance/             Interactive 2D damage marker, tyre studio, workshop job cards
+packages/                Holiday tour package catalog, itineraries, day-wise activities
 package_tours/           Group tour departures, college industrial visits (IVs), manifests
-customer_portal/         Public landing page, self-service package booking, live radar
-driver_portal/           Driver PWA mobile hub, handover inspection, offline wallet, SOS
-gis_stack/               Dockerized PostGIS, TileServer-GL, and OSRM routing machine
-documentation/           Comprehensive 10-phase enterprise manuals and operational blueprints
-templates/               Responsive Django HTML UI templates
-static/                  Application styles, JavaScript, and PWA assets
-media/                   Uploaded trip documents, odometer photos, and vaults
-tests/                   Unit, integration, and end-to-end regression suites
-scripts/                 Database seeding, spatial tools, and data import utilities
+customer_portal/         Public customer landing page, self-service package booking
+driver_portal/           Chauffeur mobile PWA, vehicle handover, trip execution lifecycle
+documentation/           Comprehensive 11-chapter enterprise manuals and architecture guides
+templates/               Responsive Django HTML UI templates matching Unfold styling
+static/                  Application stylesheets (custom_admin.css), scripts, and assets
+media/                   Uploaded trip documents, odometer photos, and vehicle papers
+scripts/                 Database seeders, spatial utilities, and data import tools
 ```
 
-## Windows Setup
+---
 
-Open PowerShell in the project directory:
+## 🛠️ Setup & Installation
+
+### Prerequisites
+* Python 3.12 or newer
+* Git
+
+### Windows PowerShell Setup
 
 ```powershell
+# 1. Clone the repository
+git clone https://github.com/28Rithik/Tours-and-Travel-Application.git
+cd "Tours and Travel Application"
+
+# 2. Create and activate a virtual environment
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+# 3. Upgrade pip and install dependencies
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-```
 
-If PowerShell blocks script activation for the current terminal only:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
-.\.venv\Scripts\Activate.ps1
-```
-
-The checked-in `.venv` interpreter is also usable without activation:
-
-```powershell
-.\.venv\Scripts\python.exe manage.py check
-```
-
-## Initialize the Database
-
-```powershell
+# 4. Apply database migrations
 python manage.py migrate
+
+# 5. Create superuser administrator
 python manage.py createsuperuser
-```
 
-Enter a username, email, and password when prompted. The superuser is used for both the Admin and main application login.
+# 6. Verify system integrity
+python manage.py check
 
-## Run the Application
-
-```powershell
+# 7. Start the development server
 python manage.py runserver
 ```
 
-Open:
+### Linux / macOS Setup
 
-- Main application: http://127.0.0.1:8000/
-- Login: http://127.0.0.1:8000/login/
-- Dashboard: http://127.0.0.1:8000/dashboard/
-- Admin: http://127.0.0.1:8000/admin/
-- Statement generator: http://127.0.0.1:8000/statements/generate/
+```bash
+# 1. Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-## Recommended Data Entry Order
+# 2. Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
 
-1. Create a Party in Admin.
-2. Create a Driver and Vehicle.
-3. Create a Rate Card for the party and vehicle type.
-4. Create a Booking. The booking number is generated automatically.
-5. Create a Trip from the booking. The trip number and applicable rate are generated automatically when values are omitted.
-6. Assign the vehicle and driver, then record dates, times, and opening/closing kilometres.
-7. Mark the trip completed after the journey.
-8. Add expenses, fuel records, and driver settlement details.
-9. Store driver money requests under Finance > Driver money requests as Driver Advances. Leave the optional trip blank when the money is not yet tied to one trip.
-10. Use the Driver Advance allocation rows to split one request across multiple trips. For example, allocate a ₹2,000 request across three trips as ₹800, ₹700, and ₹500. Create a second Driver Advance for any later request, such as ₹500.
-11. Record customer receipts, supplier payments, or ledger adjustments.
-12. Open the party ledger or generate a PDF/Excel statement.
+# 3. Run migrations and start server
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-Customer payment timing does not change the trip workflow. Record a customer receipt when money is actually received: it may be after the trip, or 3, 10, 30, or 50 days later. A customer who pays the full amount after the trip uses one receipt; a customer who pays in parts uses one Payment record for each transfer. For example, a ₹15,000 bill can be recorded as ₹5,000 cash, ₹6,000 UPI/GPay, and ₹4,000 card. The payment records must total the customer bill before the trip balance reaches zero.
+---
 
-Record the actual opening and closing kilometres after the trip. If the vehicle runs 1,600 KM, the KM billing uses 1,600 KM even when the estimate was lower. Add customer-provided items such as water bottles and snacks as separate Trip Expense records with `Billable to customer` enabled. Internal costs such as a company repair can be recorded with that option disabled.
+## 🌐 Console & URL Directory
 
-## Tests and Checks
+| Portal / Studio | Endpoint URL | Description |
+| :--- | :--- | :--- |
+| **Main Dashboard** | `/dashboard/` | High-level executive KPI overview |
+| **Django Unfold Admin** | `/admin/` | Full database administration |
+| **Dispatch Control Center** | `/dispatch/` | Real-time booking & trip dispatch board |
+| **Create Booking** | `/bookings/create/` | 4-step Unfold booking entry form |
+| **Fleet Vehicle Roster** | `/fleet/vehicles/` | Vehicle inventory and fitness radar |
+| **Chauffeur Directory** | `/fleet/drivers/` | Driver roster and licensing sentry |
+| **Vehicle Categories** | `/fleet/categories/` | Vehicle classifications and capacity |
+| **Vehicle Types** | `/fleet/types/` | Commercial vehicle type catalog |
+| **Border Permit Sentry** | `/operations/border-permits/` | Interstate road tax and AITP passes |
+| **Chauffeur Fatigue Sentry**| `/operations/driver-fatigue-sentry/` | Driver rest counter and fatigue locking |
+| **Trip Cash Envelopes** | `/operations/cash-envelopes/` | Outstation cash advances & expenses |
+| **Highway Breakdown SOS** | `/operations/breakdown-sos/` | 24x7 emergency relief dispatch |
+| **Parivahan E-Challans** | `/operations/echallan-sentry/` | Highway violation tracking and settlement |
+| **Empty-Leg Monetization** | `/operations/empty-legs/` | Deadhead return trip optimizer |
+| **Statutory Compliance** | `/operations/statutory-compliance/` | Fleet papers and RTO FC watchdog |
+| **PNR Arrivals Manifest** | `/operations/pnr-arrivals/` | Flight and train delay manifest |
+| **Parts Inventory** | `/maintenance/parts-inventory/` | Spare parts catalog and stock alerts |
+| **Tire Health Studio** | `/maintenance/tire-studio/` | 2D axle tread depth tracking |
+| **Damage Marker Studio** | `/maintenance/damage-marker/` | 2D chassis inspection blueprint |
+| **Workshop Mechanic Studio**| `/maintenance/workshop/` | Garage floor job cards and work orders |
+| **Statement Generator** | `/statements/generate/` | Multi-page PDF/Excel CAB statements |
 
-Run the full backend, UI route, export, and mock workflow suite:
+---
+
+## 🧪 Testing & Validation
+
+Run the test suite and verify system health:
 
 ```powershell
+# 1. Standard Django system check
 python manage.py check
+
+# 2. Migration integrity check
 python manage.py makemigrations --check
+
+# 3. Run test suite
 python manage.py test -v 1
-```
 
-The platform runs on enterprise-grade PostgreSQL 15 + PostGIS with real tour packages (6,252 packages, 30,508 itineraries, 31,221 vehicle tariffs) across South India, North India, and International destinations.
-
-Verify platform health and live endpoints:
-
-```powershell
-python scripts/test_postgres_live.py
-```
-
-Run test suite with preserved test database:
-
-```powershell
-python manage.py test tests.test_rathasarathi_ai_copilot --keepdb
-```
-
-Collect static assets before deployment:
-
-```powershell
+# 4. Collect static assets
 python manage.py collectstatic --noinput
 ```
 
-## Statement Rules
+---
 
-Customer receipts reduce the party balance. Supplier payments and driver advances increase it. Ledger adjustments use their signed amount.
+## 🚢 Production Deployment
 
-Rate cards can be entered for a whole vehicle type or for one exact vehicle. When a trip is created, an active exact-vehicle rate is preferred; otherwise the active vehicle-type rate is used. The trip stores a copy of the selected rates so later rate-card edits do not change historical billing.
+For containerized deployment using Docker Compose:
 
-For outsourced work, create the cab owner as a Party with type `Supplier`, mark the rented Vehicle as `Outsourced / supplier`, and set its owner. Add a Supplier Trip Cost for each outsourced trip. This records the amount payable to the owner and includes it in profitability without changing the amount billed to your customer.
+```bash
+# Build and run the production stack (Nginx, Daphne ASGI, Gunicorn, PostgreSQL, Redis)
+docker compose -f docker-compose.prod.yml up -d --build
+```
 
-To send a statement to the outsourced owner, select the supplier party in the statement generator. The export lists outsourced trip rental costs, shows the supplier name, subtracts recorded `Supplier payment` transactions, and calculates the remaining payable amount.
+---
 
-For employee transportation, create one `Employee Transport Contract` for the company service, then create one `Employee Transport Day` for each operating date. Set that day's required vehicle count and add one `Employee Transport Assignment` for every bus, car, or van. Owned and outsourced vehicles can be mixed on the same date, and each assignment keeps its own driver, cleaner, route, time, KM, customer rate, and supplier cost. Use `Trip Crew Assignment` when a bus has both a driver and cleaner. If the same person performs both jobs, use the `Driver + cleaner` role with the Driver field only; do not create a duplicate cleaner. Use `Employee Payment` for separate pay amounts, for example driver ₹1,000 and cleaner ₹500, or one combined driver-cleaner payment.
+## 📄 License & Ownership
 
-The statement uses the supplied CAB statement style: a dense landscape trip table, separate supplier payment rows, repeating period and party headers, page numbering, and a final reconciliation section. Business-specific reconciliation labels can be adjusted in the statement renderer.
-
-## PythonAnywhere Deployment
-
-1. Upload or clone the project to PythonAnywhere.
-2. Create a virtual environment and install `requirements.txt`.
-3. Configure a manual web app with the matching Python version.
-4. Point the WSGI configuration to `travelerp.wsgi.application`.
-5. Set `DEBUG=False` and configure the PythonAnywhere domain in `ALLOWED_HOSTS`.
-6. Run `python manage.py migrate` and `python manage.py createsuperuser`.
-7. Run `python manage.py collectstatic --noinput`.
-8. Map `/static/` to `staticfiles/` and `/media/` to `media/` in the Web tab.
-9. Reload the web application.
-10. Back up `db.sqlite3` regularly.
-
-Before production, replace the development `SECRET_KEY` with an environment-based secret and configure HTTPS security settings.
-
-## Current Scope
-
-Included: full core operations, finance tracking, driver advances, billing, party ledger, statements, reports, authentication, tests, and deployment preparation.
-
-Not included: mobile applications, a separate JavaScript frontend, multi-user roles, and importing historical spreadsheet data.
+Copyright © 2026 **Siva Gayathri Tours & Travels**. All rights reserved.
+Proprietary software developed for enterprise transport operations.
