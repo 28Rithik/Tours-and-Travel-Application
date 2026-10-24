@@ -1441,7 +1441,21 @@ class InterstateBorderPermit(models.Model):
 	target_state = models.CharField(max_length=50, help_text="e.g. Kerala, Karnataka, Puducherry, Andhra Pradesh")
 	permit_type = models.CharField(max_length=30, choices=PERMIT_TYPES, default='single_entry')
 	checkpost_name = models.CharField(max_length=100, blank=True, help_text="e.g. Walayar, Attibele, Zuzuvadi, Gorimedu")
-	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+	state_permit_fee = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('200.00'), help_text="State entry permit fee (₹200 standard across Kerala, Karnataka, Andhra)")
+	border_road_tax = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="State border road/passenger tax (₹0 for Kerala reciprocal, N amount for KA/AP/PY)")
+	tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('200.00'), help_text="Total statutory tax paid (permit fee + border road tax)")
+	is_aitp_exempt = models.BooleanField(default=False, help_text="True if interstate taxes are waived under All India Tourist Permit")
+	vehicle_category_bracket = models.CharField(max_length=40, default='suv', help_text="motor_cab, maxi_cab, omnibus_mini, omnibus_coach")
+	payment_mode = models.CharField(
+		max_length=30,
+		default='parivahan_online',
+		choices=[
+			('parivahan_online', 'Parivahan Check-post Online Portal'),
+			('rto_checkpost_cash', 'RTO Check-post Cash Receipt'),
+			('fastag_automated', 'FASTag Automated Border Toll'),
+			('aitp_prepaid', 'AITP MoRTH National Prepaid')
+		]
+	)
 	receipt_number = models.CharField(max_length=100, blank=True)
 	valid_from = models.DateTimeField(null=True, blank=True)
 	valid_until = models.DateTimeField(null=True, blank=True)
@@ -1456,8 +1470,78 @@ class InterstateBorderPermit(models.Model):
 		verbose_name = 'Interstate Border Permit'
 		verbose_name_plural = 'Interstate Border Permits'
 
+	def save(self, *args, **kwargs):
+		if self.is_aitp_exempt:
+			self.state_permit_fee = Decimal('0.00')
+			self.border_road_tax = Decimal('0.00')
+			self.tax_amount = Decimal('0.00')
+		else:
+			self.tax_amount = (self.state_permit_fee or Decimal('0.00')) + (self.border_road_tax or Decimal('0.00'))
+		super().save(*args, **kwargs)
+
 	def __str__(self):
 		return f"{self.vehicle.registration_number} -> {self.target_state} ({self.get_status_display()})"
+
+
+# ==============================================================================
+# P5-1B: ECO-SENSITIVE HILL STATION E-PASS SENTRY (NILGIRIS / KODAIKANAL / VALPARAI)
+# ==============================================================================
+
+class EcoSensitiveZoneEPass(models.Model):
+	"""
+	P5-1B: Statutory E-Pass for Eco-Sensitive Hill Stations (Nilgiris, Kodaikanal, Valparai).
+	Mandated by the Madras High Court & TNeGA (epass.tnega.org) to manage
+	carrying capacity and vehicular entry into Western Ghats reserves.
+	"""
+	ZONE_CHOICES = [
+		('nilgiris', 'Nilgiris (Ooty / Coonoor / Kotagiri / Gudalur)'),
+		('kodaikanal', 'Kodaikanal (Dindigul District)'),
+		('valparai', 'Valparai (Anamalai Tiger Reserve)'),
+		('yercaud', 'Yercaud (Shevaroys Hill Entry)'),
+	]
+	STATUS_CHOICES = [
+		('active', 'Active & Approved (Valid QR)'),
+		('pending', 'Pending TNeGA Approval'),
+		('expired', 'Expired Pass'),
+		('cancelled', 'Cancelled / Route Altered'),
+		('exempt', 'Exempt / Local Resident Permit'),
+	]
+	PURPOSE_CHOICES = [
+		('tourism', 'Commercial Tourism Package'),
+		('corporate', 'Corporate Retreat / Group Event'),
+		('pilgrimage', 'Pilgrimage / Temple Transit'),
+		('educational', 'College / School Industrial Visit (IV)'),
+		('wedding', 'Wedding / Private Charter'),
+	]
+
+	trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, null=True, blank=True, related_name='hill_epasses')
+	vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='hill_epasses')
+	driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='hill_epasses')
+	zone = models.CharField(max_length=30, choices=ZONE_CHOICES, default='nilgiris')
+	epass_number = models.CharField(max_length=80, unique=True, help_text="e.g. TNEGA-NIL-2026-88129")
+	entry_date = models.DateField()
+	exit_date = models.DateField()
+	num_tourists = models.PositiveIntegerField(default=4)
+	hotel_name = models.CharField(max_length=150, blank=True, help_text="Hotel / Resort Name")
+	hotel_booking_ref = models.CharField(max_length=100, blank=True, help_text="Hotel confirmation voucher/ref")
+	purpose = models.CharField(max_length=30, choices=PURPOSE_CHOICES, default='tourism')
+	checkpost_name = models.CharField(max_length=120, blank=True, help_text="e.g. Burliyar Checkpost, Silver Cascade Checkpost, Aliyar Checkpost")
+	qr_code_token = models.CharField(max_length=100, blank=True, help_text="Cryptographic QR hash for scanner")
+	status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='active')
+	verified_at_checkpost = models.BooleanField(default=False)
+	verified_timestamp = models.DateTimeField(null=True, blank=True)
+	pdf_document = models.FileField(upload_to='epasses/pdf/', null=True, blank=True)
+	notes = models.TextField(blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		ordering = ['-entry_date']
+		verbose_name = 'Eco-Sensitive Zone E-Pass'
+		verbose_name_plural = 'Eco-Sensitive Zone E-Passes'
+
+	def __str__(self):
+		return f"{self.get_zone_display()} — {self.vehicle.registration_number} ({self.epass_number})"
 
 
 # ==============================================================================

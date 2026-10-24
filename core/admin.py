@@ -929,6 +929,7 @@ class VehicleAdmin(ModelAdmin):
 	list_display = (
 		'registration_number_display',
 		'vehicle_category_badge',
+		'permit_category_badge',
 		'vehicle_type',
 		'base_depot',
 		'ownership_badge',
@@ -939,8 +940,8 @@ class VehicleAdmin(ModelAdmin):
 		'status_toggle_display',
 		'live_map_link',
 	)
-	list_filter = ('vehicle_category', 'base_depot', 'ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
-	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name', 'base_depot', 'vehicle_category__name')
+	list_filter = ('vehicle_category', 'rto_permit_category', 'primary_permit_type', 'has_aitp', 'base_depot', 'ownership_type', 'status', VehicleComplianceFilter, 'fuel_type', 'vehicle_type')
+	search_fields = ('registration_number', 'brand', 'model', 'owner_party__name', 'default_driver__name', 'supplier_driver_name', 'base_depot', 'vehicle_category__name', 'permit_number', 'aitp_permit_number')
 
 	class Media:
 		css = {
@@ -958,6 +959,20 @@ class VehicleAdmin(ModelAdmin):
 			'fields': ('brand', 'model', 'seating_capacity', 'has_ac', 'fuel_type'),
 			'description': 'Key vehicle details visible for both owned and outsourced vehicles.'
 		}),
+		('Statutory RTO Commercial Permits & AITP Compliance', {
+			'fields': (
+				'primary_permit_type',
+				'rto_permit_category',
+				'has_contract_carriage_permit',
+				'has_tourist_permit',
+				'permit_number',
+				'permit_expiry',
+				'has_aitp',
+				'aitp_permit_number',
+				'aitp_expiry'
+			),
+			'description': 'Statutory commercial passenger transport authorization under Section 88 MV Act (Contract Carriage, Tourist Authorization, and AITP).'
+		}),
 		('Technical Specs (Detailed)', {
 			'fields': ('year', 'color', 'fuel_tank_capacity', 'def_capacity', 'expected_mileage', 'current_km'),
 			'classes': ('owned-only-tab',)
@@ -970,7 +985,7 @@ class VehicleAdmin(ModelAdmin):
 			'fields': ('default_driver',),
 		}),
 		('Compliance & Expiries', {
-			'fields': ('rc_expiry', 'fc_expiry', 'permit_expiry', 'tax_expiry', 'pollution_expiry', 'next_service_due_km'),
+			'fields': ('rc_expiry', 'fc_expiry', 'tax_expiry', 'pollution_expiry', 'next_service_due_km'),
 			'classes': ('owned-only-tab',)
 		}),
 		('Insurance Details', {
@@ -1045,6 +1060,23 @@ class VehicleAdmin(ModelAdmin):
 			cat.badge_color or '#0284c7',
 			cat.name
 		)
+
+	@admin.display(description='RTO Permit & AITP')
+	def permit_category_badge(self, obj):
+		category_labels = {
+			'motor_cab': ('#0284c7', '#e0f2fe', 'Motor Cab (<=6)'),
+			'maxi_cab': ('#7c3aed', '#ede9fe', 'Maxi Cab (6-12)'),
+			'omnibus': ('#d97706', '#fef3c7', 'Omnibus (>6)'),
+			'special': ('#4b5563', '#f3f4f6', 'Special Permit'),
+		}
+		color, bg, label = category_labels.get(obj.rto_permit_category, ('#0284c7', '#e0f2fe', obj.get_rto_permit_category_display()))
+		badges = [f'<span style="background: {bg}; color: {color}; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px;">{label}</span>']
+		if obj.has_aitp:
+			if obj.is_aitp_valid():
+				badges.append('<span style="background: #e0e7ff; color: #4338ca; padding: 2px 5px; border-radius: 4px; font-weight: 700; font-size: 10px; margin-left: 4px;" title="All India Tourist Permit - Exempt from State Border Road Taxes">✓ AITP</span>')
+			else:
+				badges.append('<span style="background: #fee2e2; color: #b91c1c; padding: 2px 5px; border-radius: 4px; font-weight: 700; font-size: 10px; margin-left: 4px;" title="AITP Expired!">⚠ AITP Exp</span>')
+		return mark_safe(''.join(badges))
 
 	@admin.display(description='Fleet Ownership')
 	def ownership_badge(self, obj):

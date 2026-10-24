@@ -394,6 +394,71 @@ class Vehicle(models.Model):
 	tax_expiry = models.DateField(null=True, blank=True)
 	pollution_expiry = models.DateField(null=True, blank=True)
 	next_service_due_km = models.PositiveIntegerField(null=True, blank=True, verbose_name="Next Service Due (KM)")
+
+	# Statutory RTO Commercial Permits & AITP Compliance
+	PRIMARY_PERMIT_CHOICES = [
+		('contract_carriage', 'Contract Carriage Permit (Hired as Whole)'),
+		('tourist_permit', 'Tourist Permit (Sightseeing & Packages)'),
+		('aitp', 'All India Tourist Permit (AITP Nationwide)'),
+		('motor_cab', 'Motor Cab Permit (<= 6 Pax - Sedan/Innova)'),
+		('maxi_cab', 'Maxi Cab Permit (6 to 12 Pax - Urbania/Tempo)'),
+		('omnibus', 'Omnibus Permit (> 6/12 Pax - Mini Bus/Coach)'),
+		('special_permit', 'Special Permit (Temporary / Specific Event)'),
+		('stage_carriage', 'Stage Carriage (Public Bus / Non-Charter)'),
+		('private_service', 'Private Service Vehicle (Institution Internal)'),
+	]
+	RTO_CATEGORY_CHOICES = [
+		('motor_cab', 'Motor Cab (<= 6 Passengers)'),
+		('maxi_cab', 'Maxi Cab (6 to 12 Passengers)'),
+		('omnibus', 'Omnibus (> 6 Passengers)'),
+		('special', 'Special Temporary Category'),
+	]
+	primary_permit_type = models.CharField(
+		max_length=40,
+		choices=PRIMARY_PERMIT_CHOICES,
+		default='contract_carriage',
+		verbose_name="Primary Commercial Permit",
+		help_text="Standard statutory permit category under MV Act"
+	)
+	rto_permit_category = models.CharField(
+		max_length=30,
+		choices=RTO_CATEGORY_CHOICES,
+		default='motor_cab',
+		verbose_name="RTO Vehicle Category",
+		help_text="Motor Cab (<=6), Maxi Cab (6-12), or Omnibus (>6)"
+	)
+	has_contract_carriage_permit = models.BooleanField(
+		default=True,
+		verbose_name="Contract Carriage Permit",
+		help_text="Whole vehicle hired for group tour; no stage boarding"
+	)
+	has_tourist_permit = models.BooleanField(
+		default=True,
+		verbose_name="Tourist Permit Authorization",
+		help_text="Classified & authorized by RTO as commercial tourist vehicle"
+	)
+	permit_number = models.CharField(
+		max_length=60,
+		blank=True,
+		verbose_name="Primary Permit Number",
+		help_text="e.g. TN/CB/CC/2026/8941"
+	)
+	has_aitp = models.BooleanField(
+		default=False,
+		verbose_name="All India Tourist Permit (AITP)",
+		help_text="MoRTH national permit exempt from state border taxes"
+	)
+	aitp_permit_number = models.CharField(
+		max_length=60,
+		blank=True,
+		verbose_name="AITP Authorization Number",
+		help_text="e.g. AITP/TN/2026/77120"
+	)
+	aitp_expiry = models.DateField(
+		null=True,
+		blank=True,
+		verbose_name="AITP Expiry Date"
+	)
 	
 	default_driver = models.ForeignKey('core.Driver', on_delete=models.SET_NULL, null=True, blank=True, related_name='default_vehicles', help_text="Auto-assigned to this driver when selected for a trip")
 	expected_mileage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Expected km/litre for fuel theft detection")
@@ -464,6 +529,8 @@ class Vehicle(models.Model):
 			('Road Tax', self.tax_expiry),
 			('RC', self.rc_expiry),
 		]
+		if self.has_aitp and self.aitp_expiry:
+			docs.append(('AITP Permit', self.aitp_expiry))
 		expired = []
 		expiring_soon = []
 		for name, date_val in docs:
@@ -482,6 +549,12 @@ class Vehicle(models.Model):
 			return {'status': 'expiring_soon', 'label': f'{name} due in {in_days}d', 'color': '#f59e0b', 'count': len(expiring_soon)}
 		else:
 			return {'status': 'valid', 'label': 'Compliant', 'color': '#16a34a', 'count': 0}
+
+	def is_aitp_valid(self):
+		from django.utils import timezone
+		if self.has_aitp and self.aitp_expiry:
+			return self.aitp_expiry >= timezone.localdate()
+		return False
 
 	class Meta:
 		indexes = [

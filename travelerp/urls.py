@@ -101,6 +101,8 @@ from operations.views import (
     api_border_permit_check,
     api_border_permit_record_payment,
     api_border_permit_seed,
+    api_epass_issue,
+    api_epass_verify,
     driver_fatigue_sentry_view,
     api_driver_fatigue_audit,
     api_driver_fatigue_override,
@@ -291,6 +293,8 @@ urlpatterns = [
     path('api/operations/border-permits/check/<int:trip_id>/', api_border_permit_check, name='api-operations-border-permits-check'),
     path('api/operations/border-permits/pay/', api_border_permit_record_payment, name='api-operations-border-permits-pay'),
     path('api/operations/border-permits/seed/', api_border_permit_seed, name='api-operations-border-permits-seed'),
+    path('api/operations/epass/issue/', api_epass_issue, name='api-operations-epass-issue'),
+    path('api/operations/epass/verify/<int:epass_id>/', api_epass_verify, name='api-operations-epass-verify'),
 
     # P5-2: Chauffeur Fatigue & Mandatory Duty Rest Sentry
     path('operations/driver-fatigue-sentry/', driver_fatigue_sentry_view, name='operations-driver-fatigue-sentry'),

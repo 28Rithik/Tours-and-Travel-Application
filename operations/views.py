@@ -3729,50 +3729,69 @@ def api_global_search(request):
 
 # ==============================================================================
 # P5-1: INTERSTATE STATE BORDER ENTRY TAX & AITP PERMIT SENTRY STUDIO
+# & ECO-SENSITIVE HILL STATION E-PASS SENTRY (NILGIRIS / KODAIKANAL / VALPARAI)
 # ==============================================================================
 
 @login_required
 def border_permit_studio_view(request):
     """
-    P5-1: Interstate State Border Entry Tax & AITP Permit Sentry Studio.
-    Automates South Indian interstate permits (Walayar, Attibele, Gorimedu, etc.),
-    validates AITP compliance, calculates statutory tariffs, and issues border passes.
+    P5-1: Interstate State Border Entry Tax & AITP Permit Sentry Studio
+    and Eco-Sensitive Hill Station e-Pass Sentry (Nilgiris / Kodaikanal / Valparai).
+    Automates South Indian interstate permits (Walayar ₹200 vs Attibele/Naraharipet ₹200+Tax),
+    validates AITP compliance, calculates statutory tariffs, and issues TNeGA hill e-passes.
     """
-    from .models import InterstateBorderPermit
+    from .models import InterstateBorderPermit, EcoSensitiveZoneEPass
     from .border_permit_sentry import (
         STATUTORY_BORDER_TAX_MATRIX,
+        ECO_SENSITIVE_ZONES_CONFIG,
         audit_trip_border_permit,
-        issue_sample_interstate_permits
+        audit_trip_hill_epass,
+        issue_sample_interstate_permits,
+        issue_sample_hill_epasses
     )
 
     # Seed sample records if empty
     if not InterstateBorderPermit.objects.exists():
         issue_sample_interstate_permits()
+    if not EcoSensitiveZoneEPass.objects.exists():
+        issue_sample_hill_epasses()
 
     permits = InterstateBorderPermit.objects.select_related('vehicle', 'trip').order_by('-created_at')[:50]
+    epasses = EcoSensitiveZoneEPass.objects.select_related('vehicle', 'driver', 'trip').order_by('-entry_date')[:50]
     
     # Audit recent outstation trips
     recent_trips = Trip.objects.select_related('vehicle', 'driver', 'booking').filter(
         vehicle__isnull=False
-    ).order_by('-id')[:20]
+    ).order_by('-id')[:25]
 
     trips_audit = []
     interstate_count = 0
     cleared_count = 0
     pending_count = 0
+    hill_trips_count = 0
+    hill_cleared_count = 0
+    hill_pending_count = 0
 
     for t in recent_trips:
-        audit = audit_trip_border_permit(t)
+        b_audit = audit_trip_border_permit(t)
+        h_audit = audit_trip_hill_epass(t)
         trips_audit.append({
             'trip': t,
-            'audit': audit
+            'audit': b_audit,
+            'hill_audit': h_audit,
         })
-        if audit['is_interstate']:
+        if b_audit['is_interstate']:
             interstate_count += 1
-            if audit['status'] == 'valid':
+            if b_audit['status'] in ['valid', 'cleared']:
                 cleared_count += 1
             else:
                 pending_count += 1
+        if h_audit['requires_epass']:
+            hill_trips_count += 1
+            if h_audit['status'] in ['active', 'checkpost_cleared']:
+                hill_cleared_count += 1
+            else:
+                hill_pending_count += 1
 
     stats = {
         'total_permits': permits.count(),
@@ -3780,13 +3799,19 @@ def border_permit_studio_view(request):
         'pending_crossings': pending_count,
         'interstate_trips_monitored': interstate_count,
         'total_tax_paid': sum(p.tax_amount for p in permits if p.tax_amount),
+        'total_epasses': epasses.count(),
+        'active_epasses': EcoSensitiveZoneEPass.objects.filter(status='active').count(),
+        'hill_trips_monitored': hill_trips_count,
+        'hill_pending': hill_pending_count,
     }
 
     context = {
-        'title': 'Interstate State Border Entry Tax & AITP Permit Sentry Studio',
+        'title': 'Interstate Border Tax & Eco-Sensitive Hill Station e-Pass Sentry',
         'permits': permits,
+        'epasses': epasses,
         'trips_audit': trips_audit,
         'tax_matrix': STATUTORY_BORDER_TAX_MATRIX,
+        'eco_zones': ECO_SENSITIVE_ZONES_CONFIG,
         'stats': stats,
         'vehicles': Vehicle.objects.filter(status='available')[:30],
         'trips_select': Trip.objects.filter(status__in=['assigned', 'started', 'booked']).order_by('-id')[:30],
@@ -3796,24 +3821,39 @@ def border_permit_studio_view(request):
 
 @login_required
 def api_border_permit_check(request, trip_id):
-    """API endpoint to audit an individual trip for interstate permits."""
-    from .border_permit_sentry import audit_trip_border_permit
+    """API endpoint to audit an individual trip for interstate permits and hill e-passes."""
+    from .border_permit_sentry import audit_trip_border_permit, audit_trip_hill_epass
     trip = get_object_or_404(Trip, id=trip_id)
-    audit = audit_trip_border_permit(trip)
+    b_audit = audit_trip_border_permit(trip)
+    h_audit = audit_trip_hill_epass(trip)
+
     return JsonResponse({
         'status': 'success',
         'trip_id': trip.id,
         'trip_code': trip.trip_id,
         'vehicle': trip.vehicle.registration_number if trip.vehicle else None,
-        'is_interstate': audit['is_interstate'],
-        'target_state': audit['target_state'],
-        'permit_status': audit['status'],
-        'status_label': audit['status_label'],
-        'badge': audit['badge'],
-        'required_tax': float(audit['required_tax']),
-        'checkpost': audit['checkpost'],
-        'bracket_label': audit.get('bracket_label', 'Standard Vehicle'),
-        'validity_days': audit.get('validity_days', 7),
+        'is_interstate': b_audit['is_interstate'],
+        'target_state': b_audit['target_state'],
+        'permit_status': b_audit['status'],
+        'status_label': b_audit['status_label'],
+        'badge': b_audit['badge'],
+        'required_tax': float(b_audit['required_tax']),
+        'state_permit_fee': float(b_audit.get('state_permit_fee', 0)),
+        'border_road_tax': float(b_audit.get('border_road_tax', 0)),
+        'is_aitp_exempt': b_audit.get('is_aitp_exempt', False),
+        'checkpost': b_audit['checkpost'],
+        'bracket_label': b_audit.get('bracket_label', 'Standard Vehicle'),
+        'validity_days': b_audit.get('validity_days', 7),
+        'rule_summary': b_audit.get('rule_summary', ''),
+        # Hill Station e-Pass Sentry
+        'requires_hill_epass': h_audit['requires_epass'],
+        'hill_zone_key': h_audit.get('zone_key'),
+        'hill_zone_name': h_audit.get('zone_name'),
+        'hill_status': h_audit.get('status'),
+        'hill_status_label': h_audit.get('status_label'),
+        'hill_badge': h_audit.get('badge'),
+        'hill_checkpost': h_audit.get('default_checkpost'),
+        'hill_portal_url': h_audit.get('portal_url'),
     })
 
 
@@ -3840,7 +3880,8 @@ def api_border_permit_record_payment(request):
     target_state = data.get('target_state', 'Kerala')
     checkpost_name = data.get('checkpost_name', 'Walayar Check-post (NH-544 Palakkad)')
     permit_type = data.get('permit_type', 'single_entry')
-    tax_amount = Decimal(str(data.get('tax_amount', '750.00')))
+    state_permit_fee = Decimal(str(data.get('state_permit_fee', '200.00')))
+    border_road_tax = Decimal(str(data.get('border_road_tax', '0.00')))
     receipt_number = data.get('receipt_number', f"PARIVAHAN-{timezone.now().strftime('%Y%m%d%H%M')}")
     validity_days = int(data.get('validity_days', 7))
 
@@ -3861,7 +3902,8 @@ def api_border_permit_record_payment(request):
         origin_state='Tamil Nadu',
         permit_type=permit_type,
         checkpost_name=checkpost_name,
-        tax_amount=tax_amount,
+        state_permit_fee=state_permit_fee,
+        border_road_tax=border_road_tax,
         receipt_number=receipt_number,
         valid_from=now,
         valid_until=now + timedelta(days=validity_days),
@@ -3875,17 +3917,112 @@ def api_border_permit_record_payment(request):
         'permit_id': permit.id,
         'receipt_number': permit.receipt_number,
         'valid_until': permit.valid_until.strftime('%d %b %Y, %H:%M'),
-        'tax_amount': float(permit.tax_amount)
+        'tax_amount': float(permit.tax_amount),
+        'state_permit_fee': float(permit.state_permit_fee),
+        'border_road_tax': float(permit.border_road_tax),
     })
 
 
 @csrf_exempt
 @login_required
 def api_border_permit_seed(request):
-    """Seed sample permits on demand."""
-    from .border_permit_sentry import issue_sample_interstate_permits
+    """Seed sample permits and hill e-passes on demand."""
+    from .border_permit_sentry import issue_sample_interstate_permits, issue_sample_hill_epasses
     permits = issue_sample_interstate_permits()
-    return JsonResponse({'status': 'success', 'seeded_count': len(permits)})
+    epasses = issue_sample_hill_epasses()
+    return JsonResponse({
+        'status': 'success',
+        'seeded_permits': len(permits),
+        'seeded_epasses': len(epasses)
+    })
+
+
+@csrf_exempt
+@login_required
+def api_epass_issue(request):
+    """API endpoint to issue / record a TNeGA Eco-Sensitive Zone e-Pass."""
+    import json
+    from datetime import date, timedelta
+    from django.utils import timezone
+    from .models import EcoSensitiveZoneEPass
+
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        data = request.POST
+
+    vehicle_id = data.get('vehicle_id')
+    trip_id = data.get('trip_id')
+    zone = data.get('zone', 'nilgiris')
+    hotel_name = data.get('hotel_name', 'Sterling Ooty Fern Hill')
+    hotel_booking_ref = data.get('hotel_booking_ref', f"BK-{timezone.now().strftime('%m%d%H%M')}")
+    num_tourists = int(data.get('num_tourists', 4))
+    purpose = data.get('purpose', 'tourism')
+    checkpost_name = data.get('checkpost_name', 'Burliyar Checkpost (Mettupalayam - Coonoor)')
+
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id) if vehicle_id else None
+    trip = Trip.objects.filter(id=trip_id).first() if trip_id else None
+
+    if not vehicle and trip:
+        vehicle = trip.vehicle
+    if not vehicle:
+        return JsonResponse({'status': 'error', 'message': 'Vehicle is required'}, status=400)
+
+    driver = trip.driver if trip else vehicle.default_driver
+    today = timezone.localdate()
+    zone_prefix = {'nilgiris': 'NIL', 'kodaikanal': 'KOD', 'valparai': 'VAL', 'yercaud': 'YER'}.get(zone, 'ECO')
+    epass_number = f"TNEGA-{zone_prefix}-{timezone.now().strftime('%Y')}-{timezone.now().strftime('%f')[:5]}"
+
+    epass = EcoSensitiveZoneEPass.objects.create(
+        trip=trip,
+        vehicle=vehicle,
+        driver=driver,
+        zone=zone,
+        epass_number=epass_number,
+        entry_date=today,
+        exit_date=today + timedelta(days=4),
+        num_tourists=num_tourists,
+        hotel_name=hotel_name,
+        hotel_booking_ref=hotel_booking_ref,
+        purpose=purpose,
+        checkpost_name=checkpost_name,
+        qr_code_token=f"TNEGA-VERIFY-{epass_number}",
+        status='active',
+        notes=f"Approved under Madras High Court eco-sentry carrying capacity mandate."
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"TNeGA {epass.get_zone_display()} e-Pass issued successfully!",
+        'epass_id': epass.id,
+        'epass_number': epass.epass_number,
+        'zone_display': epass.get_zone_display(),
+        'qr_token': epass.qr_code_token,
+        'entry_date': epass.entry_date.strftime('%d %b %Y'),
+        'exit_date': epass.exit_date.strftime('%d %b %Y'),
+    })
+
+
+@csrf_exempt
+@login_required
+def api_epass_verify(request, epass_id):
+    """API endpoint to record check-post clearance / scan of an e-Pass."""
+    from django.utils import timezone
+    from .models import EcoSensitiveZoneEPass
+
+    epass = get_object_or_404(EcoSensitiveZoneEPass, id=epass_id)
+    epass.verified_at_checkpost = True
+    epass.verified_timestamp = timezone.now()
+    epass.save(update_fields=['verified_at_checkpost', 'verified_timestamp'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"e-Pass #{epass.epass_number} successfully verified at {epass.checkpost_name or 'Foothills Check-post'}.",
+        'verified_at': epass.verified_timestamp.strftime('%d %b %Y, %H:%M'),
+    })
 
 
 # ==============================================================================

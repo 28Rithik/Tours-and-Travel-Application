@@ -8,8 +8,9 @@ from .models import (
     BulkContract, BulkContractDay, TrafficFine,
     EmergencyIncidentAlert, VehicleTelematicsPing, DriverBehaviorLog, GeofenceZone,
     WhatsAppBotMessage, DriverHandoverSession, TripMilestoneEvent,
-    TripItineraryDay,
+    TripItineraryDay, InterstateBorderPermit, EcoSensitiveZoneEPass,
 )
+from django.utils import timezone
 from finance.models import TripExpense, FuelRecord, DriverSettlement, SupplierTripCost, Payment
 from documents.models import CustomerDocument
 
@@ -1170,6 +1171,194 @@ class TripMilestoneEventAdmin(ModelAdmin):
 	@admin.display(description="Timestamp", ordering='timestamp')
 	def timestamp_fmt(self, obj):
 		return obj.timestamp.strftime('%Y-%m-%d %H:%M')
+
+
+# ==============================================================================
+# P5-1A: INTERSTATE STATE BORDER ENTRY TAX & AITP PERMIT SENTRY
+# ==============================================================================
+
+@admin.register(InterstateBorderPermit)
+class InterstateBorderPermitAdmin(ModelAdmin):
+	list_display = (
+		'vehicle_link',
+		'target_state_badge',
+		'permit_type_badge',
+		'fee_breakdown_display',
+		'checkpost_name',
+		'validity_window',
+		'aitp_badge',
+		'status_badge',
+		'receipt_display',
+	)
+	list_filter = ('target_state', 'status', 'permit_type', 'is_aitp_exempt', 'payment_mode', 'valid_from')
+	search_fields = ('vehicle__registration_number', 'receipt_number', 'checkpost_name', 'trip__trip_id', 'target_state')
+	autocomplete_fields = ['trip', 'vehicle']
+	readonly_fields = ('created_at', 'updated_at')
+
+	@admin.display(description="Vehicle", ordering='vehicle__registration_number')
+	def vehicle_link(self, obj):
+		url = reverse('admin:core_vehicle_change', args=[obj.vehicle.pk])
+		return format_html('<a href="{}" style="font-weight: 700; color: #38bdf8;">{}</a>', url, obj.vehicle.registration_number)
+
+	@admin.display(description="Target State", ordering='target_state')
+	def target_state_badge(self, obj):
+		colors = {
+			'Kerala': ('#059669', '#ecfdf5'),
+			'Karnataka': ('#d97706', '#fffbeb'),
+			'Andhra Pradesh': ('#7c3aed', '#f5f3ff'),
+			'Puducherry': ('#0284c7', '#f0f9ff'),
+			'Goa': ('#e11d48', '#fff1f2'),
+		}
+		color, bg = colors.get(obj.target_state, ('#4b5563', '#f3f4f6'))
+		return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">{}</span>', bg, color, obj.target_state)
+
+	@admin.display(description="Permit Type", ordering='permit_type')
+	def permit_type_badge(self, obj):
+		return format_html('<span style="background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-size: 11px;">{}</span>', obj.get_permit_type_display())
+
+	@admin.display(description="Fee Breakdown (Permit + Road Tax)")
+	def fee_breakdown_display(self, obj):
+		if obj.is_aitp_exempt:
+			return mark_safe('<span style="color: #818cf8; font-weight: 600;">₹0 (AITP Exempt)</span>')
+		return format_html(
+			'<span style="font-weight: 700; color: #fff;">₹{}</span> <span style="font-size: 11px; color: #94a3b8;">(₹{} Fee + ₹{} Tax)</span>',
+			obj.tax_amount, obj.state_permit_fee, obj.border_road_tax
+		)
+
+	@admin.display(description="Validity")
+	def validity_window(self, obj):
+		if obj.valid_from and obj.valid_until:
+			return f"{obj.valid_from.strftime('%d %b')} – {obj.valid_until.strftime('%d %b %Y')}"
+		return "-"
+
+	@admin.display(description="AITP Status")
+	def aitp_badge(self, obj):
+		if obj.is_aitp_exempt:
+			return mark_safe('<span style="background: #e0e7ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 10px;">✓ AITP Exempt</span>')
+		return mark_safe('<span style="color: #64748b; font-size: 11px;">Standard Permit</span>')
+
+	@admin.display(description="Status", ordering='status')
+	def status_badge(self, obj):
+		colors = {
+			'valid': ('#059669', '#ecfdf5', '✓ Valid & Cleared'),
+			'pending_payment': ('#dc2626', '#fef2f2', '⏳ Unpaid at Checkpost'),
+			'expiring_soon': ('#d97706', '#fffbeb', '⚠ Expiring Soon'),
+			'expired': ('#b91c1c', '#fee2e2', '✕ Expired'),
+			'exempt': ('#4b5563', '#f3f4f6', 'Exempt'),
+		}
+		color, bg, label = colors.get(obj.status, ('#4b5563', '#f3f4f6', obj.get_status_display()))
+		return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">{}</span>', bg, color, label)
+
+	@admin.display(description="Receipt / Photo")
+	def receipt_display(self, obj):
+		parts = []
+		if obj.receipt_number:
+			parts.append(f'<span style="font-family: monospace; font-size: 11px; color: #38bdf8;">{obj.receipt_number}</span>')
+		if obj.receipt_photo:
+			parts.append(f'<a href="{obj.receipt_photo.url}" target="_blank" style="margin-left: 6px; color: #10b981; font-size: 11px;"><i class="fas fa-file-invoice"></i> View</a>')
+		return mark_safe(''.join(parts)) if parts else mark_safe('<span style="color: #64748b;">No receipt</span>')
+
+
+# ==============================================================================
+# P5-1B: ECO-SENSITIVE ZONE E-PASS SENTRY (NILGIRIS / KODAIKANAL / VALPARAI)
+# ==============================================================================
+
+@admin.register(EcoSensitiveZoneEPass)
+class EcoSensitiveZoneEPassAdmin(ModelAdmin):
+	list_display = (
+		'epass_number_display',
+		'zone_badge',
+		'vehicle_link',
+		'driver_display',
+		'travel_window',
+		'num_tourists_display',
+		'hotel_info',
+		'checkpost_verified_badge',
+		'status_badge',
+		'qr_action',
+	)
+	list_filter = ('zone', 'status', 'verified_at_checkpost', 'purpose', 'entry_date')
+	search_fields = ('epass_number', 'vehicle__registration_number', 'driver__name', 'hotel_name', 'hotel_booking_ref', 'trip__trip_id')
+	autocomplete_fields = ['trip', 'vehicle', 'driver']
+	date_hierarchy = 'entry_date'
+	readonly_fields = ('created_at', 'updated_at')
+
+	@admin.display(description="e-Pass Number", ordering='epass_number')
+	def epass_number_display(self, obj):
+		return format_html(
+			'<strong style="font-family: monospace; color: #38bdf8; font-size: 12px;">{}</strong>',
+			obj.epass_number
+		)
+
+	@admin.display(description="Restricted Zone", ordering='zone')
+	def zone_badge(self, obj):
+		colors = {
+			'nilgiris': ('#059669', '#ecfdf5', '🌲 Nilgiris (Ooty)'),
+			'kodaikanal': ('#0284c7', '#f0f9ff', '⛰️ Kodaikanal'),
+			'valparai': ('#d97706', '#fffbeb', '🐅 Valparai (ATR)'),
+			'yercaud': ('#7c3aed', '#f5f3ff', '🍃 Yercaud'),
+		}
+		color, bg, label = colors.get(obj.zone, ('#4b5563', '#f3f4f6', obj.get_zone_display()))
+		return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">{}</span>', bg, color, label)
+
+	@admin.display(description="Vehicle", ordering='vehicle__registration_number')
+	def vehicle_link(self, obj):
+		url = reverse('admin:core_vehicle_change', args=[obj.vehicle.pk])
+		return format_html('<a href="{}" style="font-weight: 600; color: #f8fafc;">{}</a>', url, obj.vehicle.registration_number)
+
+	@admin.display(description="Driver")
+	def driver_display(self, obj):
+		if obj.driver:
+			return obj.driver.name
+		return "-"
+
+	@admin.display(description="Travel Window")
+	def travel_window(self, obj):
+		return f"{obj.entry_date.strftime('%d %b')} – {obj.exit_date.strftime('%d %b %Y')}"
+
+	@admin.display(description="Tourists")
+	def num_tourists_display(self, obj):
+		return format_html('<span>👥 {} Pax</span>', obj.num_tourists)
+
+	@admin.display(description="Hotel / Resort")
+	def hotel_info(self, obj):
+		if obj.hotel_name:
+			ref_txt = f'<br><small style="color: #94a3b8;">Ref: {obj.hotel_booking_ref}</small>' if obj.hotel_booking_ref else ''
+			return format_html('<span>{}</span>{}', obj.hotel_name, mark_safe(ref_txt))
+		return mark_safe('<span style="color: #64748b;">—</span>')
+
+	@admin.display(description="Checkpost Cleared", ordering='verified_at_checkpost')
+	def checkpost_verified_badge(self, obj):
+		if obj.verified_at_checkpost:
+			time_str = obj.verified_timestamp.strftime('%H:%M') if obj.verified_timestamp else ''
+			return format_html('<span style="background: #ecfdf5; color: #059669; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px;">✓ Scanned at {}</span>', obj.checkpost_name or 'Checkpost')
+		return format_html('<span style="background: #fffbeb; color: #d97706; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 11px;">⏳ Pending Scan ({})</span>', obj.checkpost_name or 'Checkpost')
+
+	@admin.display(description="Status", ordering='status')
+	def status_badge(self, obj):
+		colors = {
+			'active': ('#059669', '#ecfdf5', '✓ Approved (Active)'),
+			'pending': ('#d97706', '#fffbeb', '⏳ TNeGA Pending'),
+			'expired': ('#b91c1c', '#fee2e2', '✕ Expired'),
+			'cancelled': ('#4b5563', '#f3f4f6', 'Cancelled'),
+			'exempt': ('#6366f1', '#e0e7ff', 'Exempt Local'),
+		}
+		color, bg, label = colors.get(obj.status, ('#4b5563', '#f3f4f6', obj.get_status_display()))
+		return format_html('<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px;">{}</span>', bg, color, label)
+
+	@admin.display(description="QR & Actions")
+	def qr_action(self, obj):
+		return format_html(
+			'<a href="/operations/border-permits/?epass_id={}" class="button" style="padding: 2px 8px; font-size: 11px; background: #0284c7; color: #fff; border-radius: 4px; text-decoration: none;">'
+			'📱 Show QR'
+			'</a>',
+			obj.id
+		)
+
+	@admin.action(description="Mark selected passes as Verified at Check-post")
+	def mark_checkpost_verified(self, request, queryset):
+		updated = queryset.update(verified_at_checkpost=True, verified_timestamp=timezone.now())
+		self.message_user(request, f"{updated} e-Passes verified at check-post.")
 
 
 
