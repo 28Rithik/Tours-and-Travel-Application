@@ -306,7 +306,7 @@ class DriverSettlementAdmin(ModelAdmin):
     @admin.display(description='Deductions')
     def deductions_display(self, obj):
         total_ded = (obj.cash_advances_received or 0) + (obj.cash_collected_from_customer or 0) + (obj.traffic_fines_deducted or 0)
-        return format_html('<span class="text-danger">-₹{:,.2f}</span>', total_ded)
+        return format_html('<span class="text-danger">-₹{}</span>', f"{total_ded:,.2f}")
 
     @admin.display(description='Net Payout', ordering='net_payout_amount')
     def net_payout_badge(self, obj):
@@ -314,15 +314,16 @@ class DriverSettlementAdmin(ModelAdmin):
         if amt > 0:
             return format_html(
                 '<span class="badge badge-success font-weight-bold" style="font-size: 13px;">'
-                '+₹{:,.2f} (Pay Driver)</span>',
-                amt
+                '+₹{} (Pay Driver)</span>',
+                f"{amt:,.2f}"
             )
         elif amt < 0:
             return format_html(
                 '<span class="badge badge-danger font-weight-bold" style="font-size: 13px;">'
-                '-₹{:,.2f} (Surrender)</span>',
-                abs(amt)
+                '-₹{} (Surrender)</span>',
+                f"{abs(amt):,.2f}"
             )
+        return format_html('<span class="badge badge-secondary" style="font-size: 13px;">₹0.00</span>')
         return mark_safe('<span class="badge badge-secondary">₹0.00 (Even)</span>')
 
     @admin.display(description='1-Click Studio')
@@ -1062,15 +1063,18 @@ class BataTierRuleAdmin(ModelAdmin):
 
     @admin.display(description='Base Day Bata')
     def base_bata_display(self, obj):
-        return format_html('<b>₹{:,.2f}</b>/day', obj.base_bata_per_day)
+        val = obj.base_bata_per_day or 0
+        return format_html('<b>₹{}</b>/day', f"{val:,.2f}")
 
     @admin.display(description='Night Halt')
     def night_halt_display(self, obj):
-        return format_html('₹{:,.2f}', obj.night_halt_allowance)
+        val = obj.night_halt_allowance or 0
+        return format_html('₹{}', f"{val:,.2f}")
 
     @admin.display(description='Ghat Bonus')
     def ghat_bonus_display(self, obj):
-        return format_html('₹{:,.2f}/day', obj.ghat_road_daily_bonus)
+        val = obj.ghat_road_daily_bonus or 0
+        return format_html('₹{}/day', f"{val:,.2f}")
 
     @admin.display(description='Status')
     def active_badge(self, obj):
@@ -1099,9 +1103,10 @@ class DriverAllowanceLedgerAdmin(ModelAdmin):
 
     @admin.display(description='Amount (₹)')
     def amount_display(self, obj):
+        val = obj.amount or 0
         if obj.entry_type in ['bata_earned', 'reimbursement', 'refund_received']:
-            return format_html('<span style="color: #10b981; font-weight: 800;">+₹{:,.2f}</span>', obj.amount)
-        return format_html('<span style="color: #ef4444; font-weight: 700;">-₹{:,.2f}</span>', obj.amount)
+            return format_html('<span style="color: #10b981; font-weight: 800;">+₹{}</span>', f"{val:,.2f}")
+        return format_html('<span style="color: #ef4444; font-weight: 700;">-₹{}</span>', f"{val:,.2f}")
 
     @admin.display(description='Trip')
     def trip_link(self, obj):

@@ -1,276 +1,298 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}NHAI FASTag Statement Reconciler &amp; Toll Auditor | Sivagayathiri ERP{% endblock %}
+{% block title %}NHAI FASTag Statement Reconciler &amp; Toll Auditor | Sivagayathiri TravelERP{% endblock %}
 
 {% block extra_head %}
 <style>
-  .fastag-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  }
-  html.dark .fastag-card, .dark .fastag-card {
-    background: #0f172a;
-    border-color: #1e293b;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  }
   .toll-dropzone {
-    border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    transition: all 0.2s ease-in-out;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    transition: all 0.15s ease-in-out;
   }
   .toll-dropzone:hover, .toll-dropzone.dragover {
-    border-color: #3b82f6;
-    background: rgba(59, 130, 246, 0.04);
+    border-color: #0284c7;
+    background: rgba(2, 132, 199, 0.03);
   }
   .dark .toll-dropzone {
     border-color: #334155;
   }
   .dark .toll-dropzone:hover, .dark .toll-dropzone.dragover {
-    border-color: #60a5fa;
-    background: rgba(96, 165, 250, 0.08);
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+<div class="space-y-4 max-w-full">
 
-  <!-- Header Banner -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white p-6 rounded-2xl shadow-xl">
-    <div class="space-y-1">
-      <div class="flex items-center gap-3">
-        <span class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl border border-blue-400/30 flex items-center justify-center">
-          <svg width="28" height="28" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
-          </svg>
+  <!-- Unfold Top Breadcrumbs -->
+  <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+    <a href="/" class="hover:text-primary transition">Home</a>
+    <span>/</span>
+    <a href="/finance/fastag-reconciliation/" class="hover:text-primary transition">Finance Desk</a>
+    <span>/</span>
+    <span class="text-slate-900 dark:text-white font-semibold">NHAI FASTag Toll Reconciler</span>
+  </nav>
+
+  <!-- Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+        FASTag Statement Reconciler &amp; Toll Auditor
+        <span id="auditCountBadge" class="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          0 items
         </span>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white !text-white">NHAI FASTag Statement Reconciler &amp; Toll Auditor</h1>
-          <p class="text-xs text-blue-200">Bank CSV Ingestion &bull; Corridor Toll Plaza Matching &bull; Ghost KM &amp; Off-Route Sentry</p>
-        </div>
-      </div>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        Bank CSV ingestion &bull; Corridor toll plaza matching &bull; Ghost KM and off-route sentry audit.
+      </p>
     </div>
-
-    <!-- Master Wallet Account Selector & Balance Badge -->
-    <div class="flex flex-wrap items-center gap-3">
-      <div class="bg-white/10 px-4 py-2.5 rounded-xl backdrop-blur-md border border-white/10 flex items-center gap-3">
-        <div>
-          <div class="text-[10px] uppercase font-bold text-blue-200 tracking-wider">Corporate FASTag Wallet</div>
-          <div class="text-xs font-semibold text-white">{{ selected_account.account_name }}</div>
-        </div>
-        <div class="h-7 w-[1px] bg-white/20"></div>
-        <div class="text-right">
-          <div class="text-[10px] text-blue-200">Active Balance</div>
-          <div id="masterWalletBalance" class="text-lg font-bold text-emerald-400">₹{{ selected_account.balance|floatformat:2 }}</div>
-        </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <div class="px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs flex items-center gap-2">
+        <span class="text-slate-500 uppercase tracking-wider text-[10px] font-semibold">Wallet:</span>
+        <span class="font-semibold text-slate-900 dark:text-white">{{ selected_account.account_name }}</span>
+        <span class="text-slate-300 dark:text-slate-700">|</span>
+        <span id="masterWalletBalance" class="font-mono font-bold text-emerald-600 dark:text-emerald-400">₹{{ selected_account.balance|floatformat:2 }}</span>
       </div>
 
-      <button id="btnLoadSampleStatement" onclick="loadSampleNhaiStatement()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-500/30 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-        </svg>
-        Load Sample NHAI Statement
+      <button id="btnLoadSampleStatement" onclick="loadSampleNhaiStatement()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition">
+        <i class="fa-solid fa-bolt text-[11px]"></i>
+        <span>Load Sample NHAI CSV</span>
       </button>
 
+      <label for="csvFileInput" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 cursor-pointer transition">
+        <i class="fa-solid fa-upload text-[11px] text-slate-500"></i>
+        <span>Upload Statement</span>
+      </label>
+      <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden" onchange="handleFileSelect(this)">
+
+      <a href="/admin/finance/fastag-reconciliation/" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+        <span>Admin View</span>
+      </a>
     </div>
   </div>
 
-  <!-- Realtime KPI Audit Bar -->
+  <!-- Unfold Metric Deck (5 Flat Cards) -->
   <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Statement Plazas</div>
-      <div id="kpiTotalRecords" class="text-2xl font-bold text-slate-900 dark:text-white mt-1">0</div>
-      <div id="kpiTotalAmount" class="text-[10px] text-blue-500 font-medium mt-0.5">₹0.00 total debit</div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Statement Plazas</div>
+      <div id="kpiTotalRecords" class="font-mono text-2xl font-bold text-slate-900 dark:text-white mt-1">0</div>
+      <div id="kpiTotalAmount" class="text-[11px] text-slate-500 font-mono mt-0.5">₹0.00 total debit</div>
     </div>
-    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Matched Corridor Tolls</div>
-      <div id="kpiMatchedCount" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">0</div>
-      <div id="kpiMatchedAmount" class="text-[10px] text-emerald-500 font-medium mt-0.5">₹0.00 verified on trip</div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Matched Corridor</div>
+      <div id="kpiMatchedCount" class="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">0</div>
+      <div id="kpiMatchedAmount" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">₹0.00 verified on trip</div>
     </div>
-    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Off-Route Deviations</div>
-      <div id="kpiOffRouteCount" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">0</div>
-      <div class="text-[10px] text-amber-500 mt-0.5">Corridor mismatch</div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Off-Route Deviations</div>
+      <div id="kpiOffRouteCount" class="font-mono text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">0</div>
+      <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">Corridor mismatch</div>
     </div>
-    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Unassigned / Ghost KM</div>
-      <div id="kpiUnassignedCount" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">0</div>
-      <div class="text-[10px] text-rose-500 mt-0.5">No active trip logged</div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ghost KM / Unassigned</div>
+      <div id="kpiUnassignedCount" class="font-mono text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">0</div>
+      <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-0.5">No active trip logged</div>
     </div>
-    <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-      <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">Duplicate Deductions</div>
-      <div id="kpiDuplicateCount" class="text-2xl font-bold text-slate-600 dark:text-slate-400 mt-1">0</div>
-      <div class="text-[10px] text-slate-400 mt-0.5">Already in ERP</div>
-    </div>
-  </div>
-
-  <!-- Upload & Input Dropzone Card -->
-  <div class="fastag-card p-6 space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
-        <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-          </svg>
-          Upload Bank FASTag Statement (CSV)
-        </h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400">Supports ICICI Corporate Banking, Axis NETC, HDFC Fastag, and SBI Fleet statements.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <label for="csvFileInput" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg cursor-pointer shadow-sm transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-          </svg>
-          Browse CSV File
-        </label>
-        <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden" onchange="handleFileSelect(this)">
-      </div>
-    </div>
-
-    <!-- Dropzone Area -->
-    <div id="dropzone" class="toll-dropzone p-8 text-center cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
-      <div class="flex flex-col items-center justify-center space-y-2">
-        <div class="p-3 bg-blue-50 dark:bg-blue-950/60 text-blue-500 rounded-full">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-          Drag and drop your FASTag statement CSV file here
-        </div>
-        <div class="text-xs text-slate-400">
-          or click anywhere in this box to browse from your computer
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Duplicate Debits</div>
+      <div id="kpiDuplicateCount" class="font-mono text-2xl font-bold text-slate-600 dark:text-slate-400 mt-1">0</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">Already in ERP ledger</div>
     </div>
   </div>
 
-  <!-- Reconciled Audit Table -->
-  <div class="fastag-card overflow-hidden">
-    <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-900/50">
-      <div>
-        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>Corridor Toll Plaza Audit Findings</span>
-          <span id="auditCountBadge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">0 Items</span>
-        </h3>
-        <p class="text-[11px] text-slate-500 dark:text-slate-400">Audit status automatically evaluated against GPS trip dates and highway corridors.</p>
+  <!-- Unfold Split Changelist Layout -->
+  <div class="flex flex-col lg:flex-row gap-4 items-start">
+
+    <!-- Left Main Column: Ingestion Dropzone & Audit Table -->
+    <div class="flex-1 w-full min-w-0 space-y-3">
+
+      <!-- Upload Dropzone (Compact Unfold Card) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm">
+        <div id="dropzone" class="toll-dropzone p-4 text-center cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
+          <div class="flex items-center justify-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 flex items-center justify-center">
+              <i class="fa-solid fa-file-csv text-base"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-xs font-semibold text-slate-900 dark:text-white">
+                Drag and drop your FASTag statement CSV file here, or <span class="text-sky-600 hover:underline">browse</span>
+              </div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                Supports ICICI Corporate Banking, Axis NETC, HDFC Fleet, and SBI FASTag statements.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="btnCommitReconciliation" onclick="commitApprovedDeductions()" disabled class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-xl shadow transition">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          Approve &amp; Commit Deductions
-        </button>
+      <!-- Action Toolbar with Commit Deductions -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+          <div class="relative flex-1 max-w-sm">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input
+              type="text"
+              id="fastagSearchInput"
+              onkeyup="filterFastagRows()"
+              placeholder="Filter by toll plaza, vehicle VRN, corridor..."
+              class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btnCommitReconciliation" onclick="commitApprovedDeductions()" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white shadow-sm transition">
+            <i class="fa-solid fa-check text-[11px]"></i>
+            <span>Approve &amp; Commit Deductions</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Dense Audit Table -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3 w-8">
+                  <input type="checkbox" id="chkSelectAll" onchange="toggleSelectAll(this)" class="rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer">
+                </th>
+                <th class="py-2.5 px-3">Transaction Date</th>
+                <th class="py-2.5 px-3">Vehicle VRN</th>
+                <th class="py-2.5 px-3">Toll Plaza &amp; Corridor</th>
+                <th class="py-2.5 px-3 text-right">Debit (₹)</th>
+                <th class="py-2.5 px-3">Matched Trip</th>
+                <th class="py-2.5 px-3">Audit Sentry Status</th>
+              </tr>
+            </thead>
+            <tbody id="auditTbody" class="divide-y divide-slate-100 dark:divide-slate-800 font-normal text-slate-700 dark:text-slate-300">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-400">
+                  No statement loaded yet. Click <strong>"Load Sample NHAI CSV"</strong> above or upload a bank statement.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent FASTag Ledger Deductions Log -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm mt-4">
+        <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">Recent Committed FASTag Deductions</h2>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Past toll debits recorded in ERP financial ledger</p>
+          </div>
+          <span class="text-xs font-mono text-slate-500">{{ recent_deductions|length }} records</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3">Date</th>
+                <th class="py-2.5 px-3">Vehicle</th>
+                <th class="py-2.5 px-3">Toll Plaza</th>
+                <th class="py-2.5 px-3">Trip</th>
+                <th class="py-2.5 px-3">Account</th>
+                <th class="py-2.5 px-3 text-right">Amount (₹)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-normal text-slate-700 dark:text-slate-300">
+              {% for toll in recent_deductions %}
+              <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-3 font-mono text-slate-500">{{ toll.date|date:"d M Y, H:i" }}</td>
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">{{ toll.vehicle.registration_number }}</td>
+                <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">{{ toll.toll_plaza }}</td>
+                <td class="py-2.5 px-3">
+                  {% if toll.trip %}
+                    <span class="font-mono text-sky-600 font-semibold">#{{ toll.trip.trip_id|default:toll.trip.id }}</span>
+                  {% else %}
+                    <span class="text-slate-400">—</span>
+                  {% endif %}
+                </td>
+                <td class="py-2.5 px-3 text-slate-500">{{ toll.account.account_name }}</td>
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white text-right">₹{{ toll.amount|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="py-6 text-center text-slate-400">No previous FASTag deductions recorded yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Side: Unfold Collapsible Filter Sidebar (w-60) -->
+    <div class="w-full lg:w-60 flex-shrink-0 space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Filter</span>
+          <button onclick="resetFastagFilters()" class="text-[11px] text-sky-600 hover:underline">Reset</button>
+        </div>
+
+        <!-- Filter: Audit Sentry Status -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">By Audit Sentry</div>
+          <div class="space-y-1">
+            <button onclick="setFastagAuditFilter('all', this)" class="fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">
+              All Items
+            </button>
+            <button onclick="setFastagAuditFilter('MATCHED', this)" class="fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ✓ Verified on Trip
+            </button>
+            <button onclick="setFastagAuditFilter('OFF_ROUTE', this)" class="fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ⚠️ Off-Route Deviation
+            </button>
+            <button onclick="setFastagAuditFilter('UNASSIGNED', this)" class="fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              🚨 Ghost KM / No Trip
+            </button>
+            <button onclick="setFastagAuditFilter('DUPLICATE', this)" class="fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ✕ Duplicate Debit
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-        <thead class="bg-slate-50 dark:bg-slate-800 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
-          <tr>
-            <th class="p-3 w-10 text-center">
-              <input type="checkbox" id="chkSelectAll" onchange="toggleSelectAll(this)" class="rounded text-blue-600 focus:ring-blue-500">
-            </th>
-            <th class="p-3">Txn Date</th>
-            <th class="p-3">Vehicle</th>
-            <th class="p-3">Toll Plaza &amp; Corridor</th>
-            <th class="p-3 text-right">Amount (₹)</th>
-            <th class="p-3">Matched Trip</th>
-            <th class="p-3">Audit Sentry Status</th>
-          </tr>
-        </thead>
-        <tbody id="auditTbody" class="divide-y divide-slate-100 dark:divide-slate-800">
-          <tr>
-            <td colspan="7" class="p-8 text-center text-slate-400 dark:text-slate-500 italic">
-              No statement loaded yet. Click <strong>"Load Sample NHAI Statement"</strong> above or upload a bank CSV.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Historical FASTag Deductions Log -->
-  <div class="fastag-card p-5 space-y-4">
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-        <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        Recent FASTag Ledger Deductions
-      </h3>
-      <span class="text-xs text-slate-400">Last 20 transactions in ERP database</span>
-    </div>
-
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-        <thead class="bg-slate-50 dark:bg-slate-800 text-[11px] uppercase text-slate-500 dark:text-slate-400">
-          <tr>
-            <th class="p-2.5">Date</th>
-            <th class="p-2.5">Vehicle</th>
-            <th class="p-2.5">Toll Plaza</th>
-            <th class="p-2.5">Trip</th>
-            <th class="p-2.5">Account</th>
-            <th class="p-2.5 text-right">Deducted Amount</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-          {% for toll in recent_deductions %}
-          <tr>
-            <td class="p-2.5">{{ toll.date|date:"d M Y, H:i" }}</td>
-            <td class="p-2.5 font-semibold text-slate-900 dark:text-white">{{ toll.vehicle.registration_number }}</td>
-            <td class="p-2.5">{{ toll.toll_plaza }}</td>
-            <td class="p-2.5">
-              {% if toll.trip %}
-                <span class="text-blue-600 dark:text-blue-400 font-mono text-[11px]">#{{ toll.trip.trip_id|default:toll.trip.id }}</span>
-              {% else %}
-                <span class="text-slate-400 italic">—</span>
-              {% endif %}
-            </td>
-            <td class="p-2.5 text-slate-500">{{ toll.account.account_name }}</td>
-            <td class="p-2.5 text-right font-bold text-slate-900 dark:text-white">₹{{ toll.amount|floatformat:2 }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" class="p-4 text-center text-slate-400 italic">No previous FASTag deductions recorded yet.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
   </div>
 
 </div>
 
+<!-- JavaScript Logic & AJAX Handlers -->
 <script>
   let statementResult = null;
+  let currentAuditStatusFilter = 'all';
 
   // Drag and Drop handling
   const dropzone = document.getElementById('dropzone');
-  ['dragenter', 'dragover'].forEach(eventName => {
-    dropzone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      dropzone.classList.add('dragover');
-    }, false);
-  });
-  ['dragleave', 'drop'].forEach(eventName => {
-    dropzone.addEventListener(eventName, (e) => {
-      e.preventDefault();
-      dropzone.classList.remove('dragover');
-    }, false);
-  });
-  dropzone.addEventListener('drop', (e) => {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    if (files.length > 0) {
-      uploadFile(files[0]);
-    }
-  });
+  if (dropzone) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      }, false);
+    });
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0) {
+        uploadFile(files[0]);
+      }
+    });
+  }
 
   function handleFileSelect(input) {
     if (input.files.length > 0) {
@@ -278,7 +300,6 @@
     }
   }
 
-  // Upload and parse CSV via API
   async function uploadFile(file) {
     const formData = new FormData();
     formData.append('statement_file', file);
@@ -305,7 +326,6 @@
     }
   }
 
-  // Load Sample Statement (6 Plazas)
   async function loadSampleNhaiStatement() {
     showLoadingState('Loading simulated NHAI FASTag statement...');
     try {
@@ -330,13 +350,12 @@
     }
   }
 
-
   function showLoadingState(msg) {
     const tbody = document.getElementById('auditTbody');
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="p-8 text-center">
-          <div class="inline-flex items-center gap-2 text-blue-600 font-semibold text-xs">
+        <td colspan="7" class="py-8 text-center">
+          <div class="inline-flex items-center gap-2 text-sky-600 font-semibold text-xs">
             <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
@@ -348,7 +367,6 @@
     `;
   }
 
-  // Render Parsed Data into Table & KPIs
   function renderReconciliationResults(data) {
     document.getElementById('kpiTotalRecords').textContent = data.total_records;
     document.getElementById('kpiTotalAmount').textContent = `₹${data.total_amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} total debit`;
@@ -357,55 +375,56 @@
     document.getElementById('kpiOffRouteCount').textContent = data.off_route_count;
     document.getElementById('kpiUnassignedCount').textContent = data.unassigned_count;
     document.getElementById('kpiDuplicateCount').textContent = data.duplicate_count;
-    document.getElementById('auditCountBadge').textContent = `${data.total_records} Items`;
+    document.getElementById('auditCountBadge').textContent = `${data.total_records} items`;
 
     const tbody = document.getElementById('auditTbody');
     tbody.innerHTML = '';
 
     if (!data.entries || data.entries.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">No transactions found in this statement.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No transactions found in this statement.</td></tr>`;
       document.getElementById('btnCommitReconciliation').disabled = true;
       return;
     }
 
     data.entries.forEach((entry, idx) => {
       const tr = document.createElement('tr');
-      tr.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition";
+      tr.className = "hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition fastag-row";
+      tr.setAttribute('data-status', entry.audit_status);
 
       const isChecked = entry.can_commit && entry.audit_status === 'MATCHED';
 
       tr.innerHTML = `
-        <td class="p-3 text-center">
-          <input type="checkbox" class="entry-checkbox rounded text-blue-600 focus:ring-blue-500" data-idx="${idx}" ${isChecked ? 'checked' : ''} ${!entry.can_commit ? 'disabled' : ''}>
+        <td class="py-2.5 px-3">
+          <input type="checkbox" class="entry-checkbox rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer" data-idx="${idx}" ${isChecked ? 'checked' : ''} ${!entry.can_commit ? 'disabled' : ''}>
         </td>
-        <td class="p-3">
-          <div class="font-medium text-slate-900 dark:text-white">${entry.date}</div>
+        <td class="py-2.5 px-3">
+          <div class="font-mono text-slate-900 dark:text-white">${entry.date}</div>
           <div class="text-[10px] text-slate-400 font-mono">${entry.ref_number}</div>
         </td>
-        <td class="p-3">
-          <div class="font-bold text-slate-900 dark:text-white">${entry.vrn}</div>
+        <td class="py-2.5 px-3">
+          <div class="font-mono font-bold text-slate-900 dark:text-white">${entry.vrn}</div>
           <div class="text-[10px] text-slate-400">${entry.vehicle_category}</div>
         </td>
-        <td class="p-3">
-          <div class="font-medium text-slate-900 dark:text-white">${entry.toll_plaza}</div>
-          <div class="text-[10px] text-indigo-500 font-medium">${entry.corridor_info}</div>
+        <td class="py-2.5 px-3">
+          <div class="font-semibold text-slate-900 dark:text-white">${entry.toll_plaza}</div>
+          <div class="text-[10px] text-sky-600 font-medium">${entry.corridor_info}</div>
         </td>
-        <td class="p-3 text-right">
-          <div class="font-bold text-slate-900 dark:text-white text-sm">₹${entry.amount.toFixed(2)}</div>
+        <td class="py-2.5 px-3 text-right">
+          <div class="font-mono font-bold text-slate-900 dark:text-white">₹${entry.amount.toFixed(2)}</div>
         </td>
-        <td class="p-3">
+        <td class="py-2.5 px-3">
           ${entry.trip_id ? `
-            <a href="/trips/${entry.trip_id}/" target="_blank" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-mono font-medium">
+            <a href="/trips/${entry.trip_id}/" target="_blank" class="inline-flex items-center gap-1 text-sky-600 hover:underline font-mono font-medium">
               #${entry.trip_code}
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
             </a>
           ` : `<span class="text-slate-400 italic">—</span>`}
         </td>
-        <td class="p-3">
-          <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${entry.audit_badge}">
+        <td class="py-2.5 px-3">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${entry.audit_badge}">
+            <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
             ${entry.audit_status.replace(/_/g, ' ')}
           </span>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-1">${entry.audit_notes}</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">${entry.audit_notes}</div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -419,7 +438,41 @@
     checkboxes.forEach(cb => cb.checked = masterCheckbox.checked);
   }
 
-  // Commit Approved Deductions via AJAX
+  function setFastagAuditFilter(status, btn) {
+    currentAuditStatusFilter = status;
+    document.querySelectorAll('.fastag-filter-btn').forEach(b => {
+      b.className = 'fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+    });
+    btn.className = 'fastag-filter-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300';
+    filterFastagRows();
+  }
+
+  function resetFastagFilters() {
+    currentAuditStatusFilter = 'all';
+    document.getElementById('fastagSearchInput').value = '';
+    const btns = document.querySelectorAll('.fastag-filter-btn');
+    if (btns.length) btns[0].click();
+    filterFastagRows();
+  }
+
+  function filterFastagRows() {
+    const q = (document.getElementById('fastagSearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.fastag-row');
+
+    rows.forEach(r => {
+      const text = r.innerText.toLowerCase();
+      const matchText = !q || text.includes(q);
+      const status = r.getAttribute('data-status') || '';
+      const matchStatus = (currentAuditStatusFilter === 'all') || (status === currentAuditStatusFilter);
+
+      if (matchText && matchStatus) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
+
   async function commitApprovedDeductions() {
     if (!statementResult || !statementResult.entries) return;
 
@@ -437,11 +490,8 @@
     const btn = document.getElementById('btnCommitReconciliation');
     btn.disabled = true;
     btn.innerHTML = `
-      <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-      </svg>
-      Committing ${approvedEntries.length} Records...
+      <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+      <span>Committing ${approvedEntries.length} Records...</span>
     `;
 
     try {
@@ -467,12 +517,12 @@
       } else {
         alert('Error: ' + res.message);
         btn.disabled = false;
-        btn.textContent = 'Approve & Commit Deductions';
+        btn.innerHTML = `<i class="fa-solid fa-check text-[11px]"></i><span>Approve &amp; Commit Deductions</span>`;
       }
     } catch (err) {
       alert('Commit failed: ' + err.message);
       btn.disabled = false;
-      btn.textContent = 'Approve & Commit Deductions';
+      btn.innerHTML = `<i class="fa-solid fa-check text-[11px]"></i><span>Approve &amp; Commit Deductions</span>`;
     }
   }
 
@@ -493,14 +543,9 @@
 
   function showToast(msg, type = 'info') {
     const toast = document.createElement('div');
-    const bgCol = type === 'success' ? 'bg-emerald-600' : 'bg-blue-600';
-    toast.className = `fixed bottom-5 right-5 z-50 ${bgCol} text-white px-5 py-3 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300`;
-    toast.innerHTML = `
-      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-      </svg>
-      <span>${msg}</span>
-    `;
+    const bgCol = type === 'success' ? 'bg-emerald-600' : 'bg-sky-600';
+    toast.className = `fixed bottom-5 right-5 z-50 ${bgCol} text-white px-4 py-2.5 rounded-lg shadow-xl text-xs font-semibold flex items-center gap-2 transform transition-all duration-300`;
+    toast.innerHTML = `<i class="fa-solid fa-circle-check text-sm"></i><span>${msg}</span>`;
     document.body.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';

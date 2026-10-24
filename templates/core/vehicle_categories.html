@@ -1,502 +1,371 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Fleet Vehicle Categories Studio | Sivagayathiri Travels{% endblock %}
-{% block header_title %}Fleet Vehicle Categories Master{% endblock %}
+{% block title %}Fleet Vehicle Categories Master | Sivagayathiri TravelERP{% endblock %}
 
 {% block content %}
-<style>
-  .cat-container {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding-bottom: 3.5rem;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  .cat-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0369a1 100%);
-    border-radius: 14px;
-    padding: 24px 30px;
-    color: #ffffff;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  .cat-hero h1 {
-    font-size: 22px;
-    font-weight: 800;
-    margin: 0 0 6px 0;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .cat-hero p {
-    color: #94a3b8;
-    margin: 0;
-    font-size: 13.5px;
-  }
-  .btn-add-primary {
-    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-    color: #ffffff;
-    border: none;
-    padding: 9px 18px;
-    border-radius: 9999px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-    transition: all 0.2s ease;
-    text-decoration: none;
-  }
-  .btn-add-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
-    color: #ffffff;
-  }
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-  .kpi-deck {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .kpi-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  html.dark .kpi-card {
-    background: #0f172a;
-    border-color: #334155;
-  }
-  .kpi-label {
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .kpi-val {
-    font-size: 26px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.1;
-  }
-  html.dark .kpi-val {
-    color: #f8fafc;
-  }
-
-  .controls-bar {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-  }
-  html.dark .controls-bar {
-    background: #0f172a;
-    border-color: #334155;
-  }
-  .filter-pills {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .filter-pill {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    color: #475569;
-    background: #f1f5f9;
-    border: 1px solid transparent;
-    transition: all 0.15s ease;
-  }
-  html.dark .filter-pill {
-    background: #1e293b;
-    color: #cbd5e1;
-  }
-  .filter-pill.active {
-    background: #0284c7;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
-  }
-  .search-input {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 13px;
-    outline: none;
-    min-width: 240px;
-    background: #ffffff;
-    color: #0f172a;
-  }
-  html.dark .search-input {
-    background: #1e293b;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-
-  .table-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  html.dark .table-card {
-    background: #0f172a;
-    border-color: #334155;
-  }
-  .cat-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-  }
-  .cat-table th {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    padding: 12px 16px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  html.dark .cat-table th {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
-  }
-  .cat-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-  }
-  html.dark .cat-table td {
-    border-color: #1e293b;
-  }
-  .cat-table tr:hover td {
-    background: #f8fafc;
-  }
-  html.dark .cat-table tr:hover td {
-    background: #1e293b55;
-  }
-
-  .category-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
-    border-radius: 9999px;
-    font-weight: 700;
-    font-size: 13px;
-  }
-  .action-btn-sm {
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.12s ease;
-  }
-  html.dark .action-btn-sm {
-    background: #1e293b;
-    border-color: #475569;
-    color: #cbd5e1;
-  }
-  .action-btn-sm:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-  }
-
-  /* Modal */
-  .modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 99999;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal-box {
-    background: #ffffff;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 540px;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
-    overflow: hidden;
-  }
-  html.dark .modal-box {
-    background: #0f172a;
-    border: 1px solid #334155;
-  }
-  .modal-head {
-    padding: 18px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8fafc;
-  }
-  html.dark .modal-head {
-    background: #1e293b;
-    border-color: #334155;
-  }
-  .modal-body {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .form-group label {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  html.dark .form-group label {
-    color: #cbd5e1;
-  }
-  .form-control {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-size: 13.5px;
-    outline: none;
-    background: #ffffff;
-    color: #0f172a;
-  }
-  html.dark .form-control {
-    background: #1e293b;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-  .form-control:focus {
-    border-color: #0284c7;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-  }
-</style>
-
-<div class="cat-container">
-  <!-- Hero Section -->
-  <div class="cat-hero">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
     <div>
-      <h1><i class="fa-solid fa-layer-group" style="color: #38bdf8;"></i> Vehicle Categories Master</h1>
-      <p>Standardized Enterprise Fleet Classifications, Tier Badging, and Passenger Capacity Bands</p>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-categories' %}" class="hover:text-primary transition">Fleet &amp; Telematics</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Vehicle Categories</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Vehicle Categories Master</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          {{ counts.total }} categories
+        </span>
+      </h1>
     </div>
-    <button type="button" class="btn-add-primary" onclick="openAddCategoryModal()">
-      <i class="fa-solid fa-plus"></i>
-      <span>Add New Category</span>
-    </button>
+
+    <!-- Actions (Unfold Primary & Secondary Buttons) -->
+    <div class="flex items-center gap-2">
+      <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">add</span>
+        <span>Add Category</span>
+      </button>
+
+      <a href="{% url 'fleet-types' %}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">local_taxi</span>
+        <span>Vehicle Types &amp; Tariffs</span>
+      </a>
+    </div>
   </div>
 
-  <!-- KPI Deck -->
-  <div class="kpi-deck">
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-layer-group" style="color: #0284c7;"></i> Total Categories</span>
-      <span class="kpi-val">{{ counts.total }}</span>
+  <!-- Unfold Flat Metric Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Categories</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ counts.total }}</div>
+      <div class="text-[11px] text-slate-500 mt-1 font-medium">Standardized classifications</div>
     </div>
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Active in Booking Engine</span>
-      <span class="kpi-val" style="color: #10b981;">{{ counts.active }}</span>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active in Booking Engine</div>
+      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ counts.active }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Ready for quote pricing</div>
     </div>
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-car-side" style="color: #6366f1;"></i> Vehicle Models Linked</span>
-      <span class="kpi-val">{{ counts.total_types }}</span>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Vehicle Models Linked</div>
+      <div class="text-xl font-bold font-mono text-indigo-600 dark:text-indigo-400 mt-1">{{ counts.total_types }}</div>
+      <div class="text-[11px] text-indigo-600 dark:text-indigo-400 mt-1">Commercial tariffs configured</div>
     </div>
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-bus" style="color: #d97706;"></i> Live Registered Assets</span>
-      <span class="kpi-val" style="color: #d97706;">{{ counts.total_vehicles }}</span>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Live Registered Assets</div>
+      <div class="text-xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">{{ counts.total_vehicles }}</div>
+      <div class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium">Active fleet inventory</div>
     </div>
   </div>
 
-  <!-- Controls Bar -->
-  <div class="controls-bar">
-    <div class="filter-pills">
-      <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if status_filter == 'all' %}active{% endif %}">All Categories</a>
-      <a href="?status=active{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if status_filter == 'active' %}active{% endif %}">Active ({{ counts.active }})</a>
-      <a href="?status=inactive{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if status_filter == 'inactive' %}active{% endif %}">Inactive ({{ counts.inactive }})</a>
+  <!-- Unfold Changelist Container with Toolbar, Table & Filter Sidebar -->
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+    
+    <!-- Top Toolbar: Search + Actions -->
+    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
+      <div class="relative flex-1 max-w-sm">
+        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
+        <input type="text" id="categorySearchInput" onkeyup="filterCategoryRows()" placeholder="Search categories, codes, seating..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="bulkActionSelect" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary">
+          <option value="">Action: -------------------</option>
+          <option value="export">Export categories to CSV</option>
+        </select>
+        <button onclick="applyBulkAction()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 transition">
+          Go
+        </button>
+        <span class="text-[11px] text-slate-400" id="selectedCountDisplay">0 of {{ counts.total }} selected</span>
+      </div>
     </div>
-    <form method="get" style="display: flex; gap: 8px;">
-      <input type="hidden" name="status" value="{{ status_filter }}">
-      <input type="search" name="q" value="{{ search_query }}" class="search-input" placeholder="Search categories, codes, seats...">
-      <button type="submit" class="action-btn-sm" style="padding: 7px 14px;">Search</button>
-    </form>
+
+    <!-- Table + Sidebar Split -->
+    <div class="flex flex-col lg:flex-row">
+      
+      <!-- Main Table -->
+      <div class="flex-1 overflow-x-auto min-w-0">
+        <table class="w-full text-left border-collapse text-xs" id="categoriesTable">
+          <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
+            <tr>
+              <th class="py-2.5 px-3 w-8 text-center">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-primary focus:ring-0">
+              </th>
+              <th class="py-2.5 px-3">Order</th>
+              <th class="py-2.5 px-3">Category &amp; Visual Tag</th>
+              <th class="py-2.5 px-3">Slug Code</th>
+              <th class="py-2.5 px-3">Seating Range</th>
+              <th class="py-2.5 px-3">Vehicle Models</th>
+              <th class="py-2.5 px-3">Active Assets</th>
+              <th class="py-2.5 px-3">Status</th>
+              <th class="py-2.5 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
+            {% for cat in categories %}
+            <tr class="category-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition"
+                data-status="{% if cat.is_active %}active{% else %}inactive{% endif %}">
+              <!-- Checkbox -->
+              <td class="py-2.5 px-3 text-center">
+                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-primary focus:ring-0" value="{{ cat.id }}" onchange="updateSelectedCount()">
+              </td>
+
+              <!-- Order -->
+              <td class="py-2.5 px-3 font-mono text-slate-500">
+                #{{ cat.display_order }}
+              </td>
+
+              <!-- Category & Tag -->
+              <td class="py-2.5 px-3">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold" style="background: {{ cat.badge_color }}18; color: {{ cat.badge_color }}; border: 1px solid {{ cat.badge_color }}44;">
+                  {% if "fa-" in cat.icon %}<i class="{{ cat.icon }}" style="font-size: 11px;"></i>{% else %}<span class="material-symbols-outlined text-[13px]">{{ cat.icon }}</span>{% endif %}
+                  <span>{{ cat.name }}</span>
+                </span>
+                {% if cat.description %}
+                <div class="text-[11px] text-slate-400 mt-0.5 max-w-xs truncate">{{ cat.description }}</div>
+                {% endif %}
+              </td>
+
+              <!-- Code -->
+              <td class="py-2.5 px-3 font-mono">
+                <span class="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px]">{{ cat.code }}</span>
+              </td>
+
+              <!-- Seating Range -->
+              <td class="py-2.5 px-3 font-medium text-slate-700 dark:text-slate-300">
+                {{ cat.seating_range|default:"Custom" }}
+              </td>
+
+              <!-- Models -->
+              <td class="py-2.5 px-3">
+                <a href="{% url 'fleet-types' %}?category={{ cat.id }}" class="text-primary hover:underline font-semibold">
+                  {{ cat.type_count }} Model{{ cat.type_count|pluralize }} &rarr;
+                </a>
+              </td>
+
+              <!-- Vehicles Count -->
+              <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">
+                {{ cat.vehicle_count }} vehicles
+              </td>
+
+              <!-- Status -->
+              <td class="py-2.5 px-3">
+                {% if cat.is_active %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  ACTIVE
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                  INACTIVE
+                </span>
+                {% endif %}
+              </td>
+
+              <!-- Actions -->
+              <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button type="button" class="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded transition" onclick='openEditCategoryModal("{{ cat.id }}", "{{ cat.name|escapejs }}", "{{ cat.code|escapejs }}", "{{ cat.seating_range|escapejs }}", "{{ cat.badge_color }}", "{{ cat.icon }}", "{{ cat.display_order }}", "{{ cat.description|escapejs }}", {{ cat.is_active|yesno:"true,false" }})'>
+                    Edit
+                  </button>
+                  <form method="post" class="inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle_category">
+                    <input type="hidden" name="category_id" value="{{ cat.id }}">
+                    <button type="submit" class="px-2 py-0.5 text-[11px] font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-50 transition">
+                      {% if cat.is_active %}Disable{% else %}Enable{% endif %}
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center py-10 text-slate-400">
+                No vehicle categories found.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right-Side Unfold Filter Sidebar -->
+      <div class="w-full lg:w-60 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-800/20 text-xs space-y-4 shrink-0">
+        <div class="font-bold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between">
+          <span>Filter Categories</span>
+          <button onclick="resetFilters()" class="text-primary hover:underline text-[10px] lowercase font-normal">reset</button>
+        </div>
+
+        <!-- Filter 1: By Status -->
+        <div class="space-y-1.5">
+          <div class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">By Status</div>
+          <div class="space-y-1 pl-1 text-[11px]">
+            <a href="javascript:void(0)" onclick="setFilter('status', 'all', this)" class="filter-item text-primary font-bold block">All Categories ({{ counts.total }})</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'active', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Active in Engine ({{ counts.active }})</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'inactive', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Inactive ({{ counts.inactive }})</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- Table Card -->
-  <div class="table-card">
-    <table class="cat-table">
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Category &amp; Visual Tag</th>
-          <th>Slug Code</th>
-          <th>Seating Range</th>
-          <th>Vehicle Models</th>
-          <th>Active Fleet Assets</th>
-          <th>Status</th>
-          <th style="text-align: right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for cat in categories %}
-        <tr>
-          <td style="font-weight: 700; color: #64748b;">#{{ cat.display_order }}</td>
-          <td>
-            <span class="category-pill" style="background: {{ cat.badge_color }}18; color: {{ cat.badge_color }}; border: 1px solid {{ cat.badge_color }}44;">
-              {% if "fa-" in cat.icon %}<i class="{{ cat.icon }}" style="font-size: 14px;"></i>{% else %}<span class="material-symbols-outlined" style="font-size: 18px;">{{ cat.icon }}</span>{% endif %}
-              <span>{{ cat.name }}</span>
-            </span>
-            {% if cat.description %}
-            <div style="font-size: 11.5px; color: #64748b; margin-top: 4px; max-width: 380px;">{{ cat.description }}</div>
-            {% endif %}
-          </td>
-          <td><code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 12px;">{{ cat.code }}</code></td>
-          <td style="font-weight: 600;">{{ cat.seating_range|default:"Custom" }}</td>
-          <td>
-            <a href="{% url 'fleet-types' %}?category={{ cat.id }}" style="text-decoration: none; font-weight: 700; color: #0284c7;">
-              {{ cat.type_count }} Model{{ cat.type_count|pluralize }} &rarr;
-            </a>
-          </td>
-          <td style="font-weight: 700;">{{ cat.vehicle_count }} vehicles</td>
-          <td>
-            {% if cat.is_active %}
-            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #10b981;">
-              <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span> Active
-            </span>
-            {% else %}
-            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #94a3b8;">
-              <span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8;"></span> Inactive
-            </span>
-            {% endif %}
-          </td>
-          <td style="text-align: right;">
-            <div style="display: inline-flex; gap: 6px;">
-              <button type="button" class="action-btn-sm" onclick='openEditCategoryModal("{{ cat.id }}", "{{ cat.name|escapejs }}", "{{ cat.code|escapejs }}", "{{ cat.seating_range|escapejs }}", "{{ cat.badge_color }}", "{{ cat.icon }}", "{{ cat.display_order }}", "{{ cat.description|escapejs }}", {{ cat.is_active|yesno:"true,false" }})'>
-                <i class="fa-solid fa-pen-to-square"></i> Edit
-              </button>
-              <form method="post" style="display: inline;">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="toggle_category">
-                <input type="hidden" name="category_id" value="{{ cat.id }}">
-                <button type="submit" class="action-btn-sm" title="Toggle Active Status">
-                  {% if cat.is_active %}<i class="fa-solid fa-eye-slash"></i> Disable{% else %}<i class="fa-solid fa-eye"></i> Enable{% endif %}
-                </button>
-              </form>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="8" style="text-align: center; padding: 48px 16px; color: #64748b;">
-            <i class="fa-solid fa-layer-group" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 8px;"></i>
-            <p style="margin: 0;">No vehicle categories found matching criteria.</p>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
 </div>
 
-<!-- Modal Dialog -->
-<div class="modal-backdrop" id="categoryModal" onclick="if(event.target===this) closeCategoryModal()">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h3 style="margin: 0; font-size: 16px; font-weight: 800;" id="modalTitle">Add Vehicle Category</h3>
-      <button type="button" onclick="closeCategoryModal()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #94a3b8;">&times;</button>
+<!-- Modal: Category Editor (Unfold Style) -->
+<div id="categoryModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full p-5 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-base">category</span>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white" id="modalTitle">Add Vehicle Category</h3>
+      </div>
+      <button type="button" onclick="closeCategoryModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
     </div>
-    <form method="post">
+
+    <form method="post" class="space-y-3 text-xs">
       {% csrf_token %}
       <input type="hidden" name="action" id="formAction" value="add_category">
       <input type="hidden" name="category_id" id="categoryId" value="">
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Category Name *</label>
-          <input type="text" name="name" id="inputName" class="form-control" required placeholder="e.g. Luxury Sleeper Coach">
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category Name *</label>
+        <input type="text" name="name" id="inputName" required placeholder="e.g. Luxury Sleeper Coach" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Slug Code</label>
+          <input type="text" name="code" id="inputCode" placeholder="e.g. luxury_sleeper" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono focus:outline-none focus:border-primary">
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div class="form-group">
-            <label>Slug Code</label>
-            <input type="text" name="code" id="inputCode" class="form-control" placeholder="e.g. luxury_sleeper">
-          </div>
-          <div class="form-group">
-            <label>Seating Tier Span</label>
-            <input type="text" name="seating_range" id="inputSeats" class="form-control" placeholder="e.g. 36-40 Berths">
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div class="form-group">
-            <label>Badge Color</label>
-            <input type="color" name="badge_color" id="inputColor" value="#0284c7" style="height: 40px; padding: 2px; width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer;">
-          </div>
-          <div class="form-group">
-            <label>Display Order</label>
-            <input type="number" name="display_order" id="inputOrder" class="form-control" value="1" min="1">
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Icon Identifier</label>
-          <input type="text" name="icon" id="inputIcon" class="form-control" value="directions_bus" placeholder="directions_car, directions_bus, airport_shuttle">
-        </div>
-        <div class="form-group">
-          <label>Commercial Description</label>
-          <textarea name="description" id="inputDesc" class="form-control" rows="2" placeholder="Fleet capability, luggage span, target group size..."></textarea>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <input type="checkbox" name="is_active" id="inputActive" checked style="width: 16px; height: 16px;">
-          <label for="inputActive" style="font-size: 13px; font-weight: 600; cursor: pointer; text-transform: none;">Active in Dispatch and Quote Engine</label>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Seating Tier Span</label>
+          <input type="text" name="seating_range" id="inputSeats" placeholder="e.g. 36-40 Berths" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-primary">
         </div>
       </div>
-      <div style="padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;">
-        <button type="button" class="action-btn-sm" onclick="closeCategoryModal()" style="padding: 8px 16px;">Cancel</button>
-        <button type="submit" class="btn-add-primary" style="padding: 8px 18px; border-radius: 8px;">Save Category</button>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Badge Color</label>
+          <input type="color" name="badge_color" id="inputColor" value="#0284c7" class="w-full h-8 p-1 rounded-lg border border-slate-300 dark:border-slate-700 cursor-pointer">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Display Order</label>
+          <input type="number" name="display_order" id="inputOrder" value="1" min="1" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Icon Identifier</label>
+        <input type="text" name="icon" id="inputIcon" value="directions_bus" placeholder="directions_car, directions_bus, airport_shuttle" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Commercial Description</label>
+        <textarea name="description" id="inputDesc" rows="2" placeholder="Fleet capability, luggage span, target group size..." class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"></textarea>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <input type="checkbox" name="is_active" id="inputActive" checked class="rounded border-slate-300 text-primary">
+        <label for="inputActive" class="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">Active in Dispatch and Quote Engine</label>
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+        <button type="button" onclick="closeCategoryModal()" class="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition">
+          Save Category
+        </button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+  let activeFilters = { status: 'all' };
+
+  function setFilter(type, value, element) {
+    activeFilters[type] = value;
+    if (element && element.parentElement) {
+      element.parentElement.querySelectorAll('.filter-item').forEach(el => {
+        el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+      });
+      element.className = "filter-item text-primary font-bold block";
+    }
+    filterCategoryRows();
+  }
+
+  function resetFilters() {
+    activeFilters = { status: 'all' };
+    document.querySelectorAll('.filter-item').forEach(el => {
+      el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+    });
+    document.querySelectorAll('.w-60 .space-y-1 .filter-item:first-child').forEach(el => {
+      el.className = "filter-item text-primary font-bold block";
+    });
+    document.getElementById('categorySearchInput').value = '';
+    filterCategoryRows();
+  }
+
+  function filterCategoryRows() {
+    const q = (document.getElementById('categorySearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.category-row');
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+
+      const rStatus = row.dataset.status;
+      const matchesStatus = (activeFilters.status === 'all') || (rStatus === activeFilters.status);
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function toggleSelectAll(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      const tr = cb.closest('tr');
+      if (tr && tr.style.display !== 'none') {
+        cb.checked = master.checked;
+      }
+    });
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('.row-checkbox:checked').length;
+    const total = document.querySelectorAll('.row-checkbox').length;
+    const display = document.getElementById('selectedCountDisplay');
+    if (display) {
+      display.innerText = `${checked} of ${total} selected`;
+    }
+  }
+
+  function applyBulkAction() {
+    const action = document.getElementById('bulkActionSelect').value;
+    const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+    if (!action) {
+      alert('Please select an action first.');
+      return;
+    }
+    if (selected.length === 0) {
+      alert('Please select at least one category.');
+      return;
+    }
+    if (action === 'export') {
+      alert(`Exporting ${selected.length} categories to CSV...`);
+    }
+  }
+
   function openAddCategoryModal() {
     document.getElementById('modalTitle').innerText = 'Add Vehicle Category';
     document.getElementById('formAction').value = 'add_category';
@@ -509,7 +378,7 @@
     document.getElementById('inputIcon').value = 'directions_bus';
     document.getElementById('inputDesc').value = '';
     document.getElementById('inputActive').checked = true;
-    document.getElementById('categoryModal').classList.add('open');
+    document.getElementById('categoryModal').classList.remove('hidden');
   }
 
   function openEditCategoryModal(id, name, code, seats, color, icon, order, desc, isActive) {
@@ -524,11 +393,11 @@
     document.getElementById('inputIcon').value = icon || 'directions_bus';
     document.getElementById('inputDesc').value = desc;
     document.getElementById('inputActive').checked = isActive;
-    document.getElementById('categoryModal').classList.add('open');
+    document.getElementById('categoryModal').classList.remove('hidden');
   }
 
   function closeCategoryModal() {
-    document.getElementById('categoryModal').classList.remove('open');
+    document.getElementById('categoryModal').classList.add('hidden');
   }
 </script>
 {% endblock %}

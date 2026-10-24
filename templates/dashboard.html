@@ -46,85 +46,80 @@
 }
 
 .unfold-kpi-card {
-  border-radius: 14px;
-  padding: 1.25rem 1.45rem;
-  color: #ffffff;
+  border-radius: 12px;
+  padding: 1.15rem 1.35rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 126px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.12);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+  min-height: 116px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+html.dark .unfold-kpi-card {
+  background: #0f172a;
+  border-color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .unfold-kpi-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 30px -4px rgba(15, 23, 42, 0.22);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
-.unfold-kpi-card::after {
-  content: '';
-  position: absolute;
-  top: -30%;
-  right: -10%;
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
-  pointer-events: none;
-  border-radius: 50%;
-}
+.unfold-kpi-blue .unfold-kpi-icon-box { background: #f0f9ff; color: #0284c7; }
+.unfold-kpi-green .unfold-kpi-icon-box { background: #f0fdf4; color: #059669; }
+.unfold-kpi-amber .unfold-kpi-icon-box { background: #fffbeb; color: #d97706; }
+.unfold-kpi-indigo .unfold-kpi-icon-box { background: #f5f3ff; color: #4f46e5; }
 
-.unfold-kpi-blue {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-}
-.unfold-kpi-green {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-}
-.unfold-kpi-amber {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-.unfold-kpi-indigo {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-}
+html.dark .unfold-kpi-blue .unfold-kpi-icon-box { background: rgba(2, 132, 199, 0.15); color: #38bdf8; }
+html.dark .unfold-kpi-green .unfold-kpi-icon-box { background: rgba(5, 150, 105, 0.15); color: #34d399; }
+html.dark .unfold-kpi-amber .unfold-kpi-icon-box { background: rgba(217, 119, 6, 0.15); color: #fbbf24; }
+html.dark .unfold-kpi-indigo .unfold-kpi-icon-box { background: rgba(79, 70, 229, 0.15); color: #818cf8; }
 
 .unfold-kpi-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.5rem;
 }
 
 .unfold-kpi-title {
-  font-size: 0.74rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.92);
+  color: #64748b;
+}
+
+html.dark .unfold-kpi-title {
+  color: #94a3b8;
 }
 
 .unfold-kpi-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  color: #ffffff;
+  font-size: 1rem;
 }
 
 .unfold-kpi-number {
-  font-size: 1.95rem;
+  font-size: 1.85rem;
   font-weight: 800;
   line-height: 1.1;
-  color: #ffffff;
-  margin-bottom: 0.35rem;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
   letter-spacing: -0.025em;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+html.dark .unfold-kpi-number {
+  color: #ffffff;
 }
 
 .unfold-kpi-number.mono-val {
@@ -133,12 +128,16 @@
 }
 
 .unfold-kpi-footer {
-  font-size: 0.76rem;
-  color: rgba(255, 255, 255, 0.88);
-  font-weight: 600;
+  font-size: 0.74rem;
+  color: #64748b;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+}
+
+html.dark .unfold-kpi-footer {
+  color: #94a3b8;
 }
 
 /* ── §2 UNFOLD STUDIO BANNER & LAUNCHPAD ── */
@@ -835,7 +834,7 @@ html.dark .cr-shortcut-row {
       <div>
         <div class="unfold-kpi-number">{{ active_trips }}</div>
         <div class="unfold-kpi-footer">
-          <span class="unfold-pulse-dot" style="background: #ffffff; box-shadow: 0 0 6px #ffffff;"></span>
+          <span class="unfold-pulse-dot" style="background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
           <span>{{ started_trips }} in transit &bull; {{ available_vehicles_count }} standby</span>
         </div>
       </div>

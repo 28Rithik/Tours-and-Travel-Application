@@ -1,0 +1,28 @@
+All studios across **Priority 5**, **Priority 6**, **Priority 7**, and **Priority 8** have been built, debugged, and verified.
+
+---
+
+### Enterprise Studios Summary (P5 through P8)
+
+| Priority | Studio / Sentry Module | Live Endpoint | Status | Key Features |
+| :--- | :--- | :--- | :---: | :--- |
+| **P5-1** | **Interstate State Border Entry Tax & AITP Permit Sentry** | [`/operations/border-permits/`](http://127.0.0.1:8000/operations/border-permits/) | **Verified (200 OK)** | South Indian check-posts (Walayar, Attibele, Gorimedu, Zuzuvadi), statutory state tax calculator (KL, KA, PY, AP, GA), 1-click clearance pass generator. |
+| **P5-2** | **Chauffeur Fatigue & Mandatory Duty Rest Sentry** | [`/operations/driver-fatigue-sentry/`](http://127.0.0.1:8000/operations/driver-fatigue-sentry/) | **Verified (200 OK)** | Mandatory 8h rest interval enforcement, continuous 4.5h driving limit guards, night ghat road safety alerts (Ooty/Kodaikanal), medical fitness tracking. |
+| **P6-1** | **Market Fleet Vendor Bill Auditor & Reconciliation Studio** | [`/suppliers/vendor-bill-audit/`](http://127.0.0.1:8000/suppliers/vendor-bill-audit/) | **Verified (200 OK)** | Claimed vs GPS telematics KM/hours comparison, rate-card compliance audit, discrepancy clawback deduction calculator, 1-click approval. |
+| **P6-2** | **Post-Trip Customer Feedback & Google Review Engine** | [`/crm/feedback-reviews/`](http://127.0.0.1:8000/crm/feedback-reviews/) | **Verified (200 OK)** | NPS promoter routing (4–5 stars $\rightarrow$ Google Reviews), detractor routing ($\le$3 stars $\rightarrow$ auto-lodged CRM Quality Complaints), guest token portal. |
+| **P7-1** | **Highway Breakdown SOS & Emergency Fleet Relief Studio** | [`/operations/breakdown-sos/`](http://127.0.0.1:8000/operations/breakdown-sos/) | **Verified (200 OK)** | Real-time highway distress tracking (NH-44, NH-544, ghat sections), stranded guest rescue counter, 1-click standby vehicle & chauffeur dispatch. |
+| **P7-2** | **Workshop Spare Parts Inventory & Low Stock Reorder Sentry** | [`/m
+<truncated 558 bytes>
+8-2** | **CRM Quotation Follow-up Cadence & WhatsApp Drip Studio** | [`/crm/followup-cadence/`](http://127.0.0.1:8000/crm/followup-cadence/) | **Verified (200 OK)** | 24h & 48h quotation drip reminders, 1-click Tamil/English WhatsApp deep-links with itinerary & quote details, pipeline conversion metric cards. |
+| **P8-3** | **Section 194C TDS Deduction & Form 16A Corporate Ledger** | [`/finance/tds-194c/`](http://127.0.0.1:8000/finance/tds-194c/) | **Verified (200 OK)** | Statutory 1% (indiv/HUF) & 2% (corporate) Section 194C TDS calculation on taxable charter amounts, PAN validation, Form 16A reconciliation status. |
+
+---
+
+### Key Fixes Applied & Verified
+
+1. **Driver Query Alignment**: Updated `operations/views.py` (`breakdown_sos_studio_view` and `pnr_arrivals_studio_view`) to query `Driver.objects.filter(status='active')` instead of the non-existent `is_active` field.
+2. **PNR Arrivals Seeding Context**: Restored `now = timezone.now()` and vehicle fallback `v_tempo` in [`operations/pnr_arrivals_sentry.py`](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/operations/pnr_arrivals_sentry.py).
+3. **Party PAN Derivation**: Safely derived corporate PAN numbers from `Party.gstin[2:12]` in [`finance/views.py`](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/finance/views.py) (`tds_194c_ledger_view`).
+4. **Quotation Cadence Schema**: Fixed field references to use `Quotation.guest_name`, `Quotation.guest_phone`, `Quotation.destination`, and `Quotation.total_quoted_price` in [`crm/views.py`](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/crm/views.py).
+5. **Git Version Control**: All changes committed to branch `main` at commit `397a8a5`.
+6. **Live Server**: Daphne ASGI server running on `http://127.0.0.1:8000` with all 9 studios responding with HTTP 200.

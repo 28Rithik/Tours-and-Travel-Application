@@ -1,267 +1,318 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Spare Parts &amp; Workshop Store Inventory Studio | Sivagayathiri ERP{% endblock %}
-
-{% block extra_head %}
-<style>
-  .parts-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  }
-  html.dark .parts-card, .dark .parts-card {
-    background: #0f172a;
-    border-color: #1e293b;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  }
-</style>
-{% endblock %}
+{% block title %}Spare Parts &amp; Workshop Store Inventory | Sivagayathiri TravelERP{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+<div class="space-y-4 max-w-full">
 
-  <!-- Header Banner -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white p-6 rounded-2xl shadow-xl">
-    <div class="space-y-1">
-      <div class="flex items-center gap-3">
-        <span class="p-2.5 bg-indigo-500/20 text-indigo-400 rounded-xl border border-indigo-400/30 flex items-center justify-center">
-          <svg width="28" height="28" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-          </svg>
+  <!-- Unfold Top Breadcrumbs -->
+  <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+    <a href="/" class="hover:text-primary transition">Home</a>
+    <span>/</span>
+    <a href="/maintenance/parts-inventory/" class="hover:text-primary transition">Workshop &amp; Maintenance</a>
+    <span>/</span>
+    <span class="text-slate-900 dark:text-white font-semibold">Parts &amp; Consumables Inventory</span>
+  </nav>
+
+  <!-- Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+        Spare Parts &amp; Store Inventory
+        <span class="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          {{ stats.total_items }} SKUs
         </span>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white !text-white">Spare Parts &amp; Consumables Store Inventory</h1>
-          <p class="text-xs text-indigo-200">Stockroom Catalog &bull; Minimum Reorder Sentry &bull; Job Card Consumption Tracking &bull; Valuation</p>
-        </div>
-      </div>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        Depot stockroom catalog, minimum reorder sentry, job card consumption tracking, and valuation.
+      </p>
     </div>
-
-    <!-- Actions -->
-    <div class="flex flex-wrap items-center gap-3">
-      <button onclick="openIssueModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-indigo-600/30 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-        </svg>
+    <div class="flex items-center gap-2 flex-wrap">
+      <button onclick="openIssueModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition">
+        <i class="fa-solid fa-arrow-up-from-bracket text-[11px]"></i>
         <span>Issue Part to Job Card</span>
       </button>
-
-      <button onclick="openReceiveModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl shadow-lg shadow-emerald-600/30 transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        <span>Receive Vendor Purchase</span>
+      <button onclick="openReceiveModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition">
+        <i class="fa-solid fa-plus text-[11px] text-emerald-600"></i>
+        <span>Receive Stock</span>
       </button>
+      <a href="/admin/maintenance/parts-inventory/" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+        <span>Admin View</span>
+      </a>
     </div>
   </div>
 
-  <!-- Metric KPI Cards in Crisp Light Mode -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Total Active SKUs -->
-    <div class="parts-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">Active Parts &amp; Fluids SKUs</div>
-          <div class="text-2xl font-bold text-slate-900 mt-1">{{ stats.total_items }} SKUs</div>
-          <div class="text-[11px] text-slate-500 font-medium mt-1">Engine oils, brake pads &amp; tyres</div>
-        </div>
-        <div class="p-3 bg-slate-100 text-slate-700 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-          </svg>
-        </div>
-      </div>
+  <!-- Unfold Metric Deck (4 Flat Cards) -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active SKUs</div>
+      <div class="font-mono text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats.total_items }}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">Engine oils, filters, brake pads</div>
     </div>
-
-    <!-- Low Stock Reorder Warning -->
-    <div class="parts-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">Low Stock Reorder Alerts</div>
-          <div class="text-2xl font-bold text-rose-600 mt-1">{{ stats.low_stock_count }} Items</div>
-          <div class="text-[11px] text-rose-600 font-medium mt-1">Below minimum depot threshold</div>
-        </div>
-        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Low Stock Sentry</div>
+      <div class="font-mono text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.low_stock_count }}</div>
+      <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-0.5">Below depot reorder threshold</div>
     </div>
-
-    <!-- Total Stock Valuation -->
-    <div class="parts-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">Total Store Valuation</div>
-          <div class="text-2xl font-bold text-emerald-600 mt-1">₹{{ stats.total_valuation|floatformat:2 }}</div>
-          <div class="text-[11px] text-emerald-600 font-medium mt-1">Warehouse physical asset value</div>
-        </div>
-        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Store Valuation</div>
+      <div class="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">₹{{ stats.total_valuation|floatformat:0 }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5">Warehouse physical asset value</div>
     </div>
-
-    <!-- Job Card Issues -->
-    <div class="parts-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">Job Card Requisitions</div>
-          <div class="text-2xl font-bold text-indigo-600 mt-1">{{ stats.recent_issues }} Issues</div>
-          <div class="text-[11px] text-indigo-600 font-medium mt-1">Directly allocated to vehicles</div>
-        </div>
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Job Card Issues</div>
+      <div class="font-mono text-2xl font-bold text-sky-600 dark:text-sky-400 mt-1">{{ stats.recent_issues }}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">Allocated directly to fleet</div>
     </div>
   </div>
 
-  <!-- Parts Catalog Table in Crisp Light Mode -->
-  <div class="parts-card overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-      <div>
-        <h2 class="text-base font-bold text-slate-900">Depot Spare Parts &amp; Consumables Inventory Catalog</h2>
-        <p class="text-xs text-slate-500">Real-time bin locations, available physical quantity, unit valuation, and reorder levels</p>
+  <!-- Unfold Split Changelist Layout -->
+  <div class="flex flex-col lg:flex-row gap-4 items-start">
+
+    <!-- Left Main Column: Data Table & Changelist Toolbar -->
+    <div class="flex-1 w-full min-w-0 space-y-3">
+
+      <!-- Changelist Action Toolbar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+          <div class="relative flex-1 max-w-sm">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input
+              type="text"
+              id="partsSearchInput"
+              onkeyup="filterPartsRows()"
+              placeholder="Search part code, name, bin, models..."
+              class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
+            />
+          </div>
+          <span id="selectedCounter" class="text-xs text-slate-500 hidden sm:inline">0 of {{ parts|length }} selected</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <select id="bulkActionSelect" class="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-300">
+            <option value="">Action: Run on selected</option>
+            <option value="export">Export Catalog to CSV</option>
+            <option value="reorder">Flag for Vendor Reorder</option>
+          </select>
+          <button onclick="runBulkAction()" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+            Go
+          </button>
+        </div>
+      </div>
+
+      <!-- Dense Changelist Table -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table id="partsTable" class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3 w-8">
+                  <input type="checkbox" id="selectAllParts" onchange="toggleSelectAllParts(this)" class="rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer">
+                </th>
+                <th class="py-2.5 px-3">Part Code</th>
+                <th class="py-2.5 px-3">Item Description &amp; Models</th>
+                <th class="py-2.5 px-3">Category</th>
+                <th class="py-2.5 px-3">Storage Bin</th>
+                <th class="py-2.5 px-3">Available Stock</th>
+                <th class="py-2.5 px-3">Min Reorder</th>
+                <th class="py-2.5 px-3 text-right">Unit Cost</th>
+                <th class="py-2.5 px-3 text-right">Total Valuation</th>
+                <th class="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-normal text-slate-700 dark:text-slate-300">
+              {% for p in parts %}
+              <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition part-row"
+                  data-category="{{ p.category }}"
+                  data-lowstock="{% if p.is_low_stock %}1{% else %}0{% endif %}">
+                <td class="py-2.5 px-3">
+                  <input type="checkbox" class="part-checkbox rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-0 cursor-pointer" onchange="updateSelectedCount()">
+                </td>
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">
+                  {{ p.part_code }}
+                </td>
+                <td class="py-2.5 px-3">
+                  <div class="font-bold text-slate-900 dark:text-white">{{ p.name }}</div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400">{{ p.applicable_models }}</div>
+                </td>
+                <td class="py-2.5 px-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    {{ p.get_category_display }}
+                  </span>
+                </td>
+                <td class="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-400">
+                  {{ p.storage_bin }}
+                </td>
+                <td class="py-2.5 px-3">
+                  {% if p.is_low_stock %}
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      {{ p.current_stock }} {{ p.unit }}
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      {{ p.current_stock }} {{ p.unit }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="py-2.5 px-3 font-mono text-slate-500 dark:text-slate-400">
+                  {{ p.minimum_reorder_level }} {{ p.unit }}
+                </td>
+                <td class="py-2.5 px-3 font-mono text-right font-medium text-slate-800 dark:text-slate-200">
+                  ₹{{ p.unit_cost|floatformat:2 }}
+                </td>
+                <td class="py-2.5 px-3 font-mono text-right font-bold text-slate-900 dark:text-white">
+                  ₹{{ p.total_inventory_value|floatformat:2 }}
+                </td>
+                <td class="py-2.5 px-3 text-right">
+                  <button onclick="quickIssue('{{ p.id }}', '{{ p.name }}', '{{ p.unit }}', '{{ p.current_stock }}')" class="px-2 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-400 dark:hover:bg-sky-900/60 font-semibold rounded text-[11px] border border-sky-200 dark:border-sky-800 transition">
+                    Issue
+                  </button>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="10" class="py-8 text-center text-slate-400">
+                  No spare parts found in current inventory catalog.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Stock Movements & Requisitions Table -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm mt-4">
+        <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white">Recent Stock Movements &amp; Consumption History</h2>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400">Audit trail of inward purchases and garage job card consumption</p>
+          </div>
+          <span class="text-xs font-mono text-slate-500">{{ movements|length }} logs</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3">Timestamp</th>
+                <th class="py-2.5 px-3">Movement Type</th>
+                <th class="py-2.5 px-3">Part Item</th>
+                <th class="py-2.5 px-3">Quantity</th>
+                <th class="py-2.5 px-3">Vehicle / Job Card</th>
+                <th class="py-2.5 px-3">Mechanic / Issuer</th>
+                <th class="py-2.5 px-3 text-right">Total ₹</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-normal text-slate-700 dark:text-slate-300">
+              {% for m in movements %}
+              <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                <td class="py-2.5 px-3 font-mono text-slate-500">{{ m.created_at|date:"M d, Y H:i" }}</td>
+                <td class="py-2.5 px-3">
+                  {% if m.movement_type == 'jobcard_issue' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-400">
+                      📤 Job Card Issue
+                    </span>
+                  {% elif m.movement_type == 'purchase_receipt' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                      📥 Vendor Receipt
+                    </span>
+                  {% else %}
+                    <span class="text-slate-600 dark:text-slate-400 font-medium">{{ m.get_movement_type_display }}</span>
+                  {% endif %}
+                </td>
+                <td class="py-2.5 px-3 font-semibold text-slate-900 dark:text-white">{{ m.part.name }}</td>
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">{{ m.quantity }} {{ m.part.unit }}</td>
+                <td class="py-2.5 px-3">
+                  {% if m.vehicle %}
+                    <span class="font-bold text-slate-900 dark:text-white">{{ m.vehicle.registration_number }}</span>
+                  {% endif %}
+                  {% if m.job_card_ref %}
+                    <span class="text-slate-500 text-[10px]">({{ m.job_card_ref }})</span>
+                  {% endif %}
+                </td>
+                <td class="py-2.5 px-3 text-slate-600 dark:text-slate-400">{{ m.issued_to_mechanic|default:"Depot Store" }}</td>
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white text-right">₹{{ m.total_amount|floatformat:2 }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="py-6 text-center text-slate-400">No stock movements recorded yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Side: Unfold Collapsible Filter Sidebar (w-60) -->
+    <div class="w-full lg:w-60 flex-shrink-0 space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Filter</span>
+          <button onclick="resetPartsFilters()" class="text-[11px] text-sky-600 hover:underline">Reset</button>
+        </div>
+
+        <!-- Filter: Stock Level Alert -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">By Stock Level</div>
+          <div class="space-y-1">
+            <button onclick="setPartsStockFilter('all', this)" class="parts-stock-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">
+              All Items ({{ parts|length }})
+            </button>
+            <button onclick="setPartsStockFilter('low', this)" class="parts-stock-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ⚠️ Low Stock Only ({{ stats.low_stock_count }})
+            </button>
+            <button onclick="setPartsStockFilter('normal', this)" class="parts-stock-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ✓ Sufficient Stock
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter: By Category -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">By Category</div>
+          <div class="space-y-1">
+            <button onclick="setPartsCategoryFilter('all', this)" class="parts-cat-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">
+              All Categories
+            </button>
+            <button onclick="setPartsCategoryFilter('mechanical', this)" class="parts-cat-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Mechanical &amp; Engine
+            </button>
+            <button onclick="setPartsCategoryFilter('electrical', this)" class="parts-cat-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Electrical &amp; Battery
+            </button>
+            <button onclick="setPartsCategoryFilter('fluids', this)" class="parts-cat-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Oils, Coolants &amp; Fluids
+            </button>
+            <button onclick="setPartsCategoryFilter('body', this)" class="parts-cat-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Body &amp; Glass
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse text-xs">
-        <thead>
-          <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-            <th class="py-3 px-4">Part Code</th>
-            <th class="py-3 px-4">Description &amp; Models</th>
-            <th class="py-3 px-4">Category</th>
-            <th class="py-3 px-4">Bin Location</th>
-            <th class="py-3 px-4">Available Stock</th>
-            <th class="py-3 px-4">Min Reorder</th>
-            <th class="py-3 px-4">Unit Cost</th>
-            <th class="py-3 px-4">Total Value</th>
-            <th class="py-3 px-4 text-right">Action</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          {% for p in parts %}
-          <tr class="hover:bg-slate-50/60 transition">
-            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">{{ p.part_code }}</td>
-            <td class="py-3.5 px-4">
-              <div class="font-bold text-slate-900">{{ p.name }}</div>
-              <div class="text-[11px] text-slate-500">{{ p.applicable_models }}</div>
-            </td>
-            <td class="py-3.5 px-4">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700">
-                {{ p.get_category_display }}
-              </span>
-            </td>
-            <td class="py-3.5 px-4 font-mono text-slate-600">{{ p.storage_bin }}</td>
-            <td class="py-3.5 px-4">
-              {% if p.is_low_stock %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800">
-                  ⚠️ {{ p.current_stock }} {{ p.unit }}
-                </span>
-              {% else %}
-                <span class="font-bold text-emerald-700 text-xs">
-                  {{ p.current_stock }} {{ p.unit }}
-                </span>
-              {% endif %}
-            </td>
-            <td class="py-3.5 px-4 text-slate-500 font-medium">{{ p.minimum_reorder_level }} {{ p.unit }}</td>
-            <td class="py-3.5 px-4 font-mono font-semibold text-slate-800">₹{{ p.unit_cost|floatformat:2 }}</td>
-            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">₹{{ p.total_inventory_value|floatformat:2 }}</td>
-            <td class="py-3.5 px-4 text-right">
-              <button onclick="quickIssue('{{ p.id }}', '{{ p.name }}', '{{ p.unit }}', '{{ p.current_stock }}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-[11px] border border-indigo-200 transition">
-                Issue
-              </button>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="9" class="py-8 text-center text-slate-400 text-sm">
-              No inventory catalog found.
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Recent Movements Log in Crisp Light Mode -->
-  <div class="parts-card overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100">
-      <h2 class="text-base font-bold text-slate-900">Recent Stock Movements &amp; Consumption History</h2>
-      <p class="text-xs text-slate-500">Audit trail of inward purchases and garage work order issues</p>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse text-xs">
-        <thead>
-          <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-            <th class="py-3 px-4">Timestamp</th>
-            <th class="py-3 px-4">Movement Type</th>
-            <th class="py-3 px-4">Part Item</th>
-            <th class="py-3 px-4">Quantity</th>
-            <th class="py-3 px-4">Vehicle / Job Card</th>
-            <th class="py-3 px-4">Mechanic / Issuer</th>
-            <th class="py-3 px-4 text-right">Total ₹</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          {% for m in movements %}
-          <tr class="hover:bg-slate-50/60 transition">
-            <td class="py-3 px-4 text-slate-500">{{ m.created_at|date:"M d, Y H:i" }}</td>
-            <td class="py-3 px-4">
-              {% if m.movement_type == 'jobcard_issue' %}
-                <span class="text-indigo-700 font-semibold">📤 Job Card Issue</span>
-              {% elif m.movement_type == 'purchase_receipt' %}
-                <span class="text-emerald-700 font-semibold">📥 Vendor Receipt</span>
-              {% else %}
-                <span class="text-slate-700 font-semibold">{{ m.get_movement_type_display }}</span>
-              {% endif %}
-            </td>
-            <td class="py-3 px-4 font-semibold text-slate-900">{{ m.part.name }}</td>
-            <td class="py-3 px-4 font-bold text-slate-800">{{ m.quantity }} {{ m.part.unit }}</td>
-            <td class="py-3 px-4">
-              {% if m.vehicle %}
-                <span class="font-bold text-slate-900">{{ m.vehicle.registration_number }}</span>
-              {% endif %}
-              {% if m.job_card_ref %}
-                <span class="text-slate-500 text-[10px]">({{ m.job_card_ref }})</span>
-              {% endif %}
-            </td>
-            <td class="py-3 px-4 text-slate-600">{{ m.issued_to_mechanic|default:"Depot Store" }}</td>
-            <td class="py-3 px-4 font-mono font-bold text-slate-900 text-right">₹{{ m.total_amount|floatformat:2 }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="7" class="py-6 text-center text-slate-400">No stock movements recorded yet.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
   </div>
 
 </div>
 
-<!-- Issue Part Modal in Light Mode -->
+<!-- Unfold Modal: Issue Part to Job Card -->
 <div id="issuePartModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
-    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-      <h3 class="text-base font-bold text-slate-900">📤 Issue Part to Vehicle Job Card</h3>
-      <button onclick="closeIssueModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+  <div class="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-5 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800">
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2.5">
+      <h3 class="text-sm font-bold text-slate-900 dark:text-white">📤 Issue Part to Vehicle Job Card</h3>
+      <button onclick="closeIssueModal()" class="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
     </div>
 
     <form id="issuePartForm" onsubmit="submitIssuePart(event)" class="space-y-3 text-xs">
       <div>
-        <label class="block font-semibold text-slate-700 mb-1">Select Spare Part *</label>
-        <select id="issuePartId" required class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Spare Part *</label>
+        <select id="issuePartId" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs">
           <option value="">-- Select Item --</option>
           {% for p in parts %}
           <option value="{{ p.id }}">{{ p.part_code }} - {{ p.name }} (Avail: {{ p.current_stock }} {{ p.unit }})</option>
@@ -271,12 +322,12 @@
 
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Quantity to Issue *</label>
-          <input type="number" step="0.5" id="issueQuantity" value="1" min="0.5" required class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Quantity to Issue *</label>
+          <input type="number" step="0.5" id="issueQuantity" value="1" min="0.5" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Target Vehicle *</label>
-          <select id="issueVehicleId" required class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Target Vehicle *</label>
+          <select id="issueVehicleId" required class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono">
             <option value="">-- Fleet Vehicle --</option>
             {% for v in vehicles %}
             <option value="{{ v.id }}">{{ v.registration_number }} ({{ v.vehicle_type }})</option>
@@ -287,24 +338,28 @@
 
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Job Card Ref</label>
-          <input type="text" id="issueJobCard" placeholder="JC-202610-042" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Job Card Ref</label>
+          <input type="text" id="issueJobCard" placeholder="JC-202610-042" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs">
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Receiving Mechanic</label>
-          <input type="text" id="issueMechanic" placeholder="Mechanic Subramani" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-slate-50 text-xs">
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Receiving Mechanic</label>
+          <input type="text" id="issueMechanic" placeholder="Mechanic Subramani" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs">
         </div>
       </div>
 
-      <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
-        <button type="button" onclick="closeIssueModal()" class="px-4 py-2 border border-slate-300 rounded-xl text-slate-600 hover:bg-slate-50 text-xs font-semibold">Cancel</button>
-        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow">Confirm Issue</button>
+      <div class="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeIssueModal()" class="px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold shadow-sm">Confirm Issue</button>
       </div>
     </form>
   </div>
 </div>
 
+<!-- JavaScript Instant Filtering & Logic -->
 <script>
+  let currentStockFilter = 'all';
+  let currentCategoryFilter = 'all';
+
   function openIssueModal() {
     document.getElementById('issuePartModal').classList.remove('hidden');
   }
@@ -312,9 +367,98 @@
     document.getElementById('issuePartModal').classList.add('hidden');
   }
 
+  function openReceiveModal() {
+    alert('Vendor Purchase GRN Reception is handled via Maintenance Admin portal or Procurement desk.');
+  }
+
   function quickIssue(partId, name, unit, stock) {
     document.getElementById('issuePartId').value = partId;
     openIssueModal();
+  }
+
+  function toggleSelectAllParts(master) {
+    const boxes = document.querySelectorAll('.part-checkbox');
+    boxes.forEach(cb => cb.checked = master.checked);
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('.part-checkbox:checked').length;
+    const total = document.querySelectorAll('.part-checkbox').length;
+    const counter = document.getElementById('selectedCounter');
+    if (counter) {
+      counter.innerText = `${checked} of ${total} selected`;
+    }
+  }
+
+  function runBulkAction() {
+    const action = document.getElementById('bulkActionSelect').value;
+    const checked = document.querySelectorAll('.part-checkbox:checked').length;
+    if (!action) {
+      alert('Please select an action.');
+      return;
+    }
+    if (checked === 0) {
+      alert('Please select at least one item from the table.');
+      return;
+    }
+    alert(`Action "${action}" scheduled for ${checked} selected parts.`);
+  }
+
+  function setPartsStockFilter(val, btn) {
+    currentStockFilter = val;
+    document.querySelectorAll('.parts-stock-btn').forEach(b => {
+      b.className = 'parts-stock-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+    });
+    btn.className = 'parts-stock-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300';
+    filterPartsRows();
+  }
+
+  function setPartsCategoryFilter(val, btn) {
+    currentCategoryFilter = val;
+    document.querySelectorAll('.parts-cat-btn').forEach(b => {
+      b.className = 'parts-cat-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+    });
+    btn.className = 'parts-cat-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300';
+    filterPartsRows();
+  }
+
+  function resetPartsFilters() {
+    currentStockFilter = 'all';
+    currentCategoryFilter = 'all';
+    document.getElementById('partsSearchInput').value = '';
+    const stockBtns = document.querySelectorAll('.parts-stock-btn');
+    if (stockBtns.length) stockBtns[0].click();
+    const catBtns = document.querySelectorAll('.parts-cat-btn');
+    if (catBtns.length) catBtns[0].click();
+    filterPartsRows();
+  }
+
+  function filterPartsRows() {
+    const q = (document.getElementById('partsSearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.part-row');
+
+    rows.forEach(r => {
+      const text = r.innerText.toLowerCase();
+      const matchText = !q || text.includes(q);
+      const isLow = r.getAttribute('data-lowstock') === '1';
+      const cat = (r.getAttribute('data-category') || '').toLowerCase();
+
+      let matchStock = true;
+      if (currentStockFilter === 'low') matchStock = isLow;
+      else if (currentStockFilter === 'normal') matchStock = !isLow;
+
+      let matchCat = true;
+      if (currentCategoryFilter !== 'all') {
+        matchCat = cat.includes(currentCategoryFilter);
+      }
+
+      if (matchText && matchStock && matchCat) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
   }
 
   async function submitIssuePart(e) {

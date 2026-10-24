@@ -1,573 +1,480 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Vehicle Types &amp; Standard Tariffs Master | Sivagayathiri Travels{% endblock %}
-{% block header_title %}Vehicle Types &amp; Standard Tariffs Master{% endblock %}
+{% block title %}Vehicle Types &amp; Standard Tariffs Master | Sivagayathiri TravelERP{% endblock %}
 
 {% block content %}
-<style>
-  .types-container {
-    max-width: 1440px;
-    margin: 0 auto;
-    padding-bottom: 3.5rem;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  .types-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #1e40af 100%);
-    border-radius: 14px;
-    padding: 24px 30px;
-    color: #ffffff;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  .types-hero h1 {
-    font-size: 22px;
-    font-weight: 800;
-    margin: 0 0 6px 0;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .types-hero p {
-    color: #94a3b8;
-    margin: 0;
-    font-size: 13.5px;
-  }
-  .btn-add-primary {
-    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-    color: #ffffff;
-    border: none;
-    padding: 9px 18px;
-    border-radius: 9999px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-    transition: all 0.2s ease;
-    text-decoration: none;
-  }
-  .btn-add-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
-    color: #ffffff;
-  }
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-  .kpi-deck {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .kpi-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  html.dark .kpi-card {
-    background: #0f172a;
-    border-color: #334155;
-  }
-  .kpi-label {
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .kpi-val {
-    font-size: 26px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.1;
-  }
-  html.dark .kpi-val {
-    color: #f8fafc;
-  }
-
-  .controls-bar {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-  }
-  html.dark .controls-bar {
-    background: #0f172a;
-    border-color: #334155;
-  }
-  .filter-select {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 12px;
-    font-size: 13px;
-    background: #ffffff;
-    color: #0f172a;
-    outline: none;
-  }
-  html.dark .filter-select {
-    background: #1e293b;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-  .search-input {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 13px;
-    outline: none;
-    min-width: 240px;
-    background: #ffffff;
-    color: #0f172a;
-  }
-  html.dark .search-input {
-    background: #1e293b;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-
-  .table-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  html.dark .table-card {
-    background: #0f172a;
-    border-color: #334155;
-  }
-  .types-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  .types-table th {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    padding: 12px 14px;
-    text-align: left;
-    font-size: 11.5px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  html.dark .types-table th {
-    background: #1e293b;
-    border-color: #334155;
-    color: #cbd5e1;
-  }
-  .types-table td {
-    padding: 12px 14px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-  }
-  html.dark .types-table td {
-    border-color: #1e293b;
-  }
-  .types-table tr:hover td {
-    background: #f8fafc;
-  }
-  html.dark .types-table tr:hover td {
-    background: #1e293b55;
-  }
-
-  .currency-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    color: #0f172a;
-  }
-  html.dark .currency-val {
-    color: #38bdf8;
-  }
-
-  .action-btn-sm {
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #334155;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.12s ease;
-  }
-  html.dark .action-btn-sm {
-    background: #1e293b;
-    border-color: #475569;
-    color: #cbd5e1;
-  }
-  .action-btn-sm:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-  }
-
-  /* Modal */
-  .modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 99999;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-backdrop.open { display: flex; }
-  .modal-box {
-    background: #ffffff;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 680px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
-  }
-  html.dark .modal-box {
-    background: #0f172a;
-    border: 1px solid #334155;
-  }
-  .modal-head {
-    padding: 18px 24px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #f8fafc;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  html.dark .modal-head {
-    background: #1e293b;
-    border-color: #334155;
-  }
-  .modal-body {
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .form-group label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  html.dark .form-group label {
-    color: #cbd5e1;
-  }
-  .form-control {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13.5px;
-    outline: none;
-    background: #ffffff;
-    color: #0f172a;
-  }
-  html.dark .form-control {
-    background: #1e293b;
-    border-color: #475569;
-    color: #f8fafc;
-  }
-  .form-control:focus {
-    border-color: #0284c7;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-  }
-</style>
-
-<div class="types-container">
-  <!-- Hero Section -->
-  <div class="types-hero">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
     <div>
-      <h1><i class="fa-solid fa-car-side" style="color: #60a5fa;"></i> Vehicle Types &amp; Standard Tariffs Master</h1>
-      <p>Master rate cards, minimum daily billing km, driver bata rules, fuel expectations, and seating capacities</p>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-types' %}" class="hover:text-primary transition">Fleet &amp; Telematics</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Vehicle Types &amp; Tariffs</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Vehicle Types &amp; Standard Tariffs Master</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          {{ counts.total }} models
+        </span>
+      </h1>
     </div>
-    <button type="button" class="btn-add-primary" onclick="openAddTypeModal()">
-      <i class="fa-solid fa-plus"></i>
-      <span>Add Vehicle Type</span>
-    </button>
-  </div>
 
-  <!-- KPI Deck -->
-  <div class="kpi-deck">
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-car-side" style="color: #0284c7;"></i> Total Vehicle Types</span>
-      <span class="kpi-val">{{ counts.total }}</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-snowflake" style="color: #0ea5e9;"></i> AC Fleet Models</span>
-      <span class="kpi-val" style="color: #0ea5e9;">{{ counts.ac_count }}</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-gem" style="color: #8b5cf6;"></i> Luxury Tier Models</span>
-      <span class="kpi-val" style="color: #8b5cf6;">{{ counts.luxury_count }}</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label"><i class="fa-solid fa-bus" style="color: #10b981;"></i> Fleet Units Enrolled</span>
-      <span class="kpi-val" style="color: #10b981;">{{ counts.total_vehicles }}</span>
-    </div>
-  </div>
+    <!-- Actions (Unfold Primary & Secondary Buttons) -->
+    <div class="flex items-center gap-2">
+      <button onclick="openAddTypeModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">add</span>
+        <span>Add Vehicle Type</span>
+      </button>
 
-  <!-- Controls Bar -->
-  <div class="controls-bar">
-    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-      <form method="get" id="filterForm" style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <select name="category" class="filter-select" onchange="document.getElementById('filterForm').submit()">
-          <option value="all">All Categories</option>
-          {% for c in categories %}
-          <option value="{{ c.id }}" {% if cat_filter == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
-          {% endfor %}
-        </select>
-        <select name="fuel" class="filter-select" onchange="document.getElementById('filterForm').submit()">
-          <option value="all">All Fuel Types</option>
-          {% for f_code, f_name in fuel_choices %}
-          <option value="{{ f_code }}" {% if fuel_filter == f_code %}selected{% endif %}>{{ f_name }}</option>
-          {% endfor %}
-        </select>
-        <input type="search" name="q" value="{{ search_query }}" class="search-input" placeholder="Search vehicle models, rates...">
-        <button type="submit" class="action-btn-sm" style="padding: 7px 14px;">Filter</button>
-      </form>
-    </div>
-    <div>
-      <a href="{% url 'fleet-vehicles-roster' %}" class="action-btn-sm">
-        <i class="fa-solid fa-bus"></i> View Registered Fleet Roster &rarr;
+      <a href="{% url 'fleet-vehicles-roster' %}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">directions_bus</span>
+        <span>Fleet Roster</span>
       </a>
     </div>
   </div>
 
-  <!-- Table Card -->
-  <div class="table-card">
-    <table class="types-table">
-      <thead>
-        <tr>
-          <th>Vehicle Model</th>
-          <th>Category</th>
-          <th>Seats &amp; Fuel</th>
-          <th>Day Rate</th>
-          <th>KM Rate</th>
-          <th>Min KM/Day</th>
-          <th>Driver Bata</th>
-          <th>Night Halt</th>
-          <th>Assets</th>
-          <th style="text-align: right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for vt in types %}
-        <tr>
-          <td>
-            <strong style="color: #0f172a; font-size: 14px;">{{ vt.name }}</strong>
-            <div style="display: flex; gap: 6px; margin-top: 4px;">
-              {% if vt.has_ac %}
-              <span style="font-size: 10.5px; font-weight: 700; background: #e0f2fe; color: #0284c7; padding: 1px 6px; border-radius: 4px;">AC</span>
-              {% endif %}
-              {% if vt.is_luxury %}
-              <span style="font-size: 10.5px; font-weight: 700; background: #f3e8ff; color: #7e22ce; padding: 1px 6px; border-radius: 4px;">LUXURY</span>
-              {% endif %}
-              <span style="font-size: 10.5px; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 1px 5px; border-radius: 4px;">{{ vt.get_toll_class_display|default:vt.toll_class }}</span>
-            </div>
-          </td>
-          <td>
-            {% if vt.vehicle_category %}
-            <span style="display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-size: 12px; color: {{ vt.vehicle_category.badge_color }};">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: {{ vt.vehicle_category.badge_color }};"></span>
-              {{ vt.vehicle_category.name }}
-            </span>
-            {% else %}
-            <span style="color: #94a3b8; font-size: 12px;">Unassigned</span>
-            {% endif %}
-          </td>
-          <td>
-            <strong>{{ vt.seating_capacity }} Seats</strong>
-            <div style="font-size: 11px; color: #64748b; text-transform: uppercase;">{{ vt.get_fuel_type_display|default:vt.fuel_type }}</div>
-          </td>
-          <td><span class="currency-val">₹{{ vt.default_day_rate|floatformat:2 }}</span></td>
-          <td><span class="currency-val">₹{{ vt.default_km_rate|floatformat:2 }}</span>/km</td>
-          <td><strong>{{ vt.minimum_km_per_day }} km</strong></td>
-          <td><span class="currency-val">₹{{ vt.driver_bata|floatformat:2 }}</span></td>
-          <td><span class="currency-val">₹{{ vt.night_halt_charge|floatformat:2 }}</span></td>
-          <td>
-            <a href="{% url 'fleet-vehicles-roster' %}?q={{ vt.name }}" style="font-weight: 700; color: #0284c7; text-decoration: none;">
-              {{ vt.vehicle_count }} unit{{ vt.vehicle_count|pluralize }}
-            </a>
-          </td>
-          <td style="text-align: right;">
-            <button type="button" class="action-btn-sm" onclick='openEditTypeModal("{{ vt.id }}", "{{ vt.name|escapejs }}", "{{ vt.vehicle_category_id|default:'' }}", "{{ vt.description|escapejs }}", "{{ vt.default_day_rate }}", "{{ vt.default_km_rate }}", "{{ vt.minimum_km_per_day }}", "{{ vt.extra_km_rate }}", "{{ vt.extra_hour_rate }}", "{{ vt.driver_bata }}", "{{ vt.night_halt_charge }}", "{{ vt.seating_capacity }}", "{{ vt.luggage_capacity|escapejs }}", "{{ vt.fuel_type }}", "{{ vt.expected_mileage_kmpl|default:'' }}", "{{ vt.toll_class }}", {{ vt.has_ac|yesno:"true,false" }}, {{ vt.is_luxury|yesno:"true,false" }}, "{{ vt.transmission_type }}")'>
-              <i class="fa-solid fa-pen-to-square"></i> Edit
-            </button>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="10" style="text-align: center; padding: 48px 16px; color: #64748b;">
-            <i class="fa-solid fa-car-side" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 8px;"></i>
-            <p style="margin: 0;">No vehicle types found matching filter criteria.</p>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <!-- Unfold Flat Metric Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Vehicle Types</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ counts.total }}</div>
+      <div class="text-[11px] text-slate-500 mt-1 font-medium">Commercial fleet models</div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">AC Fleet Models</div>
+      <div class="text-xl font-bold font-mono text-sky-600 dark:text-sky-400 mt-1">{{ counts.ac_count }}</div>
+      <div class="text-[11px] text-sky-600 dark:text-sky-400 mt-1">Air-conditioned fleet</div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Luxury Tier Models</div>
+      <div class="text-xl font-bold font-mono text-purple-600 dark:text-purple-400 mt-1">{{ counts.luxury_count }}</div>
+      <div class="text-[11px] text-purple-600 dark:text-purple-400 mt-1">Executive &amp; VIP coaches</div>
+    </div>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Fleet Units Enrolled</div>
+      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ counts.total_vehicles }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium">Active roster assets</div>
+    </div>
   </div>
+
+  <!-- Unfold Changelist Container with Toolbar, Table & Filter Sidebar -->
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+    
+    <!-- Top Toolbar: Search + Actions -->
+    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
+      <div class="relative flex-1 max-w-sm">
+        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
+        <input type="text" id="typeSearchInput" onkeyup="filterTypeRows()" placeholder="Search vehicle models, rates, fuel..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="bulkActionSelect" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary">
+          <option value="">Action: -------------------</option>
+          <option value="export">Export vehicle types to CSV</option>
+        </select>
+        <button onclick="applyBulkAction()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 transition">
+          Go
+        </button>
+        <span class="text-[11px] text-slate-400" id="selectedCountDisplay">0 of {{ counts.total }} selected</span>
+      </div>
+    </div>
+
+    <!-- Table + Sidebar Split -->
+    <div class="flex flex-col lg:flex-row">
+      
+      <!-- Main Table -->
+      <div class="flex-1 overflow-x-auto min-w-0">
+        <table class="w-full text-left border-collapse text-xs" id="typesTable">
+          <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
+            <tr>
+              <th class="py-2.5 px-3 w-8 text-center">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-primary focus:ring-0">
+              </th>
+              <th class="py-2.5 px-3">Vehicle Model</th>
+              <th class="py-2.5 px-3">Category</th>
+              <th class="py-2.5 px-3">Seats &amp; Fuel</th>
+              <th class="py-2.5 px-3">Day Rate</th>
+              <th class="py-2.5 px-3">KM Rate</th>
+              <th class="py-2.5 px-3">Min KM/Day</th>
+              <th class="py-2.5 px-3">Driver Bata</th>
+              <th class="py-2.5 px-3">Night Halt</th>
+              <th class="py-2.5 px-3">Fleet Assets</th>
+              <th class="py-2.5 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
+            {% for vt in types %}
+            <tr class="type-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition"
+                data-category="{{ vt.vehicle_category_id|default:'' }}"
+                data-fuel="{{ vt.fuel_type }}"
+                data-ac="{% if vt.has_ac %}ac{% else %}non_ac{% endif %}"
+                data-luxury="{% if vt.is_luxury %}luxury{% else %}standard{% endif %}">
+              <!-- Checkbox -->
+              <td class="py-2.5 px-3 text-center">
+                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-primary focus:ring-0" value="{{ vt.id }}" onchange="updateSelectedCount()">
+              </td>
+
+              <!-- Model -->
+              <td class="py-2.5 px-3">
+                <div class="font-semibold text-slate-900 dark:text-white">{{ vt.name }}</div>
+                <div class="flex items-center gap-1 mt-0.5">
+                  {% if vt.has_ac %}
+                  <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-800">AC</span>
+                  {% endif %}
+                  {% if vt.is_luxury %}
+                  <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">LUXURY</span>
+                  {% endif %}
+                  <span class="text-[10px] text-slate-400 font-mono">{{ vt.get_toll_class_display|default:vt.toll_class }}</span>
+                </div>
+              </td>
+
+              <!-- Category -->
+              <td class="py-2.5 px-3">
+                {% if vt.vehicle_category %}
+                <span class="inline-flex items-center gap-1.5 font-medium text-xs" style="color: {{ vt.vehicle_category.badge_color }};">
+                  <span class="w-1.5 h-1.5 rounded-full" style="background: {{ vt.vehicle_category.badge_color }};"></span>
+                  {{ vt.vehicle_category.name }}
+                </span>
+                {% else %}
+                <span class="text-slate-400 italic">Unassigned</span>
+                {% endif %}
+              </td>
+
+              <!-- Seats & Fuel -->
+              <td class="py-2.5 px-3">
+                <div class="font-semibold text-slate-900 dark:text-white">{{ vt.seating_capacity }} Seats</div>
+                <div class="text-[10px] text-slate-400 uppercase font-mono">{{ vt.get_fuel_type_display|default:vt.fuel_type }}</div>
+              </td>
+
+              <!-- Day Rate -->
+              <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">
+                ₹{{ vt.default_day_rate|floatformat:2 }}
+              </td>
+
+              <!-- KM Rate -->
+              <td class="py-2.5 px-3 font-mono text-slate-700 dark:text-slate-300">
+                ₹{{ vt.default_km_rate|floatformat:2 }}/km
+              </td>
+
+              <!-- Min KM/Day -->
+              <td class="py-2.5 px-3 font-mono font-semibold text-slate-800 dark:text-slate-200">
+                {{ vt.minimum_km_per_day }} km
+              </td>
+
+              <!-- Driver Bata -->
+              <td class="py-2.5 px-3 font-mono text-slate-700 dark:text-slate-300">
+                ₹{{ vt.driver_bata|floatformat:2 }}
+              </td>
+
+              <!-- Night Halt -->
+              <td class="py-2.5 px-3 font-mono text-slate-700 dark:text-slate-300">
+                ₹{{ vt.night_halt_charge|floatformat:2 }}
+              </td>
+
+              <!-- Assets Count -->
+              <td class="py-2.5 px-3">
+                <a href="{% url 'fleet-vehicles-roster' %}?q={{ vt.name }}" class="text-primary hover:underline font-semibold font-mono">
+                  {{ vt.vehicle_count }} unit{{ vt.vehicle_count|pluralize }}
+                </a>
+              </td>
+
+              <!-- Actions -->
+              <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                <button type="button" class="px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded transition" onclick='openEditTypeModal("{{ vt.id }}", "{{ vt.name|escapejs }}", "{{ vt.vehicle_category_id|default:'' }}", "{{ vt.description|escapejs }}", "{{ vt.default_day_rate }}", "{{ vt.default_km_rate }}", "{{ vt.minimum_km_per_day }}", "{{ vt.extra_km_rate }}", "{{ vt.extra_hour_rate }}", "{{ vt.driver_bata }}", "{{ vt.night_halt_charge }}", "{{ vt.seating_capacity }}", "{{ vt.luggage_capacity|escapejs }}", "{{ vt.fuel_type }}", "{{ vt.expected_mileage_kmpl|default:'' }}", "{{ vt.toll_class }}", {{ vt.has_ac|yesno:"true,false" }}, {{ vt.is_luxury|yesno:"true,false" }}, "{{ vt.transmission_type }}")'>
+                  Edit
+                </button>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="11" class="text-center py-10 text-slate-400">
+                No vehicle types found matching criteria.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right-Side Unfold Filter Sidebar -->
+      <div class="w-full lg:w-60 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-800/20 text-xs space-y-4 shrink-0">
+        <div class="font-bold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between">
+          <span>Filter Models</span>
+          <button onclick="resetFilters()" class="text-primary hover:underline text-[10px] lowercase font-normal">reset</button>
+        </div>
+
+        <!-- Filter 1: By Category -->
+        <div class="space-y-1.5">
+          <div class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">By Category</div>
+          <div class="space-y-1 pl-1 text-[11px]">
+            <a href="javascript:void(0)" onclick="setFilter('category', 'all', this)" class="filter-item text-primary font-bold block">All Categories</a>
+            {% for c in categories %}
+            <a href="javascript:void(0)" onclick="setFilter('category', '{{ c.id }}', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">{{ c.name }}</a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Filter 2: By Fuel Type -->
+        <div class="space-y-1.5 border-t border-slate-200 dark:border-slate-800 pt-3">
+          <div class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">By Fuel Type</div>
+          <div class="space-y-1 pl-1 text-[11px]">
+            <a href="javascript:void(0)" onclick="setFilter('fuel', 'all', this)" class="filter-item text-primary font-bold block">All Fuel Types</a>
+            {% for f_code, f_name in fuel_choices %}
+            <a href="javascript:void(0)" onclick="setFilter('fuel', '{{ f_code }}', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">{{ f_name }}</a>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Filter 3: By Comfort Tier -->
+        <div class="space-y-1.5 border-t border-slate-200 dark:border-slate-800 pt-3">
+          <div class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">By Comfort Tier</div>
+          <div class="space-y-1 pl-1 text-[11px]">
+            <a href="javascript:void(0)" onclick="setFilter('tier', 'all', this)" class="filter-item text-primary font-bold block">All Tiers</a>
+            <a href="javascript:void(0)" onclick="setFilter('tier', 'ac', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Air Conditioned (AC)</a>
+            <a href="javascript:void(0)" onclick="setFilter('tier', 'luxury', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Luxury Premium Tier</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Modal Dialog -->
-<div class="modal-backdrop" id="typeModal" onclick="if(event.target===this) closeTypeModal()">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h3 style="margin: 0; font-size: 16px; font-weight: 800;" id="typeModalTitle">Add Vehicle Type</h3>
-      <button type="button" onclick="closeTypeModal()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #94a3b8;">&times;</button>
+<!-- Modal: Vehicle Type Editor (Unfold Style) -->
+<div id="typeModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-xl max-w-xl w-full p-5 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-base">directions_car</span>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white" id="typeModalTitle">Add Vehicle Type</h3>
+      </div>
+      <button type="button" onclick="closeTypeModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
     </div>
-    <form method="post">
+
+    <form method="post" class="space-y-3 text-xs">
       {% csrf_token %}
       <input type="hidden" name="action" id="typeFormAction" value="add_type">
       <input type="hidden" name="type_id" id="typeId" value="">
-      <div class="modal-body">
-        <div class="form-group">
-          <label>Model / Vehicle Type Name *</label>
-          <input type="text" name="name" id="typeName" class="form-control" required placeholder="e.g. Innova Crysta ZX 7-Str">
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Model / Vehicle Type Name *</label>
+        <input type="text" name="name" id="typeName" required placeholder="e.g. Innova Crysta ZX 7-Str" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category *</label>
+          <select name="vehicle_category" id="typeCategory" required class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800">
+            <option value="">Select Category...</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div class="form-group">
-            <label>Category *</label>
-            <select name="vehicle_category" id="typeCategory" class="form-control" required>
-              <option value="">Select Category...</option>
-              {% for c in categories %}
-              <option value="{{ c.id }}">{{ c.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Seating Capacity *</label>
-            <input type="number" name="seating_capacity" id="typeSeats" class="form-control" value="4" min="1" required>
-          </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Seating Capacity *</label>
+          <input type="number" name="seating_capacity" id="typeSeats" value="4" min="1" required class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white">
         </div>
-        
-        <h4 style="margin: 10px 0 0 0; font-size: 13px; font-weight: 800; color: #0284c7; text-transform: uppercase;">Standard Tariffs &amp; Billing Rules</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-          <div class="form-group">
-            <label>Default Day Rate (₹)</label>
-            <input type="number" step="0.01" name="default_day_rate" id="typeDayRate" class="form-control" value="0.00">
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+        <h4 class="text-[11px] font-bold text-primary uppercase tracking-wider mb-2">Standard Tariffs &amp; Billing Rules</h4>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Default Day Rate (₹)</label>
+            <input type="number" step="0.01" name="default_day_rate" id="typeDayRate" value="0.00" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
           </div>
-          <div class="form-group">
-            <label>Default KM Rate (₹)</label>
-            <input type="number" step="0.01" name="default_km_rate" id="typeKmRate" class="form-control" value="0.00">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Default KM Rate (₹)</label>
+            <input type="number" step="0.01" name="default_km_rate" id="typeKmRate" value="0.00" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
           </div>
-          <div class="form-group">
-            <label>Min KM / Day</label>
-            <input type="number" name="minimum_km_per_day" id="typeMinKm" class="form-control" value="250">
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;">
-          <div class="form-group">
-            <label>Extra KM (₹)</label>
-            <input type="number" step="0.01" name="extra_km_rate" id="typeExtraKm" class="form-control" value="0.00">
-          </div>
-          <div class="form-group">
-            <label>Extra Hour (₹)</label>
-            <input type="number" step="0.01" name="extra_hour_rate" id="typeExtraHr" class="form-control" value="0.00">
-          </div>
-          <div class="form-group">
-            <label>Driver Bata (₹)</label>
-            <input type="number" step="0.01" name="driver_bata" id="typeBata" class="form-control" value="500.00">
-          </div>
-          <div class="form-group">
-            <label>Night Halt (₹)</label>
-            <input type="number" step="0.01" name="night_halt_charge" id="typeNightHalt" class="form-control" value="500.00">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Min KM / Day</label>
+            <input type="number" name="minimum_km_per_day" id="typeMinKm" value="250" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
           </div>
         </div>
 
-        <h4 style="margin: 10px 0 0 0; font-size: 13px; font-weight: 800; color: #0284c7; text-transform: uppercase;">Technical &amp; Toll Classification</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-          <div class="form-group">
-            <label>Fuel Type</label>
-            <select name="fuel_type" id="typeFuel" class="form-control">
+        <div class="grid grid-cols-4 gap-2 mt-2">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Extra KM (₹)</label>
+            <input type="number" step="0.01" name="extra_km_rate" id="typeExtraKm" value="0.00" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Extra Hour (₹)</label>
+            <input type="number" step="0.01" name="extra_hour_rate" id="typeExtraHr" value="0.00" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Driver Bata (₹)</label>
+            <input type="number" step="0.01" name="driver_bata" id="typeBata" value="500.00" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Night Halt (₹)</label>
+            <input type="number" step="0.01" name="night_halt_charge" id="typeNightHalt" value="500.00" class="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+        <h4 class="text-[11px] font-bold text-primary uppercase tracking-wider mb-2">Technical &amp; Toll Classification</h4>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Fuel Type</label>
+            <select name="fuel_type" id="typeFuel" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800">
               {% for f_code, f_name in fuel_choices %}
               <option value="{{ f_code }}">{{ f_name }}</option>
               {% endfor %}
             </select>
           </div>
-          <div class="form-group">
-            <label>Toll Class</label>
-            <select name="toll_class" id="typeToll" class="form-control">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Toll Class</label>
+            <select name="toll_class" id="typeToll" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800">
               {% for t_code, t_name in toll_choices %}
               <option value="{{ t_code }}">{{ t_name }}</option>
               {% endfor %}
             </select>
           </div>
-          <div class="form-group">
-            <label>Transmission</label>
-            <select name="transmission_type" id="typeTrans" class="form-control">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transmission</label>
+            <select name="transmission_type" id="typeTrans" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800">
               {% for tr_code, tr_name in trans_choices %}
               <option value="{{ tr_code }}">{{ tr_name }}</option>
               {% endfor %}
             </select>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div class="form-group">
-            <label>Expected Mileage (km/l)</label>
-            <input type="number" step="0.1" name="expected_mileage_kmpl" id="typeMileage" class="form-control" placeholder="e.g. 12.5">
+
+        <div class="grid grid-cols-2 gap-3 mt-2">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expected Mileage (km/l)</label>
+            <input type="number" step="0.1" name="expected_mileage_kmpl" id="typeMileage" placeholder="e.g. 12.5" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono">
           </div>
-          <div class="form-group">
-            <label>Luggage Capacity</label>
-            <input type="text" name="luggage_capacity" id="typeLuggage" class="form-control" placeholder="e.g. 4 Large Suitcases + 2 Soft Bags">
+          <div>
+            <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Luggage Capacity</label>
+            <input type="text" name="luggage_capacity" id="typeLuggage" placeholder="e.g. 4 Suitcases + 2 Bags" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white">
           </div>
         </div>
 
-        <div style="display: flex; gap: 20px; align-items: center; margin-top: 6px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" name="has_ac" id="typeAc" checked style="width: 16px; height: 16px;">
-            <label for="typeAc" style="font-size: 13px; font-weight: 600; cursor: pointer; text-transform: none;">Air Conditioned (AC)</label>
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" name="is_luxury" id="typeLux" style="width: 16px; height: 16px;">
-            <label for="typeLux" style="font-size: 13px; font-weight: 600; cursor: pointer; text-transform: none;">Luxury Premium Tier</label>
-          </div>
+        <div class="flex items-center gap-6 mt-3">
+          <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
+            <input type="checkbox" name="has_ac" id="typeAc" checked class="rounded border-slate-300 text-primary">
+            <span>Air Conditioned (AC)</span>
+          </label>
+          <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 font-semibold cursor-pointer">
+            <input type="checkbox" name="is_luxury" id="typeLux" class="rounded border-slate-300 text-primary">
+            <span>Luxury Premium Tier</span>
+          </label>
         </div>
       </div>
-      <div style="padding: 14px 24px; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;">
-        <button type="button" class="action-btn-sm" onclick="closeTypeModal()" style="padding: 8px 16px;">Cancel</button>
-        <button type="submit" class="btn-add-primary" style="padding: 8px 18px; border-radius: 8px;">Save Vehicle Type</button>
+
+      <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+        <button type="button" onclick="closeTypeModal()" class="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition">
+          Save Vehicle Type
+        </button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+  let activeFilters = {
+    category: 'all',
+    fuel: 'all',
+    tier: 'all'
+  };
+
+  function setFilter(type, value, element) {
+    activeFilters[type] = value;
+    if (element && element.parentElement) {
+      element.parentElement.querySelectorAll('.filter-item').forEach(el => {
+        el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+      });
+      element.className = "filter-item text-primary font-bold block";
+    }
+    filterTypeRows();
+  }
+
+  function resetFilters() {
+    activeFilters = { category: 'all', fuel: 'all', tier: 'all' };
+    document.querySelectorAll('.filter-item').forEach(el => {
+      el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+    });
+    document.querySelectorAll('.w-60 .space-y-1 .filter-item:first-child').forEach(el => {
+      el.className = "filter-item text-primary font-bold block";
+    });
+    document.getElementById('typeSearchInput').value = '';
+    filterTypeRows();
+  }
+
+  function filterTypeRows() {
+    const q = (document.getElementById('typeSearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.type-row');
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+
+      const rCategory = row.dataset.category;
+      const rFuel = row.dataset.fuel;
+      const rAc = row.dataset.ac;
+      const rLuxury = row.dataset.luxury;
+
+      const matchesCat = (activeFilters.category === 'all') || (rCategory === activeFilters.category);
+      const matchesFuel = (activeFilters.fuel === 'all') || (rFuel === activeFilters.fuel);
+      let matchesTier = true;
+      if (activeFilters.tier === 'ac') matchesTier = (rAc === 'ac');
+      if (activeFilters.tier === 'luxury') matchesTier = (rLuxury === 'luxury');
+
+      if (matchesSearch && matchesCat && matchesFuel && matchesTier) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function toggleSelectAll(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      const tr = cb.closest('tr');
+      if (tr && tr.style.display !== 'none') {
+        cb.checked = master.checked;
+      }
+    });
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('.row-checkbox:checked').length;
+    const total = document.querySelectorAll('.row-checkbox').length;
+    const display = document.getElementById('selectedCountDisplay');
+    if (display) {
+      display.innerText = `${checked} of ${total} selected`;
+    }
+  }
+
+  function applyBulkAction() {
+    const action = document.getElementById('bulkActionSelect').value;
+    const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+    if (!action) {
+      alert('Please select an action first.');
+      return;
+    }
+    if (selected.length === 0) {
+      alert('Please select at least one vehicle type.');
+      return;
+    }
+    if (action === 'export') {
+      alert(`Exporting ${selected.length} vehicle models to CSV...`);
+    }
+  }
+
   function openAddTypeModal() {
     document.getElementById('typeModalTitle').innerText = 'Add Vehicle Type';
     document.getElementById('typeFormAction').value = 'add_type';
@@ -589,7 +496,7 @@
     document.getElementById('typeLuggage').value = '';
     document.getElementById('typeAc').checked = true;
     document.getElementById('typeLux').checked = false;
-    document.getElementById('typeModal').classList.add('open');
+    document.getElementById('typeModal').classList.remove('hidden');
   }
 
   function openEditTypeModal(id, name, catId, desc, dayRate, kmRate, minKm, extraKm, extraHr, bata, nightHalt, seats, luggage, fuel, mileage, toll, hasAc, isLux, trans) {
@@ -613,11 +520,11 @@
     document.getElementById('typeLuggage').value = luggage;
     document.getElementById('typeAc').checked = hasAc;
     document.getElementById('typeLux').checked = isLux;
-    document.getElementById('typeModal').classList.add('open');
+    document.getElementById('typeModal').classList.remove('hidden');
   }
 
   function closeTypeModal() {
-    document.getElementById('typeModal').classList.remove('open');
+    document.getElementById('typeModal').classList.add('hidden');
   }
 </script>
 {% endblock %}

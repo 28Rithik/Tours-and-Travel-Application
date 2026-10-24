@@ -1,490 +1,257 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Chauffeurs &amp; Drivers Directory | TravelERP{% endblock %}
-{% block header_title %}Chauffeurs &amp; Fleet Drivers Directory{% endblock %}
+{% block title %}Chauffeurs &amp; Fleet Drivers Directory | Sivagayathiri TravelERP{% endblock %}
 
 {% block content %}
-<style>
-  .driver-roster-container {
-    padding: 0 0 32px 0;
-  }
-  
-  .roster-hero {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #4338ca 100%);
-    border-radius: 14px;
-    padding: 26px 32px;
-    color: #ffffff;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 18px;
-  }
-  .roster-hero h1 {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0 0 6px 0;
-    color: #ffffff;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .roster-hero p {
-    color: #94a3b8;
-    margin: 0;
-    font-size: 13.5px;
-  }
-  .roster-hero .actions-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .kpi-deck {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .kpi-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .kpi-card .kpi-label {
-    font-size: 11.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    color: #64748b;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .kpi-card .kpi-val {
-    font-size: 26px;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1.1;
-  }
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-  .controls-bar {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px 18px;
-    margin-bottom: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-  }
-  .filter-pills {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .filter-pill {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    text-decoration: none;
-    color: #475569;
-    background: #f1f5f9;
-    border: 1px solid transparent;
-    transition: all 0.15s ease;
-  }
-  .filter-pill:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-  }
-  .filter-pill.active {
-    background: #4338ca;
-    color: #ffffff;
-    border-color: #4338ca;
-    box-shadow: 0 2px 8px rgba(67, 56, 202, 0.35);
-  }
-  
-  .search-form {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .search-input {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 14px;
-    font-size: 13.5px;
-    outline: none;
-    min-width: 240px;
-  }
-  .search-input:focus {
-    border-color: #4338ca;
-    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
-  }
-
-  .table-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
-  .driver-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-  }
-  .driver-table th {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    padding: 12px 16px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  .driver-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle;
-    color: #1e293b;
-  }
-  .driver-table tr:hover td {
-    background: #fbfcfe;
-  }
-  
-  .btn-primary {
-    background: #4338ca;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 13.5px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: background 0.15s ease;
-    text-decoration: none;
-  }
-  .btn-primary:hover {
-    background: #3730a3;
-    color: #ffffff;
-  }
-  .btn-outline {
-    background: transparent;
-    color: #cbd5e1;
-    font-weight: 600;
-    font-size: 13px;
-    padding: 7px 14px;
-    border-radius: 8px;
-    border: 1px solid #475569;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.15s ease;
-  }
-  .btn-outline:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    border-color: #94a3b8;
-  }
-
-  /* Modal Overlay */
-  .modal-backdrop {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .modal-box {
-    background: #ffffff;
-    border-radius: 16px;
-    max-width: 580px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    padding: 28px;
-  }
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 16px;
-    margin-bottom: 20px;
-  }
-  .modal-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 700;
-    color: #0f172a;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .close-btn {
-    background: transparent;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #64748b;
-  }
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .form-group.full-width {
-    grid-column: span 2;
-  }
-  .form-group label {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #334155;
-  }
-  .form-group input, .form-group select {
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13.5px;
-    outline: none;
-  }
-  .form-group input:focus, .form-group select:focus {
-    border-color: #4338ca;
-    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.15);
-  }
-  .modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    border-top: 1px solid #e2e8f0;
-    padding-top: 18px;
-    margin-top: 24px;
-  }
-</style>
-
-<div class="driver-roster-container">
-
-  <!-- Flash Messages -->
-  {% if messages %}
-  <div style="margin-bottom: 18px;">
-    {% for msg in messages %}
-    <div style="padding: 12px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600; margin-bottom: 8px; {% if msg.tags == 'error' %}background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;{% else %}background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0;{% endif %}">
-      {{ msg }}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  <!-- Hero Header -->
-  <div class="roster-hero">
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
     <div>
-      <h1><span>👨‍✈️</span> Chauffeurs &amp; Fleet Drivers Directory</h1>
-      <p>Sivagayathiri TravelERP Driver Operations • Depot Scoped: <strong>{{ current_depot|default:"All Depots" }}</strong></p>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-drivers-roster' %}" class="hover:text-primary transition">Fleet &amp; Telematics</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Chauffeurs &amp; Captains</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Chauffeurs &amp; Fleet Drivers Directory</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          {{ counts.total }} chauffeurs
+        </span>
+      </h1>
     </div>
-    <div class="actions-group">
-      {% if is_superuser %}
-      <a href="/admin/core/driver/" class="btn-outline" title="Open in raw Django Admin">
-        ⚙️ Raw Admin ↗
-      </a>
-      {% endif %}
-      <a href="{% url 'admin-driver-settlement-studio' %}" class="btn-outline">
-        💵 Bata &amp; Settlements
-      </a>
-      <button type="button" class="btn-primary" onclick="openAddDriverModal()">
-        <span>➕</span> Register Chauffeur
+
+    <!-- Actions (Unfold Primary & Secondary Buttons) -->
+    <div class="flex items-center gap-2">
+      <button onclick="openAddDriverModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">person_add</span>
+        <span>Register Chauffeur</span>
       </button>
+
+      <a href="/operations/driver-fatigue-sentry/" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">hotel</span>
+        <span>Fatigue Sentry</span>
+      </a>
+
+      <a href="{% url 'admin-driver-settlement-studio' %}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+        <span>Bata &amp; Settlements</span>
+      </a>
     </div>
   </div>
 
-  <!-- KPI Deck -->
-  <div class="kpi-deck">
-    <div class="kpi-card">
-      <div class="kpi-label"><span>👥</span> Total Chauffeurs</div>
-      <div class="kpi-val">{{ counts.total }}</div>
+  <!-- Unfold Flat Metric Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Chauffeurs &amp; Captains</div>
+      <div class="text-xl font-bold font-mono text-slate-900 dark:text-white mt-1">{{ counts.total }}</div>
+      <div class="text-[11px] text-slate-500 mt-1 font-medium">{{ current_depot|default:"All Depots" }}</div>
     </div>
-    <div class="kpi-card" style="border-left: 4px solid #16a34a;">
-      <div class="kpi-label" style="color: #16a34a;"><span>🟢</span> Active on Duty</div>
-      <div class="kpi-val">{{ counts.active }}</div>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Active on Duty</div>
+      <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ counts.active }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1">Cleared &amp; rostered</div>
     </div>
-    <div class="kpi-card" style="border-left: 4px solid #64748b;">
-      <div class="kpi-label" style="color: #64748b;"><span>⚫</span> Inactive / Off Duty</div>
-      <div class="kpi-val">{{ counts.inactive }}</div>
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm">
+      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Inactive / Off Duty</div>
+      <div class="text-xl font-bold font-mono text-slate-500 dark:text-slate-400 mt-1">{{ counts.inactive }}</div>
+      <div class="text-[11px] text-slate-400 mt-1">Leave / Rest period</div>
     </div>
   </div>
 
-  <!-- Controls Bar -->
-  <div class="controls-bar">
-    <div class="filter-pills">
-      <a href="?status=all{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'all' %}active{% endif %}">
-        All Chauffeurs ({{ counts.total }})
-      </a>
-      <a href="?status=active{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'active' %}active{% endif %}">
-        🟢 Active ({{ counts.active }})
-      </a>
-      <a href="?status=inactive{% if current_depot %}&depot={{ current_depot }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-pill {% if current_status == 'inactive' %}active{% endif %}">
-        ⚫ Inactive ({{ counts.inactive }})
-      </a>
+  <!-- Unfold Changelist Container with Toolbar, Table & Filter Sidebar -->
+  <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
+    
+    <!-- Top Toolbar: Search + Actions -->
+    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40">
+      <div class="relative flex-1 max-w-sm">
+        <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
+        <input type="text" id="driverSearchInput" onkeyup="filterDriverRows()" placeholder="Search driver name, phone, license, depot..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary">
+      </div>
+      <div class="flex items-center gap-2">
+        <select id="bulkActionSelect" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none focus:border-primary">
+          <option value="">Action: -------------------</option>
+          <option value="export">Export selected chauffeurs to CSV</option>
+        </select>
+        <button onclick="applyBulkAction()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 transition">
+          Go
+        </button>
+        <span class="text-[11px] text-slate-400" id="selectedCountDisplay">0 of {{ counts.total }} selected</span>
+      </div>
     </div>
 
-    <form method="GET" class="search-form">
-      <input type="hidden" name="status" value="{{ current_status }}">
-      {% if current_depot %}
-      <input type="hidden" name="depot" value="{{ current_depot }}">
-      {% endif %}
-      <input type="text" name="q" value="{{ search_query }}" placeholder="Search driver name, phone, license..." class="search-input">
-      <button type="submit" class="btn-primary" style="padding: 7px 12px;">🔍</button>
-      {% if search_query %}
-      <a href="?status={{ current_status }}{% if current_depot %}&depot={{ current_depot }}{% endif %}" class="filter-pill" style="padding: 6px 10px;">✕ Clear</a>
-      {% endif %}
-    </form>
-  </div>
+    <!-- Table + Sidebar Split -->
+    <div class="flex flex-col lg:flex-row">
+      
+      <!-- Main Table -->
+      <div class="flex-1 overflow-x-auto min-w-0">
+        <table class="w-full text-left border-collapse text-xs" id="driversTable">
+          <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
+            <tr>
+              <th class="py-2.5 px-3 w-8 text-center">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded border-slate-300 text-primary focus:ring-0">
+              </th>
+              <th class="py-2.5 px-3">Chauffeur</th>
+              <th class="py-2.5 px-3">Contact &amp; WhatsApp</th>
+              <th class="py-2.5 px-3">Driving License</th>
+              <th class="py-2.5 px-3">Base Depot</th>
+              <th class="py-2.5 px-3">Assigned Fleet</th>
+              <th class="py-2.5 px-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-normal">
+            {% for d in drivers %}
+            <tr class="driver-row hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition"
+                data-status="{{ d.status }}"
+                data-depot="{{ d.base_depot }}">
+              <!-- Checkbox -->
+              <td class="py-2.5 px-3 text-center">
+                <input type="checkbox" class="row-checkbox rounded border-slate-300 text-primary focus:ring-0" value="{{ d.id }}" onchange="updateSelectedCount()">
+              </td>
 
-  <!-- Drivers Table -->
-  <div class="table-card">
-    <table class="driver-table">
-      <thead>
-        <tr>
-          <th>Chauffeur Name</th>
-          <th>Contact &amp; WhatsApp</th>
-          <th>Driving License</th>
-          <th>Base Depot</th>
-          <th>Assigned Vehicle</th>
-          <th>Active Duty</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in drivers %}
-        <tr>
-          <td>
-            <div style="font-weight: 700; color: #0f172a; font-size: 14px;">
-              👨‍✈️ {{ d.name }}
-            </div>
-            <div style="font-size: 11.5px; color: #64748b; margin-top: 2px;">
-              {{ d.get_driver_type_display|default:d.driver_type|title }}
-            </div>
-          </td>
-          <td>
-            <div style="font-weight: 600; color: #1e293b;">
-              📞 {{ d.phone|default:"No phone" }}
-            </div>
-            {% if d.phone %}
-            <a href="https://wa.me/91{{ d.phone|cut:' ' }}" target="_blank" style="font-size: 11.5px; color: #15803d; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;">
-              <span>💬</span> WhatsApp Handover
-            </a>
-            {% endif %}
-          </td>
-          <td>
-            <div style="font-family: monospace; font-weight: 700; color: #334155;">
-              {{ d.license_number|default:"DL-PENDING" }}
-            </div>
-            {% if d.license_status %}
-            <div style="font-size: 11px; color: {{ d.license_status.color }}; font-weight: 600;">
-              {{ d.license_status.label }}
-            </div>
-            {% endif %}
-          </td>
-          <td>
-            <span style="font-weight: 600; color: #334155;">{{ d.base_depot }}</span>
-          </td>
-          <td>
-            {% for v in d.default_vehicles.all %}
-            <div style="font-weight: 600; font-size: 12.5px; color: #0f766e;">
-              🚌 {{ v.registration_number }} ({{ v.brand }} {{ v.model }})
-            </div>
+              <!-- Chauffeur Name -->
+              <td class="py-2.5 px-3">
+                <div class="font-semibold text-slate-900 dark:text-white">{{ d.name }}</div>
+                <div class="text-[10px] text-slate-400">
+                  {{ d.get_driver_type_display|default:d.driver_type|title }}
+                </div>
+              </td>
+
+              <!-- Contact & WhatsApp -->
+              <td class="py-2.5 px-3 font-mono">
+                <div class="text-slate-800 dark:text-slate-200">{{ d.phone|default:"No phone" }}</div>
+                {% if d.phone %}
+                <a href="https://wa.me/91{{ d.phone|cut:' ' }}" target="_blank" class="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline mt-0.5">
+                  <span class="material-symbols-outlined text-[12px]">chat</span>
+                  <span>WhatsApp Handover</span>
+                </a>
+                {% endif %}
+              </td>
+
+              <!-- Driving License -->
+              <td class="py-2.5 px-3">
+                <div class="font-mono font-semibold text-slate-800 dark:text-slate-200">
+                  {{ d.license_number|default:"DL-PENDING" }}
+                </div>
+                {% if d.license_status %}
+                <div class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  {{ d.license_status.label }}
+                </div>
+                {% endif %}
+              </td>
+
+              <!-- Base Depot -->
+              <td class="py-2.5 px-3">
+                <span class="font-medium text-slate-800 dark:text-slate-200">{{ d.base_depot }}</span>
+              </td>
+
+              <!-- Assigned Fleet -->
+              <td class="py-2.5 px-3">
+                {% for v in d.default_vehicles.all %}
+                <div class="font-semibold text-primary font-mono text-[11px]">
+                  {{ v.registration_number }} <span class="text-slate-400 font-normal">({{ v.brand }} {{ v.model }})</span>
+                </div>
+                {% empty %}
+                <span class="text-[11px] text-slate-400 italic">Pool Chauffeur</span>
+                {% endfor %}
+              </td>
+
+              <!-- Status -->
+              <td class="py-2.5 px-3 text-right whitespace-nowrap">
+                {% if d.status == 'active' %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  ACTIVE
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+                  INACTIVE
+                </span>
+                {% endif %}
+                {% if d.active_trip %}
+                <div class="text-[10px] text-sky-600 dark:text-sky-400 font-mono mt-0.5">
+                  Trip #{{ d.active_trip.trip_id }}
+                </div>
+                {% endif %}
+              </td>
+            </tr>
             {% empty %}
-            <span style="font-size: 12px; color: #94a3b8; font-style: italic;">Pool Chauffeur</span>
+            <tr>
+              <td colspan="7" class="text-center py-10 text-slate-400">
+                No chauffeurs found matching your criteria.
+              </td>
+            </tr>
             {% endfor %}
-          </td>
-          <td>
-            {% if d.status == 'active' %}
-            <span style="background: #dcfce7; color: #15803d; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">
-              🟢 Active
-            </span>
-            {% else %}
-            <span style="background: #f1f5f9; color: #64748b; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 9999px;">
-              ⚫ Inactive
-            </span>
-            {% endif %}
-            {% if d.active_trip %}
-            <div style="font-size: 11px; color: #1d4ed8; font-weight: 600; margin-top: 3px;">
-              Trip #{{ d.active_trip.trip_id }}
-            </div>
-            {% endif %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" style="text-align: center; padding: 48px 16px; color: #64748b;">
-            <div style="font-size: 32px; margin-bottom: 8px;">👨‍✈️</div>
-            <div style="font-size: 15px; font-weight: 600;">No chauffeurs found matching your criteria.</div>
-            <div style="font-size: 13px; margin-top: 4px;">Click "+ Register Chauffeur" to onboard a new driver.</div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right-Side Unfold Filter Sidebar -->
+      <div class="w-full lg:w-60 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-800/20 text-xs space-y-4 shrink-0">
+        <div class="font-bold uppercase tracking-wider text-[10px] text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center justify-between">
+          <span>Filter Chauffeurs</span>
+          <button onclick="resetFilters()" class="text-primary hover:underline text-[10px] lowercase font-normal">reset</button>
+        </div>
+
+        <!-- Filter 1: By Status -->
+        <div class="space-y-1.5">
+          <div class="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">By Duty Status</div>
+          <div class="space-y-1 pl-1 text-[11px]">
+            <a href="javascript:void(0)" onclick="setFilter('status', 'all', this)" class="filter-item text-primary font-bold block">All Chauffeurs ({{ counts.total }})</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'active', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Active on Duty ({{ counts.active }})</a>
+            <a href="javascript:void(0)" onclick="setFilter('status', 'inactive', this)" class="filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block">Inactive / Off Duty ({{ counts.inactive }})</a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>
 
-<!-- Modal: Add New Driver -->
-<div id="addDriverModal" class="modal-backdrop">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h3><span>➕</span> Register New Fleet Chauffeur</h3>
-      <button type="button" class="close-btn" onclick="closeAddDriverModal()">✕</button>
+<!-- Modal: Add New Driver (Unfold Style) -->
+<div id="addDriverModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-xl max-w-lg w-full p-5 shadow-2xl space-y-4 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-base">person_add</span>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Register New Fleet Chauffeur</h3>
+      </div>
+      <button type="button" onclick="closeAddDriverModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
     </div>
-    <form method="POST" action="{% url 'fleet-drivers-roster' %}">
+
+    <form method="POST" action="{% url 'fleet-drivers-roster' %}" class="space-y-3 text-xs">
       {% csrf_token %}
       <input type="hidden" name="action" value="add_driver">
 
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label>Full Name *</label>
-          <input type="text" name="name" placeholder="e.g. R. Subramanian" required>
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Full Name *</label>
+        <input type="text" name="name" placeholder="e.g. R. Subramanian" required class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Mobile Phone *</label>
+          <input type="tel" name="phone" placeholder="e.g. 9842112345" required class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono focus:outline-none focus:border-primary">
         </div>
-        <div class="form-group">
-          <label>Mobile Phone *</label>
-          <input type="tel" name="phone" placeholder="e.g. 9842112345" required>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Driving License</label>
+          <input type="text" name="license_number" placeholder="e.g. TN-38-2019-004521" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white font-mono uppercase focus:outline-none focus:border-primary">
         </div>
-        <div class="form-group">
-          <label>Driving License Number</label>
-          <input type="text" name="license_number" placeholder="e.g. TN-38-2019-004521" style="text-transform: uppercase;">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">License Expiry Date</label>
+          <input type="date" name="license_expiry" class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white">
         </div>
-        <div class="form-group">
-          <label>License Expiry Date</label>
-          <input type="date" name="license_expiry">
-        </div>
-        <div class="form-group">
-          <label>Home Base Depot *</label>
-          <select name="base_depot" required>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Base Depot *</label>
+          <select name="base_depot" required class="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white bg-white dark:bg-slate-800">
             {% for code, label in depot_choices %}
             <option value="{{ code }}" {% if current_depot == code %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
@@ -492,22 +259,104 @@
         </div>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn-outline" style="color: #475569; border-color: #cbd5e1;" onclick="closeAddDriverModal()">Cancel</button>
-        <button type="submit" class="btn-primary"><span>💾</span> Register Chauffeur</button>
+      <div class="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+        <button type="button" onclick="closeAddDriverModal()" class="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold">Cancel</button>
+        <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition">
+          Register Chauffeur
+        </button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+  let activeFilters = { status: 'all' };
+
+  function setFilter(type, value, element) {
+    activeFilters[type] = value;
+    if (element && element.parentElement) {
+      element.parentElement.querySelectorAll('.filter-item').forEach(el => {
+        el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+      });
+      element.className = "filter-item text-primary font-bold block";
+    }
+    filterDriverRows();
+  }
+
+  function resetFilters() {
+    activeFilters = { status: 'all' };
+    document.querySelectorAll('.filter-item').forEach(el => {
+      el.className = "filter-item text-slate-600 dark:text-slate-400 hover:text-slate-900 block";
+    });
+    document.querySelectorAll('.w-60 .space-y-1 .filter-item:first-child').forEach(el => {
+      el.className = "filter-item text-primary font-bold block";
+    });
+    document.getElementById('driverSearchInput').value = '';
+    filterDriverRows();
+  }
+
+  function filterDriverRows() {
+    const q = (document.getElementById('driverSearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.driver-row');
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const matchesSearch = !q || text.includes(q);
+
+      const rStatus = row.dataset.status;
+      const matchesStatus = (activeFilters.status === 'all') || (rStatus === activeFilters.status);
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function toggleSelectAll(master) {
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+      const tr = cb.closest('tr');
+      if (tr && tr.style.display !== 'none') {
+        cb.checked = master.checked;
+      }
+    });
+    updateSelectedCount();
+  }
+
+  function updateSelectedCount() {
+    const checked = document.querySelectorAll('.row-checkbox:checked').length;
+    const total = document.querySelectorAll('.row-checkbox').length;
+    const display = document.getElementById('selectedCountDisplay');
+    if (display) {
+      display.innerText = `${checked} of ${total} selected`;
+    }
+  }
+
+  function applyBulkAction() {
+    const action = document.getElementById('bulkActionSelect').value;
+    const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+    if (!action) {
+      alert('Please select an action first.');
+      return;
+    }
+    if (selected.length === 0) {
+      alert('Please select at least one chauffeur row.');
+      return;
+    }
+    if (action === 'export') {
+      alert(`Exporting ${selected.length} chauffeurs to CSV...`);
+    }
+  }
+
   function openAddDriverModal() {
-    document.getElementById('addDriverModal').style.display = 'flex';
+    document.getElementById('addDriverModal').classList.remove('hidden');
   }
+
   function closeAddDriverModal() {
-    document.getElementById('addDriverModal').style.display = 'none';
+    document.getElementById('addDriverModal').classList.add('hidden');
   }
-  
+
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeAddDriverModal();
   });

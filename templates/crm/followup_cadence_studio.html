@@ -1,196 +1,293 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Automated Quotation WhatsApp Follow-up Drip Cadence Studio | Sivagayathiri ERP{% endblock %}
-
-{% block extra_head %}
-<style>
-  .cadence-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  }
-  html.dark .cadence-card, .dark .cadence-card {
-    background: #0f172a;
-    border-color: #1e293b;
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-  }
-</style>
-{% endblock %}
+{% block title %}Automated Quotation WhatsApp Follow-up Drip Cadence | Sivagayathiri TravelERP{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+<div class="space-y-4 max-w-full">
 
-  <!-- Header Banner -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 text-white p-6 rounded-2xl shadow-xl">
-    <div class="space-y-1">
-      <div class="flex items-center gap-3">
-        <span class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-400/30 flex items-center justify-center">
-          <svg width="28" height="28" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-          </svg>
+  <!-- Unfold Top Breadcrumbs -->
+  <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+    <a href="/" class="hover:text-primary transition">Home</a>
+    <span>/</span>
+    <a href="/crm/followup-cadence/" class="hover:text-primary transition">CRM Desk</a>
+    <span>/</span>
+    <span class="text-slate-900 dark:text-white font-semibold">WhatsApp Follow-Up Cadence</span>
+  </nav>
+
+  <!-- Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+        WhatsApp Follow-Up Drip Cadence
+        <span class="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          {{ items|length }} leads
         </span>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight text-white !text-white">Automated WhatsApp Follow-Up Drip Cadence Studio</h1>
-          <p class="text-xs text-emerald-200">24h Check-in &bull; 48h Final Reminder &bull; Promo Code Incentives &bull; Direct Conversion Pipeline</p>
-        </div>
-      </div>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        24h gentle check-in, 48h incentive promo drips, and automated WhatsApp conversion pipeline.
+      </p>
+    </div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="/crm/kanban/" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-sky-600 hover:bg-sky-500 text-white shadow-sm transition">
+        <i class="fa-solid fa-table-columns text-[11px]"></i>
+        <span>CRM Kanban Board</span>
+      </a>
+
+      <a href="/admin/crm/followup-cadence/" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+        <span>Admin View</span>
+      </a>
     </div>
   </div>
 
-  <!-- Metric KPI Cards in Crisp Light Mode -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- Total Active Inquiries -->
-    <div class="cadence-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">Pending Quotations</div>
-          <div class="text-2xl font-bold text-slate-900 mt-1">{{ stats.total_pending }} Quotes</div>
-          <div class="text-[11px] text-slate-500 font-medium mt-1">Awaiting customer decision</div>
-        </div>
-        <div class="p-3 bg-slate-100 text-slate-700 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-      </div>
+  <!-- Unfold Metric Deck (4 Flat Cards) -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Quotations</div>
+      <div class="font-mono text-2xl font-bold text-slate-900 dark:text-white mt-1">{{ stats.total_pending }}</div>
+      <div class="text-[11px] text-slate-500 mt-0.5">Awaiting customer decision</div>
     </div>
-
-    <!-- 24h Drip Due -->
-    <div class="cadence-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">24-Hour Follow-Up Due</div>
-          <div class="text-2xl font-bold text-amber-600 mt-1">{{ stats.due_24h }} Leads</div>
-          <div class="text-[11px] text-amber-600 font-medium mt-1">First automated gentle check-in</div>
-        </div>
-        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">24h Follow-Up Due</div>
+      <div class="font-mono text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">{{ stats.due_24h }}</div>
+      <div class="text-[11px] text-amber-600 dark:text-amber-400 font-medium mt-0.5">First gentle check-in prompt</div>
     </div>
-
-    <!-- 48h Final Reminder -->
-    <div class="cadence-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">48-Hour Promo Drip Due</div>
-          <div class="text-2xl font-bold text-rose-600 mt-1">{{ stats.due_48h }} Leads</div>
-          <div class="text-[11px] text-rose-600 font-medium mt-1">Incentive coupon: SIVA5 (5% OFF)</div>
-        </div>
-        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">48h Promo Drip Due</div>
+      <div class="font-mono text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">{{ stats.due_48h }}</div>
+      <div class="text-[11px] text-rose-600 dark:text-rose-400 font-medium mt-0.5">Coupon: SIVA5 (5% OFF)</div>
     </div>
-
-    <!-- Converted -->
-    <div class="cadence-card p-5">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs font-medium text-slate-500">Converted Bookings</div>
-          <div class="text-2xl font-bold text-emerald-600 mt-1">{{ stats.converted }} Won</div>
-          <div class="text-[11px] text-emerald-600 font-medium mt-1">Confirmed with advance payment</div>
-        </div>
-        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-      </div>
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5">
+      <div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">Converted Won</div>
+      <div class="font-mono text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ stats.converted }}</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5">Confirmed with advance payment</div>
     </div>
   </div>
 
-  <!-- Cadence Pipeline Table in Crisp Light Mode -->
-  <div class="cadence-card overflow-hidden">
-    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-      <div>
-        <h2 class="text-base font-bold text-slate-900">Quotation Drip Follow-Up Cadence Queue</h2>
-        <p class="text-xs text-slate-500">Smart timing alerts with pre-composed personalized WhatsApp message prompts</p>
+  <!-- Unfold Split Changelist Layout -->
+  <div class="flex flex-col lg:flex-row gap-4 items-start">
+
+    <!-- Left Main Column: Data Table & Toolbar -->
+    <div class="flex-1 w-full min-w-0 space-y-3">
+
+      <!-- Changelist Action Toolbar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+          <div class="relative flex-1 max-w-sm">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input
+              type="text"
+              id="cadenceSearchInput"
+              onkeyup="filterCadenceRows()"
+              placeholder="Search quote #, customer, destination, phone..."
+              class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-sky-500"
+            />
+          </div>
+          <span class="text-xs text-slate-500 font-mono">{{ items|length }} pipeline leads</span>
+        </div>
+      </div>
+
+      <!-- Dense Changelist Table -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table id="cadenceTable" class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th class="py-2.5 px-3">Quote #</th>
+                <th class="py-2.5 px-3">Customer Name &amp; Contact</th>
+                <th class="py-2.5 px-3">Destination / Route</th>
+                <th class="py-2.5 px-3 text-right">Quote Value</th>
+                <th class="py-2.5 px-3">Age</th>
+                <th class="py-2.5 px-3">Cadence Stage</th>
+                <th class="py-2.5 px-3 text-right">1-Click WhatsApp Drip</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-normal text-slate-700 dark:text-slate-300">
+              {% for item in items %}
+              <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition cadence-row"
+                  data-stage="{{ item.cadence_stage }}"
+                  data-amount="{{ item.amount }}">
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">
+                  #{{ item.quotation.quotation_number|default:item.quotation.id }}
+                </td>
+                <td class="py-2.5 px-3">
+                  <div class="font-semibold text-slate-900 dark:text-white">{{ item.guest_name }}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">{{ item.guest_phone|default:"No phone registered" }}</div>
+                </td>
+                <td class="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200">
+                  {{ item.destination }}
+                </td>
+                <td class="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white text-right">
+                  ₹{{ item.amount|floatformat:2 }}
+                </td>
+                <td class="py-2.5 px-3 font-mono text-slate-500">
+                  {{ item.age_hours }}h ago
+                </td>
+                <td class="py-2.5 px-3">
+                  {% if item.cadence_stage == 'converted' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      Converted / Won
+                    </span>
+                  {% elif item.cadence_stage == 'due_48h' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                      🔥 48h Discount Drip Due
+                    </span>
+                  {% elif item.cadence_stage == 'due_24h' %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      ⏳ 24h Gentle Check-in
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                      Fresh Quote (&lt;24h)
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="py-2.5 px-3 text-right">
+                  {% if item.guest_phone %}
+                    {% if item.cadence_stage == 'due_48h' %}
+                      <a href="https://wa.me/{{ item.guest_phone }}?text={{ item.wa_48h|urlencode }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold shadow-sm transition">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>Send 5% Promo</span>
+                      </a>
+                    {% else %}
+                      <a href="https://wa.me/{{ item.guest_phone }}?text={{ item.wa_24h|urlencode }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-semibold shadow-sm transition">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>Send 24h Drip</span>
+                      </a>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-slate-400 text-[11px]">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-400">No pending quotations found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Side: Unfold Collapsible Filter Sidebar (w-60) -->
+    <div class="w-full lg:w-60 flex-shrink-0 space-y-4">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">Filter</span>
+          <button onclick="resetCadenceFilters()" class="text-[11px] text-sky-600 hover:underline">Reset</button>
+        </div>
+
+        <!-- Filter: Cadence Stage -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">By Cadence Stage</div>
+          <div class="space-y-1">
+            <button onclick="setCadenceStageFilter('all', this)" class="cad-stage-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">
+              All Stages ({{ items|length }})
+            </button>
+            <button onclick="setCadenceStageFilter('due_48h', this)" class="cad-stage-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              🔥 48h Promo Due ({{ stats.due_48h }})
+            </button>
+            <button onclick="setCadenceStageFilter('due_24h', this)" class="cad-stage-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ⏳ 24h Check-in Due ({{ stats.due_24h }})
+            </button>
+            <button onclick="setCadenceStageFilter('converted', this)" class="cad-stage-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              ✓ Converted / Won
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter: Value Range -->
+        <div>
+          <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">By Quote Value</div>
+          <div class="space-y-1">
+            <button onclick="setCadenceValueFilter('all', this)" class="cad-val-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">
+              All Amounts
+            </button>
+            <button onclick="setCadenceValueFilter('high', this)" class="cad-val-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              High Value (&gt;₹50,000)
+            </button>
+            <button onclick="setCadenceValueFilter('mid', this)" class="cad-val-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+              Standard (&lt;₹50,000)
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse text-xs">
-        <thead>
-          <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-            <th class="py-3 px-4">Quote #</th>
-            <th class="py-3 px-4">Customer Name &amp; Contact</th>
-            <th class="py-3 px-4">Destination &amp; Package</th>
-            <th class="py-3 px-4">Quote Value</th>
-            <th class="py-3 px-4">Age (Hours)</th>
-            <th class="py-3 px-4">Cadence Status</th>
-            <th class="py-3 px-4 text-right">1-Click WhatsApp Drip</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          {% for item in items %}
-          <tr class="hover:bg-slate-50/60 transition">
-            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
-              #{{ item.quotation.quotation_number|default:item.quotation.id }}
-            </td>
-            <td class="py-3.5 px-4">
-              <div class="font-bold text-slate-900">{{ item.guest_name }}</div>
-              <div class="text-[11px] text-slate-500 font-mono">{{ item.guest_phone|default:"No phone registered" }}</div>
-            </td>
-            <td class="py-3.5 px-4 font-semibold text-slate-800">
-              {{ item.destination }}
-            </td>
-            <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
-              ₹{{ item.amount|floatformat:2 }}
-            </td>
-            <td class="py-3.5 px-4 font-mono text-slate-600">
-              {{ item.age_hours }} hrs ago
-            </td>
-            <td class="py-3.5 px-4">
-              {% if item.cadence_stage == 'converted' %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                  🎉 Converted / Confirmed
-                </span>
-              {% elif item.cadence_stage == 'due_48h' %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 animate-pulse">
-                  🔥 48h Discount Drip Due
-                </span>
-              {% elif item.cadence_stage == 'due_24h' %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
-                  ⏳ 24h Gentle Follow-Up
-                </span>
-              {% else %}
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                  🕒 Fresh Quote (&lt;24h)
-                </span>
-              {% endif %}
-            </td>
-            <td class="py-3.5 px-4 text-right">
-              {% if item.guest_phone %}
-                {% if item.cadence_stage == 'due_48h' %}
-                  <a href="https://wa.me/{{ item.guest_phone }}?text={{ item.wa_48h|urlencode }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow transition">
-                    <span>📲 Send 5% Drip</span>
-                  </a>
-                {% else %}
-                  <a href="https://wa.me/{{ item.guest_phone }}?text={{ item.wa_24h|urlencode }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold shadow transition">
-                    <span>💬 Send 24h Drip</span>
-                  </a>
-                {% endif %}
-              {% else %}
-                <span class="text-slate-400 text-[11px]">No Phone</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="7" class="py-8 text-center text-slate-400">No pending quotations found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
   </div>
 
 </div>
+
+<!-- JavaScript Instant Filtering -->
+<script>
+  let currentCadenceStageFilter = 'all';
+  let currentCadenceValueFilter = 'all';
+
+  function setCadenceStageFilter(val, btn) {
+    currentCadenceStageFilter = val;
+    document.querySelectorAll('.cad-stage-btn').forEach(b => {
+      b.className = 'cad-stage-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+    });
+    btn.className = 'cad-stage-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300';
+    filterCadenceRows();
+  }
+
+  function setCadenceValueFilter(val, btn) {
+    currentCadenceValueFilter = val;
+    document.querySelectorAll('.cad-val-btn').forEach(b => {
+      b.className = 'cad-val-btn w-full text-left px-2 py-1 text-xs rounded text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800';
+    });
+    btn.className = 'cad-val-btn w-full text-left px-2 py-1 text-xs rounded font-semibold bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300';
+    filterCadenceRows();
+  }
+
+  function resetCadenceFilters() {
+    currentCadenceStageFilter = 'all';
+    currentCadenceValueFilter = 'all';
+    document.getElementById('cadenceSearchInput').value = '';
+    const stageBtns = document.querySelectorAll('.cad-stage-btn');
+    if (stageBtns.length) stageBtns[0].click();
+    const valBtns = document.querySelectorAll('.cad-val-btn');
+    if (valBtns.length) valBtns[0].click();
+    filterCadenceRows();
+  }
+
+  function filterCadenceRows() {
+    const q = (document.getElementById('cadenceSearchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.cadence-row');
+
+    rows.forEach(r => {
+      const text = r.innerText.toLowerCase();
+      const matchText = !q || text.includes(q);
+      const stage = r.getAttribute('data-stage') || '';
+      const amount = parseFloat(r.getAttribute('data-amount') || '0');
+
+      let matchStage = true;
+      if (currentCadenceStageFilter !== 'all') {
+        matchStage = stage === currentCadenceStageFilter;
+      }
+
+      let matchValue = true;
+      if (currentCadenceValueFilter === 'high') {
+        matchValue = amount >= 50000;
+      } else if (currentCadenceValueFilter === 'mid') {
+        matchValue = amount < 50000;
+      }
+
+      if (matchText && matchStage && matchValue) {
+        r.style.display = '';
+      } else {
+        r.style.display = 'none';
+      }
+    });
+  }
+</script>
 {% endblock %}

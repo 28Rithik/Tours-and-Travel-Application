@@ -640,6 +640,9 @@
         <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">
           <i class="fa-solid fa-screwdriver-wrench nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Compliance &amp; Maint.
         </a>
+        <a class="nav-link {% if 'parts-inventory' in request.path %}is-active{% endif %}" href="/maintenance/parts-inventory/">
+          <i class="fa-solid fa-boxes-stacked nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #0284c7;"></i> Spare Parts Inventory
+        </a>
         <a class="nav-link {% if 'statutory-compliance' in request.path %}is-active{% endif %}" href="/operations/statutory-compliance/">
           <i class="fa-solid fa-shield-halved nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #6366f1;"></i> RTO Fitness &amp; Statutory Radar
         </a>
@@ -710,6 +713,9 @@
         <a class="nav-link {% if 'feedback-reviews' in request.path %}is-active{% endif %}" href="/crm/feedback-reviews/">
           <i class="fa-solid fa-star nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Customer Reviews &amp; NPS
         </a>
+        <a class="nav-link {% if 'followup-cadence' in request.path %}is-active{% endif %}" href="/crm/followup-cadence/">
+          <i class="fa-solid fa-clock-rotate-left nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #10b981;"></i> Follow-Up Drip Cadence
+        </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">
           <i class="fa-solid fa-chart-pie nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> DMC Reports
         </a>
@@ -732,6 +738,9 @@
         </a>
         <a class="nav-link {% if request.resolver_match.url_name == 'finance-gst-studio' or request.resolver_match.url_name == 'admin-gst-studio' %}is-active{% endif %}" href="{% url 'finance-gst-studio' %}">
           <i class="fa-solid fa-file-lines nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Corporate GST &amp; E-Way Bill
+        </a>
+        <a class="nav-link {% if 'tds-194c' in request.path %}is-active{% endif %}" href="/finance/tds-194c/">
+          <i class="fa-solid fa-percent nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #0284c7;"></i> Section 194C TDS Ledger
         </a>
 
         <a class="nav-link {% if request.resolver_match.url_name == 'finance-payments-studio' or request.resolver_match.url_name == 'finance-payments' or request.resolver_match.url_name == 'admin-payment-studio' %}is-active{% endif %}" href="{% url 'finance-payments-studio' %}">

@@ -991,6 +991,15 @@ html.dark .dcc-compliance-alert-list {
 </style>
 
 <div class="dcc-root">
+  <!-- Unfold Top Breadcrumbs -->
+  <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-3">
+    <a href="/" class="hover:text-primary transition">Home</a>
+    <span>/</span>
+    <a href="{% url 'dispatch-console' %}" class="hover:text-primary transition">Operations Desk</a>
+    <span>/</span>
+    <span class="text-slate-900 dark:text-white font-semibold">Dispatch Control</span>
+  </nav>
+
   <!-- Top Header Strip -->
   <div class="dcc-header">
     <div>
