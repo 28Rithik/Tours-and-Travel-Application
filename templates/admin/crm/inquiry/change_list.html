@@ -1,64 +1,146 @@
 {% extends "admin/change_list.html" %}
 
 {% block content %}
-<div class="admin-dark-hero" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="font-size: 20px;">🗂️</span>
+<style>
+/* Clean Enterprise Unfold CRM KPI Cards & Banner (No Gradients) */
+.crm-clean-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+.crm-clean-kpi {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.crm-clean-kpi:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.crm-kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+}
+.crm-kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-top: 4px;
+}
+.crm-kpi-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+.crm-kpi-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+html.dark .crm-clean-kpi {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+html.dark .crm-clean-kpi:hover {
+    border-color: #475569;
+}
+html.dark .crm-kpi-label {
+    color: #94a3b8;
+}
+html.dark .crm-kpi-val {
+    color: #f8fafc;
+}
+html.dark .crm-kpi-sub {
+    color: #64748b;
+}
+</style>
+
+<div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px 22px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 10px; background: #eef2ff; border: 1px solid #c7d2fe; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #4f46e5;">
+            🗂️
+        </div>
         <div>
-            <div style="font-size: 15px; font-weight: 800; color: #ffffff;">Interactive CRM Pipeline Studio</div>
-            <div style="font-size: 12px; color: #e2e8f0; margin-top: 2px;">Manage deals visually with drag-and-drop stages, WhatsApp dispatch, and 1-click Trip conversion.</div>
+            <div style="font-size: 15px; font-weight: 700; color: #0f172a;">Interactive CRM Pipeline Studio</div>
+            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">Manage deals visually with drag-and-drop stages, WhatsApp dispatch, and 1-click Trip conversion.</div>
         </div>
     </div>
     <div style="display: flex; gap: 10px;">
-        <a href="/crm/kanban/" target="_blank" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; padding: 9px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">
+        <a href="/crm/kanban/" target="_blank" style="background: #4f46e5; border: 1px solid #4338ca; color: #ffffff; padding: 9px 18px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: background-color 0.15s;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
             <i class="fas fa-columns"></i> Launch Kanban Board Studio
         </a>
-        <a href="/crm/quotations/new/" target="_blank" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; padding: 9px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+        <a href="/crm/quotations/new/" target="_blank" style="background: #ffffff; border: 1px solid #cbd5e1; color: #334155; padding: 9px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: background-color 0.15s, border-color 0.15s;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='#94a3b8'; this.style.color='#0f172a';" onmouseout="this.style.background='#ffffff'; this.style.borderColor='#cbd5e1'; this.style.color='#334155';">
             <i class="fas fa-file-invoice"></i> + New Quotation
         </a>
     </div>
 </div>
 
 {% if kpi_metrics %}
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+<div class="crm-clean-kpis">
     <!-- Card 1: Total Leads -->
-    <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="crm-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #bae6fd; font-weight: 600;">Total Pipeline Leads</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ kpi_metrics.total_leads }}</div>
-            <div style="font-size: 11px; color: #e0f2fe; margin-top: 4px;">Across all travel categories</div>
+            <div class="crm-kpi-label">Total Pipeline Leads</div>
+            <div class="crm-kpi-val">{{ kpi_metrics.total_leads }}</div>
+            <div class="crm-kpi-sub">Across all travel categories</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-funnel-dollar"></i></div>
+        <div class="crm-kpi-icon-box" style="background: #e0f2fe; color: #0284c7;">
+            <i class="fas fa-funnel-dollar"></i>
+        </div>
     </div>
 
     <!-- Card 2: Hot Leads -->
-    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="crm-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fef3c7; font-weight: 600;">🔥 Hot Leads (&lt; 3 Days)</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ kpi_metrics.hot_leads }}</div>
-            <div style="font-size: 11px; color: #fffbeb; margin-top: 4px;">High priority follow-ups</div>
+            <div class="crm-kpi-label">Hot Leads (&lt; 3 Days)</div>
+            <div class="crm-kpi-val">{{ kpi_metrics.hot_leads }}</div>
+            <div class="crm-kpi-sub">High priority follow-ups</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-fire"></i></div>
+        <div class="crm-kpi-icon-box" style="background: #fef3c7; color: #d97706;">
+            <i class="fas fa-fire"></i>
+        </div>
     </div>
 
     <!-- Card 3: Win Rate -->
-    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="crm-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #d1fae5; font-weight: 600;">Conversion Win Rate</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ kpi_metrics.win_rate }}%</div>
-            <div style="font-size: 11px; color: #ecfdf5; margin-top: 4px;">{{ kpi_metrics.won_count }} leads converted to bookings</div>
+            <div class="crm-kpi-label">Conversion Win Rate</div>
+            <div class="crm-kpi-val">{{ kpi_metrics.win_rate }}%</div>
+            <div class="crm-kpi-sub">{{ kpi_metrics.won_count }} leads converted to bookings</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-trophy"></i></div>
+        <div class="crm-kpi-icon-box" style="background: #dcfce7; color: #16a34a;">
+            <i class="fas fa-trophy"></i>
+        </div>
     </div>
 
     <!-- Card 4: Active Pipeline Value -->
-    <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="crm-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #e0e7ff; font-weight: 600;">Active Pipeline Value</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ kpi_metrics.pipeline_val }}</div>
-            <div style="font-size: 11px; color: #eef2ff; margin-top: 4px;">In active Quoted &amp; New stage</div>
+            <div class="crm-kpi-label">Active Pipeline Value</div>
+            <div class="crm-kpi-val">₹{{ kpi_metrics.pipeline_val }}</div>
+            <div class="crm-kpi-sub">In active Quoted &amp; New stage</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-coins"></i></div>
+        <div class="crm-kpi-icon-box" style="background: #ede9fe; color: #6366f1;">
+            <i class="fas fa-coins"></i>
+        </div>
     </div>
 </div>
 {% endif %}

@@ -35,7 +35,7 @@
     flex-direction: column;
   }
   html.dark .rs-card {
-    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+    background: #1e293b;
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   }
@@ -141,11 +141,11 @@
 
   .rs-msg-user {
     align-self: flex-end;
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    background: #0284c7;
     color: #ffffff;
     padding: 12px 18px;
     border-radius: 16px 16px 4px 16px;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
     max-width: 75%;
   }
 
@@ -161,12 +161,13 @@
     transition: all 0.15s ease;
   }
   .rs-action-primary {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    background: #0284c7;
+    border: 1px solid #0369a1;
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
   }
   .rs-action-primary:hover {
-    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+    background: #0369a1;
     transform: translateY(-1px);
   }
   .rs-action-secondary {
@@ -234,7 +235,7 @@
   <main class="rs-card rs-chat-canvas">
     <div class="rs-canvas-header">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #d97706 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ffffff; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); border: 2px solid rgba(245, 158, 11, 0.45);">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #0284c7; border: 1px solid #0369a1; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #ffffff; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);">
           ☸️
         </div>
         <div>
@@ -285,7 +286,7 @@
     <!-- Input Bar -->
     <div class="rs-canvas-input-bar">
       <input type="text" id="studioInput" placeholder="Ask Rathasārathi anything (e.g. 'Which Innovas are available tomorrow?', 'Show expired PUCs')..." style="flex: 1; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 18px; color: #0f172a; font-size: 14px; outline: none; transition: border-color 0.2s;" onkeydown="if(event.key==='Enter') sendStudioMessage();" onfocus="this.style.borderColor='#0284c7';" onblur="this.style.borderColor='#cbd5e1';" />
-      <button onclick="sendStudioMessage()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #d97706 100%); color: white; border: none; border-radius: 12px; padding: 0 24px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+      <button onclick="sendStudioMessage()" style="background: #0284c7; border: 1px solid #0369a1; color: white; border-radius: 12px; padding: 0 24px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25); transition: background-color 0.15s;" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">
         <span>Ask Rathasārathi</span>
         <span>➤</span>
       </button>
@@ -509,7 +510,7 @@
 <!-- Groq API Key & Model Configuration Modal -->
 <div id="rsSettingsModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center;">
   <div style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,0.25); border: 1px solid #e2e8f0; overflow: hidden; margin: 16px;">
-    <div style="background: linear-gradient(135deg, #0284c7, #0369a1); padding: 20px 24px; color: #ffffff; display: flex; align-items: center; justify-content: space-between;">
+    <div style="background: #0f172a; padding: 20px 24px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1e293b;">
       <div style="display: flex; align-items: center; gap: 10px;">
         <span style="font-size: 22px;">⚙️</span>
         <div>
@@ -530,7 +531,7 @@
 
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
         <button onclick="closeSettingsModal()" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; padding: 9px 18px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
-        <button onclick="saveGroqKey()" id="btnSaveKey" style="background: linear-gradient(135deg, #0284c7, #0369a1); border: none; color: #ffffff; padding: 9px 20px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);">
+        <button onclick="saveGroqKey()" id="btnSaveKey" style="background: #0284c7; border: 1px solid #0369a1; color: #ffffff; padding: 9px 20px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);">
           Verify &amp; Activate Key
         </button>
       </div>

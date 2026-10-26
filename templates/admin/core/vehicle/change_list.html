@@ -1,63 +1,146 @@
 {% extends "admin/change_list.html" %}
 
 {% block content %}
+<style>
+/* Clean Enterprise Unfold Fleet KPI Cards & Banner (No Gradients) */
+.fleet-clean-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+.fleet-clean-kpi {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.fleet-clean-kpi:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.fleet-kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+}
+.fleet-kpi-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-top: 4px;
+}
+.fleet-kpi-sub {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+.fleet-kpi-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+html.dark .fleet-clean-kpi {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+html.dark .fleet-clean-kpi:hover {
+    border-color: #475569;
+}
+html.dark .fleet-kpi-label {
+    color: #94a3b8;
+}
+html.dark .fleet-kpi-val {
+    color: #f8fafc;
+}
+html.dark .fleet-kpi-sub {
+    color: #64748b;
+}
+</style>
+
 {% if fleet_kpi %}
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
+<div class="fleet-clean-kpis">
     <!-- Total Fleet -->
-    <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="fleet-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #bae6fd; font-weight: 600;">Total Fleet Assets</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.total }}</div>
-            <div style="font-size: 11px; color: #e0f2fe; margin-top: 4px;">Owned &amp; outsourced vehicles</div>
+            <div class="fleet-kpi-label">Total Fleet Assets</div>
+            <div class="fleet-kpi-val">{{ fleet_kpi.total }}</div>
+            <div class="fleet-kpi-sub">Owned &amp; outsourced vehicles</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">directions_bus</span></div>
+        <div class="fleet-kpi-icon-box" style="background: #e0f2fe; color: #0284c7;">
+            <span class="material-symbols-outlined" style="font-size: 28px;">directions_bus</span>
+        </div>
     </div>
 
     <!-- Available Standby -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="fleet-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #a7f3d0; font-weight: 600;">Available in Depot</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.available }}</div>
-            <div style="font-size: 11px; color: #d1fae5; margin-top: 4px;">Ready for instant trip dispatch</div>
+            <div class="fleet-kpi-label">Available in Depot</div>
+            <div class="fleet-kpi-val">{{ fleet_kpi.available }}</div>
+            <div class="fleet-kpi-sub">Ready for instant trip dispatch</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">check_circle</span></div>
+        <div class="fleet-kpi-icon-box" style="background: #dcfce7; color: #16a34a;">
+            <span class="material-symbols-outlined" style="font-size: 28px;">check_circle</span>
+        </div>
     </div>
 
     <!-- On Trip -->
-    <div style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="fleet-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #e0e7ff; font-weight: 600;">Active On-Trip</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.on_trip }}</div>
-            <div style="font-size: 11px; color: #eef2ff; margin-top: 4px;">On highway / duty assignment</div>
+            <div class="fleet-kpi-label">Active On-Trip</div>
+            <div class="fleet-kpi-val">{{ fleet_kpi.on_trip }}</div>
+            <div class="fleet-kpi-sub">On highway / duty assignment</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">route</span></div>
+        <div class="fleet-kpi-icon-box" style="background: #ede9fe; color: #6366f1;">
+            <span class="material-symbols-outlined" style="font-size: 28px;">route</span>
+        </div>
     </div>
 
     <!-- Maintenance / Defects -->
-    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div class="fleet-clean-kpi">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fef3c7; font-weight: 600;">Workshop &amp; Service</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ fleet_kpi.maintenance }}</div>
-            <div style="font-size: 11px; color: #fffbeb; margin-top: 4px;">Under repair or service hold</div>
+            <div class="fleet-kpi-label">Workshop &amp; Service</div>
+            <div class="fleet-kpi-val">{{ fleet_kpi.maintenance }}</div>
+            <div class="fleet-kpi-sub">Under repair or service hold</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><span class="material-symbols-outlined" style="font-size: 36px;">build</span></div>
+        <div class="fleet-kpi-icon-box" style="background: #fef3c7; color: #d97706;">
+            <span class="material-symbols-outlined" style="font-size: 28px;">build</span>
+        </div>
     </div>
 </div>
 {% endif %}
 
 <!-- Live Fleet Command Bar -->
-<div class="admin-dark-hero" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 14px 20px; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); flex-wrap: wrap; gap: 12px;">
-    <div>
-        <strong style="color: #ffffff !important; font-size: 14px; display: flex; align-items: center; gap: 8px;">
-            <span class="material-symbols-outlined" style="color: #38bdf8 !important; font-size: 20px;">satellite_alt</span>
-            <span style="color: #ffffff !important;">Live Fleet Operations Radar &amp; Telematics Map</span>
-        </strong>
-        <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">
-            Real-time interactive GPS tracking across all 148 fleet vehicles, geofence monitoring, and emergency SOS incident alerts.
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 16px 22px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); flex-wrap: wrap; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #16a34a;">
+            <span class="material-symbols-outlined" style="font-size: 24px; color: #16a34a;">satellite_alt</span>
+        </div>
+        <div>
+            <strong style="color: #0f172a; font-size: 15px; display: flex; align-items: center; gap: 8px;">
+                <span>Live Fleet Operations Radar &amp; Telematics Map</span>
+            </strong>
+            <div style="color: #64748b; font-size: 12px; margin-top: 2px;">
+                Real-time interactive GPS tracking across all 148 fleet vehicles, geofence monitoring, and emergency SOS incident alerts.
+            </div>
         </div>
     </div>
     <div>
-        <a href="/admin/operations/fleet-radar/" class="btn btn-primary" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: none; font-weight: 700; padding: 9px 18px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <a href="/admin/operations/fleet-radar/" style="background: #0284c7; border: 1px solid #0369a1; font-weight: 600; padding: 9px 18px; border-radius: 8px; color: #ffffff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; transition: background-color 0.15s;" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">
             <span class="material-symbols-outlined" style="font-size: 18px;">satellite_alt</span> 🛰️ Open Live Fleet Radar Map
         </a>
     </div>

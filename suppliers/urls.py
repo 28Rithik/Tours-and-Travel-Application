@@ -7,6 +7,7 @@ urlpatterns = [
     # Studios & Hubs
     path('settlement-hub/', views.admin_settlement_hub_view, name='settlement-hub'),
     path('hotel-vouchers/', views.admin_hotel_vouchers_hub_view, name='hotel-vouchers-hub'),
+    path('hotel-vouchers-hub/', views.admin_hotel_vouchers_hub_view, name='hotel-vouchers-hub-alias'),
 
     # Printable Documents
     path('hotel-voucher/<int:voucher_id>/print/', views.hotel_voucher_print_view, name='hotel-voucher-print'),

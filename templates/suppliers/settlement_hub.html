@@ -144,22 +144,22 @@ html.dark .unsettled-table td {
 <div class="settlement-studio" style="max-width: 1400px; margin: 0 auto; padding-bottom: 50px;">
 
   <!-- Header Banner -->
-  <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 24px; color: #fff; margin-bottom: 24px; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+  <div style="background: #ffffff; border-radius: 12px; padding: 24px; color: #0f172a; margin-bottom: 24px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
     <div>
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
         <span style="font-size: 24px;">🤝</span>
-        <h1 style="font-size: 22px; font-weight: 700; margin: 0; color: #fff;">Outsourced Fleet &amp; Partner Settlement Hub</h1>
-        <span style="background: #3b82f6; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Sec 194C Compliant</span>
+        <h1 style="font-size: 22px; font-weight: 700; margin: 0; color: #0f172a;">Outsourced Fleet &amp; Partner Settlement Hub</h1>
+        <span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Sec 194C Compliant</span>
       </div>
-      <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+      <p style="margin: 0; color: #64748b; font-size: 14px;">
         Manage partner cab/bus duties, contracted buy vs. sell margins, statutory TDS deductions (1% / 2%), and automated double-entry vendor settlements.
       </p>
     </div>
     <div style="display: flex; gap: 10px;">
-      <a href="{% url 'suppliers:hotel-vouchers-hub' %}" class="button button-secondary" style="background: #334155; color: #fff; border-color: #475569; text-decoration: none;">
+      <a href="{% url 'suppliers:hotel-vouchers-hub' %}" class="button button-secondary" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 600;">
         🏨 Hotel Vouchers Hub
       </a>
-      <button onclick="openNewSettlementModal()" class="button" style="background: #2563eb; color: #fff; border: none; font-weight: 600; cursor: pointer;">
+      <button onclick="openNewSettlementModal()" class="button" style="background: #0284c7; color: #fff; border: 1px solid #0369a1; font-weight: 600; cursor: pointer; padding: 8px 16px; border-radius: 6px;">
         + New Settlement
       </button>
     </div>
@@ -357,9 +357,9 @@ html.dark .unsettled-table td {
 <!-- Modal: Settle Outsourced Trip -->
 <div id="settlementModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: #fff; width: 100%; max-width: 680px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column;">
-    <div style="padding: 18px 24px; background: #0f172a; color: #fff; display: flex; justify-content: space-between; align-items: center;">
-      <h3 style="margin: 0; font-size: 17px; font-weight: 700;">Calculate Partner Vehicle Settlement</h3>
-      <button onclick="closeSettlementModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">✕</button>
+    <div style="padding: 18px 24px; background: #f8fafc; color: #0f172a; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">Calculate Partner Vehicle Settlement</h3>
+      <button onclick="closeSettlementModal()" style="background: transparent; border: none; color: #64748b; font-size: 20px; cursor: pointer;">✕</button>
     </div>
     
     <div style="padding: 24px; overflow-y: auto;">

@@ -1219,76 +1219,94 @@ html.dark .unfold-header-count {
 
 .unfold-kpi-card-solid {
     position: relative;
-    border-radius: 0.625rem;
+    border-radius: 0.75rem;
     padding: 1.15rem 1.25rem;
     overflow: hidden;
-    color: #ffffff !important;
-    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     min-height: 105px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     text-decoration: none !important;
 }
 .unfold-kpi-card-solid:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px 0 rgba(0, 0, 0, 0.18);
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08) !important;
+    border-color: #cbd5e1 !important;
 }
-.unfold-kpi-card-solid * {
-    color: #ffffff !important;
+
+html.dark .unfold-kpi-card-solid {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2) !important;
 }
-.unfold-kpi-card-solid.blue {
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+html.dark .unfold-kpi-card-solid:hover {
+    border-color: #475569 !important;
 }
-.unfold-kpi-card-solid.green {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-}
-.unfold-kpi-card-solid.purple {
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
-}
-.unfold-kpi-card-solid.amber {
-    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
-}
-.unfold-kpi-card-solid.slate {
-    background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
-}
-.unfold-kpi-card-solid.rose {
-    background: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
-}
-.unfold-kpi-card-solid.indigo {
-    background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%) !important;
-}
+
+/* Color Accents: Clean Top Borders & Soft Tinted Icon Pills (Zero Gradients) */
+.unfold-kpi-card-solid.blue { border-top: 3px solid #0284c7 !important; }
+.unfold-kpi-card-solid.green { border-top: 3px solid #16a34a !important; }
+.unfold-kpi-card-solid.purple { border-top: 3px solid #6366f1 !important; }
+.unfold-kpi-card-solid.amber { border-top: 3px solid #d97706 !important; }
+.unfold-kpi-card-solid.slate { border-top: 3px solid #475569 !important; }
+.unfold-kpi-card-solid.rose { border-top: 3px solid #dc2626 !important; }
+.unfold-kpi-card-solid.indigo { border-top: 3px solid #4f46e5 !important; }
+
+.unfold-kpi-card-solid.blue .kpi-icon-pill { background: #e0f2fe !important; color: #0284c7 !important; border: 1px solid #bae6fd !important; }
+.unfold-kpi-card-solid.green .kpi-icon-pill { background: #dcfce7 !important; color: #16a34a !important; border: 1px solid #bbf7d0 !important; }
+.unfold-kpi-card-solid.purple .kpi-icon-pill { background: #ede9fe !important; color: #6366f1 !important; border: 1px solid #ddd6fe !important; }
+.unfold-kpi-card-solid.amber .kpi-icon-pill { background: #fef3c7 !important; color: #d97706 !important; border: 1px solid #fde68a !important; }
+.unfold-kpi-card-solid.slate .kpi-icon-pill { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #e2e8f0 !important; }
+.unfold-kpi-card-solid.rose .kpi-icon-pill { background: #fee2e2 !important; color: #dc2626 !important; border: 1px solid #fecaca !important; }
+.unfold-kpi-card-solid.indigo .kpi-icon-pill { background: #e0e7ff !important; color: #4f46e5 !important; border: 1px solid #c7d2fe !important; }
+
+html.dark .unfold-kpi-card-solid.blue .kpi-icon-pill { background: #082f49 !important; color: #38bdf8 !important; border-color: #0369a1 !important; }
+html.dark .unfold-kpi-card-solid.green .kpi-icon-pill { background: #052e16 !important; color: #4ade80 !important; border-color: #14532d !important; }
+html.dark .unfold-kpi-card-solid.purple .kpi-icon-pill { background: #2e1065 !important; color: #a78bfa !important; border-color: #4c1d95 !important; }
+html.dark .unfold-kpi-card-solid.amber .kpi-icon-pill { background: #451a03 !important; color: #fbbf24 !important; border-color: #78350f !important; }
+html.dark .unfold-kpi-card-solid.slate .kpi-icon-pill { background: #0f172a !important; color: #94a3b8 !important; border-color: #334155 !important; }
+html.dark .unfold-kpi-card-solid.rose .kpi-icon-pill { background: #450a0a !important; color: #f87171 !important; border-color: #7f1d1d !important; }
+html.dark .unfold-kpi-card-solid.indigo .kpi-icon-pill { background: #1e1b4b !important; color: #818cf8 !important; border-color: #3730a3 !important; }
 
 .unfold-kpi-card-solid .kpi-label {
     font-size: 0.6875rem !important;
     font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.06em !important;
-    opacity: 0.92 !important;
+    color: #64748b !important;
     margin-bottom: 0.35rem !important;
 }
+html.dark .unfold-kpi-card-solid .kpi-label {
+    color: #94a3b8 !important;
+}
+
 .unfold-kpi-card-solid .kpi-number {
     font-family: 'JetBrains Mono', ui-monospace, monospace !important;
     font-size: 1.85rem !important;
     font-weight: 800 !important;
     line-height: 1.1 !important;
+    color: #0f172a !important;
     margin: 0.15rem 0 !important;
 }
+html.dark .unfold-kpi-card-solid .kpi-number {
+    color: #f8fafc !important;
+}
+
 .unfold-kpi-card-solid .kpi-sub {
     font-size: 0.72rem !important;
-    opacity: 0.88 !important;
+    color: #94a3b8 !important;
     margin-top: 0.35rem !important;
 }
+html.dark .unfold-kpi-card-solid .kpi-sub {
+    color: #64748b !important;
+}
+
 .unfold-kpi-card-solid .kpi-bg-icon {
-    position: absolute !important;
-    right: 1rem !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    font-size: 2.75rem !important;
-    opacity: 0.22 !important;
-    pointer-events: none !important;
+    display: none !important;
 }
 
 /* Flat Alternative Cards */

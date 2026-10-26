@@ -4,54 +4,59 @@
 {% if sla_metrics %}
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 22px;">
     <!-- Card 1: Net Deductible Penalties -->
-    <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #dc2626; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fecaca; font-weight: 600;">Net Deductible Penalties</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ sla_metrics.deductible_amount }}</div>
-            <div style="font-size: 11px; color: #fee2e2; margin-top: 4px;">{{ sla_metrics.deductible_count }} active deductions to invoices</div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #dc2626; font-weight: 700;">Net Deductible Penalties</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px; line-height: 1.2;">₹{{ sla_metrics.deductible_amount }}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">{{ sla_metrics.deductible_count }} active deductions to invoices</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-file-invoice-dollar"></i></div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fas fa-file-invoice-dollar"></i></div>
     </div>
 
     <!-- Card 2: Waived Penalties -->
-    <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #16a34a; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #a7f3d0; font-weight: 600;">Waived SLA Penalties</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">₹{{ sla_metrics.waived_amount }}</div>
-            <div style="font-size: 11px; color: #d1fae5; margin-top: 4px;">{{ sla_metrics.waived_count }} justified infractions forgiven</div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #16a34a; font-weight: 700;">Waived SLA Penalties</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px; line-height: 1.2;">₹{{ sla_metrics.waived_amount }}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">{{ sla_metrics.waived_count }} justified infractions forgiven</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-shield-alt"></i></div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fas fa-shield-alt"></i></div>
     </div>
 
     <!-- Card 3: Punctuality Breaches -->
-    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #d97706; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #fef3c7; font-weight: 600;">Punctuality Breaches</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ sla_metrics.delay_count }} Incidents</div>
-            <div style="font-size: 11px; color: #fffbeb; margin-top: 4px;">Delays exceeding grace period</div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #d97706; font-weight: 700;">Punctuality Breaches</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px; line-height: 1.2;">{{ sla_metrics.delay_count }} Incidents</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">Delays exceeding grace period</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-stopwatch"></i></div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fas fa-stopwatch"></i></div>
     </div>
 
     <!-- Card 4: Equipment & Safety Violations -->
-    <div style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border-radius: 10px; padding: 16px 20px; color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); display: flex; justify-content: space-between; align-items: center;">
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-top: 3px solid #7c3aed; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #ddd6fe; font-weight: 600;">Equipment &amp; Safety Infractions</div>
-            <div style="font-size: 26px; font-weight: 800; margin-top: 4px; line-height: 1.2;">{{ sla_metrics.safety_count }} Incidents</div>
-            <div style="font-size: 11px; color: #ede9fe; margin-top: 4px;">AC failures, speed &amp; escort breaches</div>
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: #7c3aed; font-weight: 700;">Equipment &amp; Safety Infractions</div>
+            <div style="font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px; line-height: 1.2;">{{ sla_metrics.safety_count }} Incidents</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 4px;">AC failures, speed &amp; escort breaches</div>
         </div>
-        <div style="font-size: 32px; color: rgba(255, 255, 255, 0.4);"><i class="fas fa-tools"></i></div>
+        <div style="width: 44px; height: 44px; border-radius: 10px; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="fas fa-tools"></i></div>
     </div>
 </div>
 {% endif %}
 
-<div class="admin-dark-hero" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 14px 20px; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-    <div>
-        <strong style="color: #f8fafc; font-size: 14px;"><i class="fas fa-stopwatch mr-1" style="color: #f87171;"></i> Automated Telematics &amp; SLA Breach Monitor</strong>
-        <div style="color: #94a3b8; font-size: 12px; margin-top: 2px;">Scan completed route logs for trip delays exceeding 15 minutes or vehicle breakdowns and automatically draft penalty deductions.</div>
+<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 16px 22px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); flex-wrap: wrap; gap: 14px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 10px; background: #fee2e2; border: 1px solid #fecaca; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #dc2626;">
+            <i class="fas fa-stopwatch"></i>
+        </div>
+        <div>
+            <strong style="color: #0f172a; font-size: 15px;">Automated Telematics &amp; SLA Breach Monitor</strong>
+            <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Scan completed route logs for trip delays exceeding 15 minutes or vehicle breakdowns and automatically draft penalty deductions.</div>
+        </div>
     </div>
     <div>
-        <a href="/admin/fleet_contracts/contractslapenalty/auto-ingest/" onclick="return confirm('Scan and auto-ingest SLA penalty drafts from delayed trip logs?');" class="btn btn-danger" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border: none; font-weight: 700; padding: 9px 18px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <a href="/admin/fleet_contracts/contractslapenalty/auto-ingest/" onclick="return confirm('Scan and auto-ingest SLA penalty drafts from delayed trip logs?');" style="background: #dc2626; border: 1px solid #b91c1c; font-weight: 600; padding: 9px 18px; border-radius: 8px; color: #ffffff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; transition: background-color 0.15s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
             <i class="fas fa-bolt"></i> Auto-Ingest Delay Penalties from Trip Logs
         </a>
     </div>
