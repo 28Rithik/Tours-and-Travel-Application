@@ -242,10 +242,10 @@
 
                     <!-- Dynamic UPI QR Scanner Box (Shown when UPI selected) -->
                     <div x-show="paymentMethod === 'upi'" class="upi-qr-box" x-transition>
-                        <div style="font-size: 0.82rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">
                             SCAN & PAY VIA ANY UPI APP
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #34d399; margin: 0.25rem 0;">
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #059669; margin: 0.25rem 0;">
                             Payable Amount: <span x-text="'₹' + amountToPay.toLocaleString('en-IN')">₹{{ initial_total }}</span>
                         </div>
 
@@ -268,12 +268,12 @@
                         </div>
 
                         <!-- 12-digit UTR Submission -->
-                        <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.25rem;">
-                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem;">
+                        <div style="margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem;">
                                 Once paid, enter your 12-digit UPI Transaction / UTR Ref Number:
                             </label>
-                            <input type="text" name="utr_number" x-model="utrNumber" placeholder="e.g. 426891234567" class="form-control" style="max-width: 320px; margin: 0 auto; text-align: center; font-family: monospace; font-size: 1rem; font-weight: 700; letter-spacing: 0.08em;" maxlength="20">
-                            <small style="display: block; color: #94a3b8; font-size: 0.75rem; margin-top: 0.4rem;">
+                            <input type="text" name="utr_number" x-model="utrNumber" placeholder="e.g. 426891234567" class="form-control" style="max-width: 320px; margin: 0 auto; text-align: center; font-family: monospace; font-size: 1rem; font-weight: 700; letter-spacing: 0.08em; background: #ffffff; color: #0f172a; border: 1.5px solid #cbd5e1;" maxlength="20">
+                            <small style="display: block; color: #64748b; font-size: 0.75rem; margin-top: 0.4rem;">
                                 Found in your GPay/PhonePe payment receipt as "UPI Ref ID" or "UTR".
                             </small>
                         </div>

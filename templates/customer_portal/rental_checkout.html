@@ -40,7 +40,7 @@
 
         <!-- Dynamic UPI QR Scanner Box -->
         <div class="upi-qr-box">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #0284c7; text-transform: uppercase;">
                 SCAN TO PAY ADVANCE VIA UPI
             </div>
             <div class="upi-qr-image-wrapper">
@@ -59,7 +59,7 @@
                 <a href="{{ upi_package.deep_links.paytm }}" class="app-link-btn" target="_blank">Paytm</a>
             </div>
 
-            <form method="POST" action="{% url 'customer_portal:rental_checkout' %}" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); padding-top: 1.25rem;">
+            <form method="POST" action="{% url 'customer_portal:rental_checkout' %}" style="margin-top: 1.5rem; border-top: 1px solid #e2e8f0; padding-top: 1.25rem;">
                 {% csrf_token %}
                 <input type="hidden" name="vehicle_tier" value="{{ spec.tier|default:'crysta' }}">
                 <input type="hidden" name="guest_phone" value="{{ booking.guest_phone }}">
@@ -70,10 +70,10 @@
                 <input type="hidden" name="estimated_km" value="{{ billable_km }}">
                 <input type="hidden" name="payment_method" value="upi">
 
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.5rem;">
                     Enter 12-Digit UPI Transaction / UTR Ref:
                 </label>
-                <input type="text" name="utr_number" placeholder="e.g. 426891234567" class="form-control" style="max-width: 300px; margin: 0 auto; text-align: center; font-family: monospace; font-size: 1rem; font-weight: 700;" required minlength="6">
+                <input type="text" name="utr_number" placeholder="e.g. 426891234567" class="form-control" style="max-width: 300px; margin: 0 auto; text-align: center; font-family: monospace; font-size: 1rem; font-weight: 700; background: #ffffff; color: #0f172a; border: 1.5px solid #cbd5e1;" required minlength="6">
                 
                 <button type="submit" class="btn btn-emerald" style="width: 100%; max-width: 300px; margin-top: 1rem; padding: 0.85rem;">
                     Verify UTR & Confirm Fleet Booking →

@@ -231,10 +231,11 @@ body {
 /* ----------------- Hero Section ----------------- */
 .hero-wrapper {
     position: relative;
-    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 50%, #0f172a 100%);
-    color: white;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e0f2fe 100%);
+    color: #0f172a;
     padding: 4.5rem 2rem 5.5rem;
     overflow: hidden;
+    border-bottom: 1px solid #e2e8f0;
 }
 .hero-bg-overlay {
     position: absolute;
@@ -243,8 +244,8 @@ body {
     right: 0;
     bottom: 0;
     background: url('/static/images/hero_tour_bus.jpg') center/cover no-repeat;
-    opacity: 0.28;
-    filter: brightness(0.9) contrast(1.1);
+    opacity: 0.08;
+    filter: brightness(1) contrast(1.05);
     pointer-events: none;
 }
 .hero-grid {
@@ -261,13 +262,13 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(99, 102, 241, 0.2);
-    border: 1px solid rgba(165, 180, 252, 0.35);
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
     padding: 0.35rem 0.9rem;
     border-radius: var(--radius-full);
     font-size: 0.82rem;
-    font-weight: 600;
-    color: #e0e7ff;
+    font-weight: 700;
+    color: #0284c7;
     margin-bottom: 1.25rem;
 }
 .hero-headline {
@@ -277,15 +278,16 @@ body {
     font-weight: 700;
     letter-spacing: -0.03em;
     margin-bottom: 1.25rem;
+    color: #0f172a;
 }
 .hero-headline span.gradient-text {
-    background: linear-gradient(120deg, #a5b4fc, #38bdf8);
+    background: linear-gradient(120deg, #0284c7, #0369a1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .hero-subtitle {
     font-size: 1.12rem;
-    color: #cbd5e1;
+    color: #475569;
     max-width: 580px;
     margin-bottom: 2rem;
     line-height: 1.6;
@@ -294,18 +296,18 @@ body {
     display: flex;
     gap: 2.5rem;
     margin-top: 2rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid #cbd5e1;
     padding-top: 1.5rem;
 }
 .hero-stat-item h4 {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: #0f172a;
     line-height: 1;
 }
 .hero-stat-item p {
     font-size: 0.8rem;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -314,13 +316,11 @@ body {
 
 /* ----------------- Glass Estimator Card ----------------- */
 .estimator-card {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: var(--radius-xl);
     padding: 2rem;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
     color: var(--text-primary);
 }
 .estimator-header {
@@ -709,21 +709,23 @@ body {
 
 /* QR Code Box */
 .upi-qr-box {
-    background: linear-gradient(135deg, #090d16, #1e1b4b);
-    color: white;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1.5px solid #cbd5e1;
     border-radius: var(--radius-xl);
     padding: 1.75rem;
     text-align: center;
     margin-top: 1.25rem;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 .upi-qr-image-wrapper {
-    background: white;
+    background: #ffffff;
     padding: 0.75rem;
+    border: 1px solid #e2e8f0;
     border-radius: var(--radius-lg);
     display: inline-block;
     margin: 1rem 0;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
 }
 .upi-qr-image-wrapper img {
     width: 200px;
@@ -731,8 +733,9 @@ body {
     display: block;
 }
 .vpa-copy-pill {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
     padding: 0.4rem 1rem;
     border-radius: var(--radius-full);
     font-family: monospace;
@@ -744,7 +747,7 @@ body {
     transition: all 0.2s ease;
 }
 .vpa-copy-pill:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: #e2e8f0;
 }
 .app-deep-links-row {
     display: flex;
@@ -756,15 +759,16 @@ body {
 .app-link-btn {
     padding: 0.4rem 0.9rem;
     border-radius: var(--radius-full);
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
     text-decoration: none;
     font-size: 0.8rem;
     font-weight: 600;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 .app-link-btn:hover {
-    background: rgba(255, 255, 255, 0.35);
+    background: #e2e8f0;
 }
 
 /* ----------------- Confirmation Voucher UI ----------------- */
