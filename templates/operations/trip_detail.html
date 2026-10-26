@@ -40,23 +40,23 @@
         <span>Dispatch Board</span>
       </a>
 
-      <a href="{% url 'trip-sheet-pdf' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+      <a href="{% url 'trip-sheet-pdf' trip.pk %}" class="unfold-btn unfold-btn-secondary">
         <i class="fa-solid fa-file-lines text-slate-600"></i>
         <span>Trip Sheet PDF</span>
       </a>
 
-      <a href="{% url 'trip-invoice-pdf' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+      <a href="{% url 'trip-invoice-pdf' trip.pk %}" class="unfold-btn unfold-btn-secondary">
         <i class="fa-solid fa-receipt text-emerald-600"></i>
         <span>Invoice PDF</span>
       </a>
 
-      <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+      <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" class="unfold-btn unfold-btn-secondary">
         <i class="fa-solid fa-map-location-dot text-indigo-600"></i>
         <span>Itinerary Studio</span>
       </a>
 
       {% if trip.tracking_token %}
-      <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" target="_blank" class="unfold-btn unfold-btn-primary">
+      <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" class="unfold-btn unfold-btn-primary">
         <i class="fa-solid fa-location-crosshairs"></i>
         <span>Live GPS</span>
       </a>
@@ -207,14 +207,14 @@
 
           <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
             <span class="text-[10px] font-bold uppercase text-slate-400 block">Night Halt</span>
-            <div class="text-sm font-bold font-mono text-sky-600 dark:text-sky-400 mt-0.5">₹{{ trip.driver_bata_breakdown.night_halt_bata|default:0 }}</div>
+            <div class="text-sm font-bold font-mono text-sky-600 dark:text-sky-400 mt-0.5">₹{{ trip.night_halt_bata_val|floatformat:0 }}</div>
             <div class="text-[10px] text-slate-500">{{ trip.driver_bata_breakdown.night_halts_count|default:0 }} Night(s)</div>
           </div>
 
           <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
             <span class="text-[10px] font-bold uppercase text-slate-400 block">Early / Late Duty</span>
             <div class="text-sm font-bold font-mono text-purple-600 dark:text-purple-400 mt-0.5">
-              ₹{{ trip.driver_bata_breakdown.early_morning_bata|add:trip.driver_bata_breakdown.late_night_bata|default:0 }}
+              ₹{{ trip.early_late_bata|floatformat:0 }}
             </div>
             <div class="text-[10px] text-slate-500">&lt;06:00 / &ge;23:00</div>
           </div>
@@ -222,7 +222,7 @@
           <div class="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-md border border-slate-200 dark:border-slate-800">
             <span class="text-[10px] font-bold uppercase text-slate-400 block">Overtime</span>
             <div class="text-sm font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5">
-              ₹{{ trip.driver_bata_breakdown.overtime_bata|add:trip.driver_bata_breakdown.outstation_bonus|default:0 }}
+              ₹{{ trip.overtime_bata_total|floatformat:0 }}
             </div>
             <div class="text-[10px] text-slate-500">Shift &gt;12h</div>
           </div>
@@ -244,7 +244,7 @@
             </h3>
             <p>Route stops, sightseeing schedule, and hotel allotments.</p>
           </div>
-          <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+          <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" class="unfold-btn unfold-btn-secondary">
             <i class="fa-solid fa-plus"></i>
             <span>Studio</span>
           </a>
@@ -275,7 +275,7 @@
         {% else %}
         <div class="p-6 text-center bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-dashed border-slate-200 dark:border-slate-800">
           <p class="text-xs text-slate-500 mb-2">No day-by-day itinerary schedule built yet for this trip.</p>
-          <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-primary">
+          <a href="{% url 'admin-trip-itinerary-builder' trip.pk %}" class="unfold-btn unfold-btn-primary">
             <span>Open Itinerary Builder</span>
           </a>
         </div>

@@ -1,29 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRM Revenue Pipeline 3.0 — Multi-Modal Drag & Drop Hub | TravelERP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CRM Revenue Pipeline 3.0 — Multi-Modal Drag & Drop Hub | TravelERP{% endblock %}
+{% block header_title %}Corporate CRM Pipeline{% endblock %}
+
+{% block extra_head %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-  <script>
-    (function() {
-      try {
-        var raw = localStorage.getItem('_x_adminTheme');
-        var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
-        if (t !== 'dark') {
-          document.documentElement.classList.add('light-mode');
-        }
-      } catch(e) {
-        document.documentElement.classList.add('light-mode');
-      }
-    })();
-  </script>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -958,8 +941,10 @@
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
+<div class="crm-kanban-page-wrapper" style="padding-bottom: 2rem;">
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
@@ -2066,6 +2051,6 @@
   </script>
 
   {% include "crm/components/smart_lead_ingest_modal.html" %}
-</body>
-</html>
+</div>
+{% endblock %}
 

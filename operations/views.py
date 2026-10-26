@@ -128,6 +128,20 @@ def booking_create(request):
 
 
 @login_required
+def booking_edit(request, booking_id):
+    booking = get_object_or_404(Booking, pk=booking_id)
+    if request.method == 'POST':
+        form = BookingForm(request.POST, instance=booking)
+        if form.is_valid():
+            booking = form.save()
+            messages.success(request, f'Booking #{booking.booking_number} updated successfully.')
+            return redirect('booking-detail', booking_id=booking.pk)
+    else:
+        form = BookingForm(instance=booking)
+    return render(request, 'operations/booking_form.html', {'form': form, 'booking': booking, 'is_edit': True})
+
+
+@login_required
 def booking_detail(request, booking_id):
     booking = get_object_or_404(
         Booking.objects.select_related('party', 'vehicle_type', 'package', 'package_inventory').prefetch_related('trips'),
@@ -2691,7 +2705,7 @@ def api_trip_passengers_list(request, trip_id):
 # Phase 4: Multi-Day Tour Itinerary Day-by-Day Builder & Live Guest Experience
 # ==============================================================================
 
-def admin_trip_itinerary_builder_view(request, trip_id):
+def admin_trip_itinerary_builder_view(request, trip_id=None):
     """
     Interactive Day-by-Day Sightseeing, Route, & Hotel Stops Builder Studio
     for dispatchers and tour operators.
@@ -2701,7 +2715,22 @@ def admin_trip_itinerary_builder_view(request, trip_id):
         return redirect_to_login(request.get_full_path())
 
     from packages.models import Package
-    from .models import TripItineraryDay
+    from .models import Trip, TripItineraryDay
+
+    if not trip_id:
+        param_id = request.GET.get('trip_id')
+        if param_id and param_id.isdigit():
+            trip_id = int(param_id)
+        else:
+            first_trip = Trip.objects.filter(package__isnull=False).order_by('-id').first()
+            if not first_trip:
+                first_trip = Trip.objects.order_by('-id').first()
+            if first_trip:
+                trip_id = first_trip.pk
+
+    if not trip_id:
+        messages.warning(request, "No trips found. Please create a booking or trip first.")
+        return redirect('booking-list')
 
     trip = get_object_or_404(
         Trip.objects.select_related('package', 'vehicle', 'driver', 'party', 'booking'),
@@ -2714,6 +2743,7 @@ def admin_trip_itinerary_builder_view(request, trip_id):
 
     days = trip.itinerary_days.all().order_by('day_number')
     packages = Package.objects.filter(is_active=True).only('id', 'name', 'destination', 'duration_days').order_by('name')[:150]
+    all_trips = Trip.objects.select_related('package', 'party', 'vehicle', 'driver').order_by('-id')[:40]
 
     return render(request, 'operations/trip_itinerary_builder.html', {
         'trip': trip,
@@ -2721,6 +2751,7 @@ def admin_trip_itinerary_builder_view(request, trip_id):
         'packages': packages,
         'has_days': days.exists(),
         'guest_url': trip.guest_itinerary_url,
+        'all_trips': all_trips,
     })
 
 

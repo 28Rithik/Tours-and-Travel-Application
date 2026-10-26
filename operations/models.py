@@ -798,6 +798,25 @@ class Trip(models.Model):
 			return max(0, self.closing_km - self.opening_km)
 		return 0
 
+	@property
+	def early_late_bata(self):
+		bd = self.driver_bata_breakdown or {}
+		em = bd.get('early_morning_bata') or bd.get('early_morning_allowance') or 0
+		ln = bd.get('late_night_bata') or bd.get('late_night_allowance') or 0
+		return float(em) + float(ln)
+
+	@property
+	def overtime_bata_total(self):
+		bd = self.driver_bata_breakdown or {}
+		ot = bd.get('overtime_bata') or bd.get('overtime_allowance') or 0
+		ob = bd.get('outstation_bonus') or bd.get('expedition_bonus') or 0
+		return float(ot) + float(ob)
+
+	@property
+	def night_halt_bata_val(self):
+		bd = self.driver_bata_breakdown or {}
+		return bd.get('night_halt_bata') or bd.get('night_halt_allowance') or 0
+
 	class Meta:
 		constraints = [
 			models.CheckConstraint(

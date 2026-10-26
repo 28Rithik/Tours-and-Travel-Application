@@ -584,13 +584,13 @@ html.dark .unfold-tab-badge {
                 {% endwith %}
 
                 <!-- RTO Trip Sheet -->
-                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'trip-sheet' trip.pk %}" title="Print / Download RTO Trip Sheet" target="_blank">
+                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'trip-sheet' trip.pk %}" title="Print / Download RTO Trip Sheet">
                   <i class="fa-solid fa-file-lines text-xs"></i>
                 </a>
 
                 <!-- Passenger Live GPS Tracker -->
                 {% if trip.tracking_token %}
-                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'passenger-live-tracking' trip.tracking_token %}" title="Open Guest Live GPS Radar" target="_blank">
+                <a class="unfold-btn unfold-btn-secondary" style="height: 26px; width: 26px; padding: 0;" href="{% url 'passenger-live-tracking' trip.tracking_token %}" title="Open Guest Live GPS Radar">
                   <i class="fa-solid fa-location-crosshairs text-xs text-sky-600"></i>
                 </a>
                 {% endif %}

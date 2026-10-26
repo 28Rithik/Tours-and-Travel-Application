@@ -28,6 +28,7 @@ from operations.views import (
     api_get_trip,
     api_bulk_contract_context,
     booking_create,
+    booking_edit,
     booking_detail,
     booking_list,
     customer_confirmation_preview,
@@ -132,6 +133,7 @@ from operations.views import (
 from statements.views import download_statement, generate_statement
 from maintenance.views import (
     damage_marker_studio_view,
+    damage_inspection_print_certificate,
     tire_studio_view,
     workshop_mechanic_studio_view,
     parts_inventory_studio_view,
@@ -234,6 +236,9 @@ urlpatterns = [
     path('api/whatsapp/trip/<int:trip_id>/dispatch/', api_dispatch_whatsapp_trip_sheet, name='api-whatsapp-trip-dispatch'),
     path('api/whatsapp/handover/<int:session_id>/audit/', api_handover_session_audit, name='api-handover-session-audit'),
     # Phase 4: Multi-Day Tour Itinerary Day-by-Day Builder & Live Guest Experience Portal
+    path('operations/itinerary-builder/', admin_trip_itinerary_builder_view, name='operations-itinerary-builder-hub'),
+    path('operations/trip/<int:trip_id>/itinerary-builder/', admin_trip_itinerary_builder_view, name='operations-trip-itinerary-builder'),
+    path('admin/operations/itinerary-builder/', admin_trip_itinerary_builder_view, name='admin-operations-itinerary-builder-hub'),
     path('admin/operations/trip/<int:trip_id>/itinerary-builder/', admin_trip_itinerary_builder_view, name='admin-trip-itinerary-builder'),
     path('admin/trip/<int:trip_id>/itinerary-builder/', admin_trip_itinerary_builder_view, name='admin-trip-itinerary-builder-alias'),
     path('tour/itinerary/<str:token>/', guest_tour_itinerary_view, name='guest-tour-itinerary'),
@@ -462,7 +467,9 @@ urlpatterns = [
     path('dispatch/', booking_list, name='dispatch-console'),
     path('bookings/', booking_list, name='booking-list'),
     path('bookings/create/', booking_create, name='booking-create'),
+    path('bookings/<int:booking_id>/edit/', booking_edit, name='booking-edit'),
     path('bookings/<int:booking_id>/', booking_detail, name='booking-detail'),
+    path('maintenance/damage-inspection/<int:inspection_id>/print/', damage_inspection_print_certificate, name='damage_inspection_print'),
     path('bookings/<int:booking_id>/pdf/voucher/', booking_voucher_pdf_view, name='booking-voucher-pdf'),
     path('bookings/<int:booking_id>/trip/create/', trip_create, name='trip-create'),
     path('api/bookings/<int:booking_id>/', api_get_booking, name='api_get_booking'),
