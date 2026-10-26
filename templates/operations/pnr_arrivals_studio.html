@@ -6,9 +6,14 @@
 {% block extra_head %}
 <style>
   .placard-board {
-    background: #0f172a;
-    border: 5px solid #f59e0b;
+    background: #ffffff;
+    border: 4px solid #f59e0b;
     border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  }
+  html.dark .placard-board {
+    background: #0f172a;
+    border-color: #f59e0b;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
   }
 </style>
@@ -267,19 +272,19 @@
     </div>
 
     <!-- High-visibility placard -->
-    <div id="printablePlacardArea" class="placard-board p-8 text-white space-y-4 my-2">
-      <div class="text-xs font-mono tracking-widest text-amber-400 uppercase font-extrabold">SIVAGAYATHIRI TRAVELS &amp; TOURS</div>
+    <div id="printablePlacardArea" class="placard-board p-8 text-slate-900 dark:text-white space-y-4 my-2">
+      <div class="text-xs font-mono tracking-widest text-amber-600 dark:text-amber-400 uppercase font-extrabold">SIVAGAYATHIRI TRAVELS &amp; TOURS</div>
       <div class="h-0.5 bg-amber-500/40 w-32 mx-auto"></div>
       
       <div class="space-y-1">
-        <div class="text-xs text-slate-400 uppercase tracking-widest">WELCOME TO COIMBATORE</div>
-        <h1 id="placardGuestName" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight"></h1>
+        <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">WELCOME TO COIMBATORE</div>
+        <h1 id="placardGuestName" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight"></h1>
       </div>
 
-      <div class="bg-slate-800/90 py-2 px-4 rounded-xl inline-flex items-center gap-3 text-xs border border-slate-700">
-        <span class="text-amber-400 font-bold" id="placardFlight"></span>
-        <span class="text-slate-500">&bull;</span>
-        <span class="text-slate-300" id="placardDriver"></span>
+      <div class="bg-amber-50 dark:bg-slate-800/90 py-2 px-4 rounded-xl inline-flex items-center gap-3 text-xs border border-amber-200 dark:border-slate-700">
+        <span class="text-amber-700 dark:text-amber-400 font-bold" id="placardFlight"></span>
+        <span class="text-slate-400 dark:text-slate-500">&bull;</span>
+        <span class="text-slate-700 dark:text-slate-300 font-semibold" id="placardDriver"></span>
       </div>
     </div>
 

@@ -569,6 +569,8 @@ urlpatterns = [
     path('api/operations/global-search/', api_global_search, name='api-operations-global-search'),
     path('packages/', include('packages.urls')),
     path('customer-portal/', include('customer_portal.urls')),
+    path('customer/login/', RedirectView.as_view(url='/customer-portal/login/', permanent=False), name='customer-login-alias'),
+    path('customer/', RedirectView.as_view(url='/customer-portal/', permanent=False), name='customer-home-alias'),
     path('payments/', include('payments_gateway.urls')),
     path('analytics/', include('analytics.urls')),
     path('crm/', include('crm.urls')),

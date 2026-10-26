@@ -773,14 +773,15 @@
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: #0f172a;
-      color: white;
-      padding: 12px 24px;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1.5px solid #cbd5e1;
+      padding: 10px 20px;
       border-radius: 99px;
       display: flex;
       align-items: center;
-      gap: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
       z-index: 80;
       transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -1336,25 +1337,25 @@
   <div class="bulk-action-bar" id="bulkActionBar">
     <span class="bulk-badge" id="bulkCountBadge">0 Selected</span>
     
-    <select id="bulkReassignSelect" class="form-select" style="padding: 4px 8px; font-size: 12px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 6px;">
+    <select id="bulkReassignSelect" class="form-select" style="padding: 5px 10px; font-size: 12px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 6px;">
       <option value="">Reassign To Specialist...</option>
       {% for s in specialists %}
         <option value="{{ s.id }}">{{ s.username }}</option>
       {% endfor %}
     </select>
-    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; background: white; color: black;" onclick="executeBulkAction('reassign')">Apply</button>
+    <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 11px; background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="executeBulkAction('reassign')">Apply</button>
 
-    <select id="bulkStageSelect" class="form-select" style="padding: 4px 8px; font-size: 12px; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 6px;">
+    <select id="bulkStageSelect" class="form-select" style="padding: 5px 10px; font-size: 12px; background: #f8fafc; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 6px;">
       <option value="">Move Stage...</option>
       <option value="in_progress">Contacted</option>
       <option value="quoted">Proposal Sent</option>
       <option value="negotiating">Negotiating</option>
       <option value="won">Won (Converted)</option>
     </select>
-    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; background: white; color: black;" onclick="executeBulkAction('stage')">Move</button>
+    <button type="button" class="btn btn-outline" style="padding: 5px 12px; font-size: 11px; background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;" onclick="executeBulkAction('stage')">Move</button>
 
-    <button type="button" class="btn btn-emerald" style="padding: 4px 10px; font-size: 11px;" onclick="executeBulkAction('broadcast')"><i class="fa-brands fa-whatsapp"></i> Broadcast</button>
-    <button type="button" class="btn btn-outline" style="padding: 4px 10px; font-size: 11px; background: transparent; color: #94a3b8; border: none;" onclick="clearBulkSelection()">Cancel</button>
+    <button type="button" class="btn btn-emerald" style="padding: 5px 12px; font-size: 11px;" onclick="executeBulkAction('broadcast')"><i class="fa-brands fa-whatsapp"></i> Broadcast</button>
+    <button type="button" class="btn btn-outline" style="padding: 5px 10px; font-size: 11px; background: transparent; color: #64748b; border: none;" onclick="clearBulkSelection()">Cancel</button>
   </div>
 
   <!-- ===================================================================== -->

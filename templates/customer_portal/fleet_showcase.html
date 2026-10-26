@@ -7,19 +7,20 @@
 <style>
 /* ----------------- Fleet Showcase Specific Styles ----------------- */
 .fleet-hero-banner {
-    background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%);
-    color: white;
+    background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #eff6ff 100%);
+    color: #0f172a;
     padding: 3.5rem 1.5rem 4rem;
     position: relative;
     overflow: hidden;
     text-align: center;
+    border-bottom: 1px solid #cbd5e1;
 }
 .fleet-hero-bg {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
-    opacity: 0.16;
-    filter: brightness(0.8) contrast(1.1);
+    opacity: 0.08;
+    filter: contrast(1.1);
     pointer-events: none;
 }
 .fleet-hero-content {
@@ -32,13 +33,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    background: rgba(99, 102, 241, 0.25);
-    border: 1px solid rgba(165, 180, 252, 0.4);
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    color: #0369a1;
     padding: 0.35rem 0.95rem;
     border-radius: var(--radius-full);
     font-size: 0.8rem;
     font-weight: 700;
-    color: #e0e7ff;
     margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -50,14 +51,15 @@
     font-weight: 800;
     margin-bottom: 1rem;
     letter-spacing: -0.02em;
+    color: #0f172a;
 }
 .fleet-hero-title span {
-    background: linear-gradient(120deg, #f59e0b, #fbbf24);
+    background: linear-gradient(120deg, #d97706, #b45309);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 .fleet-hero-desc {
-    color: #cbd5e1;
+    color: #475569;
     font-size: 1.05rem;
     line-height: 1.6;
     max-width: 720px;
@@ -71,22 +73,22 @@
     gap: 1rem;
     max-width: 720px;
     margin: 0 auto;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: var(--radius-xl);
     padding: 1.25rem;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
 }
 .fleet-stat-box h4 {
     font-size: 1.75rem;
     font-weight: 800;
-    color: white;
+    color: #0f172a;
     margin: 0;
     line-height: 1;
 }
 .fleet-stat-box p {
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -701,27 +703,27 @@
     <!-- ==============================================================================
          3. "BEGIN YOUR JOURNEY" CTA BANNER (Reference Image 2 Style)
          ============================================================================== -->
-    <div style="background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%); border-radius: var(--radius-xl); padding: 3rem 2.5rem; color: white; margin: 3rem auto; box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); display: grid; grid-template-columns: 1fr 1.3fr; gap: 2rem; align-items: center;">
-        <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+    <div style="background: #ffffff; border-radius: var(--radius-xl); padding: 3rem 2.5rem; color: #0f172a; margin: 3rem auto; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); border: 1px solid #cbd5e1; display: grid; grid-template-columns: 1fr 1.3fr; gap: 2rem; align-items: center;">
+        <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
             <img src="/static/images/fleet/volvo_coach.jpg" alt="Sivagayathiri Travel Experts" style="width: 100%; height: 100%; object-fit: cover; display: block;">
         </div>
 
         <div>
-            <span style="font-size: 0.75rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
                 GET STARTED NOW
             </span>
-            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem;">
-                Begin Your Journey with <span style="color: #fbbf24;">Trusted Travel Experts</span>
+            <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 1.85rem; font-weight: 800; line-height: 1.25; margin: 0 0 0.75rem; color: #0f172a;">
+                Begin Your Journey with <span style="color: #0284c7;">Trusted Travel Experts</span>
             </h3>
-            <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.5rem;">
+            <p style="color: #475569; font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.5rem;">
                 Experience safe, reliable, and comfortable passenger transit designed to meet your exact travel needs. Let us make every journey smooth, punctual, and stress-free.
             </p>
 
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <button type="button" onclick="openCustomTripModal('fleet_rental')" class="btn" style="background: #f59e0b; color: #090d16; font-weight: 800; padding: 0.75rem 1.4rem; border-radius: 10px; border: none; cursor: pointer;">
+                <button type="button" onclick="openCustomTripModal('fleet_rental')" class="btn" style="background: #0284c7; color: #ffffff; font-weight: 800; padding: 0.75rem 1.4rem; border-radius: 10px; border: none; cursor: pointer;">
                     ⚡ Instant WhatsApp Quote
                 </button>
-                <a href="{% url 'customer_portal:home' %}#fare-estimator" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.35); font-weight: 600; padding: 0.75rem 1.25rem; border-radius: 10px;">
+                <a href="{% url 'customer_portal:home' %}#fare-estimator" class="btn btn-outline" style="color: #0f172a; border-color: #cbd5e1; font-weight: 600; padding: 0.75rem 1.25rem; border-radius: 10px; background: #f8fafc;">
                     Fare Calculator 🚗
                 </a>
             </div>

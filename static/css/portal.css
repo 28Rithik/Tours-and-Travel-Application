@@ -61,22 +61,22 @@ body {
 
 /* ----------------- Top Announcement Bar ----------------- */
 .top-bar {
-    background: #090d16;
-    color: #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
     font-size: 0.82rem;
     padding: 0.5rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid #e2e8f0;
 }
 .top-bar a {
-    color: #e2e8f0;
+    color: #0f172a;
     text-decoration: none;
     font-weight: 600;
 }
 .top-bar a:hover {
-    color: #a5b4fc;
+    color: #0284c7;
 }
 .top-bar-badges {
     display: flex;

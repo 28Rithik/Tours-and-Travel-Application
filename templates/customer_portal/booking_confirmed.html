@@ -91,37 +91,37 @@
 
             <!-- Connecting Intercity Night Bus Transit Section (If Booked) -->
             {% if booking.travel_pnr %}
-            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; border-radius: var(--radius-xl); padding: 1.5rem 1.75rem; margin-bottom: 2rem; border: 1px solid #334155; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 0.75rem;">
+            <div style="background: #ffffff; color: #0f172a; border-radius: var(--radius-xl); padding: 1.5rem 1.75rem; margin-bottom: 2rem; border: 1.5px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.75rem;">
                     <div style="display: flex; align-items: center; gap: 0.65rem;">
                         <span style="font-size: 1.5rem;">🚌</span>
                         <div>
-                            <h3 style="font-size: 1.1rem; font-weight: 800; color: #38bdf8; margin: 0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 800; color: #0284c7; margin: 0;">
                                 Connecting Intercity Night Bus Transit (Port 8005)
                             </h3>
-                            <small style="color: #94a3b8; font-size: 0.8rem;">
+                            <small style="color: #64748b; font-size: 0.8rem;">
                                 Guaranteed seat reservation connected to your holiday tour package
                             </small>
                         </div>
                     </div>
-                    <div style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 800; font-family: monospace; font-size: 0.95rem;">
+                    <div style="background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 800; font-family: monospace; font-size: 0.95rem;">
                         PNR: {{ booking.travel_pnr }}
                     </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
-                    <div style="background: rgba(255,255,255,0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
-                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Partner Fleet</div>
-                        <div style="font-weight: 700; color: #f8fafc; font-size: 0.9rem; margin-top: 0.2rem;">Sivagayathiri Intercity CRS</div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Partner Fleet</div>
+                        <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem; margin-top: 0.2rem;">Sivagayathiri Intercity CRS</div>
                     </div>
-                    <div style="background: rgba(255,255,255,0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
-                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Reservation Status</div>
-                        <div style="font-weight: 700; color: #34d399; font-size: 0.9rem; margin-top: 0.2rem;">Confirmed & Synchronized ✅</div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700;">Reservation Status</div>
+                        <div style="font-weight: 700; color: #059669; font-size: 0.9rem; margin-top: 0.2rem;">Confirmed & Synchronized ✅</div>
                     </div>
                     {% if intercity_tracking_url %}
-                    <div style="background: rgba(255,255,255,0.06); padding: 0.85rem 1rem; border-radius: var(--radius-md);">
-                        <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">M-Ticket & Telematics</div>
-                        <div style="font-weight: 700; color: #38bdf8; font-size: 0.9rem; margin-top: 0.2rem;">Live GPS Telematics Active</div>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.85rem 1rem; border-radius: var(--radius-md);">
+                        <div style="font-size: 0.72rem; color: #64748b; text-transform: uppercase; font-weight: 700;">M-Ticket & Telematics</div>
+                        <div style="font-weight: 700; color: #0284c7; font-size: 0.9rem; margin-top: 0.2rem;">Live GPS Telematics Active</div>
                     </div>
                     {% endif %}
                 </div>
@@ -131,7 +131,7 @@
                     <a href="{{ intercity_tracking_url }}" target="_blank" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.6rem 1.25rem; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none;">
                         <span>🛰️</span> Live GPS Bus Tracking & M-Ticket (Port 8005 ↗)
                     </a>
-                    <span style="font-size: 0.75rem; color: #94a3b8;">
+                    <span style="font-size: 0.75rem; color: #64748b;">
                         Direct telematics feed from Sivagayathiri Intercity Bus CRS
                     </span>
                 </div>

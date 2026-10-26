@@ -95,17 +95,17 @@
         <!-- Filter Tabs -->
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
             <button type="button" @click="activeTab = 'all'" 
-                :style="activeTab === 'all' ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #64748b;'"
+                :style="activeTab === 'all' ? 'background: #0284c7; color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.25);' : 'background: #f1f5f9; color: #64748b;'"
                 style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
                 All Bookings ({{ bookings|length }})
             </button>
             <button type="button" @click="activeTab = 'active'"
-                :style="activeTab === 'active' ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #64748b;'"
+                :style="activeTab === 'active' ? 'background: #0284c7; color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.25);' : 'background: #f1f5f9; color: #64748b;'"
                 style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
                 Active & Upcoming
             </button>
             <button type="button" @click="activeTab = 'completed'"
-                :style="activeTab === 'completed' ? 'background: #0f172a; color: white;' : 'background: #f1f5f9; color: #64748b;'"
+                :style="activeTab === 'completed' ? 'background: #0284c7; color: white; box-shadow: 0 2px 8px rgba(2,132,199,0.25);' : 'background: #f1f5f9; color: #64748b;'"
                 style="padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
                 Completed Past Trips
             </button>

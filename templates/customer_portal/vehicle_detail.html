@@ -8,19 +8,20 @@
 /* Vehicle Detail Page Styles (Matching Reference Images 3 & 5) */
 .vd-hero-banner {
     position: relative;
-    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
-    color: white;
+    background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #eff6ff 100%);
+    color: #0f172a;
     padding: 3.5rem 1.5rem;
     overflow: hidden;
     text-align: center;
+    border-bottom: 1px solid #cbd5e1;
 }
 .vd-hero-bg {
     position: absolute;
     inset: 0;
     background-size: cover;
     background-position: center;
-    opacity: 0.18;
-    filter: blur(2px) brightness(0.7);
+    opacity: 0.08;
+    filter: blur(1px) contrast(1.1);
     pointer-events: none;
 }
 .vd-hero-content {
@@ -31,9 +32,9 @@
 }
 .vd-badge {
     display: inline-block;
-    background: rgba(99, 102, 241, 0.25);
-    border: 1px solid rgba(165, 180, 252, 0.4);
-    color: #e0e7ff;
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    color: #0369a1;
     padding: 0.3rem 0.85rem;
     border-radius: 9999px;
     font-size: 0.78rem;
@@ -48,9 +49,10 @@
     font-weight: 800;
     margin: 0 0 0.5rem;
     line-height: 1.2;
+    color: #0f172a;
 }
 .vd-tagline {
-    color: #cbd5e1;
+    color: #475569;
     font-size: 1rem;
     margin: 0;
 }
@@ -339,7 +341,7 @@
                         <textarea id="vd_notes" class="vd-form-input" rows="2" placeholder="e.g. Coimbatore to Ooty 3-day tour"></textarea>
                     </div>
 
-                    <button type="submit" id="vd_submit_btn" class="btn" style="background: #f59e0b; color: #090d16; width: 100%; justify-content: center; font-weight: 800; padding: 0.85rem; border-radius: 10px; border: none; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">
+                    <button type="submit" id="vd_submit_btn" class="btn" style="background: #0284c7; color: #ffffff; width: 100%; justify-content: center; font-weight: 800; padding: 0.85rem; border-radius: 10px; border: none; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);">
                         Submit Message & WhatsApp Quote 💬
                     </button>
                 </form>

@@ -6,8 +6,9 @@
 {% block extra_head %}
 <style>
 .about-hero {
-    background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%);
-    color: white;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e0f2fe 100%);
+    color: #0f172a;
+    border-bottom: 1px solid #e2e8f0;
     padding: 4.5rem 1.5rem 5rem;
     position: relative;
     overflow: hidden;
@@ -17,8 +18,7 @@
     position: absolute;
     inset: 0;
     background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
-    opacity: 0.16;
-    filter: brightness(0.8);
+    opacity: 0.06;
     pointer-events: none;
 }
 .about-hero-content {
@@ -29,13 +29,13 @@
 }
 .about-badge {
     display: inline-block;
-    background: rgba(99, 102, 241, 0.25);
-    border: 1px solid rgba(165, 180, 252, 0.4);
-    color: #e0e7ff;
+    background: #e0f2fe;
+    border: 1px solid #bae6fd;
+    color: #0284c7;
     padding: 0.35rem 0.95rem;
     border-radius: 9999px;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 1rem;
@@ -46,14 +46,13 @@
     font-weight: 800;
     line-height: 1.15;
     margin-bottom: 1.25rem;
+    color: #0f172a;
 }
 .about-hero h1 span {
-    background: linear-gradient(120deg, #f59e0b, #fbbf24);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #0284c7;
 }
 .about-hero p {
-    color: #cbd5e1;
+    color: #475569;
     font-size: 1.05rem;
     line-height: 1.65;
     max-width: 740px;
@@ -277,27 +276,27 @@
     </div>
 
     <!-- 5. Mission Control Callout -->
-    <div style="background: linear-gradient(135deg, #090d16, #1e1b4b); border-radius: var(--radius-xl); padding: 3.5rem 2.5rem; color: white; display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem; align-items: center; box-shadow: var(--shadow-xl);">
+    <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: var(--radius-xl); padding: 3.5rem 2.5rem; color: #0f172a; display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem; align-items: center; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06);">
         <div>
-            <span style="font-size: 0.75rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">
                 CENTRALIZED OPERATIONS
             </span>
-            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 800; margin: 0 0 1rem;">
-                Coimbatore Central Operations & Maintenance Depot
+            <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 800; color: #0f172a; margin: 0 0 1rem;">
+                Coimbatore Central Operations &amp; Maintenance Depot
             </h2>
-            <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">
+            <p style="color: #475569; font-size: 0.95rem; line-height: 1.65; margin-bottom: 1.5rem;">
                 Situated centrally near the Gandhipuram transit corridor, our modern 2.5-acre depot houses automated mechanical inspection pits, tyre balancing bays, and our 24x7 telematics mission control center.
             </p>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <a href="tel:+919842533777" class="btn" style="background: #f59e0b; color: #090d16; font-weight: 800; padding: 0.75rem 1.25rem; border-radius: 8px; text-decoration: none;">
+                <a href="tel:+919842533777" class="btn" style="background: #0284c7; color: #ffffff; font-weight: 800; padding: 0.75rem 1.25rem; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);">
                     📞 24x7 Control Desk: +91 98425 33777
                 </a>
-                <a href="{% url 'customer_portal:fleet' %}" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.75rem 1.25rem; border-radius: 8px;">
+                <a href="{% url 'customer_portal:fleet' %}" class="btn btn-outline" style="color: #0f172a; border-color: #cbd5e1; background: #f8fafc; padding: 0.75rem 1.25rem; border-radius: 8px;">
                     Explore 320+ Fleets →
                 </a>
             </div>
         </div>
-        <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+        <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
             <img src="/static/images/corporate_employee_transport.jpg" alt="Coimbatore Central Depot" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
     </div>

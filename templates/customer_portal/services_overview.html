@@ -7,20 +7,20 @@
 <style>
     /* Services Overview Hub Styling */
     .services-hero {
-        background: linear-gradient(135deg, #090d16 0%, #171c2f 50%, #1e1b4b 100%);
-        color: white;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e0f2fe 100%);
+        color: #0f172a;
         padding: 4.5rem 1.5rem 5rem;
         position: relative;
         overflow: hidden;
         text-align: center;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .services-hero-bg {
         position: absolute;
         inset: 0;
         background: url('/static/images/fleet_lineup.jpg') center/cover no-repeat;
-        opacity: 0.18;
-        filter: brightness(0.7) contrast(1.1);
+        opacity: 0.05;
         pointer-events: none;
     }
 
@@ -35,13 +35,13 @@
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: rgba(99, 102, 241, 0.25);
-        border: 1px solid rgba(165, 180, 252, 0.4);
-        color: #e0e7ff;
+        background: #e0f2fe;
+        border: 1px solid #bae6fd;
+        color: #0284c7;
         padding: 0.35rem 1rem;
         border-radius: 9999px;
         font-size: 0.8rem;
-        font-weight: 700;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.08em;
         margin-bottom: 1.25rem;
@@ -53,16 +53,15 @@
         font-weight: 800;
         line-height: 1.15;
         margin-bottom: 1.25rem;
+        color: #0f172a;
     }
 
     .services-hero h1 span {
-        background: linear-gradient(120deg, #f59e0b, #fbbf24);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #0284c7;
     }
 
     .services-hero p {
-        color: #cbd5e1;
+        color: #475569;
         font-size: 1.1rem;
         line-height: 1.65;
         max-width: 780px;
@@ -77,27 +76,28 @@
     }
 
     .services-stat-item {
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(8px);
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 0.85rem 1.5rem;
         min-width: 140px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
     .services-stat-val {
         font-size: 1.6rem;
         font-weight: 800;
-        color: #38bdf8;
+        color: #0284c7;
         line-height: 1;
         margin-bottom: 0.25rem;
     }
 
     .services-stat-lbl {
         font-size: 0.76rem;
-        color: #cbd5e1;
+        color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.04em;
+        font-weight: 700;
     }
 
     /* Service Pillars Grid */
@@ -268,13 +268,14 @@
 
     /* Call to action card */
     .services-cta-banner {
-        background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
         border-radius: var(--radius-xl);
         padding: 3.5rem 2.5rem;
-        color: white;
+        color: #0f172a;
         text-align: center;
         margin: 4rem auto 1rem;
-        box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.4);
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06);
         position: relative;
         overflow: hidden;
     }
@@ -656,25 +657,25 @@
 <div class="section-wrapper" style="padding-top: 1rem;">
     <div class="services-cta-banner">
         <span
-            style="font-size: 0.8rem; font-weight: 800; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
+            style="font-size: 0.8rem; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.75rem;">
             LOOKING FOR A CUSTOM MOBILITY CONTRACT?
         </span>
         <h2
-            style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; margin: 0 0 1rem; line-height: 1.2;">
+            style="font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.5rem); font-weight: 800; color: #0f172a; margin: 0 0 1rem; line-height: 1.2;">
             Let’s Build a Seamless Transportation Network for Your Organization
         </h2>
-        <p style="color: #cbd5e1; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
+        <p style="color: #475569; max-width: 650px; margin: 0 auto 2rem; font-size: 1rem; line-height: 1.6;">
             Speak directly with our Chief Fleet Controller for tailored corporate contracts, campus transportation RFPs,
             or group charter reservations.
         </p>
 
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <a href="tel:+919842533777" class="btn btn-primary"
-                style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem;">
+                style="padding: 0.85rem 1.75rem; font-weight: 800; font-size: 0.95rem; background: #0284c7; color: #ffffff; border: 1px solid #0369a1; border-radius: 8px; text-decoration: none; box-shadow: 0 2px 8px rgba(2,132,199,0.25);">
                 📞 Call Fleet Desk: +91 98425 33777
             </a>
-            <button type="button" onclick="openCustomTripModal('corporate_rfp')" class="btn btn-outline"
-                style="color: white; border-color: rgba(255,255,255,0.4); padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem;">
+            <button type="button" onclick="openCustomTripModal('corporate_rfp')" class="btn"
+                style="color: #0f172a; border: 1.5px solid #cbd5e1; background: #f8fafc; border-radius: 8px; padding: 0.85rem 1.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer;">
                 📄 Request Enterprise RFP / Quotation
             </button>
         </div>

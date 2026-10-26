@@ -7,7 +7,7 @@
 <style>
 /* Corporate Employee Transport Page Styles (Matching Reference Images 1 & 4) */
 .corp-hero {
-    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e0f2fe 100%); color: #0f172a; border-bottom: 1px solid #e2e8f0;
     color: white;
     padding: 4rem 1.5rem 4.5rem;
     position: relative;
@@ -30,7 +30,7 @@
 }
 .corp-badge {
     display: inline-block;
-    background: rgba(99, 102, 241, 0.25);
+    background: #e0f2fe; border: 1px solid #bae6fd; color: #0284c7;
     border: 1px solid rgba(165, 180, 252, 0.4);
     color: #e0e7ff;
     padding: 0.35rem 0.95rem;
@@ -54,8 +54,7 @@
     -webkit-text-fill-color: transparent;
 }
 .corp-hero p {
-    color: #cbd5e1;
-    font-size: 1.05rem;
+    color: #475569;font-size: 1.05rem;
     line-height: 1.65;
     max-width: 780px;
     margin: 0 auto 2rem;
@@ -197,7 +196,7 @@
 
 /* Corporate RFQ Form Section */
 .corp-form-section {
-    background: linear-gradient(135deg, #090d16 0%, #1e1b4b 60%, #0f172a 100%);
+    background: #ffffff; border: 1.5px solid #cbd5e1; color: #0f172a; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.06);
     border-radius: var(--radius-xl);
     padding: 3.5rem 2.5rem;
     color: white;
@@ -429,7 +428,7 @@
             <h2 style="font-family: 'Space Grotesk', sans-serif; font-size: 2rem; margin: 0 0 0.5rem;">
                 Request a Corporate Mobility Proposal
             </h2>
-            <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin: 0;">
+            <p style="color: #475569;font-size: 0.95rem; line-height: 1.6; margin: 0;">
                 Tell us your campus location, shift timings, and headcount. Our mobility solution architects will deliver a custom route blueprint and commercial rate card within 24 hours.
             </p>
         </div>
@@ -437,33 +436,33 @@
         <form style="max-width: 740px; margin: 0 auto;" onsubmit="handleCorpSubmit(event)">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                 <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Enterprise / Company Name *</label>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Enterprise / Company Name *</label>
                     <input type="text" id="cr_company" placeholder="e.g. Cognizant / TCS / Robert Bosch" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Contact Person & Designation *</label>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Contact Person & Designation *</label>
                     <input type="text" id="cr_name" placeholder="e.g. S. Meenakshi (HR / Admin Head)" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                 <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Work Email Address *</label>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Work Email Address *</label>
                     <input type="email" id="cr_email" placeholder="admin@company.com" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Direct Mobile / WhatsApp Number *</label>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Direct Mobile / WhatsApp Number *</label>
                     <input type="tel" id="cr_phone" placeholder="10-digit mobile" pattern="[0-9]{10}" required style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                 <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Campus / Facility Location</label>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Campus / Facility Location</label>
                     <input type="text" id="cr_location" placeholder="e.g. Saravanampatti IT Corridor / TIDEL Park" style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Estimated Daily Commuters (Pax)</label>
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Estimated Daily Commuters (Pax)</label>
                     <select id="cr_pax" style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: #1e1b4b; color: white; font-family: inherit;">
                         <option value="50">20 - 50 Employees</option>
                         <option value="150" selected>50 - 200 Employees</option>
@@ -474,7 +473,7 @@
             </div>
 
             <div style="margin-bottom: 1.25rem;">
-                <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #cbd5e1;">Shift Requirements & Scope</label>
+                <label style="display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.35rem; text-transform: uppercase; color: #475569;">Shift Requirements & Scope</label>
                 <textarea id="cr_notes" rows="2" placeholder="e.g. Need 3 shift timings: 7 AM, 3 PM, and 11 PM with female security escorts for the night drop." style="width: 100%; padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); color: white; font-family: inherit;"></textarea>
             </div>
 

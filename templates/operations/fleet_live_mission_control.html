@@ -408,7 +408,7 @@
 
                 <div class="form-group">
                     <label>Selected Vehicle</label>
-                    <div id="relocateVehicleInfo" style="padding: 10px 14px; background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; border-radius: 8px; font-weight: 700; color: #f8fafc; font-size: 13px;">
+                    <div id="relocateVehicleInfo" style="padding: 10px 14px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 700; color: #0f172a; font-size: 13px;">
                         TN-38-BZ-1234 (Coimbatore Hub)
                     </div>
                 </div>
@@ -1181,40 +1181,55 @@
     z-index: 9999;
 }
 .mc-modal-card {
-    background: #0f172a;
-    border: 1px solid #334155;
-    border-radius: 12px;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 16px;
     width: 520px;
     max-width: 90vw;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
 }
 .mc-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #1e293b;
+    padding: 18px 22px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #ffffff;
 }
 .mc-modal-header h3 {
     margin: 0;
     font-size: 16px;
-    color: #f8fafc;
+    font-weight: 800;
+    color: #0f172a;
 }
 .mc-modal-close {
-    background: none;
+    background: #f1f5f9;
     border: none;
-    color: #94a3b8;
-    font-size: 22px;
+    color: #64748b;
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.mc-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
 }
 .mc-modal-body {
-    padding: 20px;
+    padding: 22px;
+    background: #ffffff;
 }
 .modal-sub {
-    font-size: 12px;
-    color: #94a3b8;
+    font-size: 13px;
+    color: #64748b;
     margin: 0 0 16px 0;
+    line-height: 1.5;
 }
 .form-group {
     margin-bottom: 14px;
@@ -1228,31 +1243,34 @@
     display: block;
     font-size: 11px;
     font-weight: 700;
-    color: #94a3b8;
+    color: #334155;
     margin-bottom: 6px;
     text-transform: uppercase;
 }
 .mc-select, .mc-input, .mc-textarea {
     width: 100%;
-    background: #1e293b;
-    border: 1px solid #334155;
-    border-radius: 6px;
-    color: #f8fafc;
-    padding: 8px 10px;
-    font-size: 12px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    color: #0f172a;
+    padding: 9px 12px;
+    font-size: 13px;
     outline: none;
     box-sizing: border-box;
+    transition: border-color 0.15s;
 }
 .mc-select:focus, .mc-input:focus, .mc-textarea:focus {
-    border-color: #38bdf8;
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
 }
 .mc-modal-footer {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    padding: 14px 20px;
-    background: #090e1a;
-    border-top: 1px solid #1e293b;
+    padding: 16px 22px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
 }
 
 /* Custom Leaflet Marker Styling */

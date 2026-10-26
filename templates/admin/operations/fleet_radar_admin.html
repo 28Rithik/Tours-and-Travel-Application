@@ -146,17 +146,17 @@
             <div id="liveTelematicsRadarMap" class="tactical-map"></div>
 
             <!-- 🛠️ Developer Mode: Map Paused Placeholder -->
-            <div id="devMapPlaceholder" style="display: none; position: absolute; inset: 0; z-index: 1000; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); flex-direction: column; align-items: center; justify-content: center; color: #f8fafc; text-align: center; padding: 24px;">
-                <div style="font-size: 52px; margin-bottom: 12px; filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.4));">🗺️</div>
-                <h3 style="font-size: 22px; font-weight: 800; color: #38bdf8; margin: 0 0 8px;">Map Auto-Load Paused (Developer Mode)</h3>
-                <p style="font-size: 13px; color: #94a3b8; max-width: 480px; margin: 0 0 24px; line-height: 1.6;">
+            <div id="devMapPlaceholder" style="display: none; position: absolute; inset: 0; z-index: 1000; background: #ffffff; flex-direction: column; align-items: center; justify-content: center; color: #0f172a; text-align: center; padding: 24px; border: 1px solid #cbd5e1;">
+                <div style="font-size: 52px; margin-bottom: 12px;">🗺️</div>
+                <h3 style="font-size: 22px; font-weight: 800; color: #0284c7; margin: 0 0 8px;">Map Auto-Load Paused (Developer Mode)</h3>
+                <p style="font-size: 13px; color: #475569; max-width: 480px; margin: 0 0 24px; line-height: 1.6;">
                     Map rendering, WebGL tiles, and live GPS background polling (<code>/api/fleet/live-feed/</code>) are paused to save browser memory and stop terminal query spam while you develop.
                 </p>
                 <div style="display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;">
-                    <button id="btnDevLoadMapNow" style="padding: 11px 22px; background: linear-gradient(135deg, #0284c7, #10b981); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); display: flex; align-items: center; gap: 6px;">
+                    <button id="btnDevLoadMapNow" style="padding: 11px 22px; background: #0284c7; color: #fff; border: 1px solid #0369a1; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3); display: flex; align-items: center; gap: 6px;">
                         ▶️ Load Map Now
                     </button>
-                    <button id="btnDevAlwaysAutoLoad" style="padding: 11px 20px; background: rgba(51, 65, 85, 0.6); color: #cbd5e1; border: 1px solid #475569; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
+                    <button id="btnDevAlwaysAutoLoad" style="padding: 11px 20px; background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;">
                         ⚙️ Always Auto-Load Map
                     </button>
                 </div>

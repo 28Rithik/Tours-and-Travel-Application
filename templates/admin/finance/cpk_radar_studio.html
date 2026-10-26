@@ -18,13 +18,40 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
 <style>
 :root {
+    --cpk-bg: #f8fafc;
+    --cpk-card-bg: #ffffff;
+    --cpk-border: #cbd5e1;
+    --cpk-border-glow: rgba(2, 132, 199, 0.25);
+    --cpk-text: #0f172a;
+    --cpk-text-muted: #64748b;
+    --cpk-th-bg: #f1f5f9;
+    --cpk-td-color: #334155;
+    --cpk-tr-hover: #f8fafc;
+    --cpk-input-bg: #ffffff;
+    --cpk-input-text: #0f172a;
+    --cpk-sim-bg: #f8fafc;
+    --cpk-cyan: #0284c7;
+    --cpk-emerald: #059669;
+    --cpk-amber: #d97706;
+    --cpk-rose: #e11d48;
+    --cpk-indigo: #4f46e5;
+}
+
+html.dark {
     --cpk-bg: #090d16;
     --cpk-card-bg: rgba(15, 23, 42, 0.88);
     --cpk-border: rgba(51, 65, 85, 0.5);
     --cpk-border-glow: rgba(56, 189, 248, 0.35);
+    --cpk-text: #e2e8f0;
+    --cpk-text-muted: #94a3b8;
+    --cpk-th-bg: rgba(30, 41, 59, 0.5);
+    --cpk-td-color: #cbd5e1;
+    --cpk-tr-hover: rgba(30, 41, 59, 0.25);
+    --cpk-input-bg: rgba(15, 23, 42, 0.6);
+    --cpk-input-text: #f8fafc;
+    --cpk-sim-bg: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
     --cpk-cyan: #06b6d4;
     --cpk-emerald: #10b981;
     --cpk-amber: #f59e0b;
@@ -34,9 +61,9 @@
 
 .studio-container {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    color: #e2e8f0;
-    background: radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
-                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+    color: var(--cpk-text);
+    background: radial-gradient(circle at 10% 10%, rgba(14, 165, 233, 0.05) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.05) 0%, transparent 45%),
                 var(--cpk-bg);
     min-height: calc(100vh - 80px);
     padding: 1.5rem;
@@ -54,7 +81,7 @@
     padding: 1.25rem 1.75rem;
     margin-bottom: 1.5rem;
     backdrop-filter: blur(12px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
 }
 
 .header-title {
@@ -64,9 +91,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--cpk-text);
 }
 
 .status-badge {

@@ -27,19 +27,19 @@
     <aside class="top-bar" aria-label="Quick contact and hotline">
         <div class="top-bar-badges">
             <span class="badge-live-pulse"><span class="pulse-dot"></span> 320+ FLEET ON ACTIVE TELEMATICS</span>
-            <span style="color: rgba(255,255,255,0.4);">|</span>
+            <span style="color: #cbd5e1;">|</span>
             <span>📍 Headquarters: Gandhipuram, Coimbatore, Tamil Nadu</span>
         </div>
         <div style="display: flex; gap: 1.25rem; align-items: center;">
             <a href="tel:+919842533777">📞 24x7 Helpline: +91 98425 33777 | Coimbatore Central Depot</a>
-            <a href="https://wa.me/919842533777" target="_blank" style="color: #34d399; font-weight: 600;">💬 WhatsApp Inquiry</a>
+            <a href="https://wa.me/919842533777" target="_blank" style="color: #059669; font-weight: 700;">💬 WhatsApp Inquiry</a>
             <form action="{% url 'set_language' %}" method="post" style="display: inline-flex; align-items: center; margin: 0;">
                 {% csrf_token %}
-                <select name="language" onchange="this.form.submit()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.75rem; cursor: pointer;">
+                <select name="language" onchange="this.form.submit()" style="background: #ffffff; color: #0f172a; border: 1.5px solid #cbd5e1; border-radius: 6px; padding: 0.2rem 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
                     {% get_current_language as CURRENT_LANG %}
                     {% get_available_languages as LANGUAGES %}
                     {% for lang in LANGUAGES %}
-                        <option value="{{ lang.0 }}" {% if lang.0 == CURRENT_LANG %}selected{% endif %} style="background: #0f172a; color: white;">
+                        <option value="{{ lang.0 }}" {% if lang.0 == CURRENT_LANG %}selected{% endif %} style="background: #ffffff; color: #0f172a;">
                             {{ lang.1 }}
                         </option>
                     {% endfor %}
@@ -55,8 +55,8 @@
                 display: flex;
                 align-items: center;
                 gap: 0.4rem;
-                background: rgba(15, 23, 42, 0.65);
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                background: #f1f5f9;
+                border: 1.5px solid #cbd5e1;
                 padding: 0.3rem 0.5rem;
                 border-radius: 9999px;
             }
@@ -68,26 +68,26 @@
                 border-radius: 9999px;
                 font-size: 0.84rem;
                 font-weight: 600;
-                color: #94a3b8;
+                color: #475569;
                 text-decoration: none;
                 transition: all 0.2s ease;
             }
             .brand-nav-tab:hover {
-                color: #f8fafc;
-                background: rgba(255, 255, 255, 0.08);
+                color: #0f172a;
+                background: #e2e8f0;
             }
             .brand-nav-tab.active {
-                background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                background: #0284c7;
                 color: #ffffff;
                 box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
             }
             .brand-nav-tab.external-tab:hover {
-                border-color: rgba(56, 189, 248, 0.4);
+                border-color: #0284c7;
             }
             .external-badge {
                 font-size: 0.65rem;
-                background: rgba(56, 189, 248, 0.18);
-                color: #38bdf8;
+                background: #e0f2fe;
+                color: #0284c7;
                 padding: 0.1rem 0.35rem;
                 border-radius: 4px;
                 font-weight: 700;
@@ -189,24 +189,24 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+                background: #0284c7;
                 color: #ffffff;
-                border: 1px solid rgba(255, 255, 255, 0.22);
+                border: 1px solid #0369a1;
                 padding: 0.65rem 1rem;
                 border-radius: 9999px;
                 font-family: inherit;
                 font-size: 0.86rem;
                 font-weight: 700;
                 cursor: pointer;
-                box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.35);
+                box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.4);
                 transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
                 text-decoration: none;
             }
             .btn-floating-plan:hover {
                 transform: translateY(-3px) scale(1.02);
-                box-shadow: 0 16px 32px -4px rgba(15, 23, 42, 0.55), 0 0 18px rgba(99, 102, 241, 0.5);
-                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-                border-color: rgba(165, 180, 252, 0.5);
+                box-shadow: 0 16px 32px -4px rgba(2, 132, 199, 0.55);
+                background: #0369a1;
+                border-color: #0284c7;
             }
             .btn-floating-plan .quote-pill {
                 background: #10b981;
@@ -257,8 +257,9 @@
             .wa-tooltip {
                 position: absolute;
                 right: 68px;
-                background: #0f172a;
-                color: #ffffff;
+                background: #ffffff;
+                color: #0f172a;
+                border: 1px solid #cbd5e1;
                 padding: 0.45rem 0.85rem;
                 border-radius: 8px;
                 font-size: 0.78rem;
@@ -268,7 +269,7 @@
                 pointer-events: none;
                 transition: opacity 0.2s ease, transform 0.2s ease;
                 transform: translateX(6px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.12);
             }
             .btn-floating-whatsapp:hover .wa-tooltip {
                 opacity: 1;
