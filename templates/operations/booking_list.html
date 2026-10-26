@@ -5,988 +5,123 @@
 {% block header_title %}Dispatch Mission Control{% endblock %}
 
 {% block content %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
-
 <style>
-/* ==========================================================================
-   DISPATCH CONTROL CENTER ENTERPRISE STYLES
-   ========================================================================== */
-.dcc-root {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #0f172a;
+/* ── Guaranteed Unfold Changelist Styles & Modal System ── */
+.unfold-kpi-card-solid .kpi-top-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 0.5rem !important;
+}
+.unfold-kpi-card-solid .kpi-icon-pill {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 0.5rem !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1rem !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(4px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  flex-shrink: 0 !important;
 }
 
-/* Header Banner */
-.dcc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1.5rem;
-  margin-bottom: 1.75rem;
-  flex-wrap: wrap;
+.unfold-tabs-strip {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
+  padding: 0.625rem 1rem !important;
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  overflow-x: auto !important;
+}
+html.dark .unfold-tabs-strip {
+  background: #1e293b !important;
+  border-bottom-color: #334155 !important;
 }
 
-.dcc-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(2, 132, 199, 0.08);
-  color: #0284c7;
-  border: 1px solid rgba(2, 132, 199, 0.25);
-  padding: 0.28rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.45rem;
+.unfold-tab-link {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.45rem !important;
+  padding: 0.4rem 0.85rem !important;
+  border-radius: 0.375rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  color: #475569 !important;
+  background: transparent !important;
+  transition: all 0.15s ease !important;
+  white-space: nowrap !important;
+}
+.unfold-tab-link:hover {
+  color: #0f172a !important;
+  background: #f1f5f9 !important;
+}
+html.dark .unfold-tab-link {
+  color: #94a3b8 !important;
+}
+html.dark .unfold-tab-link:hover {
+  color: #f8fafc !important;
+  background: #334155 !important;
 }
 
-.dcc-pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-  animation: dccPulse 2s infinite;
+.unfold-tab-link.active,
+.unfold-tab-link.is-active {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.25) !important;
+}
+.unfold-tab-link.active *,
+.unfold-tab-link.is-active * {
+  color: #ffffff !important;
 }
 
-@keyframes dccPulse {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+.unfold-tab-link.active.amber { background-color: #d97706 !important; }
+.unfold-tab-link.active.green { background-color: #059669 !important; }
+.unfold-tab-link.active.slate { background-color: #475569 !important; }
+.unfold-tab-link.active.purple { background-color: #6366f1 !important; }
+
+.unfold-tab-badge {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  padding: 0.1rem 0.45rem !important;
+  border-radius: 9999px !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: inherit !important;
+}
+.unfold-tab-link.active .unfold-tab-badge {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+}
+html.dark .unfold-tab-badge {
+  background: rgba(255, 255, 255, 0.12) !important;
 }
 
-.dcc-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.75rem, 2.6vw, 2.25rem);
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.15;
-  margin: 0 0 0.35rem;
-  letter-spacing: -0.025em;
-}
-
-.dcc-subtitle {
-  color: #64748b;
-  font-size: 0.92rem;
-  margin: 0;
-  max-width: 680px;
-}
-
-/* Header Action Buttons */
-.dcc-actions {
-  display: flex;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.dcc-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.15rem;
-  border-radius: 10px;
-  font-size: 0.84rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.dcc-btn-primary {
-  background: #0284c7;
-  color: white;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
-}
-.dcc-btn-primary:hover {
-  background: #0369a1;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.38);
-  color: white;
-}
-
-.dcc-btn-dark {
-  background: #0f172a;
-  color: #38bdf8;
-  border-color: #334155;
-}
-.dcc-btn-dark:hover {
-  background: #1e293b;
-  color: #e0f2fe;
-  transform: translateY(-2px);
-}
-
-.dcc-btn-secondary {
-  background: white;
-  color: #334155;
-  border-color: #cbd5e1;
-}
-.dcc-btn-secondary:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-  transform: translateY(-2px);
-}
-
-/* KPI Lane Cards Strip */
-.dcc-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.75rem;
-}
-
-.dcc-kpi-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1.15rem 1.25rem;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-.dcc-kpi-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
-}
-
-.dcc-kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #94a3b8;
-}
-
-.dcc-kpi-urgent::before {
-  background: #f59e0b;
-}
-.dcc-kpi-urgent {
-  border-color: rgba(245, 158, 11, 0.35);
-  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
-}
-
-.dcc-kpi-transit::before { background: #10b981; }
-.dcc-kpi-assigned::before { background: #3b82f8; }
-.dcc-kpi-completed::before { background: #64748b; }
-.dcc-kpi-inquiries::before { background: #8b5cf6; }
-
-.dcc-kpi-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.4rem;
-}
-.dcc-kpi-label {
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
-}
-.dcc-kpi-icon {
-  font-size: 1.15rem;
-}
-.dcc-kpi-value {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1;
-  color: #0f172a;
-}
-.dcc-kpi-sub {
-  font-size: 0.76rem;
-  color: #64748b;
-  margin-top: 0.35rem;
-}
-
-/* Control Filter & Status Tabs Strip */
-.dcc-filter-strip {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
-}
-
-.dcc-tabs-bar {
-  display: flex;
-  gap: 0.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 0.85rem;
-  margin-bottom: 1rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.dcc-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.95rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #475569;
-  text-decoration: none;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-.dcc-tab:hover {
-  background: #f1f5f9;
-  color: #0f172a;
-}
-.dcc-tab.active {
-  background: #0f172a;
-  color: white;
-  border-color: #0f172a;
-}
-.dcc-tab.urgent-tab.active {
-  background: #d97706;
-  border-color: #d97706;
-}
-
-.dcc-tab-badge {
-  background: rgba(255, 255, 255, 0.25);
-  color: inherit;
-  font-size: 0.7rem;
-  padding: 0.12rem 0.45rem;
-  border-radius: 9999px;
-  font-weight: 800;
-}
-.dcc-tab:not(.active) .dcc-tab-badge {
-  background: #e2e8f0;
-  color: #334155;
-}
-.dcc-tab:not(.active) .dcc-tab-badge.urgent-badge {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-/* Search and Filters Inline Form */
-.dcc-search-form {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.dcc-search-input-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 260px;
-}
-.dcc-search-input-wrap input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0.55rem 0.85rem 0.55rem 2.25rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.86rem;
-  background: #f8fafc;
-  color: #0f172a;
-  transition: all 0.15s ease;
-}
-.dcc-search-input-wrap input:focus {
-  outline: none;
-  border-color: #0284c7;
-  background: white;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
-}
-.dcc-search-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-  pointer-events: none;
-}
-
-/* Dispatch Board Table Panel */
-.dcc-board-panel {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
-  overflow: hidden;
-  margin-bottom: 2rem;
-}
-
-.dcc-board-header {
-  padding: 1.15rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #f1f5f9;
-  background: #fafafa;
-}
-
-.dcc-board-header h2 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin: 0;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.dcc-counter-pill {
-  font-size: 0.75rem;
-  background: #e2e8f0;
-  color: #475569;
-  padding: 0.15rem 0.6rem;
-  border-radius: 9999px;
-  font-weight: 700;
-}
-
-.dcc-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-  text-align: left;
-}
-
-.dcc-table th {
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
-
-.dcc-table td {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle;
-  color: #334155;
-}
-
-.dcc-table tr:hover td {
-  background: #fbfcfe;
-}
-
-.dcc-table tr.highlight-urgent td {
-  background: #fffdf5;
-}
-
-/* Column Specific Styling */
-.dcc-trip-id {
-  font-family: 'Space Grotesk', monospace;
-  font-weight: 700;
-  color: #0284c7;
-  font-size: 0.92rem;
-  display: block;
-}
-
-.dcc-route-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.dcc-route-track {
-  font-weight: 700;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.dcc-route-sub {
-  font-size: 0.75rem;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.dcc-guest-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-.dcc-guest-name {
-  font-weight: 700;
-  color: #0f172a;
-}
-.dcc-guest-phone {
-  font-size: 0.76rem;
-  color: #0284c7;
-  text-decoration: none;
-}
-.dcc-guest-phone:hover {
-  text-decoration: underline;
-}
-
-/* Allocation Cell */
-.dcc-allocation-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.dcc-assigned-plate {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: 'Space Grotesk', monospace;
-  font-size: 0.78rem;
-  font-weight: 800;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  width: fit-content;
-}
-
-.dcc-assigned-driver {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.dcc-unallocated-alert {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
-  padding: 0.28rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  animation: dccPulse 2.5s infinite;
-}
-
-/* Status Badges */
-.dcc-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.22rem 0.65rem;
-  border-radius: 9999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
-
-.dcc-badge-booked { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-.dcc-badge-assigned { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-.dcc-badge-started { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-.dcc-badge-completed { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-.dcc-badge-cancelled { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-
-/* 1-Click Action Group */
-.dcc-actions-cell {
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.dcc-fast-assign-btn {
-  background: #0284c7;
-  color: white;
-  border: none;
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
-}
-.dcc-fast-assign-btn:hover {
-  background: #0369a1;
-  transform: translateY(-1px);
-}
-
-.dcc-reassign-btn {
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-  padding: 0.35rem 0.65rem;
-  border-radius: 6px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.dcc-reassign-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-/* WhatsApp 1-Click Trigger Buttons */
-.dcc-wa-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.38rem 0.7rem;
-  border-radius: 7px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-decoration: none;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.dcc-wa-driver {
-  background: #25d366;
-  color: #064e3b;
-  border-color: #16a34a;
-}
-.dcc-wa-driver:hover {
-  background: #1eb857;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(37, 211, 102, 0.35);
-  color: #064e3b;
-}
-
-.dcc-wa-guest {
-  background: #0ea5e9;
-  color: white;
-  border-color: #0284c7;
-}
-.dcc-wa-guest:hover {
-  background: #0284c7;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(14, 165, 233, 0.35);
-  color: white;
-}
-
-.dcc-wa-disabled {
-  background: #f1f5f9;
-  color: #94a3b8;
-  border-color: #e2e8f0;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-.dcc-icon-btn {
-  background: #f8fafc;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  padding: 0.38rem 0.55rem;
-  border-radius: 7px;
-  font-size: 0.78rem;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-}
-.dcc-icon-btn:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-  transform: translateY(-1px);
-}
-
-/* Fast Allocation Modal */
-.dcc-modal-backdrop {
+/* Modal Dialog */
+.unfold-modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(15, 23, 42, 0.65) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 9999 !important;
   display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(4px);
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  animation: fadeIn 0.2s ease;
-}
-.dcc-modal-backdrop.open {
-  display: flex;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.dcc-modal {
-  background: white;
-  width: 100%;
-  max-width: 580px;
-  border-radius: 18px;
-  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.dcc-modal-header {
-  padding: 1.25rem 1.5rem;
-  background: #0f172a;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.dcc-modal-header h3 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.dcc-modal-close {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 1.5rem;
-  cursor: pointer;
-  line-height: 1;
-  padding: 0;
-}
-.dcc-modal-close:hover {
-  color: white;
-}
-
-.dcc-modal-body {
-  padding: 1.5rem;
-}
-
-.dcc-modal-trip-summary {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.85rem 1.15rem;
-  margin-bottom: 1.25rem;
-}
-
-.dcc-summary-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  margin-bottom: 0.3rem;
-}
-.dcc-summary-row:last-child {
-  margin-bottom: 0;
-}
-.dcc-summary-label {
-  color: #64748b;
-  font-weight: 600;
-}
-.dcc-summary-val {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.dcc-form-group {
-  margin-bottom: 1.15rem;
-}
-
-.dcc-form-label {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #334155;
-  margin-bottom: 0.4rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.dcc-select {
-  width: 100%;
-  padding: 0.65rem 0.85rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  background: white;
-  color: #0f172a;
-  box-sizing: border-box;
-}
-.dcc-select:focus {
-  outline: none;
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-}
-
-.dcc-checkbox-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  padding: 0.65rem 0.85rem;
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-}
-.dcc-checkbox-wrap input {
-  width: 17px;
-  height: 17px;
-  cursor: pointer;
-  accent-color: #16a34a;
-}
-.dcc-checkbox-text {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #166534;
-}
-
-.dcc-checkbox-guest {
-  background: #f0f9ff;
-  border-color: #bae6fd;
-}
-.dcc-checkbox-guest .dcc-checkbox-text {
-  color: #0369a1;
-}
-
-.dcc-modal-footer {
-  padding: 1.15rem 1.5rem;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-/* Floating Toast Notification */
-.dcc-toast {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  background: #0f172a;
-  color: white;
-  padding: 0.95rem 1.35rem;
-  border-radius: 12px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.86rem;
-  font-weight: 600;
-  z-index: 99999;
-  transform: translateY(100px);
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
   opacity: 0;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
-  border-left: 4px solid #10b981;
+  transition: opacity 0.2s ease-in-out !important;
 }
-/* Smart Auto-Match & Compliance Engine Styles */
-.dcc-smart-match-box {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  border-radius: 12px;
-  padding: 1rem 1.15rem;
-  margin-bottom: 1.25rem;
-  transition: all 0.2s ease;
-  position: relative;
-}
-html.dark .dcc-smart-match-box {
-  background: rgba(6, 78, 59, 0.25);
-  border-color: rgba(5, 150, 105, 0.45);
-}
-.dcc-smart-match-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 1.1rem 0.5rem;
-  color: #0284c7;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-html.dark .dcc-smart-match-loading {
-  color: #38bdf8;
-}
-.dcc-spin {
-  display: inline-block;
-  animation: dccSpin 1.2s infinite linear;
-}
-@keyframes dccSpin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-.dcc-smart-match-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-.dcc-smart-score-badge {
-  background: #10b981;
-  color: #ffffff;
-  padding: 0.25rem 0.65rem;
-  border-radius: 9999px;
-  font-weight: 800;
-  font-size: 0.76rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  letter-spacing: 0.02em;
-}
-.dcc-smart-match-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  margin-bottom: 0.85rem;
-}
-.dcc-smart-col-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.75rem;
-}
-html.dark .dcc-smart-col-card {
-  background: #1e293b;
-  border-color: #334155;
-}
-.dcc-smart-col-title {
-  font-size: 0.72rem;
-  color: #64748b;
-  text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.35rem;
-}
-html.dark .dcc-smart-col-title {
-  color: #94a3b8;
-}
-.dcc-smart-res-name {
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: #0f172a;
-  margin-bottom: 0.25rem;
-}
-html.dark .dcc-smart-res-name {
-  color: #f8fafc;
-}
-.dcc-smart-res-meta {
-  font-size: 0.75rem;
-  color: #475569;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-html.dark .dcc-smart-res-meta {
-  color: #cbd5e1;
-}
-.dcc-smart-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.72rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  font-weight: 600;
-  width: fit-content;
-}
-.dcc-smart-pill.success { background: #dcfce7; color: #15803d; }
-.dcc-smart-pill.warning { background: #fef3c7; color: #b45309; }
-.dcc-smart-pill.danger { background: #fee2e2; color: #b91c1c; }
-.dcc-smart-pill.info { background: #e0f2fe; color: #0369a1; }
-html.dark .dcc-smart-pill.success { background: #14532d; color: #86efac; }
-html.dark .dcc-smart-pill.warning { background: #78350f; color: #fde68a; }
-html.dark .dcc-smart-pill.danger { background: #7f1d1d; color: #fca5a5; }
-html.dark .dcc-smart-pill.info { background: #0c4a6e; color: #7dd3fc; }
-
-.dcc-smart-apply-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  border: none;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.82rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
-}
-.dcc-smart-apply-btn:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
-  transform: translateY(-1px);
-}
-
-.dcc-compliance-alert-box {
-  display: none;
-  background: #fef2f2;
-  border: 1px solid #f87171;
-  border-radius: 10px;
-  padding: 0.85rem 1.15rem;
-  margin-bottom: 1.15rem;
-}
-html.dark .dcc-compliance-alert-box {
-  background: rgba(127, 29, 29, 0.25);
-  border-color: rgba(239, 68, 68, 0.45);
-}
-.dcc-compliance-alert-title {
-  color: #b91c1c;
-  font-weight: 700;
-  font-size: 0.84rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 0.35rem;
-}
-html.dark .dcc-compliance-alert-title {
-  color: #f87171;
-}
-.dcc-compliance-alert-list {
-  margin: 0;
-  padding-left: 1.25rem;
-  font-size: 0.78rem;
-  color: #991b1b;
-}
-html.dark .dcc-compliance-alert-list {
-  color: #fca5a5;
-}
-
-.pulse-success {
-  animation: dccPulseSuccess 1s ease;
-}
-@keyframes dccPulseSuccess {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); border-color: #10b981; }
-  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); border-color: #10b981; }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+.unfold-modal-backdrop.open {
+  display: flex !important;
+  opacity: 1 !important;
 }
 </style>
 
@@ -995,7 +130,7 @@ html.dark .dcc-compliance-alert-list {
   <div class="unfold-page-header">
     <div>
       <nav class="unfold-breadcrumb" aria-label="Breadcrumbs">
-        <a href="/">Home</a>
+        <a href="/"><i class="fa-solid fa-house text-[10px]"></i> Home</a>
         <span>/</span>
         <a href="{% url 'dispatch-console' %}">Operations Desk</a>
         <span>/</span>
@@ -1006,7 +141,7 @@ html.dark .dcc-compliance-alert-list {
         <span class="unfold-header-count">{{ depot_scope.display_label }}</span>
       </h1>
       <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-        Fleet assignment, real-time captain briefings, automated WhatsApp dispatch, and GPS tracking.
+        Fleet assignment, real-time captain briefings, automated WhatsApp dispatch, and live GPS tracking.
       </p>
     </div>
 
@@ -1032,7 +167,7 @@ html.dark .dcc-compliance-alert-list {
       </a>
 
       <a class="unfold-btn unfold-btn-secondary" href="{% url 'fleet-live' %}{% if current_depot %}?depot={{ current_depot|urlencode }}{% endif %}">
-        <i class="fa-solid fa-map-location-dot"></i>
+        <i class="fa-solid fa-map-location-dot text-sky-600"></i>
         <span>Live Radar</span>
       </a>
 
@@ -1047,141 +182,171 @@ html.dark .dcc-compliance-alert-list {
     </div>
   </div>
 
-  <!-- Unfold Solid Changelist KPI Metric Deck -->
+  <!-- Unfold Solid Changelist KPI Metric Deck (Matches Django Unfold Admin Home) -->
   <div class="unfold-kpis-grid cols-5">
     <!-- 1. Needs Allocation (Amber / Urgent) -->
-    <a class="unfold-kpi-card-solid amber" href="?tab=unassigned">
-      <div class="kpi-label">Needs Allocation</div>
+    <a class="unfold-kpi-card-solid amber" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
+      <div class="kpi-top-row">
+        <div class="kpi-label">Needs Allocation</div>
+        <div class="kpi-icon-pill"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      </div>
       <div class="kpi-number">{{ unassigned_count }}</div>
       <div class="kpi-sub">{% if unassigned_count > 0 %}⚠️ Unassigned fleet &amp; driver{% else %}All trips assigned{% endif %}</div>
       <div class="kpi-bg-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
     </a>
 
     <!-- 2. In-Transit (Green / Live) -->
-    <a class="unfold-kpi-card-solid green" href="?tab=in_transit">
-      <div class="kpi-label">In-Transit (On Road)</div>
+    <a class="unfold-kpi-card-solid green" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
+      <div class="kpi-top-row">
+        <div class="kpi-label">In-Transit (On Road)</div>
+        <div class="kpi-icon-pill"><i class="fa-solid fa-route"></i></div>
+      </div>
       <div class="kpi-number">{{ in_transit_count }}</div>
       <div class="kpi-sub">Rolling convoys with live GPS</div>
       <div class="kpi-bg-icon"><i class="fa-solid fa-route"></i></div>
     </a>
 
     <!-- 3. Assigned & Ready (Blue) -->
-    <a class="unfold-kpi-card-solid blue" href="?tab=assigned">
-      <div class="kpi-label">Assigned &amp; Ready</div>
+    <a class="unfold-kpi-card-solid blue" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
+      <div class="kpi-top-row">
+        <div class="kpi-label">Assigned &amp; Ready</div>
+        <div class="kpi-icon-pill"><i class="fa-solid fa-circle-check"></i></div>
+      </div>
       <div class="kpi-number">{{ assigned_count }}</div>
       <div class="kpi-sub">Vehicles &amp; captains briefed</div>
       <div class="kpi-bg-icon"><i class="fa-solid fa-circle-check"></i></div>
     </a>
 
     <!-- 4. Completed (Slate) -->
-    <a class="unfold-kpi-card-solid slate" href="?tab=completed">
-      <div class="kpi-label">Completed Trips</div>
+    <a class="unfold-kpi-card-solid slate" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
+      <div class="kpi-top-row">
+        <div class="kpi-label">Completed Trips</div>
+        <div class="kpi-icon-pill"><i class="fa-solid fa-flag-checkered"></i></div>
+      </div>
       <div class="kpi-number">{{ completed_count }}</div>
       <div class="kpi-sub">Concluded &amp; ready for billing</div>
       <div class="kpi-bg-icon"><i class="fa-solid fa-flag-checkered"></i></div>
     </a>
 
     <!-- 5. Inquiries (Purple) -->
-    <a class="unfold-kpi-card-solid purple" href="?tab=bookings">
-      <div class="kpi-label">Booking Inquiries</div>
+    <a class="unfold-kpi-card-solid purple" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
+      <div class="kpi-top-row">
+        <div class="kpi-label">Booking Inquiries</div>
+        <div class="kpi-icon-pill"><i class="fa-solid fa-inbox"></i></div>
+      </div>
       <div class="kpi-number">{{ pending_bookings_count }}</div>
       <div class="kpi-sub">{{ bookings|length }} pipeline bookings</div>
       <div class="kpi-bg-icon"><i class="fa-solid fa-inbox"></i></div>
     </a>
   </div>
 
-  <!-- Unfold Changelist Filter Tabs & Search Toolbar -->
-  <div class="unfold-changelist-wrap mb-4">
+  <!-- Unfold Changelist Box: Segmented Tabs + Search Toolbar + Table System -->
+  <div class="unfold-changelist-wrap">
+    <!-- Unfold View Navigation Tabs Strip -->
+    <div class="unfold-tabs-strip">
+      <a class="unfold-tab-link {% if current_tab == 'all' or not current_tab %}active{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
+        <i class="fa-solid fa-list-check"></i>
+        <span>All Dispatches</span>
+        <span class="unfold-tab-badge">{{ total_active_count }}</span>
+      </a>
+
+      <a class="unfold-tab-link {% if current_tab == 'unassigned' %}active amber{% endif %}" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>Needs Allocation</span>
+        <span class="unfold-tab-badge">{{ unassigned_count }}</span>
+      </a>
+
+      <a class="unfold-tab-link {% if current_tab == 'assigned' %}active{% endif %}" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>Assigned</span>
+        <span class="unfold-tab-badge">{{ assigned_count }}</span>
+      </a>
+
+      <a class="unfold-tab-link {% if current_tab == 'in_transit' %}active green{% endif %}" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
+        <i class="fa-solid fa-route"></i>
+        <span>In-Transit</span>
+        <span class="unfold-tab-badge">{{ in_transit_count }}</span>
+      </a>
+
+      <a class="unfold-tab-link {% if current_tab == 'completed' %}active slate{% endif %}" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
+        <i class="fa-solid fa-flag-checkered"></i>
+        <span>Completed</span>
+        <span class="unfold-tab-badge">{{ completed_count }}</span>
+      </a>
+
+      <a class="unfold-tab-link {% if current_tab == 'bookings' %}active purple{% endif %}" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
+        <i class="fa-solid fa-inbox"></i>
+        <span>Inquiries</span>
+        <span class="unfold-tab-badge">{{ bookings|length }}</span>
+      </a>
+    </div>
+
+    <!-- Unfold Toolbar: Box Header Label & Search Input -->
     <div class="unfold-toolbar">
-      <!-- Tabs Strip -->
-      <div class="flex items-center gap-1.5 overflow-x-auto py-1">
-        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'all' or not current_tab %}bg-sky-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=all{% if search_term %}&search={{ search_term }}{% endif %}">
-          <i class="fa-solid fa-list-check"></i>
-          <span>All Dispatches</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'all' or not current_tab %}bg-sky-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ total_active_count }}</span>
-        </a>
-
-        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'unassigned' %}bg-amber-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=unassigned{% if search_term %}&search={{ search_term }}{% endif %}">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <span>Needs Allocation</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'unassigned' %}bg-amber-700 text-white{% else %}bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300{% endif %}">{{ unassigned_count }}</span>
-        </a>
-
-        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'assigned' %}bg-sky-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=assigned{% if search_term %}&search={{ search_term }}{% endif %}">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>Assigned</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'assigned' %}bg-sky-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ assigned_count }}</span>
-        </a>
-
-        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'in_transit' %}bg-emerald-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=in_transit{% if search_term %}&search={{ search_term }}{% endif %}">
-          <i class="fa-solid fa-route"></i>
-          <span>In-Transit</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'in_transit' %}bg-emerald-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ in_transit_count }}</span>
-        </a>
-
-        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'completed' %}bg-slate-700 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=completed{% if search_term %}&search={{ search_term }}{% endif %}">
-          <i class="fa-solid fa-flag-checkered"></i>
-          <span>Completed</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'completed' %}bg-slate-800 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ completed_count }}</span>
-        </a>
-
-        <a class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition {% if current_tab == 'bookings' %}bg-purple-600 text-white shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700{% endif %}" href="?tab=bookings{% if search_term %}&search={{ search_term }}{% endif %}">
-          <i class="fa-solid fa-inbox"></i>
-          <span>Inquiries</span>
-          <span class="px-1.5 py-0.2 rounded-full text-[10px] font-mono {% if current_tab == 'bookings' %}bg-purple-700 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300{% endif %}">{{ bookings|length }}</span>
-        </a>
+      <div class="flex items-center gap-2">
+        {% if current_tab == 'bookings' %}
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          <i class="fa-solid fa-inbox text-purple-600 mr-1.5"></i> Booking Inquiries Queue
+        </span>
+        <span class="unfold-header-count">{{ bookings|length }} Inquiries</span>
+        {% else %}
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          <i class="fa-solid fa-clipboard-list text-sky-600 mr-1.5"></i> Active Dispatch Grid
+        </span>
+        <span class="unfold-header-count">{{ trips|length }} Shown</span>
+        {% endif %}
       </div>
 
-      <!-- Unfold Search Input -->
+      <!-- Unfold Search Box -->
       <form class="flex items-center gap-2" method="get">
         <input type="hidden" name="tab" value="{{ current_tab|default:'all' }}">
         <div class="unfold-search-box">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" name="search" value="{{ search_term }}" placeholder="Search trip ID, guest, phone, plate..." autocomplete="off">
+          <input type="text" id="dispatchSearchInput" name="search" value="{{ search_term }}" placeholder="Type to search trip ID, guest, phone, plate..." autocomplete="off">
           <span class="kbd-hint">/</span>
         </div>
         <button class="unfold-btn unfold-btn-primary" type="submit">
+          <i class="fa-solid fa-magnifying-glass"></i>
           <span>Search</span>
         </button>
         {% if search_term %}
-        <a class="unfold-btn unfold-btn-secondary" href="?tab={{ current_tab|default:'all' }}">
+        <a class="unfold-btn unfold-btn-secondary" href="?tab={{ current_tab|default:'all' }}" title="Reset Search">
+          <i class="fa-solid fa-xmark"></i>
           <span>Clear</span>
         </a>
         {% endif %}
       </form>
     </div>
-  </div>
 
-  {% if current_tab == 'bookings' %}
-  <!-- ======================================================================
-       VIEW: BOOKINGS PIPELINE QUEUE (UNFOLD CHANGELIST STYLE)
-       ====================================================================== -->
-  <div class="unfold-changelist-wrap">
-    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">📩 Booking Inquiries &amp; Customer Requests</span>
-        <span class="unfold-header-count">{{ bookings|length }} Inquiries</span>
-      </div>
-    </div>
+    {% if current_tab == 'bookings' %}
+    <!-- ======================================================================
+         VIEW: BOOKINGS PIPELINE QUEUE (DJANGO UNFOLD TABLE STYLE)
+         ====================================================================== -->
     <div class="overflow-x-auto">
       <table class="unfold-table">
         <thead>
           <tr>
-            <th>Booking #</th>
-            <th>Guest &amp; Contact</th>
-            <th>Scheduled Route</th>
-            <th>Pickup Schedule</th>
-            <th>Vehicle Category</th>
-            <th>Status</th>
-            <th class="text-right">Actions</th>
+            <th class="w-10 text-center">
+              <input type="checkbox" id="selectAllBookings" onclick="toggleSelectAll(this, 'booking-row-check')" class="rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-sky-500 cursor-pointer">
+            </th>
+            <th class="w-32"><span class="unfold-sortable">Booking # <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Guest &amp; Contact <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Scheduled Route <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Pickup Schedule <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Fleet Category <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th class="text-center w-32"><span class="unfold-sortable">Status <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th class="text-right w-44">Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for b in bookings %}
           <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
+            <td class="text-center">
+              <input type="checkbox" class="booking-row-check rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-sky-500 cursor-pointer" value="{{ b.pk }}">
+            </td>
             <td class="font-mono font-bold text-sky-600 dark:text-sky-400">
               <a href="{% url 'booking-detail' b.pk %}" class="hover:underline">#{{ b.booking_number|default:b.id }}</a>
-              <div class="text-[10px] text-slate-400 font-normal">{{ b.created_at|date:"d M Y" }}</div>
+              <div class="text-[10px] text-slate-400 font-normal font-sans">{{ b.created_at|date:"d M Y" }}</div>
             </td>
             <td>
               <div class="font-semibold text-slate-900 dark:text-white">{{ b.guest_name }}</div>
@@ -1191,6 +356,9 @@ html.dark .dcc-compliance-alert-list {
               </a>
               {% else %}
               <span class="text-[10px] text-slate-400 italic">Unlisted</span>
+              {% endif %}
+              {% if b.party %}
+              <div class="text-[10px] text-slate-500 font-medium">{{ b.party.name }}</div>
               {% endif %}
             </td>
             <td>
@@ -1202,15 +370,15 @@ html.dark .dcc-compliance-alert-list {
               <div class="text-[10px] text-slate-400 mt-0.5">{{ b.get_journey_type_display|default:"Outstation" }}</div>
             </td>
             <td>
-              <div class="font-medium text-slate-900 dark:text-white">{{ b.pickup_date|date:"d M Y" }}</div>
-              <div class="text-[10px] text-slate-400">{{ b.pickup_time|default:"Reporting Time" }}</div>
+              <div class="font-medium text-slate-900 dark:text-white">📅 {{ b.pickup_date|date:"d M Y" }}</div>
+              <div class="text-[10px] text-slate-400">⏰ {{ b.pickup_time|default:"Reporting Time" }}</div>
             </td>
             <td>
               <span class="unfold-pill-badge slate">
                 {{ b.vehicle_type.name|default:"Any Fleet Class" }}
               </span>
             </td>
-            <td>
+            <td class="text-center">
               {% if b.status == 'confirmed' %}
               <span class="unfold-pill-badge green">Confirmed</span>
               {% elif b.status == 'cancelled' %}
@@ -1233,43 +401,50 @@ html.dark .dcc-compliance-alert-list {
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="text-center py-12 text-slate-500">
-              <div class="text-2xl mb-1">📂</div>
-              <div class="font-semibold text-slate-800 dark:text-slate-200">No booking inquiries found matching the criteria.</div>
+            <td colspan="8" class="text-center py-12 text-slate-500">
+              <div class="text-3xl mb-2">📂</div>
+              <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">No booking inquiries found matching the criteria.</div>
+              <div class="text-xs text-slate-400 mt-1">Check back later or adjust your filters.</div>
             </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
-  </div>
 
-  {% else %}
-  <!-- ======================================================================
-       VIEW: REAL-TIME TRIPS DISPATCH BOARD (UNFOLD CHANGELIST STYLE)
-       ====================================================================== -->
-  <div class="unfold-changelist-wrap">
-    <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/40">
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">📋 Active Dispatch Grid</span>
-        <span class="unfold-header-count">{{ trips|length }} Dispatches Shown</span>
-      </div>
+    <!-- Unfold Table Footer for Bookings -->
+    <div class="unfold-table-footer">
+      <div>Showing <span class="font-mono font-bold">{{ bookings|length }}</span> booking inquiry record{{ bookings|length|pluralize }}</div>
+      <div class="text-xs text-slate-400">Tip: Press <kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[10px] font-mono">/</kbd> to search</div>
     </div>
+
+    {% else %}
+    <!-- ======================================================================
+         VIEW: REAL-TIME TRIPS DISPATCH BOARD (DJANGO UNFOLD TABLE STYLE)
+         ====================================================================== -->
     <div class="overflow-x-auto">
       <table class="unfold-table">
         <thead>
           <tr>
-            <th>Trip ID &amp; Ref</th>
-            <th>Guest &amp; Contact</th>
-            <th>Itinerary &amp; Timeline</th>
-            <th>Fleet &amp; Chauffeur Allocation</th>
-            <th>Dispatch Status</th>
+            <th class="w-10 text-center">
+              <input type="checkbox" id="selectAllTrips" onclick="toggleSelectAll(this, 'trip-row-check')" class="rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-sky-500 cursor-pointer">
+            </th>
+            <th class="w-36"><span class="unfold-sortable">Trip ID &amp; Ref <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Guest &amp; Account <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Itinerary &amp; Timeline <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th><span class="unfold-sortable">Fleet &amp; Chauffeur Allocation <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
+            <th class="text-center w-36"><span class="unfold-sortable">Dispatch Status <i class="fa-solid fa-sort unfold-sort-icon"></i></span></th>
             <th class="text-right" style="min-width: 260px;">1-Click Actions</th>
           </tr>
         </thead>
         <tbody id="dispatchTableBody">
           {% for trip in trips %}
-          <tr id="trip-row-{{ trip.pk }}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition {% if not trip.vehicle or not trip.driver %}bg-amber-50/30 dark:bg-amber-950/10{% endif %}">
+          <tr id="trip-row-{{ trip.pk }}" class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition {% if not trip.vehicle or not trip.driver %}bg-amber-50/30 dark:bg-amber-950/10 border-l-2 border-l-amber-500{% elif trip.status == 'started' %}border-l-2 border-l-emerald-500{% endif %}">
+            <!-- 0. Checkbox -->
+            <td class="text-center">
+              <input type="checkbox" class="trip-row-check rounded border-slate-300 dark:border-slate-700 text-sky-600 focus:ring-sky-500 cursor-pointer" value="{{ trip.pk }}">
+            </td>
+
             <!-- 1. Trip ID & Ref -->
             <td>
               <a class="font-mono font-bold text-sky-600 dark:text-sky-400 hover:underline block" href="{% url 'trip-detail' trip.pk %}">#{{ trip.trip_id|default:trip.id }}</a>
@@ -1298,9 +473,9 @@ html.dark .dcc-compliance-alert-list {
             <!-- 3. Itinerary & Timeline -->
             <td>
               <div class="flex items-center gap-1.5 font-medium text-slate-800 dark:text-slate-200">
-                <span>{{ trip.pickup_location|truncatechars:20|default:"Coimbatore Depot" }}</span>
+                <span>{{ trip.pickup_location|truncatechars:22|default:"Coimbatore Depot" }}</span>
                 <span class="text-slate-400">→</span>
-                <span>{{ trip.destination|truncatechars:20|default:"En Route" }}</span>
+                <span>{{ trip.destination|truncatechars:22|default:"En Route" }}</span>
               </div>
               <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
                 <span>📅 {{ trip.start_date|date:"d M Y" }}</span>
@@ -1352,7 +527,7 @@ html.dark .dcc-compliance-alert-list {
             </td>
 
             <!-- 5. Dispatch Status -->
-            <td>
+            <td class="text-center">
               {% if trip.status == 'started' or trip.status == 'in_transit' %}
               <span id="badge-status-{{ trip.pk }}" class="unfold-pill-badge green">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1429,7 +604,7 @@ html.dark .dcc-compliance-alert-list {
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="text-center py-12 text-slate-500">
+            <td colspan="7" class="text-center py-12 text-slate-500">
               <div class="text-3xl mb-2">🚘</div>
               <div class="font-bold text-slate-800 dark:text-slate-200 text-sm">No trips currently match this dispatch filter.</div>
               <div class="text-xs text-slate-400 mt-1">Check another status tab or clear your search term.</div>
@@ -1439,29 +614,40 @@ html.dark .dcc-compliance-alert-list {
         </tbody>
       </table>
     </div>
+
+    <!-- Unfold Table Footer for Trips -->
+    <div class="unfold-table-footer">
+      <div>Showing <span class="font-mono font-bold">{{ trips|length }}</span> active dispatch trip{{ trips|length|pluralize }}</div>
+      <div class="flex items-center gap-4 text-xs text-slate-400">
+        <span><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[10px] font-mono">/</kbd> Quick Search</span>
+        <span>•</span>
+        <span>⚡ Live Fleet Radar Connected</span>
+      </div>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
 </div>
 
 <!-- ========================================================================
-     MODAL: FAST QUICK-ALLOCATION CONSOLE
+     MODAL: FAST QUICK-ALLOCATION CONSOLE (DJANGO UNFOLD DIALOG SYSTEM)
      ======================================================================== -->
-<div id="quickAssignModal" class="dcc-modal-backdrop">
-  <div class="dcc-modal">
-    <div class="dcc-modal-header">
+<div id="quickAssignModal" class="unfold-modal-backdrop" style="display: none;">
+  <div class="unfold-modal">
+    <div class="unfold-modal-header">
       <h3>
-        <span>⚡</span> Fast-Allocation &amp; Dispatch Console
+        <i class="fa-solid fa-bolt text-sky-600"></i>
+        <span>Fast-Allocation &amp; Dispatch Console</span>
       </h3>
-      <button class="dcc-modal-close" onclick="closeQuickAssign()">&times;</button>
+      <button class="unfold-modal-close" onclick="closeQuickAssign()" title="Close (Esc)">&times;</button>
     </div>
     <form id="quickAssignForm" method="post" action="" onsubmit="handleQuickAssignSubmit(event)">
       {% csrf_token %}
-      <div class="dcc-modal-body">
+      <div class="unfold-modal-body">
         <!-- Trip Summary Context Card -->
         <div class="dcc-modal-trip-summary">
           <div class="dcc-summary-row">
             <span class="dcc-summary-label">Trip Reference:</span>
-            <span id="modalTripRef" class="dcc-summary-val">#TRIP</span>
+            <span id="modalTripRef" class="dcc-summary-val font-mono font-bold text-sky-600">#TRIP</span>
           </div>
           <div class="dcc-summary-row">
             <span class="dcc-summary-label">Passenger / Guest:</span>
@@ -1480,12 +666,14 @@ html.dark .dcc-compliance-alert-list {
         <!-- SMART AUTO-MATCH RECOMMENDATION PANEL -->
         <div id="smartMatchContainer" class="dcc-smart-match-box">
           <div id="smartMatchLoading" class="dcc-smart-match-loading">
-            <span class="dcc-spin">⚡</span> Analyzing GPS Proximity, Safety Compliance &amp; Driver Rest...
+            <span class="animate-spin"><i class="fa-solid fa-circle-notch"></i></span>
+            <span>Analyzing GPS Proximity, Safety Compliance &amp; Driver Rest...</span>
           </div>
           <div id="smartMatchContent" style="display: none;">
             <div class="dcc-smart-match-header">
-              <span style="font-weight: 700; font-size: 0.84rem; color: #047857;">
-                <span>🌟</span> Smart Auto-Match Recommendation
+              <span class="font-bold text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-star text-amber-500"></i>
+                <span>Smart Auto-Match Recommendation</span>
               </span>
               <span id="smartMatchScore" class="dcc-smart-score-badge">98/100 • Optimal Match</span>
             </div>
@@ -1497,7 +685,7 @@ html.dark .dcc-compliance-alert-list {
                 <div id="smartRecVehTitle" class="dcc-smart-res-name">Vehicle Reg</div>
                 <div class="dcc-smart-res-meta">
                   <span id="smartRecVehDist">📍 3.2 km away</span>
-                  <div id="smartRecVehFlags" style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                  <div id="smartRecVehFlags" class="flex flex-wrap gap-1">
                     <span class="dcc-smart-pill success">🟢 All Docs Valid</span>
                   </div>
                 </div>
@@ -1509,7 +697,7 @@ html.dark .dcc-compliance-alert-list {
                 <div id="smartRecDriverName" class="dcc-smart-res-name">Driver Name</div>
                 <div class="dcc-smart-res-meta">
                   <span id="smartRecDriverRest">🟢 Rest: 14h</span>
-                  <div id="smartRecDriverFlags" style="display:flex; flex-wrap:wrap; gap:0.25rem;">
+                  <div id="smartRecDriverFlags" class="flex flex-wrap gap-1">
                     <span class="dcc-smart-pill success">🟢 License Valid</span>
                   </div>
                 </div>
@@ -1517,18 +705,19 @@ html.dark .dcc-compliance-alert-list {
             </div>
 
             <button type="button" id="btnApplySmartMatch" class="dcc-smart-apply-btn" onclick="applySmartMatch()">
-              <span>⚡</span> 1-Click Apply Optimal Pair
+              <i class="fa-solid fa-bolt"></i>
+              <span>1-Click Apply Optimal Pair</span>
             </button>
           </div>
         </div>
 
-        <!-- COMPLIANCE WARNING & MANAGER OVERRIDE ALERT (Shown if violations detected) -->
+        <!-- COMPLIANCE WARNING & MANAGER OVERRIDE ALERT -->
         <div id="complianceAlertBox" class="dcc-compliance-alert-box">
           <div class="dcc-compliance-alert-title">
-            <span>🚨</span> Regulatory Safety Compliance Violation
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Regulatory Safety Compliance Violation</span>
           </div>
-          <ul id="complianceViolationsList" class="dcc-compliance-alert-list">
-          </ul>
+          <ul id="complianceViolationsList" class="dcc-compliance-alert-list"></ul>
           <label class="dcc-checkbox-wrap" style="background: #ffffff; border-color: #f87171; margin-top: 0.65rem; margin-bottom: 0;">
             <input type="checkbox" id="complianceOverrideCheck" name="compliance_override" value="1">
             <span class="dcc-checkbox-text" style="color: #b91c1c; font-weight: 700;">
@@ -1567,39 +756,40 @@ html.dark .dcc-compliance-alert-list {
         <label class="dcc-checkbox-wrap">
           <input type="checkbox" name="send_whatsapp_driver" value="1" checked>
           <span class="dcc-checkbox-text">
-            📲 Dispatch instant WhatsApp duty assignment &amp; handover link to Captain
+            <strong>Captain Briefing:</strong> Instant WhatsApp duty assignment &amp; mobile handover link
           </span>
         </label>
 
-        <label class="dcc-checkbox-wrap dcc-checkbox-guest">
+        <label class="dcc-checkbox-wrap">
           <input type="checkbox" name="send_whatsapp_passenger" value="1" checked>
           <span class="dcc-checkbox-text">
-            📲 Dispatch instant WhatsApp vehicle plate &amp; live GPS link to Guest
+            <strong>Guest Alert:</strong> Instant WhatsApp vehicle plate, captain contact &amp; live GPS link
           </span>
         </label>
       </div>
 
-      <div class="dcc-modal-footer">
-        <button type="button" class="dcc-btn dcc-btn-secondary" onclick="closeQuickAssign()">
+      <div class="unfold-modal-footer">
+        <button type="button" class="unfold-btn unfold-btn-secondary" onclick="closeQuickAssign()">
           Cancel
         </button>
-        <button id="modalSubmitBtn" type="submit" class="dcc-btn dcc-btn-primary">
-          <span>⚡</span> Confirm &amp; Dispatch
+        <button id="modalSubmitBtn" type="submit" class="unfold-btn unfold-btn-primary">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Confirm &amp; Dispatch</span>
         </button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Floating Toast Notification -->
+<!-- Floating Toast Notification (Matches Django Unfold) -->
 <div id="dccToast" class="dcc-toast">
-  <span id="dccToastIcon" style="font-size: 1.25rem;">✅</span>
+  <span id="dccToastIcon" style="font-size: 1.15rem;">✅</span>
   <span id="dccToastMsg">Notification message</span>
 </div>
 
 <script>
 // ============================================================================
-// DCC JAVASCRIPT DISPATCH ENGINE
+// DCC JAVASCRIPT DISPATCH ENGINE (UNFOLD SPECIFICATION)
 // ============================================================================
 
 let currentActiveTripId = null;
@@ -1611,7 +801,7 @@ function showToast(message, isError = false) {
   if (!toast || !msgEl) return;
 
   msgEl.textContent = message;
-  iconEl.textContent = isError ? '❌' : '📲';
+  iconEl.innerHTML = isError ? '<i class="fa-solid fa-circle-xmark text-rose-500"></i>' : '<i class="fa-solid fa-circle-check text-emerald-500"></i>';
   toast.style.borderLeftColor = isError ? '#ef4444' : '#10b981';
   toast.classList.add('show');
 
@@ -1619,6 +809,26 @@ function showToast(message, isError = false) {
     toast.classList.remove('show');
   }, 4500);
 }
+
+// Select All Checkbox Handler
+function toggleSelectAll(masterCheckbox, targetClass) {
+  const checkboxes = document.querySelectorAll('.' + targetClass);
+  checkboxes.forEach(cb => {
+    cb.checked = masterCheckbox.checked;
+  });
+}
+
+// '/' Keyboard shortcut to focus search input
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
+    e.preventDefault();
+    const searchInp = document.getElementById('dispatchSearchInput');
+    if (searchInp) {
+      searchInp.focus();
+      searchInp.select();
+    }
+  }
+});
 
 let currentSmartRecommendations = null;
 
@@ -1634,7 +844,7 @@ async function loadSmartRecommendations(tripId) {
   if (loadingEl) loadingEl.style.display = 'flex';
   if (contentEl) contentEl.style.display = 'none';
   if (btnApply) {
-    btnApply.innerHTML = '<span>⚡</span> 1-Click Apply Optimal Pair';
+    btnApply.innerHTML = '<i class="fa-solid fa-bolt mr-1"></i> 1-Click Apply Optimal Pair';
     btnApply.disabled = false;
   }
 
@@ -1719,7 +929,7 @@ function applySmartMatch() {
   }
 
   if (btnApply) {
-    btnApply.innerHTML = '<span>✅</span> Optimal Allocation Selected!';
+    btnApply.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Optimal Allocation Selected!';
   }
   showToast(`Applied Top Match: ${top.vehicle.registration_number} + ${top.driver.name}`);
 }
@@ -1744,7 +954,10 @@ function openQuickAssign(tripId, tripRef, guestName, route, schedule, currentVeh
   else driverSelect.value = '';
 
   form.action = `/trips/${tripId}/quick-assign/`;
-  modal.classList.add('open');
+  modal.style.display = 'flex';
+  setTimeout(() => {
+    modal.classList.add('open');
+  }, 10);
 
   // Load live Smart Recommendations
   loadSmartRecommendations(tripId);
@@ -1752,7 +965,10 @@ function openQuickAssign(tripId, tripRef, guestName, route, schedule, currentVeh
 
 function closeQuickAssign() {
   const modal = document.getElementById('quickAssignModal');
-  if (modal) modal.classList.remove('open');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
   currentActiveTripId = null;
 }
 
@@ -1774,7 +990,7 @@ async function handleQuickAssignSubmit(e) {
   const originalBtnText = submitBtn.innerHTML;
 
   submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span>⏳</span> Allocating...';
+  submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin mr-1"></i> Allocating...';
 
   const formData = new FormData(form);
 
@@ -1812,7 +1028,7 @@ async function handleQuickAssignSubmit(e) {
       }
       showToast('🚨 Safety Compliance Alert: Review violations before dispatching.', true);
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<span>⚠️</span> Re-Submit with Override';
+      submitBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> Re-Submit with Override';
     } else {
       showToast(data.message || 'Error assigning trip', true);
       submitBtn.disabled = false;
@@ -1839,7 +1055,6 @@ async function triggerDriverWhatsApp(tripId, driverName) {
       showToast(`Notice: ${data.message || 'WhatsApp triggered'}`, false);
     }
   } catch (err) {
-    // If regular response or redirect
     window.location.href = `/trips/${tripId}/broadcast-driver-whatsapp/`;
   }
 }
