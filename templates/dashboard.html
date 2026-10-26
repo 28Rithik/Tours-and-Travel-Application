@@ -140,29 +140,30 @@ html.dark .unfold-kpi-footer {
   color: #94a3b8;
 }
 
-/* ── §2 UNFOLD STUDIO BANNER & LAUNCHPAD ── */
+/* ── §2 UNFOLD STUDIO BANNER & LAUNCHPAD (Clean Light Theme) ── */
 .unfold-studio-banner {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  border: 1px solid #334155;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-left: 5px solid #0284c7;
   border-radius: 14px;
   padding: 1.4rem 1.65rem;
-  color: #ffffff;
+  color: #0f172a;
   margin-bottom: 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 1.5rem;
-  box-shadow: 0 10px 28px -5px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
 
 .unfold-station-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
   padding: 0.25rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.72rem;
@@ -176,8 +177,8 @@ html.dark .unfold-kpi-footer {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #38bdf8;
-  box-shadow: 0 0 8px #38bdf8;
+  background: #0284c7;
+  box-shadow: 0 0 8px #0284c7;
   animation: pulse-dot 2s infinite;
 }
 
@@ -190,14 +191,14 @@ html.dark .unfold-kpi-footer {
 .unfold-studio-title {
   font-size: 1.55rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #0f172a;
   line-height: 1.2;
   margin: 0 0 0.35rem;
   letter-spacing: -0.02em;
 }
 
 .unfold-studio-subtitle {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 0.86rem;
   margin: 0;
   max-width: 680px;
@@ -227,50 +228,31 @@ html.dark .unfold-kpi-footer {
 .unfold-btn-primary {
   background: #0284c7;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  border: 1px solid #0369a1;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
 }
 .unfold-btn-primary:hover {
   background: #0369a1;
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
 }
 
-.unfold-btn-radar {
-  background: rgba(15, 23, 42, 0.6);
-  color: #38bdf8;
-  border-color: #334155;
-}
-.unfold-btn-radar:hover {
-  background: #1e293b;
-  color: #ffffff;
-  border-color: #475569;
-  transform: translateY(-2px);
-}
-
-.unfold-btn-rathasarathi {
-  background: linear-gradient(135deg, rgba(2, 132, 199, 0.25) 0%, rgba(217, 119, 6, 0.25) 100%);
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
-}
-.unfold-btn-rathasarathi:hover {
-  background: linear-gradient(135deg, #0284c7 0%, #d97706 100%);
-  color: #ffffff;
-  border-color: #f59e0b;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
-}
-
+.unfold-btn-radar,
+.unfold-btn-rathasarathi,
 .unfold-btn-ghost {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
 }
+.unfold-btn-radar:hover,
+.unfold-btn-rathasarathi:hover,
 .unfold-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
   transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 /* ── §3 VISUAL ANALYTICS STUDIO (DUAL INTERACTIVE CHARTS) ── */

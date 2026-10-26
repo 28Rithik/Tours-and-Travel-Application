@@ -558,249 +558,736 @@
       box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
     }
 
+    /* ══════════════════════════════════════════════════════════════
+       DJANGO UNFOLD AESTHETIC: SIDEBAR ARCHITECTURE & USER CARD
+       ══════════════════════════════════════════════════════════════ */
+    .sidebar {
+      width: 260px !important;
+      min-width: 260px !important;
+      background-color: #ffffff !important;
+      border-right: 1px solid #e2e8f0 !important;
+      padding: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      height: 100vh !important;
+      position: sticky !important;
+      top: 0 !important;
+      overflow: hidden !important;
+      z-index: 50 !important;
+    }
+
+    /* Unfold Brand Header */
+    .unfold-brand-header {
+      height: 64px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      border-bottom: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+    .unfold-brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #0284c7;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .unfold-brand-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .unfold-brand-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .unfold-brand-sub {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Unfold Search Input */
+    .unfold-search-box {
+      margin: 12px 12px 8px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+    .unfold-search-box:focus-within {
+      background: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 1px #0284c7;
+    }
+    .unfold-search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 12px;
+      color: #0f172a;
+      width: 100%;
+      padding: 0;
+      font-family: inherit;
+    }
+    .unfold-search-box input::placeholder {
+      color: #94a3b8;
+    }
+    .unfold-search-shortcut {
+      font-size: 10px;
+      font-weight: 600;
+      color: #64748b;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 1px 5px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    /* Scrollable Nav Items Area */
+    .unfold-sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 10px 16px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .unfold-sidebar-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .unfold-sidebar-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    /* Group & Section Titles */
+    .unfold-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 8px 4px 8px;
+      margin: 0;
+    }
+
+    /* Unfold Nav Group Accordion */
+    .unfold-nav-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 2px;
+    }
+    .unfold-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 600;
+      user-select: none;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .unfold-group-header:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .unfold-group-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .unfold-group-chevron {
+      font-size: 11px;
+      color: #94a3b8;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .unfold-nav-group.is-open > .unfold-group-header .unfold-group-chevron {
+      transform: rotate(90deg);
+      color: #0284c7;
+    }
+    .unfold-group-links {
+      display: none;
+      flex-direction: column;
+      gap: 1px;
+      padding: 2px 0 4px 10px;
+      margin-left: 6px;
+      border-left: 1px solid #e2e8f0;
+    }
+    .unfold-nav-group.is-open > .unfold-group-links {
+      display: flex;
+    }
+
+    /* Nav Item Links */
+    .unfold-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6.5px 10px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #475569;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .unfold-nav-item:hover {
+      background-color: #f8fafc;
+      color: #0284c7;
+    }
+    .unfold-nav-item.is-active {
+      background-color: #f1f5f9;
+      color: #0284c7;
+      font-weight: 700;
+    }
+    .unfold-nav-item i, .unfold-nav-item .material-symbols-outlined {
+      font-size: 14px;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* Unfold Sticky Bottom User Card */
+    .unfold-user-bottom-wrap {
+      border-top: 1px solid #e2e8f0;
+      background: #ffffff;
+      padding: 10px 12px;
+      position: sticky;
+      bottom: 0;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+    .unfold-user-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      transition: background-color 0.15s ease;
+      user-select: none;
+      position: relative;
+    }
+    .unfold-user-card:hover {
+      background-color: #f8fafc;
+    }
+    .unfold-user-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .unfold-user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 13px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .unfold-user-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      line-height: 1.25;
+    }
+    .unfold-user-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .unfold-user-email {
+      font-size: 11px;
+      color: #64748b;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .unfold-user-action-icon {
+      font-size: 12px;
+      color: #94a3b8;
+      padding-left: 4px;
+    }
+
+    /* Interactive Popover Menu */
+    .unfold-user-popover {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 10px;
+      right: 10px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      padding: 8px;
+      z-index: 100;
+    }
+    .unfold-user-popover.is-open {
+      display: block;
+    }
+    .unfold-popover-header {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 6px;
+    }
+    .unfold-popover-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.12s ease;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+    }
+    .unfold-popover-item:hover {
+      background: #f8fafc;
+      color: #0284c7;
+    }
+
   </style>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="{% url 'dashboard' %}" title="Sivagayathiri Travels Operations Workspace">
-        <span class="brand-mark">S</span>
-        <div style="display: flex; flex-direction: column; line-height: 1.2;">
-          <span style="font-weight: 800; font-size: 0.95rem; letter-spacing: -0.01em;">Sivagayathiri</span>
-          <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">Operations Desk</span>
+      <!-- 1. Unfold Header (Matching Django Unfold Admin Model) -->
+      <a class="unfold-brand-header" href="{% url 'dashboard' %}" title="Travel ERP · Sivagayathiri Tours">
+        <div class="unfold-brand-logo">
+          <span class="material-symbols-outlined" style="font-size: 20px;">explore</span>
+        </div>
+        <div class="unfold-brand-text">
+          <span class="unfold-brand-title">Travel ERP</span>
+          <span class="unfold-brand-sub">Operations &middot; Sivagayathiri Tours</span>
         </div>
       </a>
 
-      <!-- Quick Search Bar (Django Unfold Pattern) -->
-      <div class="sidebar-search-bar" style="margin: 10px 10px 14px;">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="search" id="sidebar-filter-input" placeholder="Search navigation..." autocomplete="off">
+      <!-- 2. Unfold Search Bar (with ^K Shortcut Pill) -->
+      <div class="unfold-search-box">
+        <span class="material-symbols-outlined" style="font-size: 16px; color: #94a3b8;">search</span>
+        <input type="search" id="sidebar-filter-input" placeholder="Search apps and model..." autocomplete="off">
+        <span class="unfold-search-shortcut">^K</span>
       </div>
 
-      <nav class="nav-list" aria-label="Main navigation">
-        <!-- 1. Universal Operations Desk (All Staff) -->
-        <p class="nav-section-title"><i class="fa-solid fa-bolt" style="font-size: 0.7rem; color: var(--clr-primary);"></i> Operations Desk</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'staff-roles-matrix' or request.resolver_match.url_name == 'roles-matrix-alias' or request.resolver_match.url_name == 'staff-directory-alias' %}is-active{% endif %}" href="{% url 'staff-roles-matrix' %}">
-          <i class="fa-solid fa-shield-halved nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Staff &amp; RBAC Matrix
+      <!-- 3. Scrollable Nav Area with Columns/Accordions -->
+      <div class="unfold-sidebar-scroll" id="sidebar-scrollable-area">
+        
+        <!-- Dashboard Section -->
+        <div class="unfold-section-label">Dashboard</div>
+        <a class="unfold-nav-item {% if request.resolver_match.url_name == 'admin:index' %}is-active{% endif %}" href="{% url 'admin:index' %}">
+          <i class="fa-solid fa-table-cells-large" style="color: #0284c7;"></i>
+          <span>Admin Home</span>
         </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name != 'crm' %}is-active{% endif %}" href="{% url 'dashboard' %}">
-          <i class="fa-solid fa-satellite-dish nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Control Room
+        <a class="unfold-nav-item {% if request.resolver_match.url_name == 'staff-roles-matrix' %}is-active{% endif %}" href="{% url 'staff-roles-matrix' %}">
+          <i class="fa-solid fa-id-badge" style="color: #64748b;"></i>
+          <span>Staff Permissions</span>
         </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'booking-list' or request.resolver_match.url_name == 'dispatch-console' or request.resolver_match.url_name == 'booking-detail' or request.resolver_match.url_name == 'booking-create' or request.resolver_match.url_name == 'trip-detail' or request.resolver_match.url_name == 'trip-create' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">
-          <i class="fa-solid fa-clipboard-list nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Dispatch Control
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'operations-whatsapp-bot' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio' or request.resolver_match.url_name == 'admin-whatsapp-bot-studio-alias' %}is-active{% endif %}" href="{% url 'operations-whatsapp-bot' %}">
-          <i class="fa-brands fa-whatsapp nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #25d366;"></i> Handover &amp; Bot Studio
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'operations-rathasarathi-ai' or request.resolver_match.url_name == 'admin-rathasarathi-copilot-studio' %}is-active{% endif %}" href="{% url 'operations-rathasarathi-ai' %}" style="color: #0284c7; font-weight: 700;">
-          <i class="fa-solid fa-dharmachakra nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Rathasārathi AI Copilot
-        </a>
-        <a class="nav-link {% if 'border-permits' in request.path %}is-active{% endif %}" href="/operations/border-permits/">
-          <i class="fa-solid fa-shield-halved nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #10b981;"></i> Border Permits Sentry
-        </a>
-        <a class="nav-link {% if 'driver-fatigue-sentry' in request.path %}is-active{% endif %}" href="/operations/driver-fatigue-sentry/">
-          <i class="fa-solid fa-bed nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f43f5e;"></i> Chauffeur Fatigue Sentry
-        </a>
-        <a class="nav-link {% if 'cash-envelopes' in request.path %}is-active{% endif %}" href="/operations/cash-envelopes/">
-          <i class="fa-solid fa-money-bill-wave nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Trip Cash Envelopes
-        </a>
-        <a class="nav-link {% if 'echallan-sentry' in request.path %}is-active{% endif %}" href="/operations/echallan-sentry/">
-          <i class="fa-solid fa-triangle-exclamation nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Traffic E-Challan Sentry
-        </a>
-        <a class="nav-link {% if 'breakdown-sos' in request.path %}is-active{% endif %}" href="/operations/breakdown-sos/">
-          <i class="fa-solid fa-truck-medical nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Breakdown &amp; SOS Relief
-        </a>
-        <a class="nav-link {% if 'pnr-arrivals' in request.path %}is-active{% endif %}" href="/operations/pnr-arrivals/">
-          <i class="fa-solid fa-plane-arrival nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #0284c7;"></i> PNR Group Arrivals
-        </a>
-        <a class="nav-link {% if 'empty-legs' in request.path %}is-active{% endif %}" href="/operations/empty-legs/">
-          <i class="fa-solid fa-route nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #14b8a6;"></i> Empty-Leg Marketplace
+        <a class="unfold-nav-item {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}">
+          <i class="fa-solid fa-gauge-high" style="color: #0284c7;"></i>
+          <span>Operations Dashboard</span>
         </a>
 
-        <!-- 2. Fleet & Telematics (Fleet Managers & Superusers) -->
-        {% if is_fleet_manager or is_workshop or is_superuser %}
-        <p class="nav-section-title"><i class="fa-solid fa-truck" style="font-size: 0.7rem; color: #0284c7;"></i> Fleet &amp; Telematics</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-live' %}is-active{% endif %}" href="{% url 'fleet-live' %}">
-          <i class="fa-solid fa-map-location-dot nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Live Fleet Map
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-vehicles-roster' %}is-active{% endif %}" href="{% url 'fleet-vehicles-roster' %}">
-          <i class="fa-solid fa-bus nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Fleet &amp; Assets
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-categories' %}is-active{% endif %}" href="{% url 'fleet-categories' %}">
-          <i class="fa-solid fa-layer-group nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Categories
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-types' %}is-active{% endif %}" href="{% url 'fleet-types' %}">
-          <i class="fa-solid fa-car-side nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Types &amp; Tariffs
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-drivers-roster' %}is-active{% endif %}" href="{% url 'fleet-drivers-roster' %}">
-          <i class="fa-solid fa-id-card nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Chauffeurs &amp; Captains
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'damage_marker_studio' or request.resolver_match.url_name == 'admin-damage-marker-studio' %}is-active{% endif %}" href="{% url 'maintenance:damage_marker_studio' %}">
-          <i class="fa-solid fa-car-burst nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> 2D Vehicle Damage Studio
-        </a>
-        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:tire_studio' or request.resolver_match.url_name == 'admin-tire-studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">
-          <i class="fa-solid fa-circle-dot nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> 2D Axle &amp; Tire Health Studio
-        </a>
-        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:workshop_mechanic_studio' or request.resolver_match.url_name == 'admin-workshop-studio' %}is-active{% endif %}" href="{% url 'maintenance:workshop_mechanic_studio' %}">
-          <i class="fa-solid fa-wrench nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Workshop &amp; Job Cards
-        </a>
-        <a class="nav-link {% if request.resolver_match.view_name == 'maintenance:compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">
-          <i class="fa-solid fa-screwdriver-wrench nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Compliance &amp; Maint.
-        </a>
-        <a class="nav-link {% if 'parts-inventory' in request.path %}is-active{% endif %}" href="/maintenance/parts-inventory/">
-          <i class="fa-solid fa-boxes-stacked nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #0284c7;"></i> Spare Parts Inventory
-        </a>
-        <a class="nav-link {% if 'statutory-compliance' in request.path %}is-active{% endif %}" href="/operations/statutory-compliance/">
-          <i class="fa-solid fa-shield-halved nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #6366f1;"></i> RTO Fitness &amp; Statutory Radar
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet_analytics' %}is-active{% endif %}" href="{% url 'analytics:fleet_analytics' %}">
-          <i class="fa-solid fa-chart-line nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Fleet Analytics &amp; CPK
-        </a>
-        {% endif %}
+        <!-- Column Group 1: CRM & Quotations -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-comments-dollar" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>CRM &amp; Quotations</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'inquiry_pipeline' %}is-active{% endif %}" href="{% url 'crm:inquiry_pipeline' %}">
+              <span>Leads &amp; Inquiries</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'kanban_board' %}is-active{% endif %}" href="{% url 'crm:kanban_board' %}">
+              <span>Corporate CRM Kanban</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'quotation_create' %}is-active{% endif %}" href="{% url 'crm:quotation_create' %}">
+              <span>Instant Quotation</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'requisition_list' %}is-active{% endif %}" href="{% url 'crm:requisition_list' %}">
+              <span>Requisitions</span>
+            </a>
+          </div>
+        </div>
 
-        <!-- 3. Tour Packages & Holiday Architect (Tour Designers, Booking Managers & Superusers) -->
-        {% if is_booking_manager or is_tour_designer or is_superuser %}
-        <p class="nav-section-title"><i class="fa-solid fa-umbrella-beach" style="font-size: 0.7rem; color: #0ea5e9;"></i> Tour Packages &amp; Architect</p>
-        <a class="nav-link {% if request.resolver_match.app_name == 'packages' and 'tab=' not in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}">
-          <i class="fa-solid fa-compass nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tour Packages Catalog
-        </a>
-        <a class="nav-link {% if 'tab=templates' in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}?tab=templates">
-          <i class="fa-solid fa-drafting-compass nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Package Templates Master
-        </a>
-        <a class="nav-link {% if 'tab=expeditions' in request.get_full_path %}is-active{% endif %}" href="{% url 'packages:packages-catalog' %}?tab=expeditions">
-          <i class="fa-solid fa-graduation-cap nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> College IV Expeditions
-        </a>
-        <a class="nav-link {% if 'manifest-grid' in request.path %}is-active{% endif %}" href="/packages/manifest-grid/">
-          <i class="fa-solid fa-table-cells nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #3b82f6;"></i> Manifest Grid Studio
-        </a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">
-          <i class="fa-solid fa-hotel nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Hotel Allotments &amp; Rooms
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fleet-types' %}is-active{% endif %}" href="{% url 'fleet-types' %}">
-          <i class="fa-solid fa-tags nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle-Wise Tariffs
-        </a>
-        {% endif %}
+        <!-- Column Group 2: Dispatch & Trips -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-route" style="width: 16px; text-align: center; color: #0284c7;"></i>
+              <span>Dispatch &amp; Trips</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'dispatch-console' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">
+              <span>Dispatch Console</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'booking-list' %}is-active{% endif %}" href="{% url 'booking-list' %}">
+              <span>Active Operations</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'operations-fleet-radar' %}is-active{% endif %}" href="{% url 'operations-fleet-radar' %}">
+              <span>Live Fleet Radar Map</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'operations-whatsapp-bot' %}is-active{% endif %}" href="{% url 'operations-whatsapp-bot' %}">
+              <span>WhatsApp Bot Studio</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'operations-rathasarathi-ai' %}is-active{% endif %}" href="{% url 'operations-rathasarathi-ai' %}">
+              <span>Rathasārathi AI Copilot</span>
+            </a>
+            <a class="unfold-nav-item {% if 'breakdown-sos' in request.path %}is-active{% endif %}" href="/operations/breakdown-sos/">
+              <span>Breakdown &amp; SOS Relief</span>
+            </a>
+            <a class="unfold-nav-item {% if 'empty-legs' in request.path %}is-active{% endif %}" href="/operations/empty-legs/">
+              <span>Empty-Leg Marketplace</span>
+            </a>
+          </div>
+        </div>
 
-        <!-- 4. Sales, CRM & DMC Pipelines (Booking Managers, Sales & Superusers) -->
-        {% if is_booking_manager or is_superuser %}
-        <p class="nav-section-title"><i class="fa-solid fa-briefcase" style="font-size: 0.7rem; color: #10b981;"></i> Sales &amp; CRM</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'crm' %}is-active{% endif %}" href="{% url 'crm:dashboard' %}">
-          <i class="fa-solid fa-table-columns nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> DMC Executive Board
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'kanban_board' or request.resolver_match.url_name == 'admin-crm-kanban' %}is-active{% endif %}" href="{% url 'crm:kanban_board' %}">
-          <i class="fa-solid fa-arrows-split-up-and-left nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #10b981;"></i> CRM Visual Kanban
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'inquiry_pipeline' %}is-active{% endif %}" href="{% url 'crm:inquiry_pipeline' %}">
-          <i class="fa-solid fa-filter-circle-dollar nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Query Tracker 2.0
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'quotation_create' or request.resolver_match.url_name == 'quotation_builder' or request.resolver_match.url_name == 'quotation_preview' %}is-active{% endif %}" href="{% url 'crm:quotation_create' %}">
-          <i class="fa-solid fa-file-invoice nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Quotation Studio
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'partner_list' %}is-active{% endif %}" href="{% url 'crm:partner_list' %}">
-          <i class="fa-solid fa-handshake nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Partners &amp; FTOs
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">
-          <i class="fa-solid fa-store nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Suppliers &amp; Rates
-        </a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'hotel-vouchers-hub' %}is-active{% endif %}" href="{% url 'suppliers:hotel-vouchers-hub' %}">
-          <i class="fa-solid fa-bed nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Hotel Vouchers
-        </a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'marketing' %}is-active{% endif %}" href="{% url 'marketing:campaign-studio' %}">
-          <i class="fa-solid fa-bullhorn nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Marketing Campaigns
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'voucher_console' or request.resolver_match.url_name == 'voucher_detail' %}is-active{% endif %}" href="{% url 'crm:voucher_console' %}">
-          <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Service Vouchers
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'document_vault' %}is-active{% endif %}" href="{% url 'crm:document_vault' %}">
-          <i class="fa-solid fa-folder-closed nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Document Vault
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'complaint_list' %}is-active{% endif %}" href="{% url 'crm:complaint_list' %}">
-          <i class="fa-solid fa-triangle-exclamation nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Quality &amp; Grievances
-        </a>
-        <a class="nav-link {% if 'feedback-reviews' in request.path %}is-active{% endif %}" href="/crm/feedback-reviews/">
-          <i class="fa-solid fa-star nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Customer Reviews &amp; NPS
-        </a>
-        <a class="nav-link {% if 'followup-cadence' in request.path %}is-active{% endif %}" href="/crm/followup-cadence/">
-          <i class="fa-solid fa-clock-rotate-left nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #10b981;"></i> Follow-Up Drip Cadence
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'reports_hub' %}is-active{% endif %}" href="{% url 'crm:reports_hub' %}">
-          <i class="fa-solid fa-chart-pie nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> DMC Reports
-        </a>
-        {% endif %}
+        <!-- Column Group 3: Tour Packages -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-map-location-dot" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Tour Packages</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.app_name == 'packages' and request.resolver_match.url_name == 'catalog' %}is-active{% endif %}" href="{% url 'packages:catalog' %}">
+              <span>Packages Catalog</span>
+            </a>
+            <a class="unfold-nav-item {% if 'itinerary-builder' in request.path or 'itinerary' in request.path %}is-active{% endif %}" href="/admin/operations/itinerary-builder/">
+              <span>Itinerary Builder</span>
+            </a>
+            <a class="unfold-nav-item {% if 'pnr-arrivals' in request.path %}is-active{% endif %}" href="/operations/pnr-arrivals/">
+              <span>PNR Group Arrivals</span>
+            </a>
+          </div>
+        </div>
 
-        <!-- 5. Finance, Invoicing & Accounts (Finance Team & Superusers) -->
-        {% if is_finance_user or is_superuser %}
-        <p class="nav-section-title"><i class="fa-solid fa-coins" style="font-size: 0.7rem; color: #d97706;"></i> Finance &amp; Billing</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'invoice_console' or request.resolver_match.url_name == 'invoice_detail' %}is-active{% endif %}" href="{% url 'crm:invoice_console' %}">
-          <i class="fa-solid fa-file-invoice-dollar nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Invoices &amp; Billing
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'driver-settlement-root' or request.resolver_match.url_name == 'driver-settlement-studio' or request.resolver_match.url_name == 'admin-driver-settlement-studio' %}is-active{% endif %}" href="{% url 'driver-settlement-root' %}" style="font-weight: 700; color: #0284c7;">
-          <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Driver Bata &amp; Settlement
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'fuel-receipt-ocr-studio' %}is-active{% endif %}" href="{% url 'fuel-receipt-ocr-studio' %}">
-          <i class="fa-solid fa-gas-pump nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #ef4444;"></i> Fuel Slip OCR Sentry
-        </a>
-        <a class="nav-link {% if 'fastag-reconciliation' in request.path %}is-active{% endif %}" href="/finance/fastag-reconciliation/">
-          <i class="fa-solid fa-road-barrier nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #8b5cf6;"></i> FASTag Toll Reconciler
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'finance-gst-studio' or request.resolver_match.url_name == 'admin-gst-studio' %}is-active{% endif %}" href="{% url 'finance-gst-studio' %}">
-          <i class="fa-solid fa-file-lines nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Corporate GST &amp; E-Way Bill
-        </a>
-        <a class="nav-link {% if 'tds-194c' in request.path %}is-active{% endif %}" href="/finance/tds-194c/">
-          <i class="fa-solid fa-percent nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #0284c7;"></i> Section 194C TDS Ledger
-        </a>
+        <!-- Column Group 4: Group & College Tours -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-graduation-cap" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Group &amp; College Tours</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item" href="/packages/">
+              <span>Group Excursions</span>
+            </a>
+            <a class="unfold-nav-item" href="/admin/package_tours/collegeivproxy/">
+              <span>College IV Manifests</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'manifest_grid_default' %}is-active{% endif %}" href="{% url 'packages:manifest_grid_default' %}">
+              <span>Student Manifest Grid</span>
+            </a>
+          </div>
+        </div>
 
-        <a class="nav-link {% if request.resolver_match.url_name == 'finance-payments-studio' or request.resolver_match.url_name == 'finance-payments' or request.resolver_match.url_name == 'admin-payment-studio' %}is-active{% endif %}" href="{% url 'finance-payments-studio' %}">
-          <i class="fa-solid fa-qrcode nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Dynamic UPI &amp; Payments
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'petty-cash-studio' or request.resolver_match.url_name == 'finance-petty-cash-alias' or request.resolver_match.url_name == 'admin-petty-cash-studio' %}is-active{% endif %}" href="{% url 'finance-petty-cash-alias' %}">
-          <i class="fa-solid fa-vault nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Petty Cash Float Register
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'bank-reconciliation-portal' or request.resolver_match.url_name == 'bank-reconciliation-studio' or request.resolver_match.url_name == 'admin-bank-reconciliation-studio' %}is-active{% endif %}" href="{% url 'bank-reconciliation-portal' %}">
-          <i class="fa-solid fa-scale-balanced nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Bank Statement Reconciler
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">
-          <i class="fa-solid fa-book-bookmark nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Statements &amp; Ledgers
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'requisition_list' %}is-active{% endif %}" href="{% url 'crm:requisition_list' %}">
-          <i class="fa-solid fa-money-bill-transfer nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Accounts Payable
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">
-          <i class="fa-solid fa-clock-rotate-left nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Pending Receivables
-        </a>
-        <a class="nav-link {% if 'vendor-bill-audit' in request.path %}is-active{% endif %}" href="/suppliers/vendor-bill-audit/">
-          <i class="fa-solid fa-receipt nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Vendor Bill Auditor
-        </a>
-        <a class="nav-link {% if request.resolver_match.app_name == 'suppliers' and request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">
-          <i class="fa-solid fa-people-arrows nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Outsourced Settlements
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">
-          <i class="fa-solid fa-calculator nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tally, Zoho &amp; Payroll
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">
-          <i class="fa-solid fa-chart-column nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Vehicle Profitability
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">
-          <i class="fa-solid fa-arrow-trend-up nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Party Profitability
-        </a>
-        {% endif %}
+        <!-- Column Group 5: Contracts & Shuttle Routes -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-file-contract" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Contracts &amp; Shuttle Routes</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item" href="/admin/fleet_commute/corporatecontract/">
+              <span>Corporate Contracts</span>
+            </a>
+            <a class="unfold-nav-item" href="/admin/fleet_commute/corporatecommuteroute/">
+              <span>Shuttle Routes</span>
+            </a>
+            <a class="unfold-nav-item" href="/admin/fleet_commute/corporatecommuteshift/">
+              <span>Commute Shifts</span>
+            </a>
+          </div>
+        </div>
 
-        <!-- 6. System Administration (Superusers & Staff) -->
-        {% if is_superuser or request.user.is_staff %}
-        <p class="nav-section-title"><i class="fa-solid fa-gear" style="font-size: 0.7rem; color: #64748b;"></i> Administration</p>
-        <a class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">
-          <i class="fa-solid fa-database nav-icon" style="width: 18px; text-align: center; margin-right: 6px;"></i> Tariffs &amp; Master Data
-        </a>
-        <a class="nav-link {% if request.resolver_match.url_name == 'operations-database-health' or request.resolver_match.url_name == 'admin-database-health-dashboard' %}is-active{% endif %}" href="{% url 'operations-database-health' %}">
-          <i class="fa-solid fa-heart-pulse nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #10b981;"></i> Database &amp; System Health
-        </a>
-        <a class="nav-link" href="{% url 'admin:index' %}" style="font-weight: 700; color: #0284c7;">
-          <i class="fa-solid fa-crown nav-icon" style="width: 18px; text-align: center; margin-right: 6px; color: #f59e0b;"></i> Unfold Admin Workspace
-        </a>
-        {% endif %}
-      </nav>
-      <div class="sidebar-footer">
-        <span class="status-dot"></span><span>Coimbatore HQ &middot; Online</span>
+        <!-- Column Group 6: Employee Commute -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-users-gear" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Employee Commute</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'roster_dispatcher_studio' %}is-active{% endif %}" href="{% url 'fleet_commute:roster_dispatcher_studio' %}">
+              <span>Daily Commute Rosters</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'client_portal_index' %}is-active{% endif %}" href="{% url 'fleet_commute:client_portal_index' %}">
+              <span>Corporate Client Portal</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'women_safety_studio' %}is-active{% endif %}" href="{% url 'fleet_commute:women_safety_studio' %}">
+              <span>Women Safety &amp; IVR</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'bulk_roster_import' %}is-active{% endif %}" href="{% url 'fleet_commute:bulk_roster_import' %}">
+              <span>Bulk CSV Roster Import</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Column Group 7: Online Payments -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-qrcode" style="width: 16px; text-align: center; color: #4f46e5;"></i>
+              <span>Online Payments</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'finance-payments-studio' %}is-active{% endif %}" href="{% url 'finance-payments-studio' %}">
+              <span>Dynamic UPI QR Studio</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'finance-petty-cash-alias' %}is-active{% endif %}" href="{% url 'finance-petty-cash-alias' %}">
+              <span>Petty Cash Float</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'bank-reconciliation-portal' %}is-active{% endif %}" href="{% url 'bank-reconciliation-portal' %}">
+              <span>Bank Statement Reconciler</span>
+            </a>
+            <a class="unfold-nav-item {% if 'cash-envelopes' in request.path %}is-active{% endif %}" href="/operations/cash-envelopes/">
+              <span>Trip Cash Envelopes</span>
+            </a>
+            <a class="unfold-nav-item" href="/finance/fastag-reconciliation/">
+              <span>FASTag Reconciler</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Column Group 8: Clients & Rate Cards -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-address-book" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Clients &amp; Rate Cards</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'generate-statement' %}is-active{% endif %}" href="{% url 'generate-statement' %}">
+              <span>Customer Ledgers</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'client_pending_payments' %}is-active{% endif %}" href="{% url 'crm:client_pending_payments' %}">
+              <span>Pending Receivables</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">
+              <span>Outsourced Settlements</span>
+            </a>
+            <a class="unfold-nav-item" href="/admin/pricing/">
+              <span>Client Rate Cards</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Column Group 9: Vehicles -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-bus-simple" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Vehicles</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-vehicles-roster' %}is-active{% endif %}" href="{% url 'fleet-vehicles-roster' %}">
+              <span>Fleet Vehicles Roster</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-drivers-roster' %}is-active{% endif %}" href="{% url 'fleet-drivers-roster' %}">
+              <span>Fleet Drivers Roster</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'operations-fleet-radar' %}is-active{% endif %}" href="{% url 'operations-fleet-radar' %}">
+              <span>Live GPS Telematics</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'vehicle-profitability' %}is-active{% endif %}" href="{% url 'vehicle-profitability' %}">
+              <span>Vehicle Profitability</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'party-profitability' %}is-active{% endif %}" href="{% url 'party-profitability' %}">
+              <span>Party Profitability</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Column Group 10: Safety & Compliance -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-shield-halved" style="width: 16px; text-align: center; color: #16a34a;"></i>
+              <span>Safety &amp; Compliance</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if 'border-permits' in request.path %}is-active{% endif %}" href="/operations/border-permits/">
+              <span>Border Permits Sentry</span>
+            </a>
+            <a class="unfold-nav-item {% if 'driver-fatigue-sentry' in request.path %}is-active{% endif %}" href="/operations/driver-fatigue-sentry/">
+              <span>Chauffeur Fatigue Sentry</span>
+            </a>
+            <a class="unfold-nav-item {% if 'echallan-sentry' in request.path %}is-active{% endif %}" href="/operations/echallan-sentry/">
+              <span>Traffic E-Challan Sentry</span>
+            </a>
+            <a class="unfold-nav-item {% if 'statutory-compliance' in request.path %}is-active{% endif %}" href="/operations/statutory-compliance/">
+              <span>RTO Fitness &amp; AIS-140</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Column Group 11: Maintenance -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-wrench" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>Maintenance</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'compliance_dashboard' %}is-active{% endif %}" href="{% url 'maintenance:compliance_dashboard' %}">
+              <span>Maintenance &amp; Service</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'tire_studio' %}is-active{% endif %}" href="{% url 'maintenance:tire_studio' %}">
+              <span>Tire &amp; Axle Studio</span>
+            </a>
+            <a class="unfold-nav-item {% if 'workshop' in request.path %}is-active{% endif %}" href="/maintenance/workshop/">
+              <span>Workshop Mechanic Studio</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'damage_marker_studio' %}is-active{% endif %}" href="{% url 'maintenance:damage_marker_studio' %}">
+              <span>Damage &amp; Inspection</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Column Group 12: All Applications -->
+        <div class="unfold-nav-group">
+          <div class="unfold-group-header" onclick="toggleNavGroup(this)">
+            <div class="unfold-group-title">
+              <i class="fa-solid fa-layer-group" style="width: 16px; text-align: center; color: #64748b;"></i>
+              <span>All applications</span>
+            </div>
+            <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
+          </div>
+          <div class="unfold-group-links">
+            <a class="unfold-nav-item" href="{% url 'admin:index' %}" style="font-weight: 700; color: #0284c7;">
+              <i class="fa-solid fa-crown" style="color: #f59e0b; width: 14px;"></i>
+              <span>Unfold Admin Workspace</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'operations-database-health' %}is-active{% endif %}" href="{% url 'operations-database-health' %}">
+              <span>Database Health</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'accounting-export' %}is-active{% endif %}" href="{% url 'accounting-export' %}">
+              <span>Tally, Zoho &amp; Payroll</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'supplier_list' %}is-active{% endif %}" href="{% url 'crm:supplier_list' %}">
+              <span>Tariffs &amp; Master Data</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 4. Sticky Bottom User Card (Matching Django Unfold Admin Model) -->
+      <div class="unfold-user-bottom-wrap">
+        <div class="unfold-user-card" id="unfold-user-card-btn" onclick="toggleUnfoldUserMenu(event)">
+          <div class="unfold-user-left">
+            <div class="unfold-user-avatar">
+              {{ request.user.first_name|default:request.user.username|make_list|first|upper|default:"R" }}
+            </div>
+            <div class="unfold-user-meta">
+              <div class="unfold-user-name">
+                {{ request.user.get_full_name|default:request.user.username|default:"Rajesh Kannan" }}
+              </div>
+              <div class="unfold-user-email">
+                {{ request.user.email|default:"rajesh.k@sivagayathiri.in" }}
+              </div>
+            </div>
+          </div>
+          <div class="unfold-user-action-icon">
+            <i class="fa-solid fa-up-down"></i>
+          </div>
+        </div>
+
+        <!-- Popover Menu for Bottom User Card -->
+        <div class="unfold-user-popover" id="unfold-user-popover-menu">
+          <div class="unfold-popover-header">
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.05em;">Signed in as</div>
+            <div style="font-size: 13px; font-weight: 700; color: #0f172a; margin-top: 2px;">
+              {{ request.user.get_full_name|default:request.user.username|default:"Rajesh Kannan" }}
+            </div>
+            <div style="display: flex; gap: 4px; margin-top: 4px;">
+              <span style="font-size: 10px; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 4px;">
+                {% if request.user.is_superuser %}Superuser{% else %}Operations Lead{% endif %}
+              </span>
+            </div>
+          </div>
+
+          <a href="{% url 'admin:index' %}" class="unfold-popover-item">
+            <i class="fa-solid fa-crown" style="color: #f59e0b; width: 16px;"></i>
+            <span>Django Unfold Admin</span>
+          </a>
+
+          <a href="{% url 'staff-roles-matrix' %}" class="unfold-popover-item">
+            <i class="fa-solid fa-shield-halved" style="color: #64748b; width: 16px;"></i>
+            <span>Staff Permissions</span>
+          </a>
+
+          <div style="border-top: 1px solid #f1f5f9; margin: 4px 0;"></div>
+
+          <form method="post" action="{% url 'logout' %}" style="margin: 0; width: 100%;">
+            {% csrf_token %}
+            <button type="submit" class="unfold-popover-item" style="color: #ef4444;">
+              <i class="fa-solid fa-arrow-right-from-bracket" style="width: 16px;"></i>
+              <span style="font-weight: 600;">Sign Out</span>
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
     <div class="main-shell">
@@ -1233,6 +1720,94 @@
       });
     }
   });
+  
+  // ═══ Django Unfold Sidebar Accordion & Popover Logic ═══
+  function toggleNavGroup(el) {
+    var group = el.closest('.unfold-nav-group');
+    if (group) {
+      group.classList.toggle('is-open');
+    }
+  }
+
+  function toggleUnfoldUserMenu(e) {
+    if (e) e.stopPropagation();
+    var pop = document.getElementById('unfold-user-popover-menu');
+    if (pop) {
+      pop.classList.toggle('is-open');
+    }
+  }
+
+  document.addEventListener('click', function(e) {
+    var pop = document.getElementById('unfold-user-popover-menu');
+    var btn = document.getElementById('unfold-user-card-btn');
+    if (pop && pop.classList.contains('is-open')) {
+      if (!pop.contains(e.target) && !btn.contains(e.target)) {
+        pop.classList.remove('is-open');
+      }
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-open accordion containing active item
+    document.querySelectorAll('.unfold-nav-group').forEach(function(grp) {
+      if (grp.querySelector('.unfold-nav-item.is-active')) {
+        grp.classList.add('is-open');
+      }
+    });
+
+    // Real-time filter for Unfold sidebar groups and items
+    var navInput = document.getElementById('sidebar-filter-input');
+    if (navInput) {
+      navInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        var groups = document.querySelectorAll('.unfold-nav-group');
+        groups.forEach(function(grp) {
+          var items = grp.querySelectorAll('.unfold-nav-item');
+          var grpMatch = false;
+          items.forEach(function(item) {
+            var t = item.textContent.toLowerCase();
+            if (!query || t.indexOf(query) !== -1) {
+              item.style.display = '';
+              grpMatch = true;
+            } else {
+              item.style.display = 'none';
+            }
+          });
+          var headerText = grp.querySelector('.unfold-group-header');
+          var titleMatch = headerText && headerText.textContent.toLowerCase().indexOf(query) !== -1;
+          if (!query) {
+            grp.style.display = '';
+            if (grp.querySelector('.unfold-nav-item.is-active')) {
+              grp.classList.add('is-open');
+            } else {
+              grp.classList.remove('is-open');
+            }
+          } else if (grpMatch || titleMatch) {
+            grp.style.display = '';
+            grp.classList.add('is-open');
+            if (titleMatch) {
+              items.forEach(function(i) { i.style.display = ''; });
+            }
+          } else {
+            grp.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    // Ctrl+K Shortcut to focus search
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        var input = document.getElementById('sidebar-filter-input');
+        if (input) {
+          e.preventDefault();
+          input.focus();
+          input.select();
+        }
+      }
+    });
+  });
+
   </script>
 
   <!-- ⚡ P1: Rathasārathi Smart Lead Ingest Modal (Global) -->

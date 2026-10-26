@@ -73,10 +73,10 @@ html.dark .unfold-kpi-meta-sub {
     color: #64748b;
 }
 
-/* Command Hero Banners (Clean Light Theme Cards - Zero Gradients) */
+/* Command Hero Banners (Clean Light Theme Cards - Distinct Borders) */
 .enterprise-hero-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-radius: 12px;
     padding: 18px 24px;
     margin-bottom: 20px;
@@ -86,6 +86,25 @@ html.dark .unfold-kpi-meta-sub {
     flex-wrap: wrap;
     gap: 16px;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.enterprise-hero-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+.enterprise-hero-card.banner-rathasarathi {
+    border: 1.5px solid #7dd3fc !important;
+    border-left: 6px solid #0284c7 !important;
+    background: #ffffff !important;
+}
+.enterprise-hero-card.banner-radar {
+    border: 1.5px solid #86efac !important;
+    border-left: 6px solid #16a34a !important;
+    background: #ffffff !important;
+}
+.enterprise-hero-card.banner-payment {
+    border: 1.5px solid #a5b4fc !important;
+    border-left: 6px solid #4f46e5 !important;
+    background: #ffffff !important;
 }
 .enterprise-hero-icon {
     width: 46px;
@@ -198,7 +217,7 @@ html.dark .unfold-kpi-meta-sub {
 </div>
 
 <!-- ═══ Rathasārathi AI Operations Business Brain Command Banner ═══ -->
-<div class="enterprise-hero-card">
+<div class="enterprise-hero-card banner-rathasarathi">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div class="enterprise-hero-icon" style="background: #f0f9ff; border: 1px solid #bae6fd; color: #0284c7;">
             ☸️
@@ -224,7 +243,7 @@ html.dark .unfold-kpi-meta-sub {
 </div>
 
 <!-- ═══ Live Operations Radar Command Banner ═══ -->
-<div class="enterprise-hero-card">
+<div class="enterprise-hero-card banner-radar">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div class="enterprise-hero-icon" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a;">
             <span class="material-symbols-outlined" style="font-size: 26px; color: #16a34a;">satellite_alt</span>
@@ -250,7 +269,7 @@ html.dark .unfold-kpi-meta-sub {
 </div>
 
 <!-- ═══ Dynamic UPI & Multi-Gateway Studio Command Banner ═══ -->
-<div class="enterprise-hero-card">
+<div class="enterprise-hero-card banner-payment">
     <div style="display: flex; align-items: center; gap: 16px;">
         <div class="enterprise-hero-icon" style="background: #eef2ff; border: 1px solid #c7d2fe; color: #4f46e5;">
             <span class="material-symbols-outlined" style="font-size: 26px; color: #4f46e5;">qr_code_2</span>
