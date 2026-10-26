@@ -2,140 +2,275 @@
 {% load i18n %}
 
 {% block content %}
-<!-- ═══ KPI Dashboard Cards ═══ -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+<style>
+/* Clean Enterprise Unfold KPI Cards & Banners (No Gradients) */
+.unfold-kpis-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.unfold-clean-kpi {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.unfold-clean-kpi:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.unfold-kpi-meta-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+}
+.unfold-kpi-meta-val {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+    margin-top: 4px;
+}
+.unfold-kpi-meta-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+.unfold-kpi-badge-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Dark Mode Overrides for KPIs */
+html.dark .unfold-clean-kpi {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+html.dark .unfold-clean-kpi:hover {
+    border-color: #475569;
+}
+html.dark .unfold-kpi-meta-label {
+    color: #94a3b8;
+}
+html.dark .unfold-kpi-meta-val {
+    color: #f8fafc;
+}
+html.dark .unfold-kpi-meta-sub {
+    color: #64748b;
+}
+
+/* Command Hero Banners (Clean Flat Slate Solid Surfaces - Zero Gradients) */
+.enterprise-hero-card {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.enterprise-hero-icon {
+    width: 46px;
+    height: 46px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 24px;
+}
+.enterprise-hero-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.enterprise-pill-badge {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2.5px 8px;
+    border-radius: 4px;
+}
+.enterprise-hero-desc {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+.enterprise-btn-solid {
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+.enterprise-btn-secondary {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #ffffff !important;
+}
+.enterprise-btn-secondary:hover {
+    background: #334155;
+    border-color: #475569;
+}
+</style>
+
+<!-- ═══ KPI Dashboard Cards (Clean Solid Surface, No AI Gradients) ═══ -->
+<div class="unfold-kpis-container">
 
     <!-- Active Trips -->
-    <div style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(14,165,233,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(14,165,233,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(14,165,233,0.3)'">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Active Trips</div>
-                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ active_trips_count|default:"0" }}</div>
-            </div>
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">route</span>
-            </div>
+    <div class="unfold-clean-kpi">
+        <div>
+            <div class="unfold-kpi-meta-label">Active Trips</div>
+            <div class="unfold-kpi-meta-val">{{ active_trips_count|default:"0" }}</div>
+            <div class="unfold-kpi-meta-sub">Today's live operations</div>
         </div>
-        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Today's live operations</div>
+        <div class="unfold-kpi-badge-icon" style="background: #e0f2fe; color: #0284c7;">
+            <span class="material-symbols-outlined" style="font-size: 26px;">route</span>
+        </div>
     </div>
 
     <!-- Active Drivers -->
-    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(16,185,129,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(16,185,129,0.3)'">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Active Drivers</div>
-                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ active_drivers_count|default:"0" }}</div>
-            </div>
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">person</span>
-            </div>
+    <div class="unfold-clean-kpi">
+        <div>
+            <div class="unfold-kpi-meta-label">Active Drivers</div>
+            <div class="unfold-kpi-meta-val">{{ active_drivers_count|default:"0" }}</div>
+            <div class="unfold-kpi-meta-sub">Fleet crew on duty</div>
         </div>
-        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Fleet crew on duty</div>
+        <div class="unfold-kpi-badge-icon" style="background: #dcfce7; color: #16a34a;">
+            <span class="material-symbols-outlined" style="font-size: 26px;">person</span>
+        </div>
     </div>
 
     <!-- Pending Bookings -->
-    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(245,158,11,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(245,158,11,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(245,158,11,0.3)'">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Pending Bookings</div>
-                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ pending_bookings_count|default:"0" }}</div>
-            </div>
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">event</span>
-            </div>
+    <div class="unfold-clean-kpi">
+        <div>
+            <div class="unfold-kpi-meta-label">Pending Bookings</div>
+            <div class="unfold-kpi-meta-val">{{ pending_bookings_count|default:"0" }}</div>
+            <div class="unfold-kpi-meta-sub">Awaiting confirmation</div>
         </div>
-        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Awaiting confirmation</div>
+        <div class="unfold-kpi-badge-icon" style="background: #fef3c7; color: #d97706;">
+            <span class="material-symbols-outlined" style="font-size: 26px;">event</span>
+        </div>
     </div>
 
     <!-- Unsettled Advances -->
-    <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; padding: 20px 24px; color: white; box-shadow: 0 4px 14px rgba(239,68,68,0.3); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(239,68,68,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(239,68,68,0.3)'">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-                <div style="font-size: 13px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase;">Unsettled Advances</div>
-                <div style="font-size: 32px; font-weight: 700; margin-top: 4px; line-height: 1;">{{ unsettled_advances_count|default:"0" }}</div>
-            </div>
-            <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <span class="material-symbols-outlined" style="font-size: 28px; color: white;">payments</span>
-            </div>
+    <div class="unfold-clean-kpi">
+        <div>
+            <div class="unfold-kpi-meta-label">Unsettled Advances</div>
+            <div class="unfold-kpi-meta-val">{{ unsettled_advances_count|default:"0" }}</div>
+            <div class="unfold-kpi-meta-sub">Pending driver settlements</div>
         </div>
-        <div style="margin-top: 12px; font-size: 12px; opacity: 0.75;">Pending driver settlements</div>
+        <div class="unfold-kpi-badge-icon" style="background: #fee2e2; color: #dc2626;">
+            <span class="material-symbols-outlined" style="font-size: 26px;">payments</span>
+        </div>
     </div>
 
 </div>
 
 <!-- ═══ Rathasārathi AI Operations Business Brain Command Banner ═══ -->
-<div class="admin-dark-hero" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #b45309 100%); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 18px 24px; margin-bottom: 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 20px rgba(2, 132, 199, 0.25);">
+<div class="enterprise-hero-card admin-dark-hero">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px;">
+        <div class="enterprise-hero-icon" style="background: #1e293b; color: #38bdf8;">
             ☸️
         </div>
         <div>
-            <div style="font-weight: 700; color: #ffffff; font-size: 16px; display: flex; align-items: center; gap: 10px;">
+            <div class="enterprise-hero-title">
                 <span>Rathasārathi AI Operations Business Brain</span>
-                <span style="font-size: 11px; text-transform: uppercase; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">Powered by Groq LLM</span>
+                <span class="enterprise-pill-badge" style="background: #0284c7; color: #ffffff;">Powered by Groq LLM</span>
             </div>
-            <div style="font-size: 13px; color: #f1f5f9; margin-top: 3px;">
-                Intelligent fleet charioteer & operations copilot. Instant queries on active tours, insurance/PUC renewals, driver safety scorecards, and revenue collection.
+            <div class="enterprise-hero-desc">
+                Intelligent fleet charioteer &amp; operations copilot. Instant queries on active tours, insurance/PUC renewals, driver safety scorecards, and revenue collection.
             </div>
         </div>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
-        <a href="/admin/operations/rathasarathi-ai/" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 40%, #d97706 100%); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4); border: 1px solid rgba(255,255,255,0.25); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
-            <span style="font-size: 18px;">☸️</span> Launch Rathasārathi Studio
+        <a href="/admin/operations/rathasarathi-ai/" class="enterprise-btn-solid" style="background: #0284c7; color: #ffffff; border: 1px solid #0369a1;" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">
+            <span style="font-size: 16px;">☸️</span> Launch Rathasārathi Studio
         </a>
-        <button onclick="toggleRathasarathiPanel()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #ffffff; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+        <button type="button" onclick="toggleRathasarathiPanel()" class="enterprise-btn-solid enterprise-btn-secondary">
             <span style="font-size: 16px;">💬</span> Quick Chat
         </button>
     </div>
 </div>
 
 <!-- ═══ Live Operations Radar Command Banner ═══ -->
-<div class="admin-dark-hero" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 12px; padding: 18px 24px; margin-bottom: 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+<div class="enterprise-hero-card admin-dark-hero">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 48px; height: 48px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #38bdf8;">satellite_alt</span>
+        <div class="enterprise-hero-icon" style="background: #1e293b; color: #38bdf8;">
+            <span class="material-symbols-outlined" style="font-size: 26px; color: #38bdf8;">satellite_alt</span>
         </div>
         <div>
-            <div style="font-weight: 700; color: #ffffff; font-size: 16px; display: flex; align-items: center; gap: 10px;">
-                <span>🛰️ Live Fleet Operations & Telematics Radar</span>
-                <span style="font-size: 11px; text-transform: uppercase; background: #0284c7; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">Live GPS</span>
+            <div class="enterprise-hero-title">
+                <span>🛰️ Live Fleet Operations &amp; Telematics Radar</span>
+                <span class="enterprise-pill-badge" style="background: #0284c7; color: #ffffff;">Live GPS</span>
             </div>
-            <div style="font-size: 13px; color: #e2e8f0; margin-top: 3px;">
+            <div class="enterprise-hero-desc">
                 Interactive Leaflet mission control with 148 fleet vehicles, active telematics pings, geofence status, and instant standby unit dispatch.
             </div>
         </div>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
-        <a href="/admin/operations/fleet-radar/" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(2,132,199,0.35); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <a href="/admin/operations/fleet-radar/" class="enterprise-btn-solid" style="background: #0284c7; color: #ffffff; border: 1px solid #0369a1;" onmouseover="this.style.background='#0369a1'" onmouseout="this.style.background='#0284c7'">
             <span class="material-symbols-outlined" style="font-size: 18px;">satellite_alt</span> Launch Admin Radar Map
         </a>
-        <a href="/admin/operations/trip/" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        <a href="/admin/operations/trip/" class="enterprise-btn-solid enterprise-btn-secondary">
             <span class="material-symbols-outlined" style="font-size: 18px;">alt_route</span> Active Trips
         </a>
     </div>
 </div>
 
 <!-- ═══ Dynamic UPI & Multi-Gateway Studio Command Banner ═══ -->
-<div class="admin-dark-hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); border: 1px solid #4338ca; border-radius: 12px; padding: 18px 24px; margin-bottom: 26px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.25);">
+<div class="enterprise-hero-card admin-dark-hero">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div style="width: 48px; height: 48px; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.35); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-            <span class="material-symbols-outlined" style="font-size: 28px; color: #818cf8;">qr_code_2</span>
+        <div class="enterprise-hero-icon" style="background: #1e293b; color: #818cf8;">
+            <span class="material-symbols-outlined" style="font-size: 26px; color: #818cf8;">qr_code_2</span>
         </div>
         <div>
-            <div style="font-weight: 700; color: #ffffff; font-size: 16px; display: flex; align-items: center; gap: 10px;">
-                <span>⚡ Dynamic UPI QR & Payment Gateway Studio</span>
-                <span style="font-size: 11px; text-transform: uppercase; background: #4f46e5; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">Auto GL Posting</span>
+            <div class="enterprise-hero-title">
+                <span>⚡ Dynamic UPI QR &amp; Payment Gateway Studio</span>
+                <span class="enterprise-pill-badge" style="background: #4f46e5; color: #ffffff;">Auto GL Posting</span>
             </div>
-            <div style="font-size: 13px; color: #e2e8f0; margin-top: 3px;">
-                NPCI Dynamic UPI QRs, Razorpay & Cashfree webhook ingestion, instant 12-digit UTR reconciliation, and automated Double-Entry General Ledger posting.
+            <div class="enterprise-hero-desc">
+                NPCI Dynamic UPI QRs, Razorpay &amp; Cashfree webhook ingestion, instant 12-digit UTR reconciliation, and automated Double-Entry General Ledger posting.
             </div>
         </div>
     </div>
     <div style="display: flex; align-items: center; gap: 10px;">
-        <a href="/admin/finance/payment-studio/" style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(79,70,229,0.35); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <a href="/admin/finance/payment-studio/" class="enterprise-btn-solid" style="background: #4f46e5; color: #ffffff; border: 1px solid #4338ca;" onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
             <span class="material-symbols-outlined" style="font-size: 18px;">point_of_sale</span> Launch Payment Studio
         </a>
-        <a href="/admin/finance/journalentry/" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+        <a href="/admin/finance/journalentry/" class="enterprise-btn-solid enterprise-btn-secondary">
             <span class="material-symbols-outlined" style="font-size: 18px;">menu_book</span> General Ledger
         </a>
     </div>
