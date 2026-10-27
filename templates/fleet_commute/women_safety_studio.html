@@ -1,13 +1,14 @@
-{% extends "unfold/layouts/base.html" %}
-{% load static i18n unfold %}
+{% extends 'base.html' %}
+{% load static i18n %}
 
-{% block title %}🛡️ Women Safety IVR Simulator & Commute Buddy Command | {{ site_title|default:"TravelERP" }}{% endblock %}
+{% block title %}🛡️ Women Safety IVR Simulator & Commute Buddy Command | TravelERP{% endblock %}
+{% block header_title %}Women Safety Command & IVR Simulator{% endblock %}
 
 {% block breadcrumbs %}
 <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
     <span>/</span>
-    <a href="/admin/fleet_commute/commutermanifestproxy/" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <a href="{% url 'fleet_commute:roster_dispatcher_studio' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
     <span>/</span>
     <span class="text-gray-900 dark:text-white font-semibold">🛡️ Women Safety & IVR Simulator</span>
 </div>
@@ -21,10 +22,17 @@
 <style>
 .safety-container {
     padding: 24px;
-    background: #090d16;
-    color: #f8fafc;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
     min-height: calc(100vh - 120px);
     font-family: 'Plus Jakarta Sans', sans-serif;
+}
+html.dark .safety-container {
+    background: #090d16;
+    color: #f8fafc;
+    border-color: #1e293b;
 }
 .safety-header {
     display: flex;

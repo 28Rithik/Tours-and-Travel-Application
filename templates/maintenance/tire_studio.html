@@ -19,8 +19,8 @@
       <button type="button" class="button" onclick="runFleetPMAudit()" id="btnRunPMAudit" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: white; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
         <span>⚡ Run Fleet PM Audit</span>
       </button>
-      <a href="/admin/maintenance/vehicleasset/" class="button button-quiet" style="display: inline-flex; align-items: center; gap: 6px;">
-        <span>📋 Asset Inventory Admin</span>
+      <a href="/maintenance/workshop/" class="button button-quiet" style="display: inline-flex; align-items: center; gap: 6px;">
+        <span>🛠️ Workshop Studio</span>
       </a>
     </div>
   </div>
@@ -157,8 +157,8 @@
       {% else %}
         <div style="grid-column: 1 / -1; padding: 36px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1;">
           <p style="font-size: 14px; margin: 0 0 8px 0;">No active wheel assets assigned to this vehicle yet.</p>
-          <a href="/admin/maintenance/vehicleasset/add/?vehicle={{ selected_vehicle.id }}&asset_type=tyre" target="_blank" class="button button-primary" style="font-size: 12px;">
-            + Mount First Tire Asset
+          <a href="/maintenance/workshop/" class="button button-primary" style="font-size: 12px;">
+            + Mount Tire in Workshop
           </a>
         </div>
       {% endif %}
@@ -170,7 +170,7 @@
 <div style="background: var(--card-bg, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
     <h3 style="font-size: 15px; font-weight: 800; color: #0f172a; margin: 0;">📋 Recent Physical Inspection Audit Logs</h3>
-    <a href="/admin/maintenance/tireinspectionlog/" class="button button-quiet" style="font-size: 11px;">View All Logs &rarr;</a>
+    <a href="/maintenance/compliance/" class="button button-quiet" style="font-size: 11px;">View All Logs &rarr;</a>
   </div>
 
   <div style="overflow-x: auto;">

@@ -997,7 +997,7 @@
             <a class="unfold-nav-item {% if request.resolver_match.app_name == 'packages' and request.resolver_match.url_name == 'catalog' %}is-active{% endif %}" href="{% url 'packages:catalog' %}">
               <span>Packages Catalog</span>
             </a>
-            <a class="unfold-nav-item {% if 'itinerary-builder' in request.path or 'itinerary' in request.path %}is-active{% endif %}" href="/admin/operations/itinerary-builder/">
+            <a class="unfold-nav-item {% if 'itinerary-builder' in request.path or 'itinerary' in request.path %}is-active{% endif %}" href="{% url 'operations-itinerary-builder-hub' %}">
               <span>Itinerary Builder</span>
             </a>
             <a class="unfold-nav-item {% if 'pnr-arrivals' in request.path %}is-active{% endif %}" href="/operations/pnr-arrivals/">
@@ -1019,7 +1019,7 @@
             <a class="unfold-nav-item" href="/packages/">
               <span>Group Excursions</span>
             </a>
-            <a class="unfold-nav-item" href="/admin/package_tours/collegeivproxy/">
+            <a class="unfold-nav-item {% if 'tab=expeditions' in request.get_full_path %}is-active{% endif %}" href="/packages/?tab=expeditions">
               <span>College IV Manifests</span>
             </a>
             <a class="unfold-nav-item {% if request.resolver_match.url_name == 'manifest_grid_default' %}is-active{% endif %}" href="{% url 'packages:manifest_grid_default' %}">
@@ -1038,13 +1038,13 @@
             <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
           </div>
           <div class="unfold-group-links">
-            <a class="unfold-nav-item" href="/admin/fleet_commute/corporatecontract/">
+            <a class="unfold-nav-item {% if 'contracts' in request.path and 'tab=contracts' in request.get_full_path %}is-active{% endif %}" href="{% url 'commute-contracts-studio' %}?tab=contracts">
               <span>Corporate Contracts</span>
             </a>
-            <a class="unfold-nav-item" href="/admin/fleet_commute/corporatecommuteroute/">
+            <a class="unfold-nav-item {% if 'contracts' in request.path and 'tab=routes' in request.get_full_path %}is-active{% endif %}" href="{% url 'commute-contracts-studio' %}?tab=routes">
               <span>Shuttle Routes</span>
             </a>
-            <a class="unfold-nav-item" href="/admin/fleet_commute/corporatecommuteshift/">
+            <a class="unfold-nav-item {% if 'contracts' in request.path and 'tab=shifts' in request.get_full_path %}is-active{% endif %}" href="{% url 'commute-contracts-studio' %}?tab=shifts">
               <span>Commute Shifts</span>
             </a>
           </div>
@@ -1122,7 +1122,7 @@
             <a class="unfold-nav-item {% if request.resolver_match.url_name == 'settlement-hub' %}is-active{% endif %}" href="{% url 'suppliers:settlement-hub' %}">
               <span>Outsourced Settlements</span>
             </a>
-            <a class="unfold-nav-item" href="/admin/pricing/">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'client-pricing-studio' %}is-active{% endif %}" href="{% url 'client-pricing-studio' %}">
               <span>Client Rate Cards</span>
             </a>
           </div>

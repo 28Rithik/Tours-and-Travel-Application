@@ -365,8 +365,8 @@
           <a href="{% url 'crm:quotation_create' %}?inquiry_id={{ inq.id }}" class="button button-quiet" style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; background: #0f766e; color: #fff; text-decoration: none;">
             <i class="fa-solid fa-file-invoice"></i> Build Quote
           </a>
-          <a href="/admin/crm/inquiry/{{ inq.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;" target="_blank">
-            <i class="fa-solid fa-pen-to-square"></i> Edit
+          <a href="{% url 'crm:kanban_board' %}?q={{ inq.contact_name|urlencode }}" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; border-radius: 4px; text-decoration: none;">
+            <i class="fa-solid fa-pen-to-square"></i> Open in CRM
           </a>
         </td>
       </tr>

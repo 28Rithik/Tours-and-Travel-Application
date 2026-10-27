@@ -1,27 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Petty Cash Float Register & Cash Wallet Studio | TravelERP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% extends 'base.html' %}
+{% load static %}
 
-  <script>
-    (function() {
-      try {
-        var raw = localStorage.getItem('_x_adminTheme');
-        var t = raw ? JSON.parse(raw) : (localStorage.getItem('theme') || 'light');
-        if (t !== 'dark') {
-          document.documentElement.classList.add('light-mode');
-        }
-      } catch(e) {
-        document.documentElement.classList.add('light-mode');
-      }
-    })();
-  </script>
+{% block title %}Petty Cash Float Register & Cash Wallet Studio | TravelERP{% endblock %}
+{% block header_title %}Petty Cash Float Register{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Petty Cash Float</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
 
   <style>
     :root {
@@ -206,14 +197,9 @@
     }
 
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    .studio-wrapper {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 60px;
-      overflow-x: hidden;
     }
 
     /* Ambient glow circles */
@@ -665,27 +651,23 @@
     #toast.success { border-color: var(--accent); color: #34d399; }
     #toast.error { border-color: var(--danger); color: #f87171; }
   </style>
-</head>
-<body class="light-mode">
-  <div class="ambient-glow glow-1"></div>
-  <div class="ambient-glow glow-2"></div>
+{% endblock %}
 
-  <!-- Top Sticky Header -->
-  <header class="top-bar">
-    <div class="brand-section">
-      <a href="{% url 'dashboard' %}" class="back-btn">
-        <i class="fa-solid fa-arrow-left"></i> Operations Desk
-      </a>
-      <div class="studio-title">
+{% block content %}
+<div class="studio-wrapper">
+  <!-- Top Action Card -->
+  <div class="studio-header-card" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div style="font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
         <i class="fa-solid fa-wallet" style="color: #6366f1;"></i>
         <span>Petty Cash Float Register</span>
-        <span class="studio-badge">Phase 5 Live</span>
+        <span class="studio-badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">Phase 5 Live</span>
       </div>
 
       <!-- Enterprise Regional Hub Clearance Selector -->
       <div class="depot-scope-wrap" style="display: inline-flex; align-items: center; gap: 8px; margin-left: 14px;">
         {% if can_change_depot %}
-        <select id="pettyCashDepotSelect" onchange="switchPettyCashDepot(this.value)" style="background: rgba(255, 255, 255, 0.9); border: 1px solid #cbd5e1; color: #0284c7; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+        <select id="pettyCashDepotSelect" onchange="switchPettyCashDepot(this.value)" style="background: #ffffff; border: 1px solid #cbd5e1; color: #0284c7; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px; outline: none; cursor: pointer;">
           <option value="" {% if not current_depot %}selected{% endif %}>🌐 Consolidated (All Hubs)</option>
           <option value="Chennai Central HQ" {% if current_depot == 'Chennai Central HQ' %}selected{% endif %}>🏢 Chennai Central HQ</option>
           <option value="Coimbatore Hub" {% if current_depot == 'Coimbatore Hub' %}selected{% endif %}>🏭 Coimbatore Hub</option>
@@ -700,21 +682,18 @@
       </div>
     </div>
 
-    <div class="action-group">
-      <button type="button" class="btn btn-outline" id="btnThemeToggle" title="Toggle Theme (Light / Dark)" style="padding: 9px 13px;">
-        <i class="fa-solid fa-sun" id="themeIcon"></i>
-      </button>
+    <div class="action-group" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
       <button type="button" class="btn btn-success" id="btnOpenTopUp">
         <i class="fa-solid fa-plus-circle"></i> Top-Up Float
       </button>
       <button type="button" class="btn btn-primary" id="btnOpenDisburse">
         <i class="fa-solid fa-receipt"></i> Log Expense Voucher
       </button>
-      <a href="{% url 'driver-mobile-wallet' %}" target="_blank" class="btn btn-outline">
+      <a href="{% url 'driver-mobile-wallet' %}" class="btn btn-outline">
         <i class="fa-solid fa-mobile-screen"></i> Driver Wallet
       </a>
     </div>
-  </header>
+  </div>
 
   <!-- Studio Main Container -->
   <main class="studio-container">
@@ -875,7 +854,7 @@
               <td style="font-weight: 700; color: #e2e8f0;">₹{{ t.balance_after|floatformat:2 }}</td>
               <td>
                 {% if t.trip %}
-                  <a href="/admin/operations/trip/{{ t.trip.id }}/change/" target="_blank" style="color: #38bdf8; font-weight: 700;">#{{ t.trip.trip_id }}</a>
+                  <a href="{% url 'trip-detail' t.trip.id %}" style="color: #0284c7; font-weight: 700;">#{{ t.trip.trip_id }}</a>
                 {% else %}
                   <span style="color: var(--text-muted);">-</span>
                 {% endif %}
@@ -1164,5 +1143,5 @@
     });
     updateThemeUI();
   </script>
-</body>
-</html>
+</div>
+{% endblock %}

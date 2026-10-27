@@ -2100,3 +2100,59 @@ def api_commute_cluster_stats(request):
         'fleet_optimization_active': True,
         'timestamp': timezone.now().isoformat()
     })
+
+
+@login_required
+def contracts_studio_view(request):
+    """
+    Corporate Commute Contracts, Routes & Shifts Studio.
+    Renders inside base.html with the sidebar intact.
+    Provides tabbed navigation for Contracts, Shuttle Routes, and Shifts.
+    """
+    from django.db.models import Q
+    tab = request.GET.get('tab', 'contracts')
+    search_query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', 'all')
+
+    contracts_qs = TransportContract.objects.select_related('customer').prefetch_related('routes').order_by('-start_date')
+    routes_qs = Route.objects.select_related('contract', 'contract__customer').prefetch_related('stops', 'shifts').order_by('name')
+    shifts_qs = Shift.objects.select_related('route', 'route__contract').order_by('timing')
+
+    if search_query:
+        contracts_qs = contracts_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(customer__name__icontains=search_query)
+        )
+        routes_qs = routes_qs.filter(
+            Q(name__icontains=search_query) |
+            Q(origin__icontains=search_query) |
+            Q(destination__icontains=search_query) |
+            Q(contract__name__icontains=search_query)
+        )
+        shifts_qs = shifts_qs.filter(
+            Q(shift_name__icontains=search_query) |
+            Q(route__name__icontains=search_query)
+        )
+
+    if status_filter != 'all':
+        contracts_qs = contracts_qs.filter(status=status_filter)
+
+    counts = {
+        'total_contracts': TransportContract.objects.count(),
+        'active_contracts': TransportContract.objects.filter(status='active').count(),
+        'total_routes': Route.objects.count(),
+        'active_routes': Route.objects.filter(is_active=True).count(),
+        'total_shifts': Shift.objects.count(),
+    }
+
+    return render(request, 'fleet_commute/contracts_studio.html', {
+        'contracts': contracts_qs,
+        'routes': routes_qs,
+        'shifts': shifts_qs,
+        'counts': counts,
+        'active_tab': tab,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'contract_statuses': TransportContract.STATUSES,
+    })
+

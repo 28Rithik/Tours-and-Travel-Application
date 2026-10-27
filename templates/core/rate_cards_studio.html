@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Client Rate Cards &amp; B2B Tariffs Studio | TravelERP{% endblock %}
+{% block header_title %}Client Rate Cards &amp; Tariffs{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Client Rate Cards</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.rate-cards-wrapper {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: calc(100vh - 120px);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+html.dark .rate-cards-wrapper {
+    background: #090d16;
+}
+.kpi-deck {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+html.dark .kpi-card {
+    background: #111827;
+    border-color: #1e293b;
+}
+.kpi-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+}
+.kpi-meta h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64748b;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.05em;
+}
+.kpi-meta .num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+}
+html.dark .kpi-meta .num {
+    color: #f8fafc;
+}
+
+/* Controls Bar */
+.controls-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+html.dark .controls-bar {
+    background: #111827;
+    border-color: #1e293b;
+}
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 260px;
+    flex-wrap: wrap;
+}
+.search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #f8fafc;
+    color: #0f172a;
+}
+html.dark .search-input {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+.custom-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 13px;
+    background: #fff;
+    color: #0f172a;
+}
+html.dark .custom-select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+/* Tables */
+.table-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow-x: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+html.dark .table-card {
+    background: #111827;
+    border-color: #1e293b;
+}
+.studio-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 900px;
+}
+.studio-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+html.dark .studio-table th {
+    background: #1e293b;
+    color: #94a3b8;
+    border-color: #334155;
+}
+.studio-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+}
+html.dark .studio-table td {
+    border-color: #1f2937;
+    color: #f1f5f9;
+}
+.studio-table tr:hover {
+    background: #f8fafc;
+}
+html.dark .studio-table tr:hover {
+    background: #1f2937;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rate-cards-wrapper">
+
+    <!-- KPI Deck -->
+    <div class="kpi-deck">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">
+                <i class="fa-solid fa-address-book"></i>
+            </div>
+            <div class="kpi-meta">
+                <h4>Total Rate Cards</h4>
+                <div class="num">{{ counts.total_cards }} Active</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
+                <i class="fa-solid fa-handshake"></i>
+            </div>
+            <div class="kpi-meta">
+                <h4>B2B Parties Covered</h4>
+                <div class="num">{{ counts.parties_with_cards }} Parties</div>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(99, 102, 241, 0.12); color: #4f46e5;">
+                <i class="fa-solid fa-car-side"></i>
+            </div>
+            <div class="kpi-meta">
+                <h4>Vehicle Types Covered</h4>
+                <div class="num">{{ counts.vehicle_types_covered }} Vehicle Classes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <form method="GET" class="search-form">
+            <i class="fa-solid fa-magnifying-glass" style="color: #94a3b8;"></i>
+            <input type="text" name="q" value="{{ search_query }}" placeholder="Search by party, vehicle, or class..." class="search-input">
+            
+            <select name="party_id" onchange="this.form.submit()" class="custom-select">
+                <option value="">All Corporate Parties</option>
+                {% for p in parties %}
+                <option value="{{ p.id }}" {% if selected_party_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="vehicle_type_id" onchange="this.form.submit()" class="custom-select">
+                <option value="">All Vehicle Types</option>
+                {% for vt in vehicle_types %}
+                <option value="{{ vt.id }}" {% if selected_vt_id == vt.id|stringformat:"s" %}selected{% endif %}>{{ vt.name }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" style="padding: 8px 14px; background: #0284c7; color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer;">
+                Filter
+            </button>
+            {% if search_query or selected_party_id or selected_vt_id %}
+            <a href="{% url 'client-pricing-studio' %}" style="color: #64748b; font-size: 12px; text-decoration: none;">Reset</a>
+            {% endif %}
+        </form>
+
+        <div style="display: flex; gap: 8px;">
+            <a href="{% url 'fleet-types' %}" style="padding: 8px 14px; background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-list-check"></i> Vehicle Type Master
+            </a>
+            <a href="{% url 'crm:partner_list' %}" style="padding: 8px 14px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; border-radius: 8px; font-weight: 700; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-building-user"></i> Party Master
+            </a>
+        </div>
+    </div>
+
+    <!-- Rate Cards Table -->
+    <div class="table-card">
+        <table class="studio-table">
+            <thead>
+                <tr>
+                    <th>B2B Client / Party</th>
+                    <th>Vehicle Specification</th>
+                    <th>Base Rates (Day / KM)</th>
+                    <th>Extra KM Rate</th>
+                    <th>Driver Bata</th>
+                    <th>Night Halt</th>
+                    <th>Validity Period</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rc in rate_cards %}
+                <tr>
+                    <td>
+                        <strong style="color: #0284c7; font-size: 14px;">{{ rc.party.name }}</strong>
+                        <div style="font-size: 11px; color: #64748b;">{{ rc.party.city|default:"Corporate Account" }} • {{ rc.party.phone|default:"" }}</div>
+                    </td>
+                    <td>
+                        {% if rc.vehicle %}
+                        <strong style="color: #0f172a; font-family: 'JetBrains Mono', monospace;">{{ rc.vehicle.registration_number }}</strong>
+                        <div style="font-size: 11px; color: #64748b;">{{ rc.vehicle.model }} ({{ rc.vehicle_type.name|default:"Assigned" }})</div>
+                        {% else %}
+                        <strong style="color: #4f46e5;">{{ rc.vehicle_type.name|default:"Any Vehicle in Class" }}</strong>
+                        <div style="font-size: 11px; color: #64748b;">Standard Category Tariff</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                            Day: <strong style="color: #059669;">₹{{ rc.day_rate|floatformat:2 }}</strong>
+                        </div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #64748b;">
+                            KM: ₹{{ rc.km_rate|floatformat:2 }}
+                        </div>
+                    </td>
+                    <td>
+                        <strong style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #d97706;">
+                            ₹{{ rc.extra_km_rate|floatformat:2 }}/km
+                        </strong>
+                    </td>
+                    <td>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                            ₹{{ rc.driver_bata|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+                            ₹{{ rc.night_charges|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 12px; font-family: 'JetBrains Mono', monospace;">
+                            From: {{ rc.effective_from|date:"d M Y" }}
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace;">
+                            To: {{ rc.effective_to|date:"d M Y"|default:"Indefinite" }}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="padding: 40px; text-align: center; color: #94a3b8;">
+                        <i class="fa-solid fa-address-card" style="font-size: 32px; margin-bottom: 8px;"></i>
+                        <div>No client rate cards found matching your filter criteria.</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

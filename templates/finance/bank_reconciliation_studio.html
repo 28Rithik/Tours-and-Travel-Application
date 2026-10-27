@@ -1,22 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bank Statement Auto-Reconciler & UTR Match Studio | TravelERP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  <script>
-    (function() {
-      var savedTheme = localStorage.getItem('theme') || localStorage.getItem('_x_adminTheme') || 'light';
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    })();
-  </script>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bank Statement Auto-Reconciler & UTR Match Studio | TravelERP{% endblock %}
+{% block header_title %}Bank Statement Reconciler{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Bank Statement Reconciler</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     :root, html:not(.dark) {
@@ -51,14 +48,9 @@
       --glass: blur(14px);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    .studio-wrapper {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 70px;
-      overflow-x: hidden;
     }
 
     /* Ambient Glow spheres */
@@ -492,46 +484,37 @@
     html:not(.dark) .status-matched { background: #e0f2fe; color: #0369a1; }
     html:not(.dark) .status-unmatched { background: #f1f5f9; color: #64748b; }
   </style>
-</head>
-<body>
+{% endblock %}
 
-  <div class="glow glow-1"></div>
-  <div class="glow glow-2"></div>
-
-  <!-- Header -->
-  <header class="app-header">
-    <div class="brand-wrap">
-      <div class="brand-icon"><i class="fa-solid fa-building-columns"></i></div>
-      <div class="brand-text">
-        <h1>Bank Statement Auto-Reconciler</h1>
-        <div class="brand-sub">
-          <span>Enterprise Cash Flow &amp; UTR Reconciliation Engine</span>
-          <span>•</span>
-          <span style="color: var(--accent);">● Real-Time Ready</span>
-        </div>
+{% block content %}
+<div class="studio-wrapper">
+  <!-- Top Action Card -->
+  <div class="studio-header-card" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div style="font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-building-columns" style="color: var(--primary);"></i>
+        <span>Bank Statement Auto-Reconciler</span>
+        <span class="studio-badge" style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">● Real-Time Ready</span>
+      </div>
+      <div style="color: var(--text-muted); font-size: 12px;">
+        Enterprise Cash Flow &amp; UTR Reconciliation Engine
       </div>
     </div>
 
-    <div class="header-actions">
-      <button type="button" class="btn btn-outline" id="btnThemeToggle" title="Toggle Theme (Light / Dark)">
-        <i class="fa-solid fa-sun" id="themeIcon"></i>
-      </button>
+    <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
       {% if selected_upload %}
         <a href="{% url 'export-bank-reconciliation' %}?upload_id={{ selected_upload.pk }}" class="btn btn-outline">
           <i class="fa-solid fa-file-csv"></i> Export CSV Audit Report
         </a>
       {% endif %}
       <a href="/admin/finance/bankstatementupload/" class="btn btn-outline">
-        <i class="fa-solid fa-shield-halved"></i> Unfold Admin
-      </a>
-      <a href="{% url 'dashboard' %}" class="btn btn-primary">
-        &larr; Operations Desk
+        <i class="fa-solid fa-shield-halved"></i> Audit Uploads
       </a>
     </div>
-  </header>
+  </div>
 
   <!-- Main Content -->
-  <main class="studio-container">
+  <div class="studio-container">
 
     <!-- KPI Metric Cards -->
     <div class="kpi-grid">
@@ -952,5 +935,6 @@
       updateThemeUI();
     })();
   </script>
-</body>
-</html>
+  </div>
+</div>
+{% endblock %}

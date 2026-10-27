@@ -122,9 +122,9 @@
         </p>
       </div>
     </div>
-    <a href="/admin/operations/interstateborderpermit/" class="whitespace-nowrap px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 transition">
-      View in Unfold Admin &rarr;
-    </a>
+    <button type="button" onclick="switchPermitTab('permits')" class="whitespace-nowrap px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 transition cursor-pointer">
+      View Border Passes &rarr;
+    </button>
   </div>
 
   <!-- Tabs Navigation -->
@@ -175,7 +175,7 @@
             {% for item in trips_audit %}
             <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
               <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
-                <a href="/admin/operations/trip/{{ item.trip.id }}/change/" class="text-primary hover:underline">
+                <a href="{% url 'trip-detail' item.trip.id %}" class="text-primary hover:underline">
                   #{{ item.trip.trip_id }}
                 </a>
               </td>
@@ -296,9 +296,9 @@
           <h2 class="text-base font-bold text-slate-900 dark:text-white">Commercial Border Permits &amp; Parivahan Tax Register</h2>
           <p class="text-xs text-slate-500 dark:text-slate-400">Official RTO receipt ledger for state border crossings with statutory permit fee and passenger road tax breakdown</p>
         </div>
-        <a href="/admin/operations/interstateborderpermit/" class="text-xs font-semibold text-primary hover:underline">
-          Manage in Django Admin &rarr;
-        </a>
+        <span class="text-xs font-semibold text-slate-500">
+          Showing All Active Permits
+        </span>
       </div>
 
       <div class="overflow-x-auto">

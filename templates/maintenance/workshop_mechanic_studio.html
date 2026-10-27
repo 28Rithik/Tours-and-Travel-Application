@@ -1,12 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Workshop Mechanic Studio & QR Barcode Parts Checkout | TravelERP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Workshop Mechanic Studio & QR Barcode Parts Checkout | TravelERP{% endblock %}
+{% block header_title %}Workshop Mechanic Studio{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <a href="{% url 'maintenance:compliance_dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Maintenance &amp; Compliance</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Workshop Mechanic Studio</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
@@ -31,14 +39,9 @@
       --border: #e2e8f0;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
+    .studio-wrapper {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     /* Top Navigation */
@@ -713,35 +716,38 @@
       100% { top: 80%; }
     }
   </style>
-</head>
-<body>
+{% endblock %}
 
-  <!-- Top Header Navigation -->
-  <header class="top-bar">
-    <div class="brand-title">
-      <i class="fa-solid fa-wrench" style="color: #2563eb;"></i>
-      <span>Workshop Mechanic Studio</span>
-      <span class="brand-badge">Garage Floor 4.0</span>
-      {% if active_job_card %}
-        <span class="badge badge-normal" style="font-family:'JetBrains Mono'; font-weight:700;">{{ active_job_card.base_depot }}</span>
-      {% endif %}
+{% block content %}
+<div class="studio-wrapper">
+  <!-- Top Action Card -->
+  <div class="studio-header-card" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div style="font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-wrench" style="color: #2563eb;"></i>
+        <span>Workshop Mechanic Studio</span>
+        <span class="brand-badge" style="background: rgba(37, 99, 235, 0.12); color: #2563eb; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 700;">Garage Floor 4.0</span>
+        {% if active_job_card %}
+          <span class="badge badge-normal" style="font-family:'JetBrains Mono'; font-weight:700; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 6px; font-size: 11px;">{{ active_job_card.base_depot }}</span>
+        {% endif %}
+      </div>
     </div>
 
-    <div class="top-actions">
+    <div class="top-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
       <button class="btn btn-outline" onclick="openModal('quickRestockModal')">
         <i class="fa-solid fa-boxes-stacked"></i> Quick Restock
       </button>
       <button class="btn btn-primary" onclick="openModal('newJobCardModal')">
         <i class="fa-solid fa-plus"></i> New Job Card
       </button>
-      <a href="/admin/maintenance/servicerecord/" class="btn btn-outline">
-        <i class="fa-solid fa-arrow-left"></i> Fleet Ledger
+      <a href="/maintenance/compliance/" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Fleet Compliance
       </a>
     </div>
-  </header>
+  </div>
 
   <!-- Studio Container -->
-  <main class="studio-container">
+  <div class="studio-container">
 
     <!-- KPI Metric Strip -->
     <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1077,7 +1083,7 @@
       </section>
 
     </div>
-  </main>
+  </div>
 
   <!-- MODAL: New Workshop Job Card -->
   <div class="modal-overlay" id="newJobCardModal">
@@ -1491,5 +1497,5 @@
       }
     }
   </script>
-</body>
-</html>
+</div>
+{% endblock %}

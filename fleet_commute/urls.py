@@ -36,11 +36,14 @@ from .views import (
     client_sso_initiate_view,
     client_sso_callback_view,
     client_branded_login_view,
+    contracts_studio_view,
 )
 
 app_name = 'fleet_commute'
 
 urlpatterns = [
+    # Contracts, Routes & Shifts Studio
+    path('contracts/', contracts_studio_view, name='contracts_studio'),
     # Phase 1: Women Safety & Outbound IVR Simulator
     path('women-safety/', women_safety_studio_view, name='women_safety_studio'),
     path('api/ivr/simulate-call/', api_simulate_ivr_call, name='api_simulate_ivr_call'),

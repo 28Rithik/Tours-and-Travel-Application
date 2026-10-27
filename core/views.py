@@ -605,4 +605,56 @@ def fleet_types_view(request):
     })
 
 
+@login_required
+def rate_cards_studio_view(request):
+    """
+    Staff Portal: Client Rate Cards & B2B Tariffs Studio.
+    Renders inside base.html with sidebar intact.
+    Provides filtering by client/party, vehicle type, search, and rate card details.
+    """
+    from core.models import RateCard, Party, VehicleType, Vehicle
+    from django.db.models import Q
+
+    search_query = request.GET.get('q', '').strip()
+    party_id = request.GET.get('party_id', '')
+    vehicle_type_id = request.GET.get('vehicle_type_id', '')
+
+    cards_qs = RateCard.objects.select_related('party', 'vehicle_type', 'vehicle').order_by('-id')
+
+    if search_query:
+        cards_qs = cards_qs.filter(
+            Q(party__name__icontains=search_query) |
+            Q(vehicle_type__name__icontains=search_query) |
+            Q(vehicle__registration_number__icontains=search_query)
+        )
+
+    if party_id:
+        cards_qs = cards_qs.filter(party_id=party_id)
+
+    if vehicle_type_id:
+        cards_qs = cards_qs.filter(vehicle_type_id=vehicle_type_id)
+
+    parties = Party.objects.filter(is_active=True).order_by('name')
+    vehicle_types = VehicleType.objects.all().order_by('name')
+    vehicles = Vehicle.objects.exclude(status='inactive').order_by('registration_number')
+
+    counts = {
+        'total_cards': RateCard.objects.count(),
+        'parties_with_cards': RateCard.objects.values('party').distinct().count(),
+        'vehicle_types_covered': RateCard.objects.values('vehicle_type').distinct().count(),
+    }
+
+    return render(request, 'core/rate_cards_studio.html', {
+        'rate_cards': cards_qs,
+        'parties': parties,
+        'vehicle_types': vehicle_types,
+        'vehicles': vehicles,
+        'counts': counts,
+        'search_query': search_query,
+        'selected_party_id': party_id,
+        'selected_vt_id': vehicle_type_id,
+    })
+
+
+
 

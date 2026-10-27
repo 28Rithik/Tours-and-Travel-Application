@@ -201,7 +201,7 @@
   <div class="panel">
     <div class="panel-heading">
       <h2>Document Compliance Alerts</h2>
-      <a href="/admin/maintenance/compliancedocument/add/" class="button button-quiet" target="_blank">
+      <a href="/admin/maintenance/compliancedocument/add/" class="button button-quiet">
         + Upload Renewal Document
       </a>
     </div>
@@ -236,9 +236,9 @@
           <td><span class="badge-pill pill-expired">🔴 DISPATCH LOCKED</span></td>
           <td>
             {% if item.entity_type == 'vehicle' %}
-              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Update Vehicle</a>
+              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">Update Vehicle</a>
             {% else %}
-              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Update Driver</a>
+              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">Update Driver</a>
             {% endif %}
           </td>
         </tr>
@@ -260,9 +260,9 @@
           <td><span class="badge-pill pill-critical">🟠 URGENT RENEWAL</span></td>
           <td>
             {% if item.entity_type == 'vehicle' %}
-              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Renew</a>
+              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">Renew</a>
             {% else %}
-              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">Renew</a>
+              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">Renew</a>
             {% endif %}
           </td>
         </tr>
@@ -284,9 +284,9 @@
           <td><span class="badge-pill pill-warning">🟡 UPCOMING</span></td>
           <td>
             {% if item.entity_type == 'vehicle' %}
-              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">View</a>
+              <a href="/admin/core/vehicle/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">View</a>
             {% else %}
-              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">View</a>
+              <a href="/admin/core/driver/{{ item.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">View</a>
             {% endif %}
           </td>
         </tr>
@@ -306,7 +306,7 @@
   <div class="panel">
     <div class="panel-heading">
       <h2>Odometer-Triggered Preventive Maintenance</h2>
-      <a href="/admin/maintenance/servicereminder/add/" class="button button-quiet" target="_blank">
+      <a href="/admin/maintenance/servicereminder/add/" class="button button-quiet">
         + Set Service Interval Rule
       </a>
     </div>
@@ -349,7 +349,7 @@
             {% endif %}
           </td>
           <td>
-            <a href="/admin/maintenance/servicerecord/add/?vehicle={{ s.vehicle.id }}" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">
+            <a href="/admin/maintenance/servicerecord/add/?vehicle={{ s.vehicle.id }}" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">
               Book Service
             </a>
           </td>
@@ -370,7 +370,7 @@
   <div class="panel">
     <div class="panel-heading">
       <h2>Tyre & Battery Lifespan Watch (Wear > 90%)</h2>
-      <a href="/admin/maintenance/vehicleasset/add/" class="button button-quiet" target="_blank">
+      <a href="/admin/maintenance/vehicleasset/add/" class="button button-quiet">
         + Register New Asset
       </a>
     </div>
@@ -400,7 +400,7 @@
           <td>{{ a.expected_life_km }} KM</td>
           <td><span class="badge-pill pill-overdue">⚠️ Retreading / Replace Due</span></td>
           <td>
-            <a href="/admin/maintenance/vehicleasset/{{ a.asset_id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">
+            <a href="/admin/maintenance/vehicleasset/{{ a.asset_id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">
               Asset Record
             </a>
           </td>
@@ -421,7 +421,7 @@
   <div class="panel">
     <div class="panel-heading">
       <h2>Open / In-Progress Workshop Defect Tickets</h2>
-      <a href="/admin/maintenance/defectticket/add/" class="button button-quiet" target="_blank">
+      <a href="/admin/maintenance/defectticket/add/" class="button button-quiet">
         + Report Defect
       </a>
     </div>
@@ -453,7 +453,7 @@
             {% endif %}
           </td>
           <td>
-            <a href="/admin/maintenance/defectticket/{{ d.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;" target="_blank">
+            <a href="/admin/maintenance/defectticket/{{ d.id }}/change/" class="button button-quiet" style="padding: 4px 8px; font-size: 11px;">
               Resolve Ticket
             </a>
           </td>

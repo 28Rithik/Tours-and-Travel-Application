@@ -548,7 +548,7 @@
           📱 Digital Handover Portal →
         </a>
         {% if trip.tracking_token %}
-        <a href="/track/{{ trip.tracking_token }}/" target="_blank" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 9px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; text-decoration: none;">
+        <a href="/track/{{ trip.tracking_token }}/" style="flex: 1; min-width: 130px; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 9px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; text-decoration: none;">
           🛰️ Live GPS Radar →
         </a>
         {% endif %}
@@ -717,7 +717,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 13px; font-weight: 700; color: #166534;">🟢 Active Tour Tracking Live</span>
             {% if trip.tracking_token %}
-            <a href="/track/{{ trip.tracking_token }}/" target="_blank" class="btn-secondary" style="font-size: 11px; padding: 6px 10px; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; border-radius: 6px; text-decoration: none;">
+            <a href="/track/{{ trip.tracking_token }}/" class="btn-secondary" style="font-size: 11px; padding: 6px 10px; background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; border-radius: 6px; text-decoration: none;">
               🗺️ Open Live Radar
             </a>
             {% endif %}

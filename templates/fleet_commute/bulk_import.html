@@ -1,13 +1,14 @@
-{% extends "unfold/layouts/base.html" %}
-{% load static i18n unfold %}
+{% extends 'base.html' %}
+{% load static i18n %}
 
-{% block title %}📋 Bulk Corporate Employee CSV Roster Importer | {{ site_title|default:"TravelERP" }}{% endblock %}
+{% block title %}📋 Bulk Corporate Employee CSV Roster Importer | TravelERP{% endblock %}
+{% block header_title %}Bulk CSV Roster Importer{% endblock %}
 
 {% block breadcrumbs %}
 <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-    <a href="{% url 'admin:index' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
     <span>/</span>
-    <a href="/admin/fleet_commute/commutermanifestproxy/" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <a href="{% url 'fleet_commute:roster_dispatcher_studio' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
     <span>/</span>
     <span class="text-gray-900 dark:text-white font-semibold">📋 Bulk CSV Roster Importer</span>
 </div>
@@ -21,32 +22,52 @@
 <style>
 .import-container {
     padding: 24px;
-    background: #090d16;
-    color: #f8fafc;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
     min-height: calc(100vh - 120px);
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
+html.dark .import-container {
+    background: #090d16;
+    color: #f8fafc;
+    border-color: #1e293b;
+}
 .glass-box {
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(51, 65, 85, 0.6);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     border-radius: 16px;
     padding: 28px;
     max-width: 800px;
     margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+html.dark .glass-box {
+    background: rgba(15, 23, 42, 0.75);
+    border-color: rgba(51, 65, 85, 0.6);
 }
 .drop-zone {
-    border: 2px dashed rgba(56, 189, 248, 0.4);
+    border: 2px dashed #7dd3fc;
     border-radius: 14px;
     padding: 32px 20px;
     text-align: center;
-    background: rgba(2, 132, 199, 0.05);
+    background: #f0f9ff;
     cursor: pointer;
     transition: all 0.2s;
     margin: 16px 0 24px;
 }
 .drop-zone:hover {
-    border-color: #38bdf8;
+    border-color: #0284c7;
+    background: #e0f2fe;
+}
+html.dark .drop-zone {
+    background: rgba(2, 132, 199, 0.05);
+    border-color: rgba(56, 189, 248, 0.4);
+}
+html.dark .drop-zone:hover {
     background: rgba(2, 132, 199, 0.1);
+    border-color: #38bdf8;
 }
 .btn-primary-glow {
     background: linear-gradient(135deg, #0284c7, #0369a1);
@@ -57,17 +78,17 @@
     font-weight: 700;
     cursor: pointer;
     font-size: 14px;
-    box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
     transition: all 0.2s;
 }
 .btn-primary-glow:hover {
     transform: translateY(-1px);
-    box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
 }
 .btn-sample {
-    background: rgba(255,255,255,0.06);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: #f1f5f9;
+    color: #0284c7;
+    border: 1px solid #cbd5e1;
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 12px;
@@ -76,60 +97,30 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    transition: all 0.2s;
 }
-
-/* Light Mode Overrides */
-html:not(.dark) .import-container {
-    background: #f8fafc !important;
-    color: #0f172a !important;
+.btn-sample:hover {
+    background: #e2e8f0;
+    color: #0369a1;
 }
-
-html:not(.dark) .glass-box {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+html.dark .btn-sample {
+    background: rgba(255,255,255,0.06);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.3);
 }
-
-html:not(.dark) .glass-box h1 {
-    color: #0f172a !important;
+select.custom-select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
 }
-
-html:not(.dark) .glass-box p {
-    color: #64748b !important;
-}
-
-html:not(.dark) .drop-zone {
-    background: #f0f9ff !important;
-    border: 2px dashed #7dd3fc !important;
-}
-
-html:not(.dark) .drop-zone:hover {
-    background: #e0f2fe !important;
-    border-color: #0284c7 !important;
-}
-
-html:not(.dark) .drop-zone div {
-    color: #0f172a !important;
-}
-
-html:not(.dark) .drop-zone #selectedFileName {
-    color: #64748b !important;
-}
-
-html:not(.dark) select {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #0f172a !important;
-}
-
-html:not(.dark) label {
-    color: #334155 !important;
-}
-
-html:not(.dark) .btn-sample {
-    background: #f1f5f9 !important;
-    border-color: #cbd5e1 !important;
-    color: #0284c7 !important;
+html.dark select.custom-select {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
 }
 </style>
 
@@ -137,7 +128,7 @@ html:not(.dark) .btn-sample {
     <div class="glass-box">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
             <div>
-                <h1 style="font-size: 24px; font-weight: 800; margin: 0;">
+                <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #0f172a;" class="dark:text-white">
                     📋 Bulk Corporate Employee CSV Roster Importer
                 </h1>
                 <p style="color: #64748b; font-size: 13px; margin: 4px 0 0;">
@@ -175,10 +166,10 @@ html:not(.dark) .btn-sample {
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: #334155;" class="dark:text-slate-300">
                     Select Corporate Transport Contract:
                 </label>
-                <select name="contract_id" required style="width: 100%; padding: 10px 14px; border-radius: 8px; font-size: 13px;">
+                <select name="contract_id" required class="custom-select">
                     {% for c in contracts %}
                     <option value="{{ c.id }}">{{ c.name }} ({{ c.customer.name }})</option>
                     {% empty %}
@@ -189,7 +180,7 @@ html:not(.dark) .btn-sample {
 
             <div class="drop-zone" onclick="document.getElementById('csvFileInput').click()">
                 <div style="font-size: 36px; margin-bottom: 8px;">📄</div>
-                <div style="font-weight: 700; font-size: 15px;" class="drop-title">
+                <div style="font-weight: 700; font-size: 15px; color: #0f172a;" class="dark:text-white">
                     Click to select CSV file or drag and drop here
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 4px;" id="selectedFileName">

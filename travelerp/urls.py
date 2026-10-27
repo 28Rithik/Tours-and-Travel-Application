@@ -179,6 +179,7 @@ from core.views import (
     fleet_types_view,
     fleet_drivers_roster_view,
     api_toggle_vehicle_status_staff,
+    rate_cards_studio_view,
 )
 from payments_gateway.views import (
     admin_payment_studio_view,
@@ -441,8 +442,13 @@ urlpatterns = [
     path('admin/package_tours/passengermanifest/<path:subpath>', RedirectView.as_view(url='/admin/package_tours/passengermanifestproxy/%(subpath)s', permanent=False)),
     path('admin/package_tours/boardingpoint/', RedirectView.as_view(url='/admin/package_tours/boardingpointproxy/', permanent=False)),
     path('admin/package_tours/boardingpoint/<path:subpath>', RedirectView.as_view(url='/admin/package_tours/boardingpointproxy/%(subpath)s', permanent=False)),
-    path('admin/package_tours/collegeiv/', RedirectView.as_view(url='/admin/package_tours/collegeivproxy/', permanent=False)),
-    path('admin/package_tours/collegeiv/<path:subpath>', RedirectView.as_view(url='/admin/package_tours/collegeivproxy/%(subpath)s', permanent=False)),
+    path('admin/package_tours/collegeiv/', RedirectView.as_view(url='/packages/?tab=expeditions', permanent=False)),
+    path('admin/package_tours/collegeivproxy/', RedirectView.as_view(url='/packages/?tab=expeditions', permanent=False)),
+    path('admin/fleet_commute/corporatecontract/', RedirectView.as_view(url='/commute/contracts/?tab=contracts', permanent=False)),
+    path('admin/fleet_commute/corporatecommuteroute/', RedirectView.as_view(url='/commute/contracts/?tab=routes', permanent=False)),
+    path('admin/fleet_commute/corporatecommuteshift/', RedirectView.as_view(url='/commute/contracts/?tab=shifts', permanent=False)),
+    path('admin/fleet_contracts/transportcontract/', RedirectView.as_view(url='/commute/contracts/?tab=contracts', permanent=False)),
+    path('admin/pricing/', RedirectView.as_view(url='/pricing/', permanent=False)),
     # Database Health Dashboard & Audit API
     path('operations/database-health/', admin_database_health_dashboard_view, name='operations-database-health'),
     path('admin/operations/database-health/', admin_database_health_dashboard_view, name='admin-database-health-dashboard'),
@@ -459,6 +465,11 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/staff/login/'), name='logout'),
     path('core/vehicles/', RedirectView.as_view(url='/fleet/vehicles/', permanent=False)),
     path('corporate/', RedirectView.as_view(url='/client/portal/', permanent=False)),
+    # Corporate Commute Contracts & Shuttle Routes Studio (Staff Portal with sidebar)
+    path('commute/contracts/', fleet_commute_views.contracts_studio_view, name='commute-contracts-studio'),
+    # Client Rate Cards & Tariffs Studio (Staff Portal with sidebar)
+    path('pricing/', rate_cards_studio_view, name='client-pricing-studio'),
+
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),
     path('staff/roles-matrix/', staff_roles_matrix_view, name='staff-roles-matrix'),

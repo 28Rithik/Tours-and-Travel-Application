@@ -1370,10 +1370,10 @@
           <span><i class="fa-solid fa-map-location-dot" style="color: #d97706; margin-right: 8px;"></i> Switch to Circuit Radar Map</span>
           <span class="palette-key">M</span>
         </a>
-        <a href="/admin/crm/inquiry/add/" target="_blank" class="palette-item" data-key="n">
+        <button type="button" onclick="closePalette(); if(typeof openSmartLeadModal === 'function') openSmartLeadModal();" class="palette-item" data-key="n" style="background: none; border: none; width: 100%; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
           <span><i class="fa-solid fa-plus" style="color: #dc2626; margin-right: 8px;"></i> Log New Customer Inquiry</span>
           <span class="palette-key">N</span>
-        </a>
+        </button>
       </div>
     </div>
   </div>
@@ -1898,7 +1898,8 @@
             window.location.href = '?view_mode=map';
           } else if (e.key.toLowerCase() === 'n' && !paletteSearch.value) {
             e.preventDefault();
-            window.open('/admin/crm/inquiry/add/', '_blank');
+            closePalette();
+            if (typeof openSmartLeadModal === 'function') openSmartLeadModal();
           }
         });
       }

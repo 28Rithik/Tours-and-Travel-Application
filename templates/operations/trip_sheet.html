@@ -347,7 +347,7 @@
       <button type="button" class="ts-btn ts-btn-success" onclick="saveDutySlip('complete')">
         <i class="fa-solid fa-circle-check"></i> ✅ Complete &amp; Reconcile Duty
       </button>
-      <a href="{% url 'trip-sheet-pdf' trip.id %}" target="_blank" class="ts-btn ts-btn-emerald">
+      <a href="{% url 'trip-sheet-pdf' trip.id %}" class="ts-btn ts-btn-emerald">
         <i class="fa-solid fa-file-pdf"></i> Download PDF
       </a>
       <a href="https://api.whatsapp.com/send?phone=91{{ trip.booking.guest_phone|default:trip.party.phone }}&text={{ trip.final_bill_message|urlencode }}" target="_blank" class="ts-btn ts-btn-whatsapp">

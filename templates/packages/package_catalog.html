@@ -325,10 +325,10 @@
           {{ p.itinerary_days.count }} Day Plan{{ p.itinerary_days.count|pluralize }}
         </span>
         <div style="display: flex; gap: 6px;">
-          <a href="{% url 'packages:quotation_proposal' p.id %}" target="_blank" class="action-btn-sm" title="Generate Official Proposal Quotation">
+          <a href="{% url 'packages:quotation_proposal' p.id %}" class="action-btn-sm" title="Generate Official Proposal Quotation">
             <i class="fa-solid fa-file-invoice"></i> Proposal
           </a>
-          <a href="{% url 'packages:tour_voucher' p.id %}" target="_blank" class="action-btn-sm" title="Generate Tour Service Voucher">
+          <a href="{% url 'packages:tour_voucher' p.id %}" class="action-btn-sm" title="Generate Tour Service Voucher">
             <i class="fa-solid fa-receipt"></i> Voucher
           </a>
         </div>
@@ -412,7 +412,7 @@
           <td style="padding: 12px 16px; font-weight: 700;">{{ exp.bus_count }} Coach{{ exp.bus_count|pluralize }}</td>
           <td style="padding: 12px 16px; text-align: right;">
             <div style="display: inline-flex; gap: 6px;">
-              <a href="{% url 'packages:view_rooming_list' exp.id %}" target="_blank" class="action-btn-sm" title="View Printable Rooming List &amp; Coach Manifest">
+              <a href="{% url 'packages:view_rooming_list' exp.id %}" class="action-btn-sm" title="View Printable Rooming List &amp; Coach Manifest">
                 <i class="fa-solid fa-list-check"></i> Rooming List
               </a>
               <a href="{% url 'packages:download_manifest_template' %}" class="action-btn-sm" title="Download CSV Manifest Template">

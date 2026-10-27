@@ -327,10 +327,10 @@ html.dark .unsettled-table td {
               {% endif %}
             </td>
             <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
-              <a href="{% url 'suppliers:duty-slip-print' s.id %}" target="_blank" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
+              <a href="{% url 'suppliers:duty-slip-print' s.id %}" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
                 📄 Duty Slip
               </a>
-              <a href="{% url 'suppliers:settlement-print' s.id %}" target="_blank" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
+              <a href="{% url 'suppliers:settlement-print' s.id %}" class="button button-quiet" style="padding: 4px 8px; font-size: 11px; text-decoration: none; border: 1px solid #cbd5e1; border-radius: 4px; margin-right: 4px;">
                 🧾 Voucher
               </a>
               {% if s.status == 'draft' or s.status == 'verified' %}
