@@ -123,7 +123,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
+        # ✅ Fix 3: APP_DIRS must be False when using explicit 'loaders' list
+        # In dev: plain loaders (live reload). In prod: cached.Loader (compiled once, held in memory).
+        'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -131,9 +133,19 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'travelerp.context_processors.rbac_context',
             ],
+            'loaders': [
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ])
+            ] if not DEBUG else [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'travelerp.wsgi.application'
 
@@ -176,40 +188,22 @@ else:
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
             'CONN_MAX_AGE': 600,
+            # ✅ Fix 8: WAL mode — allows concurrent reads while writing
+            # Critical for HTMX apps: prevents lock contention on simultaneous partial requests
+            'OPTIONS': {
+                'init_command': 'PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY;',
+            },
         }
     }
 
+
 # ==============================================================================
-# IN-MEMORY HIGH PERFORMANCE CACHE SUBSYSTEM
+# ✅ Fix 5: SINGLE AUTHORITATIVE CACHE CONFIGURATION (removed duplicate block)
+# Previously there were 2 CACHES definitions — the second silently overwrote the
+# first with a shorter 300s TTL and a different Redis backend. Now consolidated.
 # ==============================================================================
+# NOTE: A second CACHES block further down has been removed to avoid silent overwrite.
 USE_REDIS = os.environ.get('USE_REDIS', '').lower() in ['1', 'true', 'yes'] or USE_POSTGRES
-REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
-
-if USE_REDIS:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': REDIS_URL,
-            'TIMEOUT': 600,  # 10 minutes default
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                'IGNORE_EXCEPTIONS': True,  # Fallback gracefully if Redis is temporarily offline
-                'SOCKET_CONNECT_TIMEOUT': 5,
-                'SOCKET_TIMEOUT': 5,
-            }
-        }
-    }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'travelerp-local-cache',
-            'TIMEOUT': 600,  # 10 minutes default
-            'OPTIONS': {
-                'MAX_ENTRIES': 3000,
-            }
-        }
-    }
 
 
 
@@ -264,16 +258,21 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ==============================================================================
 # WHITENOISE COMPRESSION & 1-YEAR IMMUTABLE CACHE HEADERS (FCP ACCELERATION)
 # ==============================================================================
+# ✅ Fix 4: CompressedManifestStaticFilesStorage adds content-hash filenames
+# e.g. app.abc123de.css — allowing infinite browser caching (cache-busted on deploy)
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # In dev: use basic storage (no hashing needed)
+        # In prod: use manifest storage for infinite browser cache lifetimes
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage" if not DEBUG
+                   else "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 WHITENOISE_MAX_AGE = 31536000  # 1 Year Immutable Cache-Control
-WHITENOISE_USE_FINDERS = True  # Dynamic asset fallback in development
+WHITENOISE_USE_FINDERS = DEBUG   # Only use finders in dev — off in production for speed
 WHITENOISE_KEEP_ONLY_HASHED_FILES = False
 
 
@@ -704,9 +703,10 @@ GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
 
 # ==============================================================================
-# HIGH-PERFORMANCE IN-MEMORY CACHING TIER
+# ✅ SINGLE CONSOLIDATED CACHE — (duplicate block removed, this is the final one)
+# Uses django_redis (better connection pooling) with graceful LocMemCache fallback
 # ==============================================================================
-REDIS_URL = os.getenv('REDIS_URL', '')
+REDIS_URL = os.getenv('REDIS_URL', os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'))
 
 def _check_redis_alive(url):
     if not url:
@@ -719,20 +719,33 @@ def _check_redis_alive(url):
     except Exception:
         return False
 
-if REDIS_URL and _check_redis_alive(REDIS_URL):
+_redis_available = _check_redis_alive(REDIS_URL)
+
+if _redis_available:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'BACKEND': 'django_redis.cache.RedisCache',
             'LOCATION': REDIS_URL,
-            'TIMEOUT': 300,
+            'TIMEOUT': 600,  # 10 minutes
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'IGNORE_EXCEPTIONS': True,  # Graceful fallback if Redis drops
+                'SOCKET_CONNECT_TIMEOUT': 2,
+                'SOCKET_TIMEOUT': 2,
+                'CONNECTION_POOL_KWARGS': {'max_connections': 50},
+            },
+            'KEY_PREFIX': 'travelerp',
         }
     }
 else:
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'travelerp-local-memory-cache',
-            'TIMEOUT': 300,
+            'LOCATION': 'travelerp-local-cache',
+            'TIMEOUT': 600,
+            'OPTIONS': {
+                'MAX_ENTRIES': 5000,
+            }
         }
     }
 

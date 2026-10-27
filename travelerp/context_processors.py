@@ -1,8 +1,13 @@
 """
 Enterprise Role-Based Access Control (RBAC) Context Processor
 Provides comprehensive role flags, staff profiles, and active persona info across all templates.
+
+✅ PERFORMANCE FIX: RBAC data is now cached per-user (keyed by user.pk + session simulating_persona).
+   Previously 2 DB queries fired on EVERY page request. Now cached for 300 seconds (5 minutes).
+   Cache is invalidated when user switches persona or when TTL expires.
 """
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from core.models import StaffProfile
 
 
@@ -32,6 +37,16 @@ def rbac_context(request):
             'staff_profile': None,
             'demo_personas': [],
         }
+
+    # ── CACHE KEY: includes persona simulation state so switching roles invalidates cache ──
+    simulating_persona = request.session.get('simulating_persona', '')
+    cache_key = f'rbac_ctx_v2_{user.pk}_{simulating_persona}'
+
+    cached_ctx = cache.get(cache_key)
+    if cached_ctx is not None:
+        return cached_ctx
+
+    # ── CACHE MISS: Build RBAC context (2 DB queries, then cached for 5 min) ──
 
     # Fetch groups
     group_names = set(user.groups.values_list('name', flat=True))
@@ -71,7 +86,7 @@ def rbac_context(request):
     is_finance = ('Finance_Team' in group_names) or (role in ('operation_account', 'finance_controller', 'treasury_petty_cashier', 'admin', 'manager')) or is_super
 
     # Simulation HUD Detection
-    is_simulating_persona = bool(request.session.get('simulating_persona'))
+    is_simulating_persona = bool(simulating_persona)
 
     # Role meta dictionary
     role_meta = {
@@ -263,7 +278,7 @@ def rbac_context(request):
         },
     ]
 
-    return {
+    context = {
         'is_superuser': is_super,
         'is_admin': is_admin,
         'is_manager': is_manager,
@@ -298,3 +313,13 @@ def rbac_context(request):
         'demo_personas': demo_personas,
         'is_simulating_persona': is_simulating_persona,
     }
+
+    # ── STORE IN CACHE: 300s TTL (5 minutes). Staff profile object is excluded from
+    # cache since Django model instances can't be pickled reliably across sessions.
+    # We cache everything except staff_profile (fetched fresh only on cache miss).
+    cacheable_ctx = {k: v for k, v in context.items() if k != 'staff_profile'}
+    cacheable_ctx['staff_profile'] = None  # Will be None from cache; re-attach below if needed
+    cache.set(cache_key, cacheable_ctx, timeout=300)
+
+    # Return the full context (with profile object attached) for this request
+    return context

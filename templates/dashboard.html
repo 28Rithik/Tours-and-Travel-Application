@@ -5,10 +5,9 @@
 {% block header_title %}Mission Control Room{% endblock %}
 
 {% block content %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{# ✅ Fix 1: Removed duplicate Google Fonts (already in base.html head) #}
+{# ✅ Fix 2: Chart.js pinned to stable version + defer added #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 
 <style>
 /* ─────────────────────────────────────────────────────────────
