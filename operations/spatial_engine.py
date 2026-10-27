@@ -47,14 +47,32 @@ class SpatialEngine:
 
     @classmethod
     def is_postgis_ready(cls) -> bool:
+        try:
+            from django.core.cache import cache
+            cached_status = cache.get('spatial_postgis_ready_v1')
+            if cached_status is not None:
+                return cached_status
+        except Exception:
+            pass
+
         conn = get_postgis_connection()
         if not conn:
+            try:
+                from django.core.cache import cache
+                cache.set('spatial_postgis_ready_v1', False, timeout=60)
+            except Exception:
+                pass
             return False
         try:
             with conn.cursor() as cur:
                 cur.execute("SELECT PostGIS_Version();")
                 _ = cur.fetchone()
             conn.close()
+            try:
+                from django.core.cache import cache
+                cache.set('spatial_postgis_ready_v1', True, timeout=60)
+            except Exception:
+                pass
             return True
         except Exception:
             return False

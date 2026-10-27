@@ -93,7 +93,7 @@ def inquiry_pipeline_view(request):
     vehicle_types = VehicleType.objects.all().order_by('name')
 
     context = {
-        'inquiries': inquiries[:100],
+        'inquiries': list(inquiries[:100]),
         'today_count': today_count,
         'month_count': month_count,
         'active_count': active_count,
@@ -106,8 +106,8 @@ def inquiry_pipeline_view(request):
         'sla_filter': sla_filter,
         'search_query': q,
         'now': now,
-        'clients': clients,
-        'vehicle_types': vehicle_types,
+        'clients': list(clients),
+        'vehicle_types': list(vehicle_types),
     }
     return render(request, 'crm/inquiry_pipeline.html', context)
 

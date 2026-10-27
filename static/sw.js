@@ -5,7 +5,7 @@
  * Provides offline fallback page for disconnected drivers.
  */
 
-const CACHE_NAME = 'driver-portal-v3';
+const CACHE_NAME = 'driver-portal-v4';
 const OFFLINE_URL = '/driver/login/';
 
 // Static assets to pre-cache on installation
@@ -14,6 +14,8 @@ const PRE_CACHE_URLS = [
   '/driver/login/',
   '/static/manifest.json',
   '/static/driver_offline_sync.js',
+  '/static/fonts/fonts.css',
+  '/static/fonts/plus-jakarta-sans-17.woff2',
   '/static/css/base-ui.css',
   '/static/app.css',
   '/static/js/htmx.min.js',

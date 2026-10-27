@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,10 +10,8 @@
     <meta name="description" content="Fleet ERP Driver Portal — Manage trips, inspections, fuel logs and emergency SOS from your mobile device.">
     <link rel="manifest" href="/static/manifest.json">
     <link rel="apple-touch-icon" href="/static/pwa/icon-192.png">
-    <title>{% block title %}Driver Portal | Fleet ERP{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preload" href="{% static 'fonts/plus-jakarta-sans-17.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'fonts/fonts.css' %}">
     <script>
     /* Immediate Anti-FOUC Light/Dark Theme Detection */
     (function() {

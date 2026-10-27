@@ -89,12 +89,12 @@ def booking_list(request):
     pending_bookings_count = bookings.filter(status='pending').count()
 
     # 3. Available Resources for Fast Allocation Modal / Dropdowns (Scoped by Depot)
-    available_vehicles = get_scoped_vehicles(request.user, depot_param).filter(status__in=['available', 'assigned']).select_related('vehicle_type').order_by('registration_number')
-    available_drivers = get_scoped_drivers(request.user, depot_param).filter(status='active').order_by('name')
+    available_vehicles = list(get_scoped_vehicles(request.user, depot_param).filter(status__in=['available', 'assigned']).select_related('vehicle_type').order_by('registration_number')[:100])
+    available_drivers = list(get_scoped_drivers(request.user, depot_param).filter(status='active').order_by('name')[:100])
 
     return render(request, 'operations/booking_list.html', {
-        'trips': trips_list[:50],
-        'bookings': bookings.distinct()[:40],
+        'trips': list(trips_list[:50]),
+        'bookings': list(bookings.distinct()[:40]),
         'available_vehicles': available_vehicles,
         'available_drivers': available_drivers,
         'current_tab': current_tab,
@@ -1808,20 +1808,21 @@ def gis_control_center_dashboard_view(request):
     partition_count = 6
     active_vehicles = 0
 
-    conn = get_postgis_connection()
-    if conn:
-        try:
-            with conn.cursor() as cur:
-                cur.execute("SELECT count(*) FROM telemetry_geofence_zone WHERE is_active = TRUE;")
-                geofence_count = cur.fetchone()[0]
-                cur.execute("SELECT count(*) FROM pg_class WHERE relname LIKE 'telemetry_ping%';")
-                partition_count = cur.fetchone()[0]
-                cur.execute("SELECT count(*) FROM telemetry_vehicle_live;")
-                active_vehicles = cur.fetchone()[0]
-            conn.close()
-        except Exception:
-            if conn:
+    if postgis_ok:
+        conn = get_postgis_connection()
+        if conn:
+            try:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT count(*) FROM telemetry_geofence_zone WHERE is_active = TRUE;")
+                    geofence_count = cur.fetchone()[0]
+                    cur.execute("SELECT count(*) FROM pg_class WHERE relname LIKE 'telemetry_ping%';")
+                    partition_count = cur.fetchone()[0]
+                    cur.execute("SELECT count(*) FROM telemetry_vehicle_live;")
+                    active_vehicles = cur.fetchone()[0]
                 conn.close()
+            except Exception:
+                if conn:
+                    conn.close()
 
     from operations.telemetry_pipeline import FLEET_OPERATIONAL_KPIS
 
@@ -4525,14 +4526,16 @@ def statutory_compliance_studio_view(request):
     if not ComplianceDocument.objects.exists():
         seed_statutory_compliance_records()
 
+    search_query = request.GET.get('q', '').strip()
     stats = get_compliance_dashboard_metrics()
-    fleet_matrix = get_fleet_compliance_matrix()
+    fleet_matrix = get_fleet_compliance_matrix(search_query=search_query, limit=120)
 
     context = {
         'title': 'RTO Fitness (FC), AIS-140 & Statutory Compliance Sentry',
         'stats': stats,
         'fleet_matrix': fleet_matrix,
         'categories': COMPLIANCE_CATEGORY_LABELS,
+        'search_query': search_query,
     }
     return render(request, 'operations/statutory_compliance_studio.html', context)
 

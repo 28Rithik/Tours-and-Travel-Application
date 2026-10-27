@@ -15,6 +15,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_page
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .models import CustomerAccount, CustomerOTP
@@ -187,6 +188,7 @@ def public_landing_view(request):
     return render(request, 'customer_portal/landing_page.html', context)
 
 
+@cache_page(120)
 def package_list(request):
     """
     Full public catalog of tour packages with search, category filtering,
@@ -1586,6 +1588,11 @@ def get_fleet_catalog():
     feature icons (CCTV, First Aid, Ice Box, TV, Air Suspension), real photography,
     and commercial rate cards for the customer portal.
     """
+    from django.core.cache import cache
+    cached_catalog = cache.get('fleet_catalog_cache_v2')
+    if cached_catalog:
+        return cached_catalog
+
     catalog = [
         {
             'id': 'luxury_coach',
@@ -2240,33 +2247,40 @@ def get_fleet_catalog():
     except Exception:
         pass
 
+    from django.core.cache import cache
+    cache.set('fleet_catalog_cache_v2', catalog, timeout=300)
     return catalog
 
 
+@cache_page(180)
 def fleet_showcase_page(request):
     """
     Dedicated Fleet Showcase Page rendered in Modern Card Grid format
     (matching Reference Image 2) with category filters, specs, and comparison matrix.
     """
-    fleet_catalog = get_fleet_catalog()
+    from django.core.cache import cache
     selected_category = request.GET.get('category', 'all')
-    
-    category_counts = {
-        'all': len(fleet_catalog),
-        'car': sum(1 for v in fleet_catalog if v.get('category') == 'car'),
-        'bus': sum(1 for v in fleet_catalog if v.get('category') == 'bus'),
-        'van': sum(1 for v in fleet_catalog if v.get('category') == 'van'),
-        'caravan': sum(1 for v in fleet_catalog if v.get('category') == 'caravan'),
-        'other': sum(1 for v in fleet_catalog if v.get('category') == 'other'),
-    }
-        
-    context = {
-        'fleet_catalog': fleet_catalog,
-        'all_fleet': fleet_catalog,
-        'selected_category': selected_category,
-        'category_counts': category_counts,
-        'total_active_fleet': 320,
-    }
+    cache_key = f'fleet_showcase_ctx_v2_{selected_category}'
+    context = cache.get(cache_key)
+    if not context:
+        fleet_catalog = get_fleet_catalog()
+        category_counts = {
+            'all': len(fleet_catalog),
+            'car': sum(1 for v in fleet_catalog if v.get('category') == 'car'),
+            'bus': sum(1 for v in fleet_catalog if v.get('category') == 'bus'),
+            'van': sum(1 for v in fleet_catalog if v.get('category') == 'van'),
+            'caravan': sum(1 for v in fleet_catalog if v.get('category') == 'caravan'),
+            'other': sum(1 for v in fleet_catalog if v.get('category') == 'other'),
+        }
+        context = {
+            'fleet_catalog': fleet_catalog,
+            'all_fleet': fleet_catalog,
+            'selected_category': selected_category,
+            'category_counts': category_counts,
+            'total_active_fleet': 320,
+        }
+        cache.set(cache_key, context, timeout=180)
+
     return render(request, 'customer_portal/fleet_showcase.html', context)
 
 
@@ -2304,6 +2318,7 @@ def vehicle_detail_page(request, vehicle_id):
     return render(request, 'customer_portal/vehicle_detail.html', context)
 
 
+@cache_page(300)
 def about_us_page(request):
     """
     Enterprise About Us Page detailing Sivagayathiri Travels' 15-year legacy,
@@ -2320,6 +2335,7 @@ def about_us_page(request):
     return render(request, 'customer_portal/about_us.html', context)
 
 
+@cache_page(300)
 def services_overview_page(request):
     """
     Central Services Hub showcasing all 4 pillars of Sivagayathiri Travels:
@@ -2331,6 +2347,7 @@ def services_overview_page(request):
     return render(request, 'customer_portal/services_overview.html')
 
 
+@cache_page(300)
 def employee_transportation_page(request):
     """
     Dedicated Employee Transportation Solutions Page (matching Reference Image 1 & 4)
@@ -2342,6 +2359,7 @@ def employee_transportation_page(request):
     return render(request, 'customer_portal/services_corporate.html')
 
 
+@cache_page(300)
 def institutional_transport_page(request):
     """
     Dedicated School & College Campus Transport Page featuring:
@@ -2353,6 +2371,7 @@ def institutional_transport_page(request):
     return render(request, 'customer_portal/services_institutional.html')
 
 
+@cache_page(300)
 def airport_transfers_page(request):
     """
     Dedicated Airport Transfers & Flight-Synchronized Chauffeur Service page:
@@ -2364,6 +2383,7 @@ def airport_transfers_page(request):
     return render(request, 'customer_portal/services_airport.html')
 
 
+@cache_page(300)
 def wedding_event_transport_page(request):
     """
     Dedicated Wedding & Event Transit Convoys page (Muhurtham & Shaadi Logistics):
@@ -2375,6 +2395,7 @@ def wedding_event_transport_page(request):
     return render(request, 'customer_portal/services_wedding.html')
 
 
+@cache_page(300)
 def mice_corporate_offsites_page(request):
     """
     Dedicated MICE & Corporate Offsite Delegations page:
@@ -2386,6 +2407,7 @@ def mice_corporate_offsites_page(request):
     return render(request, 'customer_portal/services_mice.html')
 
 
+@cache_page(300)
 def industrial_factory_transit_page(request):
     """
     Dedicated Industrial Township & Factory 3-Shift Transit page:
@@ -2397,6 +2419,7 @@ def industrial_factory_transit_page(request):
     return render(request, 'customer_portal/services_industrial.html')
 
 
+@cache_page(300)
 def luxury_camper_caravan_page(request):
     """
     Dedicated Luxury Camper Van & Caravan Tourism page:

@@ -34,30 +34,34 @@ COMPLIANCE_CATEGORY_LABELS = {
 
 def get_compliance_dashboard_metrics():
     """
-    Computes overall fleet compliance statistics.
+    Computes overall fleet compliance statistics using fast SQL aggregates.
     """
     today = timezone.now().date()
     seven_days = today + timedelta(days=7)
     thirty_days = today + timedelta(days=30)
 
-    docs = ComplianceDocument.objects.all()
-    total_docs = docs.count()
-    expired_docs = docs.filter(expiry_date__lt=today).count()
-    critical_docs = docs.filter(expiry_date__gte=today, expiry_date__lte=seven_days).count()
-    warning_docs = docs.filter(expiry_date__gt=seven_days, expiry_date__lte=thirty_days).count()
-    compliant_docs = docs.filter(expiry_date__gt=thirty_days).count()
+    from django.db.models import Count, Q
+    counts = ComplianceDocument.objects.aggregate(
+        total_docs=Count('id'),
+        expired_docs=Count('id', filter=Q(expiry_date__lt=today)),
+        critical_docs=Count('id', filter=Q(expiry_date__gte=today, expiry_date__lte=seven_days)),
+        warning_docs=Count('id', filter=Q(expiry_date__gt=seven_days, expiry_date__lte=thirty_days)),
+        compliant_docs=Count('id', filter=Q(expiry_date__gt=thirty_days)),
+    )
+    total_docs = counts['total_docs'] or 0
+    expired_docs = counts['expired_docs'] or 0
+    critical_docs = counts['critical_docs'] or 0
+    warning_docs = counts['warning_docs'] or 0
+    compliant_docs = counts['compliant_docs'] or 0
 
-    # Vehicles evaluated
     total_vehicles = Vehicle.objects.count()
-    locked_vehicles = 0
-    vehicles_with_warnings = 0
-
-    for v in Vehicle.objects.prefetch_related('compliance_documents'):
-        v_docs = v.compliance_documents.all()
-        if any(d.expiry_date < today for d in v_docs):
-            locked_vehicles += 1
-        elif any(d.expiry_date <= thirty_days for d in v_docs):
-            vehicles_with_warnings += 1
+    locked_vehicles = Vehicle.objects.filter(compliance_documents__expiry_date__lt=today).distinct().count()
+    vehicles_with_warnings = Vehicle.objects.filter(
+        compliance_documents__expiry_date__gte=today,
+        compliance_documents__expiry_date__lte=thirty_days
+    ).exclude(
+        compliance_documents__expiry_date__lt=today
+    ).distinct().count()
 
     compliance_rate = 100
     if total_docs > 0:
@@ -76,12 +80,16 @@ def get_compliance_dashboard_metrics():
     }
 
 
-def get_fleet_compliance_matrix():
+def get_fleet_compliance_matrix(search_query=None, limit=120):
     """
     Builds a vehicle-by-vehicle statutory readiness matrix for dispatchers.
+    Prefetches compliance documents to prevent N+1 queries.
     """
     today = timezone.now().date()
-    vehicles = Vehicle.objects.all().order_by('registration_number')
+    qs = Vehicle.objects.prefetch_related('compliance_documents').order_by('registration_number')
+    if search_query:
+        qs = qs.filter(registration_number__icontains=search_query)
+    vehicles = qs[:limit]
     matrix = []
 
     for v in vehicles:
