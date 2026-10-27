@@ -250,6 +250,7 @@ def package_list(request):
     return render(request, 'customer_portal/package_list.html', context)
 
 
+@cache_page(120)
 def package_detail(request, package_id):
     """
     Public tour package detail view showing itinerary days, inclusions,
@@ -2284,6 +2285,7 @@ def fleet_showcase_page(request):
     return render(request, 'customer_portal/fleet_showcase.html', context)
 
 
+@cache_page(180)
 def vehicle_detail_page(request, vehicle_id):
     """
     Dedicated Vehicle Detail Page (matching Reference Image 3 & 5) featuring:

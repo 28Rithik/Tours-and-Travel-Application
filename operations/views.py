@@ -4078,14 +4078,14 @@ def driver_fatigue_sentry_view(request):
         seed_sample_fatigue_audits()
 
     evaluations, stats = audit_all_active_drivers()
-    audit_logs = DriverFatigueAuditLog.objects.select_related('driver', 'trip', 'override_by').order_by('-created_at')[:40]
+    audit_logs = list(DriverFatigueAuditLog.objects.select_related('driver', 'trip', 'override_by').order_by('-created_at')[:40])
 
     context = {
         'title': 'Chauffeur Fatigue & Mandatory Duty Rest Sentry',
         'evaluations': evaluations,
         'stats': stats,
         'audit_logs': audit_logs,
-        'trips': Trip.objects.filter(status__in=['assigned', 'started', 'booked']).order_by('-id')[:25],
+        'trips': list(Trip.objects.filter(status__in=['assigned', 'started', 'booked']).select_related('vehicle', 'driver').order_by('-id')[:25]),
     }
     return render(request, 'operations/driver_fatigue_sentry.html', context)
 
@@ -4174,13 +4174,13 @@ def breakdown_sos_studio_view(request):
     if not HighwayBreakdownSOS.objects.exists():
         seed_sample_breakdown_incidents()
 
-    incidents = HighwayBreakdownSOS.objects.select_related(
+    incidents = list(HighwayBreakdownSOS.objects.select_related(
         'vehicle', 'driver', 'replacement_vehicle', 'replacement_driver', 'trip'
-    ).order_by('-reported_at')[:40]
+    ).order_by('-reported_at')[:40])
 
     stats = get_sos_dashboard_metrics()
-    available_vehicles = Vehicle.objects.filter(status='available')[:20]
-    available_drivers = Driver.objects.filter(status='active')[:20]
+    available_vehicles = list(Vehicle.objects.filter(status='available')[:20])
+    available_drivers = list(Driver.objects.filter(status='active')[:20])
 
     context = {
         'title': 'Highway Breakdown & Emergency SOS Relief Dispatch Studio',
@@ -4188,7 +4188,7 @@ def breakdown_sos_studio_view(request):
         'stats': stats,
         'available_vehicles': available_vehicles,
         'available_drivers': available_drivers,
-        'trips': Trip.objects.filter(status__in=['started', 'assigned']).order_by('-id')[:20],
+        'trips': list(Trip.objects.filter(status__in=['started', 'assigned']).select_related('vehicle', 'driver').order_by('-id')[:20]),
     }
     return render(request, 'operations/breakdown_sos_studio.html', context)
 

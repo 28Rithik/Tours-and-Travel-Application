@@ -5,7 +5,8 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum, Q, Count, Case, When
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.models import Party, Driver, Vehicle, StaffProfile
@@ -199,16 +200,23 @@ def _get_cached_dashboard_aggregates():
         chart_profit_data.append(round(p, 2))
 
     pending_bookings_count = Booking.objects.filter(status='pending').count()
-    unassigned_trips_count = Trip.objects.filter(status='booked', vehicle__isnull=True).count()
-    active_trips_count = Trip.objects.filter(status__in=['assigned', 'driver_confirmed', 'started']).count()
-    started_trips_count = Trip.objects.filter(status='started').count()
-    completed_trips_count = Trip.objects.filter(status='completed').count()
+    trip_counts = Trip.objects.aggregate(
+        unassigned=Count('id', filter=Q(status='booked', vehicle__isnull=True)),
+        active=Count('id', filter=Q(status__in=['assigned', 'driver_confirmed', 'started'])),
+        started=Count('id', filter=Q(status='started')),
+        completed=Count('id', filter=Q(status='completed')),
+        fleet_on_trip=Count('vehicle_id', distinct=True, filter=Q(status='started', vehicle__isnull=False)),
+        fleet_assigned=Count('vehicle_id', distinct=True, filter=Q(status__in=['assigned', 'driver_confirmed'], vehicle__isnull=False)),
+    )
+    unassigned_trips_count = trip_counts['unassigned'] or 0
+    active_trips_count = trip_counts['active'] or 0
+    started_trips_count = trip_counts['started'] or 0
+    completed_trips_count = trip_counts['completed'] or 0
+    fleet_on_trip = trip_counts['fleet_on_trip'] or 0
+    fleet_assigned = trip_counts['fleet_assigned'] or 0
     total_vehicles_count = Vehicle.objects.count()
     total_drivers_count = Driver.objects.count()
     available_vehicles_count = max(0, total_vehicles_count - started_trips_count)
-
-    fleet_on_trip = Trip.objects.filter(status='started', vehicle__isnull=False).values('vehicle_id').distinct().count()
-    fleet_assigned = Trip.objects.filter(status__in=['assigned', 'driver_confirmed'], vehicle__isnull=False).values('vehicle_id').distinct().count()
     fleet_available = max(0, total_vehicles_count - (fleet_on_trip + fleet_assigned))
 
     top_corridors_qs = list(

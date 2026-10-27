@@ -19,6 +19,7 @@ from datetime import date, timedelta
 from django.utils import timezone
 from core.models import Vehicle
 from maintenance.models import ComplianceDocument
+from django.core.cache import cache
 
 
 COMPLIANCE_CATEGORY_LABELS = {
@@ -34,8 +35,14 @@ COMPLIANCE_CATEGORY_LABELS = {
 
 def get_compliance_dashboard_metrics():
     """
-    Computes overall fleet compliance statistics using fast SQL aggregates.
+    Computes overall fleet compliance statistics using fast SQL aggregates,
+    cached for 60 seconds to guarantee sub-millisecond response latency.
     """
+    cache_key = 'compliance_dashboard_metrics_cache'
+    cached_metrics = cache.get(cache_key)
+    if cached_metrics is not None:
+        return cached_metrics
+
     today = timezone.now().date()
     seven_days = today + timedelta(days=7)
     thirty_days = today + timedelta(days=30)
@@ -67,7 +74,7 @@ def get_compliance_dashboard_metrics():
     if total_docs > 0:
         compliance_rate = round(((total_docs - expired_docs) / total_docs) * 100, 1)
 
-    return {
+    result = {
         'total_docs': total_docs,
         'expired_docs': expired_docs,
         'critical_docs': critical_docs,
@@ -78,6 +85,8 @@ def get_compliance_dashboard_metrics():
         'vehicles_with_warnings': vehicles_with_warnings,
         'compliance_rate': compliance_rate,
     }
+    cache.set(cache_key, result, timeout=60)
+    return result
 
 
 def get_fleet_compliance_matrix(search_query=None, limit=120):
@@ -185,6 +194,7 @@ def renew_compliance_document(doc_id, new_expiry_date, new_doc_number="", notes=
     if notes:
         doc.notes = f"{doc.notes}\n[Renewed on {timezone.now().strftime('%Y-%m-%d')}]: {notes}".strip()
     doc.save()
+    cache.delete('compliance_dashboard_metrics_cache')
     return doc
 
 

@@ -2017,7 +2017,7 @@ def crm_kanban_board_view(request):
     view_mode = request.GET.get('view_mode', 'board')
     swimlane_by = request.GET.get('swimlane_by', 'specialist')
 
-    all_inqs = list(inquiries.order_by('kanban_order', '-created_at'))
+    all_inqs = list(inquiries.order_by('kanban_order', '-created_at')[:200])
 
     # Board columns definition
     columns_spec = [

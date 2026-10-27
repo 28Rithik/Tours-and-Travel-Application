@@ -11,22 +11,25 @@ from .models import HighwayBreakdownSOS, Trip
 from core.models import Vehicle, Driver
 
 
+from django.db.models import Count, Sum, Q
+
 def get_sos_dashboard_metrics():
     """
-    Returns live statistics on highway breakdown incidents.
+    Returns live statistics on highway breakdown incidents via a single SQL aggregate.
     """
-    active_incidents = HighwayBreakdownSOS.objects.exclude(status__in=['resolved', 'towed_depot'])
-    critical_count = active_incidents.filter(severity='critical').count()
-    passengers_stranded = sum(i.passengers_stranded for i in active_incidents)
-    resolved_count = HighwayBreakdownSOS.objects.filter(status='resolved').count()
-    total_incidents = HighwayBreakdownSOS.objects.count()
-
+    agg = HighwayBreakdownSOS.objects.aggregate(
+        total_incidents=Count('id'),
+        active_sos=Count('id', filter=~Q(status__in=['resolved', 'towed_depot'])),
+        critical_sos=Count('id', filter=Q(severity='critical') & ~Q(status__in=['resolved', 'towed_depot'])),
+        passengers_stranded=Sum('passengers_stranded', filter=~Q(status__in=['resolved', 'towed_depot'])),
+        resolved_count=Count('id', filter=Q(status='resolved')),
+    )
     return {
-        'active_sos': active_incidents.count(),
-        'critical_sos': critical_count,
-        'passengers_stranded': passengers_stranded,
-        'resolved_count': resolved_count,
-        'total_incidents': total_incidents,
+        'active_sos': agg['active_sos'] or 0,
+        'critical_sos': agg['critical_sos'] or 0,
+        'passengers_stranded': agg['passengers_stranded'] or 0,
+        'resolved_count': agg['resolved_count'] or 0,
+        'total_incidents': agg['total_incidents'] or 0,
     }
 
 

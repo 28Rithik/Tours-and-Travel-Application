@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from core.models import Driver
 from operations.models import Trip, DriverFatigueAuditLog
+from django.core.cache import cache
 
 
 GHAT_KEYWORDS = [
@@ -142,7 +143,12 @@ def evaluate_driver_fatigue(driver, prospective_trip=None):
 
 
 def audit_all_active_drivers():
-    """Audits entire driver roster and computes fleet safety metrics."""
+    """Audits entire driver roster and computes fleet safety metrics, cached for 60s."""
+    cache_key = 'driver_fatigue_audit_cache'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     drivers = Driver.objects.filter(status='active')[:25]
     if not drivers.exists():
         drivers = Driver.objects.all()[:25]
@@ -168,7 +174,9 @@ def audit_all_active_drivers():
     recent_overrides = DriverFatigueAuditLog.objects.filter(manager_override=True).count()
     stats['override_count'] = recent_overrides
 
-    return evaluations, stats
+    result = (evaluations, stats)
+    cache.set(cache_key, result, timeout=60)
+    return result
 
 
 def record_fatigue_override(driver_id, trip_id=None, reason="", user=None):
@@ -190,6 +198,7 @@ def record_fatigue_override(driver_id, trip_id=None, reason="", user=None):
         override_reason=reason or 'Manager authorized with auxiliary co-driver / mandatory tea halt relief.',
         override_by=user if user and user.is_authenticated else None
     )
+    cache.delete('driver_fatigue_audit_cache')
     return log
 
 

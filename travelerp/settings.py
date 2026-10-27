@@ -733,6 +733,13 @@ else:
     }
 
 # ==============================================================================
+# ✅ HIGH-PERFORMANCE SESSION BACKEND (cached_db)
+# Reads session data directly from in-memory cache (Redis/LocMemCache), eliminating
+# 1 database query per authenticated request, while persisting writes to the database.
+# ==============================================================================
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# ==============================================================================
 # DJANGO CHANNELS & WEBSOCKET REAL-TIME BROADCAST ENGINE (ZERO-POLLING FLEET RADAR)
 # ==============================================================================
 if _redis_available:
