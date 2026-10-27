@@ -461,8 +461,8 @@
   <div class="panel">
     <div class="panel-heading">
       <h2>Driver Payslips ({{ selected_month }}/{{ selected_year }})</h2>
-      <a href="/admin/finance/driverpayslip/?month={{ selected_month }}&year={{ selected_year }}" class="button button-quiet" target="_blank">
-        Admin Payroll Manager
+      <a href="/finance/accounting/" class="button button-quiet">
+        Payroll Register
       </a>
     </div>
 
@@ -517,7 +517,7 @@
             <strong style="color: #0f5b35; font-size: 15px;">₹{{ p.net_payable|floatformat:2 }}</strong>
           </td>
           <td>
-            <a href="{% url 'driver-payslip-detail' p.id %}" target="_blank" class="button button-quiet" style="padding: 5px 10px; font-size: 12px;">
+            <a href="{% url 'driver-payslip-detail' p.id %}" class="button button-quiet" style="padding: 5px 10px; font-size: 12px;">
               📄 View Slip
             </a>
           </td>

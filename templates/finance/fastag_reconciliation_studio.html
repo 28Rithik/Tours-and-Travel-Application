@@ -68,9 +68,9 @@
       </label>
       <input type="file" id="csvFileInput" accept=".csv,text/csv" class="hidden" onchange="handleFileSelect(this)">
 
-      <a href="/admin/finance/fastag-reconciliation/" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-        <span>Admin View</span>
+      <a href="/finance/fastag-reconciliation/" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+        <i class="fa-solid fa-rotate text-[11px]"></i>
+        <span>Refresh</span>
       </a>
     </div>
   </div>
@@ -414,7 +414,7 @@
         </td>
         <td class="py-2.5 px-3">
           ${entry.trip_id ? `
-            <a href="/trips/${entry.trip_id}/" target="_blank" class="inline-flex items-center gap-1 text-sky-600 hover:underline font-mono font-medium">
+            <a href="/trips/${entry.trip_id}/" class="inline-flex items-center gap-1 text-sky-600 hover:underline font-mono font-medium">
               #${entry.trip_code}
             </a>
           ` : `<span class="text-slate-400 italic">—</span>`}

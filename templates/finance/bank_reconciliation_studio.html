@@ -507,8 +507,8 @@
           <i class="fa-solid fa-file-csv"></i> Export CSV Audit Report
         </a>
       {% endif %}
-      <a href="/admin/finance/bankstatementupload/" class="btn btn-outline">
-        <i class="fa-solid fa-shield-halved"></i> Audit Uploads
+      <a href="/finance/bank-reconciliation/" class="btn btn-outline">
+        <i class="fa-solid fa-rotate"></i> Reset / Refresh
       </a>
     </div>
   </div>
@@ -705,7 +705,7 @@
                 <td>
                   {% if e.matched_booking %}
                     <div style="font-weight: 700; color: #fff;">
-                      <a href="/admin/operations/booking/{{ e.matched_booking.pk }}/change/" target="_blank" style="color: #38bdf8; text-decoration: none;">
+                      <a href="/bookings/?q={{ e.matched_booking.booking_number }}" style="color: #0284c7; text-decoration: none; font-weight: 700;">
                         #{{ e.matched_booking.booking_number }}
                       </a>
                     </div>
@@ -714,7 +714,7 @@
                     </div>
                   {% elif e.matched_invoice %}
                     <div style="font-weight: 700; color: #fff;">
-                      <a href="/finance/invoice/{{ e.matched_invoice.pk }}/view/" target="_blank" style="color: #38bdf8; text-decoration: none;">
+                      <a href="/finance/invoice/{{ e.matched_invoice.pk }}/view/" style="color: #0284c7; text-decoration: none; font-weight: 700;">
                         #{{ e.matched_invoice.invoice_number }}
                       </a>
                     </div>

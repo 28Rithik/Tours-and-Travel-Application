@@ -659,8 +659,8 @@
         </select>
       </div>
 
-      <a href="/admin/finance/driversettlement/" target="_blank" class="back-btn" title="View in Django Admin">
-        <i class="fa-solid fa-sliders"></i> Admin Ledger
+      <a href="/finance/petty-cash/" class="back-btn" title="Petty Cash Float & Advances">
+        <i class="fa-solid fa-money-bill-wave"></i> Petty Cash Float
       </a>
     </div>
   </header>
@@ -942,7 +942,7 @@
               </div>
 
               <div class="btn-action-row" style="margin-top: 18px;">
-                <a href="/finance/settlement/{% if active_preview.existing_voucher %}{{ active_preview.trip_id }}{% else %}1{% endif %}/voucher/" target="_blank" id="printVoucherBtn" class="btn-print">
+                <a href="/finance/settlement/{% if active_preview.existing_voucher %}{{ active_preview.trip_id }}{% else %}1{% endif %}/voucher/" id="printVoucherBtn" class="btn-print">
                   <i class="fa-solid fa-print"></i> Print Official Voucher
                 </a>
 

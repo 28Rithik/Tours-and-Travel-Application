@@ -316,8 +316,11 @@
             {% endif %}
           </td>
           <td>
-            <a href="/admin/crm/partnerprofile/{{ p.id }}/change/" class="button" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; color: #334155; border-radius: 4px; text-decoration: none;">
-              ✏️ Edit / Bank Info
+            <a href="/pricing/?party_id={{ p.party.id }}" class="button" style="font-size: 11px; padding: 4px 8px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; border-radius: 4px; text-decoration: none; font-weight: 600;">
+              🏷️ Rate Card
+            </a>
+            <a href="/statements/generate/?party={{ p.party.id }}" class="button" style="font-size: 11px; padding: 4px 8px; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 4px; text-decoration: none; font-weight: 600; margin-left: 4px;">
+              📊 Ledger
             </a>
           </td>
         </tr>
@@ -384,8 +387,8 @@
             </div>
           </td>
           <td>
-            <a href="/admin/crm/b2ccustomerprofile/{{ b.id }}/change/" class="button" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; color: #334155; border-radius: 4px; text-decoration: none;">
-              ✏️ Details
+            <a href="/crm/kanban/?q={{ b.party.name|urlencode }}" class="button" style="font-size: 11px; padding: 4px 8px; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 4px; text-decoration: none; font-weight: 600;">
+              🔎 CRM History
             </a>
           </td>
         </tr>
