@@ -25,8 +25,6 @@ try:
 except ImportError:
     pass
 
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
-GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -147,8 +145,6 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'travelerp.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -207,23 +203,8 @@ USE_REDIS = os.environ.get('USE_REDIS', '').lower() in ['1', 'true', 'yes'] or U
 
 
 
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+# Password validation defined below with enterprise policy (min_length=8)
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 
 # Internationalization
@@ -277,7 +258,7 @@ WHITENOISE_KEEP_ONLY_HASHED_FILES = False
 
 
 LOGIN_URL = '/staff/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = '/admin/'
 LOGOUT_REDIRECT_URL = '/staff/login/'
 
 COMPANY_NAME = 'Sivagayathiri Tours and Travels'
@@ -314,11 +295,11 @@ UNFOLD = {
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "STYLES": [
-        lambda request: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css",
+        lambda request: "/static/fontawesome/css/all.min.css",
         lambda request: "/static/admin/css/custom_admin.css",
     ],
     "SCRIPTS": [
-        lambda request: "https://unpkg.com/htmx.org@1.9.10",
+        lambda request: "/static/js/htmx.min.js",
         lambda request: "/static/admin/js/htmx_resilience.js",
     ],
     "COLORS": {
@@ -758,18 +739,6 @@ CHANNEL_LAYERS = {
     },
 }
 
-# ==============================================================================
-# DEFAULT WORKSPACE ROUTING (ADMIN-FIRST FOR ENTERPRISE STAFF)
-# ==============================================================================
-LOGIN_REDIRECT_URL = '/admin/'
-LOGOUT_REDIRECT_URL = '/staff/login/'
-LOGIN_URL = '/staff/login/'
-
-# ==============================================================================
-# RATHASĀRATHI AI OPERATIONS COPILOT (GROQ CLOUD CONFIGURATION)
-# ==============================================================================
-GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
-GROQ_MODEL = os.environ.get('GROQ_MODEL', 'qwen/qwen3.8-27b')
 
 
 

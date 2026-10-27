@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   {# ✅ Fix: Single combined Google Fonts request (was 2 separate calls) #}
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-  {# ✅ Fix: Font Awesome loaded non-render-blocking via media trick #}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
+  {# ✅ Fix: Font Awesome self-hosted locally (0ms CDN latency, full offline support) #}
+  <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}"></noscript>
   {# ✅ Fix: Removed cdn.tailwindcss.com (4MB runtime compiler) — Tailwind utilities now in app.css #}
   {# ✅ Fix: Extracted 834-line inline <style> block to static file (browser-cacheable, gzip-served) #}
   <link rel="stylesheet" href="{% static 'css/base-ui.css' %}?v=4.0">

@@ -130,13 +130,16 @@ def get_dashboard_ledger_totals():
     return receivables, payables
 
 
-@login_required
-def dashboard(request):
+def _get_cached_dashboard_aggregates():
+    cache_key = 'dashboard_aggregate_metrics_v2'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     month_start = date.today().replace(day=1)
     monthly_trips = (
         Trip.objects.filter(start_date__gte=month_start)
         .select_related('booking', 'bulk_contract_day__contract', 'vehicle__vehicle_type')
-        .prefetch_related('expenses', 'traffic_fines')
     )
     revenue = sum((trip.total_amount for trip in monthly_trips), Decimal('0'))
     expenses = TripExpense.objects.filter(date__gte=month_start).aggregate(total=Sum('amount'))['total'] or Decimal('0')
@@ -145,15 +148,12 @@ def dashboard(request):
     profit = revenue - expenses
     profit_pct = round((profit / revenue * 100), 1) if revenue > 0 else 0
     expense_pct = round((expenses / revenue * 100), 1) if revenue > 0 else 0
-
-    # Working capital & liquidity
     working_capital = receivables - payables
 
     # 6-Month Historical Revenue, Expenses & Profit Trend
     import json
     from django.db.models.functions import TruncMonth
 
-    # Generate past 6 calendar months in order
     curr_m = date.today().month
     curr_y = date.today().year
     month_starts = []
@@ -198,27 +198,19 @@ def dashboard(request):
         chart_exp_data.append(round(e, 2))
         chart_profit_data.append(round(p, 2))
 
-    # Live active trips for operations dispatch console
-    recent_active_trips = (
-        Trip.objects.filter(status__in=['started', 'assigned', 'driver_confirmed', 'booked'])
-        .select_related('vehicle', 'driver', 'booking', 'party')
-        .order_by('-id')[:8]
-    )
-
     pending_bookings_count = Booking.objects.filter(status='pending').count()
     unassigned_trips_count = Trip.objects.filter(status='booked', vehicle__isnull=True).count()
     active_trips_count = Trip.objects.filter(status__in=['assigned', 'driver_confirmed', 'started']).count()
     started_trips_count = Trip.objects.filter(status='started').count()
+    completed_trips_count = Trip.objects.filter(status='completed').count()
     total_vehicles_count = Vehicle.objects.count()
     total_drivers_count = Driver.objects.count()
     available_vehicles_count = max(0, total_vehicles_count - started_trips_count)
 
-    # Fleet status distribution for gauge / doughnut
     fleet_on_trip = Trip.objects.filter(status='started', vehicle__isnull=False).values('vehicle_id').distinct().count()
     fleet_assigned = Trip.objects.filter(status__in=['assigned', 'driver_confirmed'], vehicle__isnull=False).values('vehicle_id').distinct().count()
     fleet_available = max(0, total_vehicles_count - (fleet_on_trip + fleet_assigned))
 
-    # Top Regional Route Corridors
     top_corridors_qs = list(
         Booking.objects.exclude(destination='')
         .values('destination')
@@ -234,11 +226,65 @@ def dashboard(request):
             'pct': round((c['count'] / total_corridor_bookings) * 100, 1),
         })
 
-    # Compliance Health Score
     compliance_alerts_count = Vehicle.objects.filter(
         Q(fc_expiry__lte=date.today()) | Q(insurance_expiry__lte=date.today())
     ).count()
     compliance_score = round(((total_vehicles_count - compliance_alerts_count) / max(1, total_vehicles_count)) * 100, 1)
+
+    result = {
+        'revenue': revenue,
+        'expenses': expenses,
+        'receivables': receivables,
+        'payables': payables,
+        'profit': profit,
+        'profit_pct': profit_pct,
+        'expense_pct': expense_pct,
+        'working_capital': working_capital,
+        'revenue_inr': format_indian_currency(revenue),
+        'revenue_compact': format_compact_inr(revenue),
+        'profit_inr': format_indian_currency(profit),
+        'profit_compact': format_compact_inr(profit),
+        'expenses_inr': format_indian_currency(expenses),
+        'expenses_compact': format_compact_inr(expenses),
+        'receivables_inr': format_indian_currency(receivables),
+        'receivables_compact': format_compact_inr(receivables),
+        'payables_inr': format_indian_currency(payables),
+        'payables_compact': format_compact_inr(payables),
+        'working_capital_inr': format_indian_currency(working_capital),
+        'working_capital_compact': format_compact_inr(working_capital),
+        'chart_labels_json': json.dumps([lbl.split(' ')[0] for lbl in chart_labels]),
+        'chart_rev_json': json.dumps(chart_rev_data),
+        'chart_exp_json': json.dumps(chart_exp_data),
+        'chart_profit_json': json.dumps(chart_profit_data),
+        'pending_bookings_count': pending_bookings_count,
+        'unassigned_trips_count': unassigned_trips_count,
+        'active_trips_count': active_trips_count,
+        'started_trips_count': started_trips_count,
+        'completed_trips_count': completed_trips_count,
+        'total_vehicles_count': total_vehicles_count,
+        'total_drivers_count': total_drivers_count,
+        'available_vehicles_count': available_vehicles_count,
+        'fleet_on_trip': fleet_on_trip,
+        'fleet_assigned': fleet_assigned,
+        'fleet_available': fleet_available,
+        'top_corridors': top_corridors,
+        'compliance_alerts_count': compliance_alerts_count,
+        'compliance_score': compliance_score,
+    }
+    cache.set(cache_key, result, timeout=60)
+    return result
+
+
+@login_required
+def dashboard(request):
+    m = _get_cached_dashboard_aggregates()
+
+    # Live active trips for operations dispatch console
+    recent_active_trips = (
+        Trip.objects.filter(status__in=['started', 'assigned', 'driver_confirmed', 'booked'])
+        .select_related('vehicle', 'driver', 'booking', 'party')
+        .order_by('-id')[:8]
+    )
 
     # ─────────────────────────────────────────────────────────────
     # Role-Specific Tactical Workspace Context
@@ -248,7 +294,7 @@ def dashboard(request):
 
     # 1. Sales Intelligence Data
     sales_target = profile.monthly_sales_target_inr if profile and profile.monthly_sales_target_inr > 0 else Decimal('1500000.00')
-    sales_achieved = revenue if revenue > 0 else Decimal('1145000.00')
+    sales_achieved = m['revenue'] if m['revenue'] > 0 else Decimal('1145000.00')
     sales_progress_pct = min(100, round((sales_achieved / sales_target * 100), 1)) if sales_target > 0 else 76.3
 
     top_corporate_clients = Party.objects.filter(party_type='corporate')[:5]
@@ -296,55 +342,55 @@ def dashboard(request):
     ]
 
     return render(request, 'dashboard.html', {
-        'active_trips': active_trips_count,
-        'started_trips': started_trips_count,
-        'completed_trips': Trip.objects.filter(status='completed').count(),
-        'monthly_revenue': revenue,
-        'monthly_expenses': expenses,
-        'monthly_profit': profit,
-        'receivables': receivables,
-        'payables': payables,
-        'working_capital': working_capital,
+        'active_trips': m['active_trips_count'],
+        'started_trips': m['started_trips_count'],
+        'completed_trips': m['completed_trips_count'],
+        'monthly_revenue': m['revenue'],
+        'monthly_expenses': m['expenses'],
+        'monthly_profit': m['profit'],
+        'receivables': m['receivables'],
+        'payables': m['payables'],
+        'working_capital': m['working_capital'],
         # Formatted Indian currency
-        'revenue_inr': format_indian_currency(revenue),
-        'revenue_compact': format_compact_inr(revenue),
-        'profit_inr': format_indian_currency(profit),
-        'profit_compact': format_compact_inr(profit),
-        'expenses_inr': format_indian_currency(expenses),
-        'expenses_compact': format_compact_inr(expenses),
-        'receivables_inr': format_indian_currency(receivables),
-        'receivables_compact': format_compact_inr(receivables),
-        'payables_inr': format_indian_currency(payables),
-        'payables_compact': format_compact_inr(payables),
-        'working_capital_inr': format_indian_currency(working_capital),
-        'working_capital_compact': format_compact_inr(working_capital),
+        'revenue_inr': m['revenue_inr'],
+        'revenue_compact': m['revenue_compact'],
+        'profit_inr': m['profit_inr'],
+        'profit_compact': m['profit_compact'],
+        'expenses_inr': m['expenses_inr'],
+        'expenses_compact': m['expenses_compact'],
+        'receivables_inr': m['receivables_inr'],
+        'receivables_compact': m['receivables_compact'],
+        'payables_inr': m['payables_inr'],
+        'payables_compact': m['payables_compact'],
+        'working_capital_inr': m['working_capital_inr'],
+        'working_capital_compact': m['working_capital_compact'],
         # Progress ratios
-        'profit_pct': profit_pct,
-        'expense_pct': expense_pct,
+        'profit_pct': m['profit_pct'],
+        'expense_pct': m['expense_pct'],
         # Live Operational Data
         'recent_active_trips': recent_active_trips,
-        'pending_bookings_count': pending_bookings_count,
-        'unassigned_trips_count': unassigned_trips_count,
-        'total_fleet_count': total_vehicles_count or 151,
-        'total_drivers_count': total_drivers_count or 140,
-        'available_vehicles_count': available_vehicles_count,
-        'fleet_on_trip': fleet_on_trip,
-        'fleet_assigned': fleet_assigned,
-        'fleet_available': fleet_available,
-        'top_corridors': top_corridors,
-        'compliance_score': compliance_score,
+        'pending_bookings_count': m['pending_bookings_count'],
+        'unassigned_trips_count': m['unassigned_trips_count'],
+        'total_fleet_count': m['total_vehicles_count'] or 151,
+        'total_drivers_count': m['total_drivers_count'] or 140,
+        'available_vehicles_count': m['available_vehicles_count'],
+        'fleet_on_trip': m['fleet_on_trip'],
+        'fleet_assigned': m['fleet_assigned'],
+        'fleet_available': m['fleet_available'],
+        'top_corridors': m['top_corridors'],
+        'compliance_score': m['compliance_score'],
         # Interactive Chart JSON datasets
-        'chart_labels_json': json.dumps([lbl.split(' ')[0] for lbl in chart_labels]),
-        'chart_rev_json': json.dumps(chart_rev_data),
-        'chart_exp_json': json.dumps(chart_exp_data),
-        'chart_profit_json': json.dumps(chart_profit_data),
+        'chart_labels_json': m['chart_labels_json'],
+        'chart_rev_json': m['chart_rev_json'],
+        'chart_exp_json': m['chart_exp_json'],
+        'chart_profit_json': m['chart_profit_json'],
         # Role Workspace Specifics
         'active_role': active_role,
         'sales_target_inr': format_indian_currency(sales_target),
         'sales_achieved_inr': format_indian_currency(sales_achieved),
         'sales_progress_pct': sales_progress_pct,
         'top_corporate_clients': top_corporate_clients,
-        'compliance_alerts_count': compliance_alerts_count,
+        'compliance_alerts_count': m['compliance_alerts_count'],
         'recent_gst_invoices': recent_gst_invoices,
         'unpaid_invoices_count': unpaid_invoices_count,
         'pending_approvals': pending_approvals,

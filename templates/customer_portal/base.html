@@ -16,9 +16,9 @@
     <!-- Portal CSS Design System -->
     <link rel="stylesheet" href="/static/css/portal.css">
     
-    <!-- HTMX & Alpine.js for Micro-Interactions -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- HTMX & Alpine.js served locally (no external CDN delays) -->
+    <script src="/static/js/htmx.min.js"></script>
+    <script defer src="/static/js/alpine.min.js"></script>
 
     {% block extra_head %}{% endblock %}
 </head>

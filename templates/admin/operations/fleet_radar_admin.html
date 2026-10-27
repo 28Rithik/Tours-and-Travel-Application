@@ -14,11 +14,8 @@
 {% endblock %}
 
 {% block content %}
-<!-- External Leaflet CSS & Fonts -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Local Leaflet CSS -->
+<link rel="stylesheet" href="/static/leaflet/leaflet.css" />
 
 <div class="radar-admin-container">
     <!-- Top Command & KPI Bar -->
@@ -1634,8 +1631,8 @@ html:not(.dark) .radar-sweep-effect {
 }
 </style>
 
-<!-- Leaflet Library & Full Radar Engine Script -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Local Leaflet Library & Full Radar Engine Script -->
+<script src="/static/leaflet/leaflet.js"></script>
 <script>
 (function() {
     // --- Radar State ---

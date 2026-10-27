@@ -36,12 +36,16 @@ def api_vehicle_check_availability(request, reg_no):
         except (ValueError, TypeError):
             check_date = None
 
-    # Search for vehicle ignoring spaces and hyphens
-    target_vehicle = None
-    for v in Vehicle.objects.all():
-        if v.registration_number.replace(' ', '').replace('-', '').upper() == clean_reg:
-            target_vehicle = v
-            break
+    # Fast indexed lookup for vehicle (exact or clean registration)
+    target_vehicle = (
+        Vehicle.objects.filter(models.Q(registration_number__iexact=reg_no) | models.Q(registration_number__iexact=clean_reg))
+        .first()
+    )
+    if not target_vehicle:
+        for v in Vehicle.objects.only('id', 'registration_number', 'status'):
+            if v.registration_number.replace(' ', '').replace('-', '').upper() == clean_reg:
+                target_vehicle = v
+                break
 
     if not target_vehicle:
         return JsonResponse({
