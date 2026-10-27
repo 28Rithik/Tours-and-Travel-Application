@@ -105,7 +105,7 @@ class Inquiry(models.Model):
     # Kanban 3.0 Revenue & Inventory Synergy Fields
     ai_win_probability = models.PositiveIntegerField(default=65, help_text="Calculated win probability (0-100)")
     estimated_gross_margin = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('28.50'), help_text="Gross margin percentage")
-    proposal_token = models.CharField(max_length=64, blank=True, default='')
+    proposal_token = models.CharField(max_length=64, blank=True, default='', db_index=True)
     proposal_view_count = models.PositiveIntegerField(default=0)
     advance_deposit_paid = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     swimlane_group = models.CharField(max_length=50, blank=True, default='holiday_tour')

@@ -89,8 +89,8 @@ def booking_list(request):
     pending_bookings_count = bookings.filter(status='pending').count()
 
     # 3. Available Resources for Fast Allocation Modal / Dropdowns (Scoped by Depot)
-    available_vehicles = get_scoped_vehicles(request.user, depot_param).select_related('vehicle_type').order_by('registration_number')
-    available_drivers = get_scoped_drivers(request.user, depot_param).order_by('name')
+    available_vehicles = get_scoped_vehicles(request.user, depot_param).filter(status__in=['available', 'assigned']).select_related('vehicle_type').order_by('registration_number')
+    available_drivers = get_scoped_drivers(request.user, depot_param).filter(status='active').order_by('name')
 
     return render(request, 'operations/booking_list.html', {
         'trips': trips_list[:50],
@@ -2932,12 +2932,12 @@ def guest_tour_itinerary_view(request, token=None, trip_id=None):
     """
     if token:
         trip = get_object_or_404(
-            Trip.objects.select_related('driver', 'vehicle', 'party', 'package', 'booking'),
+            Trip.objects.select_related('driver', 'vehicle', 'party', 'package', 'booking').prefetch_related('itinerary_days', 'hotels'),
             tracking_token=token
         )
     elif trip_id:
         trip = get_object_or_404(
-            Trip.objects.select_related('driver', 'vehicle', 'party', 'package', 'booking'),
+            Trip.objects.select_related('driver', 'vehicle', 'party', 'package', 'booking').prefetch_related('itinerary_days', 'hotels'),
             pk=trip_id
         )
     else:

@@ -46,136 +46,144 @@ def public_landing_view(request):
     Public-facing homepage showcasing holiday packages, fleet rentals,
     interactive fare estimator, and live booking tracking.
     """
-    all_packages = Package.objects.filter(is_active=True).prefetch_related('inventory', 'itinerary_days')
-    
-    # Categorized Packages
-    hill_stations = all_packages.filter(category='hill_station')[:6]
-    devotional_tours = all_packages.filter(category='devotional')[:6]
-    college_ivs = all_packages.filter(category='college_iv')[:6]
-    leisure_holidays = all_packages.filter(category__in=['holiday', 'family_vacation'])[:6]
-    
-    # Upcoming Fixed Departure Batches
-    today = timezone.now().date()
-    upcoming_batches = PackageInventory.objects.filter(
-        status__in=['open', 'fast_filling'],
-        departure_date__gte=today
-    ).select_related('package', 'assigned_vehicle').order_by('departure_date')[:6]
-    
-    # Vehicle Types for Fleet Showcase
-    vehicle_types = VehicleType.objects.all().order_by('seating_capacity')
-    
-    # Platform Statistics
-    total_trips_completed = Trip.objects.filter(status='completed').count() + 1250
-    active_vehicles_count = 320
-    happy_travelers_count = (total_trips_completed * 42)
-    
-    # Curated Featured Packages (3 from each key category so every filter has rich cards)
-    curated_featured = (
-        list(all_packages.filter(category='hill_station')[:3]) +
-        list(all_packages.filter(category='devotional')[:3]) +
-        list(all_packages.filter(category='college_iv')[:3]) +
-        list(all_packages.filter(category__in=['holiday', 'family_vacation'])[:3])
-    )
-    
-    # Popular South India Outstation Corridors (Fixed route price matrix)
-    popular_routes = [
-        {
-            'name': 'Coimbatore ⇄ Ooty / Coonoor',
-            'pickup': 'Coimbatore',
-            'destination': 'Ooty',
-            'distance_km': 85,
-            'duration_text': '3.5 Hours',
-            'terrain': 'Nilgiris Ghats • 36 Hairpins',
-            'recommended_fleet': 'Innova Crysta / Urbania',
-            'tier': 'crysta',
-            'starting_fare': 3499,
-            'badge': 'Hill Station Gateway',
-            'icon': '⛰️',
-        },
-        {
-            'name': 'Chennai ⇄ Pondicherry / Auroville',
-            'pickup': 'Chennai',
-            'destination': 'Pondicherry',
-            'distance_km': 155,
-            'duration_text': '3.2 Hours',
-            'terrain': 'East Coast Road (ECR)',
-            'recommended_fleet': 'Swift Dzire / Crysta',
-            'tier': 'sedan',
-            'starting_fare': 4199,
-            'badge': 'Coastal Expressway',
-            'icon': '🏖️',
-        },
-        {
-            'name': 'Bangalore ⇄ Mysore & Coorg',
-            'pickup': 'Bangalore',
-            'destination': 'Coorg',
-            'distance_km': 240,
-            'duration_text': '5.0 Hours',
-            'terrain': 'Mysore Expressway & Mist Hills',
-            'recommended_fleet': 'Innova Crysta / Urbania',
-            'tier': 'crysta',
-            'starting_fare': 5799,
-            'badge': 'Heritage & Coffee',
-            'icon': '🏰',
-        },
-        {
-            'name': 'Coimbatore ⇄ Munnar & Vagamon',
-            'pickup': 'Coimbatore',
-            'destination': 'Munnar',
-            'distance_km': 160,
-            'duration_text': '5.5 Hours',
-            'terrain': 'Anamalai Tea Valleys & Ghats',
-            'recommended_fleet': 'Force Urbania / Mini Bus',
-            'tier': 'tt',
-            'starting_fare': 4899,
-            'badge': 'Tea Plantation Ghats',
-            'icon': '🍃',
-        },
-        {
-            'name': 'Madurai ⇄ Rameshwaram',
-            'pickup': 'Madurai',
-            'destination': 'Rameshwaram',
-            'distance_km': 175,
-            'duration_text': '3.5 Hours',
-            'terrain': 'Pamban Sea Bridge Yatra',
-            'recommended_fleet': 'Innova Crysta / 54 Coach',
-            'tier': 'crysta',
-            'starting_fare': 4499,
-            'badge': 'Coastal Sea Corridor',
-            'icon': '🕉️',
-        },
-        {
-            'name': 'Kochi ⇄ Alleppey Backwaters',
-            'pickup': 'Kochi',
-            'destination': 'Alleppey',
-            'distance_km': 65,
-            'duration_text': '1.8 Hours',
-            'terrain': 'Vembanad Lake Circuit',
-            'recommended_fleet': 'Innova Crysta / Urbania',
-            'tier': 'crysta',
-            'starting_fare': 2699,
-            'badge': 'Houseboat Gateway',
-            'icon': '🌴',
-        },
-    ]
-    
-    context = {
-        'all_packages': curated_featured,
-        'total_packages_count': all_packages.count(),
-        'hill_stations': hill_stations,
-        'devotional_tours': devotional_tours,
-        'college_ivs': college_ivs,
-        'leisure_holidays': leisure_holidays,
-        'upcoming_batches': upcoming_batches,
-        'vehicle_types': vehicle_types,
-        'popular_routes': popular_routes,
-        'stats': {
-            'trips_completed': total_trips_completed,
-            'active_vehicles': active_vehicles_count,
-            'happy_travelers': happy_travelers_count,
-            'on_time_sla': 99.8,
+    from django.core.cache import cache
+
+    cache_key = 'portal_public_landing_context_v1'
+    context = cache.get(cache_key)
+    if not context:
+        all_packages = Package.objects.filter(is_active=True).prefetch_related('inventory', 'itinerary_days')
+        
+        # Categorized Packages
+        hill_stations = list(all_packages.filter(category='hill_station')[:6])
+        devotional_tours = list(all_packages.filter(category='devotional')[:6])
+        college_ivs = list(all_packages.filter(category='college_iv')[:6])
+        leisure_holidays = list(all_packages.filter(category__in=['holiday', 'family_vacation'])[:6])
+        
+        # Upcoming Fixed Departure Batches
+        today = timezone.now().date()
+        upcoming_batches = list(PackageInventory.objects.filter(
+            status__in=['open', 'fast_filling'],
+            departure_date__gte=today
+        ).select_related('package', 'assigned_vehicle').order_by('departure_date')[:6])
+        
+        # Vehicle Types for Fleet Showcase
+        vehicle_types = list(VehicleType.objects.all().order_by('seating_capacity'))
+        
+        # Platform Statistics
+        total_trips_completed = Trip.objects.filter(status='completed').count() + 1250
+        active_vehicles_count = 320
+        happy_travelers_count = (total_trips_completed * 42)
+        total_packages_count = all_packages.count()
+        
+        # Curated Featured Packages (re-uses already sliced lists to eliminate 4 extra queries)
+        curated_featured = (
+            hill_stations[:3] +
+            devotional_tours[:3] +
+            college_ivs[:3] +
+            leisure_holidays[:3]
+        )
+        
+        # Popular South India Outstation Corridors (Fixed route price matrix)
+        popular_routes = [
+            {
+                'name': 'Coimbatore ⇄ Ooty / Coonoor',
+                'pickup': 'Coimbatore',
+                'destination': 'Ooty',
+                'distance_km': 85,
+                'duration_text': '3.5 Hours',
+                'terrain': 'Nilgiris Ghats • 36 Hairpins',
+                'recommended_fleet': 'Innova Crysta / Urbania',
+                'tier': 'crysta',
+                'starting_fare': 3499,
+                'badge': 'Hill Station Gateway',
+                'icon': '⛰️',
+            },
+            {
+                'name': 'Chennai ⇄ Pondicherry / Auroville',
+                'pickup': 'Chennai',
+                'destination': 'Pondicherry',
+                'distance_km': 155,
+                'duration_text': '3.2 Hours',
+                'terrain': 'East Coast Road (ECR)',
+                'recommended_fleet': 'Swift Dzire / Crysta',
+                'tier': 'sedan',
+                'starting_fare': 4199,
+                'badge': 'Coastal Expressway',
+                'icon': '🏖️',
+            },
+            {
+                'name': 'Bangalore ⇄ Mysore & Coorg',
+                'pickup': 'Bangalore',
+                'destination': 'Coorg',
+                'distance_km': 240,
+                'duration_text': '5.0 Hours',
+                'terrain': 'Mysore Expressway & Mist Hills',
+                'recommended_fleet': 'Innova Crysta / Urbania',
+                'tier': 'crysta',
+                'starting_fare': 5799,
+                'badge': 'Heritage & Coffee',
+                'icon': '🏰',
+            },
+            {
+                'name': 'Coimbatore ⇄ Munnar & Vagamon',
+                'pickup': 'Coimbatore',
+                'destination': 'Munnar',
+                'distance_km': 160,
+                'duration_text': '5.5 Hours',
+                'terrain': 'Anamalai Tea Valleys & Ghats',
+                'recommended_fleet': 'Force Urbania / Mini Bus',
+                'tier': 'tt',
+                'starting_fare': 4899,
+                'badge': 'Tea Plantation Ghats',
+                'icon': '🍃',
+            },
+            {
+                'name': 'Madurai ⇄ Rameshwaram',
+                'pickup': 'Madurai',
+                'destination': 'Rameshwaram',
+                'distance_km': 175,
+                'duration_text': '3.5 Hours',
+                'terrain': 'Pamban Sea Bridge Yatra',
+                'recommended_fleet': 'Innova Crysta / 54 Coach',
+                'tier': 'crysta',
+                'starting_fare': 4499,
+                'badge': 'Coastal Sea Corridor',
+                'icon': '🕉️',
+            },
+            {
+                'name': 'Kochi ⇄ Alleppey Backwaters',
+                'pickup': 'Kochi',
+                'destination': 'Alleppey',
+                'distance_km': 65,
+                'duration_text': '1.8 Hours',
+                'terrain': 'Vembanad Lake Circuit',
+                'recommended_fleet': 'Innova Crysta / Urbania',
+                'tier': 'crysta',
+                'starting_fare': 2699,
+                'badge': 'Houseboat Gateway',
+                'icon': '🌴',
+            },
+        ]
+        
+        context = {
+            'all_packages': curated_featured,
+            'total_packages_count': total_packages_count,
+            'hill_stations': hill_stations,
+            'devotional_tours': devotional_tours,
+            'college_ivs': college_ivs,
+            'leisure_holidays': leisure_holidays,
+            'upcoming_batches': upcoming_batches,
+            'vehicle_types': vehicle_types,
+            'popular_routes': popular_routes,
+            'stats': {
+                'trips_completed': total_trips_completed,
+                'active_vehicles': active_vehicles_count,
+                'happy_travelers': happy_travelers_count,
+                'on_time_sla': 99.8,
+            }
         }
-    }
+        cache.set(cache_key, context, timeout=120)
+
     return render(request, 'customer_portal/landing_page.html', context)
 
 

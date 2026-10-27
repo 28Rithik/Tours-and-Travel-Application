@@ -26,6 +26,11 @@ class TripExpense(models.Model):
 				name='trip_expense_amount_non_negative'
 			),
 		]
+		indexes = [
+			models.Index(fields=['trip', 'expense_type'], name='idx_expense_trip_type'),
+			models.Index(fields=['date'], name='idx_expense_date'),
+			models.Index(fields=['billable_to_customer'], name='idx_expense_billable'),
+		]
 
 	def clean(self):
 		from django.core.exceptions import ValidationError
@@ -379,6 +384,11 @@ class DriverSettlement(models.Model):
 		ordering = ['-settled_on', '-id']
 		verbose_name = 'Driver Settlement & Bata Voucher'
 		verbose_name_plural = 'Driver Settlements & Bata Vouchers'
+		indexes = [
+			models.Index(fields=['trip', 'driver'], name='idx_drvset_trip_drv'),
+			models.Index(fields=['driver', 'status'], name='idx_drvset_drv_status'),
+			models.Index(fields=['settled_on'], name='idx_drvset_settled_on'),
+		]
 
 	def __str__(self):
 		return f"{self.voucher_number or f'DSV-{self.id}'} - {self.driver.name} (₹{self.net_payout_amount})"
@@ -629,6 +639,12 @@ class FastagTollDeduction(models.Model):
 	amount = models.DecimalField(max_digits=8, decimal_places=2)
 	toll_plaza = models.CharField(max_length=255, blank=True)
 
+	class Meta:
+		indexes = [
+			models.Index(fields=['vehicle', 'date'], name='idx_fastag_veh_date'),
+			models.Index(fields=['trip'], name='idx_fastag_trip'),
+		]
+
 	def save(self, *args, **kwargs):
 		is_new = self.pk is None
 		super().save(*args, **kwargs)
@@ -849,6 +865,11 @@ class CorporateGSTInvoice(models.Model):
 		ordering = ['-invoice_date', '-id']
 		verbose_name = 'Corporate GST B2B Invoice'
 		verbose_name_plural = 'Corporate GST B2B Invoices'
+		indexes = [
+			models.Index(fields=['party', 'payment_status'], name='idx_gstinv_party_status'),
+			models.Index(fields=['invoice_date'], name='idx_gstinv_date'),
+			models.Index(fields=['payment_status'], name='idx_gstinv_status'),
+		]
 
 	def __str__(self):
 		return f"{self.invoice_number or f'INV-{self.pk}'} - {self.recipient_legal_name} (₹{self.total_invoice_value})"
@@ -1205,6 +1226,10 @@ class BankStatementEntry(models.Model):
 		ordering = ['-transaction_date', '-id']
 		verbose_name = 'Bank Statement Entry'
 		verbose_name_plural = 'Bank Statement Entries'
+		indexes = [
+			models.Index(fields=['upload', 'status'], name='idx_bkentry_up_status'),
+			models.Index(fields=['status', 'transaction_date'], name='idx_bkentry_status_date'),
+		]
 
 	def __str__(self):
 		return f"{self.transaction_date} | +₹{self.deposit_amount} | UTR: {self.reference_or_utr or 'N/A'} ({self.get_status_display()})"

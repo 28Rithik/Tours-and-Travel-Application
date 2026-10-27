@@ -42,7 +42,7 @@ def inquiry_pipeline_view(request):
     month_start = today_start.replace(day=1)
 
     # Base Queryset
-    inquiries = Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to').prefetch_related('follow_ups')
+    inquiries = Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to')
 
     # Status filter
     status_filter = request.GET.get('status')
@@ -2899,9 +2899,9 @@ def public_digital_proposal_view(request, token):
     Supports both Inquiry and Quotation tokens.
     """
     from .models import Inquiry, Quotation
-    inquiry = Inquiry.objects.filter(proposal_token=token).first()
+    inquiry = Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to').filter(proposal_token=token).first()
     if not inquiry:
-        quotation = Quotation.objects.filter(proposal_token=token).first()
+        quotation = Quotation.objects.select_related('party', 'vehicle_type').prefetch_related('days__hotel').filter(proposal_token=token).first()
         if quotation:
             context = {
                 'q': quotation,
@@ -2910,7 +2910,7 @@ def public_digital_proposal_view(request, token):
                 'today': timezone.now().date(),
             }
             return render(request, 'crm/quotation_brochure_web_preview.html', context)
-        inquiry = get_object_or_404(Inquiry, proposal_token=token)
+        inquiry = get_object_or_404(Inquiry.objects.select_related('party', 'vehicle_type', 'assigned_to'), proposal_token=token)
 
     inquiry.proposal_view_count += 1
     inquiry.save(update_fields=['proposal_view_count'])

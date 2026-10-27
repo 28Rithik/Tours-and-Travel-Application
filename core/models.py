@@ -560,6 +560,9 @@ class Vehicle(models.Model):
 		indexes = [
 			models.Index(fields=['status', 'vehicle_type'], name='idx_veh_status_type'),
 			models.Index(fields=['ownership_type', 'status'], name='idx_veh_owner_status'),
+			models.Index(fields=['base_depot', 'status'], name='idx_veh_depot_status'),
+			models.Index(fields=['fc_expiry'], name='idx_veh_fc_exp'),
+			models.Index(fields=['insurance_expiry'], name='idx_veh_ins_exp'),
 		]
 
 	def __str__(self):

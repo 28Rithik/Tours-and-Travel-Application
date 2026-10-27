@@ -1441,11 +1441,12 @@ def admin_driver_settlement_studio_view(request):
 
     # Base querysets
     pending_trips = list(trips_qs.filter(status__in=['completed', 'billed']).exclude(settlements__status='settled')[:40])
-    recent_settled = list(DriverSettlement.objects.filter(status='settled').select_related('driver', 'trip', 'settled_by').order_by('-settled_on', '-id')[:25])
+    recent_settled_qs = DriverSettlement.objects.filter(status='settled').select_related('driver', 'trip', 'settled_by')
     if effective_depot:
-        recent_settled = [s for s in recent_settled if getattr(s.driver, 'base_depot', None) == effective_depot]
+        recent_settled_qs = recent_settled_qs.filter(driver__base_depot=effective_depot)
+    recent_settled = list(recent_settled_qs.order_by('-settled_on', '-id')[:25])
 
-    # Calculate high-level KPIs
+    # Calculate high-level KPIs — Single consolidated aggregation
     total_pending_count = trips_qs.filter(status__in=['completed', 'billed']).exclude(settlements__status='settled').count()
 
     first_of_month = timezone.now().date().replace(day=1)
@@ -1453,12 +1454,16 @@ def admin_driver_settlement_studio_view(request):
     if effective_depot:
         mtd_settlements = mtd_settlements.filter(driver__base_depot=effective_depot)
 
-    mtd_disbursed = mtd_settlements.filter(net_payout_amount__gt=0).aggregate(s=models.Sum('net_payout_amount'))['s'] or Decimal('0.00')
-    mtd_surrendered = mtd_settlements.filter(net_payout_amount__lt=0).aggregate(s=models.Sum('net_payout_amount'))['s'] or Decimal('0.00')
-    surrender_total = abs(mtd_surrendered)
-
-    total_settled_trips_count = mtd_settlements.count()
-    avg_bata = (mtd_settlements.aggregate(s=models.Sum('total_bata_earned'))['s'] or Decimal('0.00')) / (total_settled_trips_count or 1)
+    mtd_kpis = mtd_settlements.aggregate(
+        disbursed=models.Sum(models.Case(models.When(net_payout_amount__gt=0, then='net_payout_amount'), default=Decimal('0.00'))),
+        surrendered=models.Sum(models.Case(models.When(net_payout_amount__lt=0, then='net_payout_amount'), default=Decimal('0.00'))),
+        total_settled=models.Count('id'),
+        total_bata=models.Sum('total_bata_earned'),
+    )
+    mtd_disbursed = mtd_kpis['disbursed'] or Decimal('0.00')
+    surrender_total = abs(mtd_kpis['surrendered'] or Decimal('0.00'))
+    total_settled_trips_count = mtd_kpis['total_settled'] or 0
+    avg_bata = (mtd_kpis['total_bata'] or Decimal('0.00')) / (total_settled_trips_count or 1)
 
     # Initial trip preview if requested via ?trip=<id>
     active_preview = None
