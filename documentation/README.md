@@ -21,17 +21,30 @@ This documentation suite reflects the current state of the application, encompas
 | **09** | [09_AUDIT_INTEGRITY_AND_DEDUPLICATION.md](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/documentation/09_AUDIT_INTEGRITY_AND_DEDUPLICATION.md) | End-to-end check report: zero concrete table conflicts, 166 Unfold admin models, cleaned duplicate routes, 100% test pass rate |
 | **10** | [10_FUTURE_PHASES_ROADMAP.md](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/documentation/10_FUTURE_PHASES_ROADMAP.md) | Strategic roadmap detailing Phase 8 (Fuel IoT), Phase 9 (AI Dynamic Pricing), Phase 10 (B2B Sub-Agency), Phase 11 & Phase 12 |
 | **11** | [11_PRODUCTION_DEPLOYMENT_AND_HARDENING.md](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/documentation/11_PRODUCTION_DEPLOYMENT_AND_HARDENING.md) | Production Docker stack, Nginx SSL reverse proxy, Daphne ASGI, automated backups, and security hardening |
+| **12** | [12_PERFORMANCE_AND_ZERO_CDN_ARCHITECTURE.md](file:///c:/Users/rithi/Documents/Documents%20Project%20Intership%20and%20Course/Projects/Rag%20chatbot/Tours%20and%20Travel%20Application/documentation/12_PERFORMANCE_AND_ZERO_CDN_ARCHITECTURE.md) | Zero-CDN Architecture, 100% self-hosted assets, cached_db session engine, SQLite WAL, and 42.43ms benchmark |
 
 ---
 
 ## 🚀 Quick Start & Operational Links
 
-- **Main Dashboard**: `http://127.0.0.1:8000/dashboard/`
-- **Enterprise Unfold Admin**: `http://127.0.0.1:8000/admin/`
+- **Main Executive Dashboard**: `http://127.0.0.1:8000/` or `http://127.0.0.1:8000/dashboard/`
+- **Django Unfold Enterprise Admin**: `http://127.0.0.1:8000/admin/`
+- **Dispatch Control Center**: `http://127.0.0.1:8000/dispatch/`
+- **Public Customer Portal**: `http://127.0.0.1:8000/customer-portal/`
+- **Tour Packages Catalog**: `http://127.0.0.1:8000/customer-portal/packages/`
+- **Fleet Showcase & Rate Cards**: `http://127.0.0.1:8000/customer-portal/fleet/`
+- **Chauffeur Mobile PWA Portal**: `http://127.0.0.1:8000/driver-portal/`
+- **GIS & Telematics Control Room**: `http://127.0.0.1:8000/gis/control-center/`
+- **CRM Drag-and-Drop Kanban Board**: `http://127.0.0.1:8000/crm/kanban/`
+- **Driver Settlement Studio**: `http://127.0.0.1:8000/finance/driver-settlement/`
+- **Statutory Compliance Sentry**: `http://127.0.0.1:8000/operations/statutory-compliance/`
+- **Chauffeur Fatigue Rest Sentry**: `http://127.0.0.1:8000/operations/driver-fatigue-sentry/`
+- **Highway Breakdown SOS Studio**: `http://127.0.0.1:8000/operations/breakdown-sos/`
+- **Interstate Border Permit Sentry**: `http://127.0.0.1:8000/operations/border-permits/`
 - **Batch Commute Dispatcher**: `http://127.0.0.1:8000/commute/roster-dispatcher/`
-- **CRM Kanban Board**: `http://127.0.0.1:8000/admin/crm/kanban/`
 - **2D Tire Health Studio**: `http://127.0.0.1:8000/maintenance/tire-studio/`
-- **Bank Reconciler Studio**: `http://127.0.0.1:8000/admin/finance/bank-reconciliation/`
+- **2D Vehicle Damage Marker Studio**: `http://127.0.0.1:8000/maintenance/damage-marker/`
+- **Bank Reconciler Studio**: `http://127.0.0.1:8000/finance/bank-reconciliation/`
 - **Petty Cash Float Register**: `http://127.0.0.1:8000/admin/finance/petty-cash-studio/`
-- **Driver Mobile Wallet**: `http://127.0.0.1:8000/driver/wallet/`
+- **Driver Mobile Cash Wallet**: `http://127.0.0.1:8000/driver/wallet/`
 - **Women Safety Command**: `http://127.0.0.1:8000/commute/women-safety/`

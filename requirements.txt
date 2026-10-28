@@ -19,11 +19,12 @@ django-unfold==0.40.0
 django-htmx==1.21.0
 django-jazzmin==3.0.1
 
-# Database Adapters & Cache Store
+# Database Adapters, Cache Store & Channel Layers
 psycopg2-binary==2.9.9
 dj-database-url==3.1.2
 redis==8.1.0
 django-redis==6.0.0
+channels-redis==4.3.0
 
 # Document Engine, Barcodes, PDFs & Spreadsheets
 reportlab==4.2.2

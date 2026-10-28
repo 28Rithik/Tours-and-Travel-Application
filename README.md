@@ -5,7 +5,10 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Django Unfold](https://img.shields.io/badge/Admin-Django%20Unfold%200.40-0284C7?style=for-the-badge)](https://github.com/unfoldadmin/django-unfold)
 [![Architecture](https://img.shields.io/badge/Stack-ASGI%20%2F%20Channels%20%2B%20HTMX-6366F1?style=for-the-badge)](https://channels.readthedocs.io/)
-[![Database](https://img.shields.io/badge/Database-SQLite%20%2F%20PostgreSQL%2015%20%2B%20PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Database](https://img.shields.io/badge/Database-SQLite%20WAL%20%2F%20PostgreSQL%2015%20%2B%20PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Performance](https://img.shields.io/badge/Latency-Sub--50ms%20%2842.43ms%29-10B981?style=for-the-badge)](documentation/performance_analysis.md)
+[![Offline-First](https://img.shields.io/badge/Assets-100%25%20Self--Hosted%20%2F%20Zero--CDN-0284C7?style=for-the-badge)](documentation/07_LIGHT_MODE_AND_AESTHETICS_SYSTEM.md)
+[![Compression](https://img.shields.io/badge/GZip%20Wire%20Savings-81.5%25-6366F1?style=for-the-badge)](documentation/performance_analysis.md)
 
 ---
 
@@ -13,7 +16,13 @@
 
 **TravelERP** is an enterprise-grade, omnichannel fleet management and travel operations ERP built for **Siva Gayathri Tours & Travels**. Operating across South India (Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Puducherry) and All-India national tour circuits, the platform coordinates a commercial fleet of **300+ vehicles** (Sedans, Innova Crysta MPVs, Tempo Travellers, Urbanias, Mini Buses, and 54-Seater Luxury Coaches).
 
-The system features an **end-to-end Django Unfold Admin design language across both management and operational staff portals**, unifying dispatch control, mobile driver handovers, commercial billing, GPS telemetry, AI copilot assistants, and automated accounting into a seamless interface.
+The system delivers an **end-to-end omnichannel architecture across 4 synchronized interfaces**:
+1. **Operations & Executive Cockpit**: Standardized on the modern Django Unfold Admin design language with solid gradient KPI cards, universal command palettes, and real-time dispatch studios.
+2. **Public Customer Self-Service Portal (`/customer-portal/`)**: Customer package booking, vehicle rate cards, instant fare estimators, and tour inquiries.
+3. **Chauffeur Mobile PWA Portal (`/driver-portal/`)**: Mobile-first vehicle handover inspection, digital odometer logging, expense wallets, and live duty execution.
+4. **Interactive Guest Companions & Digital Proposals (`/tour/itinerary/<token>/`, `/quote/<token>/`)**: Zero-login mobile companions accessible via SMS/WhatsApp magic links.
+
+The application operates with a **Zero-CDN, 100% locally self-hosted asset architecture**, delivering an average live response latency of **42.43 ms** with **81.5% GZip wire compression**.
 
 ---
 
@@ -75,15 +84,37 @@ The entire operational staff portal has been standardized to match the **Django 
 
 ---
 
+## ⚡ Zero-CDN High-Speed Engine & Performance Subsystem
+
+TravelERP is architected for extreme responsiveness and 100% offline-first reliability in remote transport yards:
+
+* **100% Self-Hosted Typography & Static Assets**: Zero runtime CDN scripts or external network dependencies.
+  - 6 self-hosted font families (`Plus Jakarta Sans`, `JetBrains Mono`, `Material Symbols Outlined`, `Outfit`, `Space Grotesk`, `Inter`) loaded locally via `@font-face` rules in `static/fonts/fonts.css`.
+  - Self-hosted Font Awesome 6.5.1, Leaflet 1.9.4, Chart.js 4.4.4, Alpine.js 3.14.3, and HTMX 1.9.10.
+  - Critical font preloading (`<link rel="preload">`) and PWA Service Worker v4 asset caching eliminate font flash (FOUT).
+* **In-Memory Caching & Session Acceleration (`cached_db`)**:
+  - `SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'` serves authenticated session lookups directly from memory (`LocMemCache` or `Redis`), eliminating 1 SQL query per request across every ERP page.
+  - Single consolidated `CACHES` block with Redis connection pooling (`max_connections=50`) and automatic `LocMemCache` fallback.
+* **SQLite WAL Concurrency Engine**:
+  - Configured with `PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA cache_size=10000; PRAGMA temp_store=MEMORY;`, enabling simultaneous non-blocking reads and concurrent writes during rapid HTMX partial refreshes.
+* **Database Query Consolidation**:
+  - Main operations dashboard aggregates trip and fleet metrics via conditional SQL (`Count(filter=Q(...))`) in a single query instead of 6 separate scans.
+  - Chauffeur Fatigue Sentry and Breakdown SOS Studio compute fleet statistics in single SQL aggregates, cutting 50–100 individual driver queries down to 1.
+* **Average Live Latency**: **42.43 ms** across all 16 primary application views with an average **81.5% GZip wire compression**.
+
+---
+
 ## 💻 Tech Stack & Architecture
 
 | Layer | Technologies | Purpose |
 | :--- | :--- | :--- |
 | **Backend Framework** | Python 3.12+, Django 5.1.5 | High-performance ORM, security, auth, and business logic |
-| **Real-Time & ASGI** | Django Channels 4.3, Daphne 4.2 | Live GPS WebSockets and asynchronous event pipelines |
+| **Real-Time & ASGI** | Django Channels 4.3, Daphne 4.2, channels-redis 4.3 | Live GPS WebSockets and asynchronous event pipelines |
 | **Admin & UI Shell** | Django Unfold 0.40, Custom Unfold Tokens | Modern, responsive dashboard and operations interface |
-| **Reactivity** | HTMX 1.21, Vanilla ES6+ JavaScript | Fast asynchronous table updates without SPA overhead |
-| **Databases** | SQLite 3 (Dev) / PostgreSQL 15 + PostGIS (Prod) | Structured records, spatial geometries, vector embeddings |
+| **Reactivity** | HTMX 1.21, Vanilla ES6+ JavaScript, Alpine.js | Fast asynchronous table updates without SPA overhead |
+| **Static Assets & Fonts** | WhiteNoise 6.9, 100% Self-Hosted WOFF2 Fonts | Zero-CDN, hashed manifest storage, 1-year immutable caching |
+| **Databases** | SQLite 3 WAL Mode (Dev) / PostgreSQL 15 + PostGIS (Prod) | Structured records, spatial geometries, vector embeddings |
+| **Session & Cache** | cached_db Session Engine, django-redis 6.0, LocMemCache | In-memory session lookups and distributed query caching |
 | **Document Engine** | ReportLab 4.2, openpyxl 3.1, xlsxwriter, QRCode | PDF invoices, landscape CAB statements, Excel rosters |
 | **Task Queue & Cache**| Celery 5.6, Redis 8.1, Huey | Background jobs, statement parsing, and distributed caching |
 | **AI Copilot** | Groq Cloud LLaMA 3.3 / Qwen, Rathasārathi Engine | Natural language operations assistant and semantic search |
@@ -174,15 +205,33 @@ python manage.py runserver
 
 | Portal / Studio | Endpoint URL | Description |
 | :--- | :--- | :--- |
-| **Main Dashboard** | `/dashboard/` | High-level executive KPI overview |
-| **Django Unfold Admin** | `/admin/` | Full database administration |
+| **Executive Master Dashboard** | `/` or `/dashboard/` | High-level executive KPI overview and financial trends |
+| **Django Unfold Admin** | `/admin/` | Full database administration and models |
 | **Dispatch Control Center** | `/dispatch/` | Real-time booking & trip dispatch board |
 | **Create Booking** | `/bookings/create/` | 4-step Unfold booking entry form |
+| **Staff Roles & Permissions** | `/staff/roles-matrix/` | Multi-hub RBAC capability matrix and ceilings |
+| **Staff Login** | `/staff/login/` | Secure authentication for operational personnel |
+| **Customer Portal Home** | `/customer-portal/` | Public self-service portal & instant fare calculator |
+| **Tour Packages Catalog** | `/customer-portal/packages/` | Curated holiday & pilgrimage departures |
+| **Fleet Showcase & Specs** | `/customer-portal/fleet/` | Interactive vehicle rate cards & photo galleries |
+| **Services Overview** | `/customer-portal/services/` | Commercial fleet solutions & employee transit |
+| **Corporate Transit Service** | `/customer-portal/services/employee-transportation/` | Enterprise corporate shuttle & SEZ mobility |
+| **About Us Legacy** | `/customer-portal/about/` | Company history, accreditations, and safety standards |
+| **Chauffeur Mobile PWA** | `/driver-portal/` | Mobile-first driver handover, odometer & duty log |
+| **Driver PWA Login** | `/driver-portal/login/` | Mobile OTP / PIN login for field chauffeurs |
+| **Driver Cash Wallet** | `/driver/wallet/` | On-road trip cash float and receipt scanner |
+| **GIS Telematics Control** | `/gis/control-center/` | Live GPS fleet tracking radar & vehicle telemetry |
+| **CRM Visual Kanban Board** | `/crm/kanban/` | Drag-and-drop lead stages with TAT monitoring |
+| **CRM Inquiry Pipeline** | `/crm/queries/` | Customer query tracker and quotation builder |
+| **Driver Settlement Studio**| `/finance/driver-settlement/` | Chauffeur trip duty slip settlement & bata sign-off |
+| **GST B2B Invoicing Studio** | `/finance/gst-studio/` | Tax invoices, CGST/SGST/IGST, and e-Way bill JSON |
+| **Bank Statement Reconciler**| `/finance/bank-reconciliation/` | CSV statement parser with fuzzy UTR matching |
+| **Dynamic UPI Payments** | `/payments/` | Dynamic NPCI UPI QR generation & webhook simulator |
 | **Fleet Vehicle Roster** | `/fleet/vehicles/` | Vehicle inventory and fitness radar |
 | **Chauffeur Directory** | `/fleet/drivers/` | Driver roster and licensing sentry |
 | **Vehicle Categories** | `/fleet/categories/` | Vehicle classifications and capacity |
 | **Vehicle Types** | `/fleet/types/` | Commercial vehicle type catalog |
-| **Border Permit Sentry** | `/operations/border-permits/` | Interstate road tax and AITP passes |
+| **Border Permit Sentry** | `/operations/border-permits/` | Interstate road tax, AITP passes & hill e-Pass |
 | **Chauffeur Fatigue Sentry**| `/operations/driver-fatigue-sentry/` | Driver rest counter and fatigue locking |
 | **Trip Cash Envelopes** | `/operations/cash-envelopes/` | Outstation cash advances & expenses |
 | **Highway Breakdown SOS** | `/operations/breakdown-sos/` | 24x7 emergency relief dispatch |
@@ -190,10 +239,14 @@ python manage.py runserver
 | **Empty-Leg Monetization** | `/operations/empty-legs/` | Deadhead return trip optimizer |
 | **Statutory Compliance** | `/operations/statutory-compliance/` | Fleet papers and RTO FC watchdog |
 | **PNR Arrivals Manifest** | `/operations/pnr-arrivals/` | Flight and train delay manifest |
+| **Commute Roster Dispatcher**| `/commute/roster-dispatcher/` | 300+ vehicle corporate/school route optimizer |
+| **Women Safety Command** | `/commute/women-safety/` | Night shift female escort guardrails & IVR |
 | **Parts Inventory** | `/maintenance/parts-inventory/` | Spare parts catalog and stock alerts |
 | **Tire Health Studio** | `/maintenance/tire-studio/` | 2D axle tread depth tracking |
 | **Damage Marker Studio** | `/maintenance/damage-marker/` | 2D chassis inspection blueprint |
 | **Workshop Mechanic Studio**| `/maintenance/workshop/` | Garage floor job cards and work orders |
+| **Guest Tour Itinerary** | `/tour/itinerary/<token>/` | Zero-login mobile passenger tour companion |
+| **Interactive Quote** | `/quote/<token>/` | Digital interactive proposal with live itinerary |
 | **Statement Generator** | `/statements/generate/` | Multi-page PDF/Excel CAB statements |
 
 ---

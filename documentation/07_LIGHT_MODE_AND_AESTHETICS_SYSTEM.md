@@ -136,3 +136,37 @@ Every studio header includes an intuitive theme toggle button:
 17. **Empty Leg Return Optimizer** (`/operations/empty-legs/`): Deadhead KM avoided metric, discount return offer cards.
 18. **Statutory Document Watchdog** (`/operations/statutory-compliance/`): 30-day and 7-day RTO FC inspection alerts.
 19. **PNR Group Arrival Manifest** (`/operations/pnr-arrivals/`): Live airport gate placards, flight/train delay badges.
+20. **Customer Portal & Fleet Showcase** (`/customer-portal/` & `/customer-portal/fleet/`): High-contrast marketing cards, vehicle specifications, transparent rate tables.
+21. **Chauffeur Mobile PWA Portal** (`/driver-portal/`): Mobile-optimized high-contrast sunlight inspection checklists and digital twin handover cards.
+
+---
+
+### 6. Zero-CDN 100% Locally Self-Hosted Typography & Asset Architecture
+
+To ensure instant first contentful paint (FCP), complete offline resilience, and total independence from external networks, TravelERP has purged 100% of external runtime CDN scripts and font links:
+
+1. **Precompiled CSS Subsystem**:
+   - Replaced browser-compiled Tailwind CDN (4MB runtime script) with precompiled, minified `static/app.css` and extracted component tokens in `static/css/base-ui.css`.
+2. **6 Self-Hosted Modern Font Families**:
+   - All fonts are served locally in compressed **WOFF2 format** from `static/fonts/` via `static/fonts/fonts.css`:
+     - **Plus Jakarta Sans**: Primary modern UI sans-serif for navigation, tables, and form cards.
+     - **Outfit**: Contemporary geometric heading font for customer portals and showcase banners.
+     - **JetBrains Mono**: Monospace font for telemetry coordinates, PNRs, vehicle reg numbers, and financial figures.
+     - **Space Grotesk**: High-tech display sans for analytics radar and telemetry metrics.
+     - **Inter**: Neutral, crisp fallback sans for enterprise documentation and data tables.
+     - **Material Symbols Outlined**: Clean operational iconography.
+   - All fonts use `font-display: swap` to prevent invisible text during loading.
+3. **Critical Font Preloading & Anti-FOUT**:
+   - The primary UI font is preloaded in the `<head>` of all base templates:
+     ```html
+     <link rel="preload" href="/static/fonts/plus-jakarta-sans-17.woff2" as="font" type="font/woff2" crossorigin>
+     ```
+   - This eliminates Flash of Unstyled Text (FOUT) and delivers instantaneous text rendering.
+4. **Self-Hosted Vendor Libraries**:
+   - **Font Awesome 6.5.1**: Localized in `static/fontawesome/` (CSS + WOFF2 webfonts).
+   - **Leaflet 1.9.4**: Localized in `static/leaflet/` (JS, CSS, retina marker images).
+   - **Chart.js 4.4.4**: Localized in `static/js/chart.umd.min.js` with `defer` loading.
+   - **Alpine.js 3.14.3 & HTMX 1.9.10**: Localized in `static/js/`.
+5. **PWA Service Worker v4 Pre-Caching**:
+   - Cached in `static/sw.js` under the cache bucket `sgt-travelerp-v4` for instant sub-millisecond local retrieval even when completely offline.
+
