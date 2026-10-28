@@ -170,7 +170,7 @@ from finance.views import (
 )
 
 from driver_portal.views import pwa_manifest, pwa_service_worker
-from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view
+from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view, health_check
 from core.views import (
     api_get_vehicle_types,
     api_vehicle_check_availability,
@@ -213,6 +213,8 @@ from integrations import views as integrations_views
 from fleet_commute import views as fleet_commute_views
 
 urlpatterns = [
+    # Health Check (lightweight — safe for Docker/LB probes, no auth required)
+    path('health/', health_check, name='health-check'),
     path('', public_landing_view, name='public-landing'),
     # WhatsApp Business Bot & Driver Handover Studio
     path('operations/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='operations-whatsapp-bot'),

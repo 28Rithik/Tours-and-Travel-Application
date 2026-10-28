@@ -17,7 +17,6 @@ python-dotenv==1.0.1
 # Admin & Modern UI Systems
 django-unfold==0.40.0
 django-htmx==1.21.0
-django-jazzmin==3.0.1
 
 # Database Adapters, Cache Store & Channel Layers
 psycopg2-binary==2.9.9

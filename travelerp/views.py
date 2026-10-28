@@ -5,8 +5,10 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import connection
 from django.db.models import Sum, Q, Count, Case, When
 from django.core.cache import cache
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.models import Party, Driver, Vehicle, StaffProfile
@@ -14,6 +16,22 @@ from finance.models import TripExpense
 from finance.services import calculate_party_ledger
 from operations.models import Trip, Booking
 from .reports import party_profitability, vehicle_profitability
+
+
+def health_check(request):
+    """Lightweight health check endpoint for Docker, load balancers, and monitoring.
+    Returns database connectivity status without requiring authentication or external APIs."""
+    status = {'status': 'ok', 'database': 'unknown'}
+    http_status = 200
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        status['database'] = 'connected'
+    except Exception as e:
+        status['database'] = 'error'
+        status['detail'] = str(e)
+        http_status = 503
+    return JsonResponse(status, status=http_status)
 
 
 def format_indian_currency(val):

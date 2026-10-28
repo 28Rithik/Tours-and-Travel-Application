@@ -51,6 +51,7 @@ exit
 exit.pub
 
 # Logs & Debug Dumps
+logs/
 *.log
 *.dump
 non_ascii_results.txt

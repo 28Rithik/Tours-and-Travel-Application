@@ -28,29 +28,22 @@ except ImportError:
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-travelerp-development-key'
+# In production, set DJANGO_SECRET_KEY environment variable to a strong random value.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-travelerp-development-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Set DEBUG=False in production environment variables.
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ['true', '1', 'yes']
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "host.docker.internal",
-    "testserver",
-    ".trycloudflare.com",
-    "192.168.1.10",
-    "localhost",
-    "127.0.0.1",
-    "10.20.27.83",
-    "host.docker.internal",
-    "testserver",
-    ".trycloudflare.com",
-    "*"
-]
+# ALLOWED_HOSTS: In production, set ALLOWED_HOSTS env var as comma-separated domains.
+# Never use "*" in production — it disables host header validation entirely.
+_default_hosts = "localhost,127.0.0.1,host.docker.internal,testserver,.trycloudflare.com,192.168.1.10,10.20.27.83"
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', _default_hosts).split(',') if h.strip()]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.ngrok-free.dev",
+    origin.strip() for origin in
+    os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://*.ngrok-free.dev').split(',')
+    if origin.strip()
 ]
 
 # Application definition
@@ -758,6 +751,101 @@ else:
         },
     }
 
+# ==============================================================================
+# PRODUCTION SECURITY HEADERS (auto-enabled when DEBUG=False)
+# ==============================================================================
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'True').lower() in ['true', '1', 'yes']
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# ==============================================================================
+# STRUCTURED LOGGING CONFIGURATION
+# ==============================================================================
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
 
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name}.{funcName}:{lineno} — {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '[{levelname}] {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file_django': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(LOG_DIR / 'django.log'),
+            'maxBytes': 10 * 1024 * 1024,  # 10 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+        'file_security': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': str(LOG_DIR / 'security.log'),
+            'maxBytes': 10 * 1024 * 1024,
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'class': 'django.utils.log.AdminEmailHandler',
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file_django'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['file_security', 'mail_admins'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
+        'operations': {
+            'handlers': ['console', 'file_django'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'finance': {
+            'handlers': ['console', 'file_django'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'core': {
+            'handlers': ['console', 'file_django'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
