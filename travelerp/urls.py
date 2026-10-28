@@ -170,7 +170,7 @@ from finance.views import (
 )
 
 from driver_portal.views import pwa_manifest, pwa_service_worker
-from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view, health_check
+from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view, health_check, robots_txt, sitemap_xml
 from core.views import (
     api_get_vehicle_types,
     api_vehicle_check_availability,
@@ -598,6 +598,8 @@ urlpatterns = [
     path('marketing/', include('marketing.urls')),
     path('i18n/', include('django.conf.urls.i18n')),
     path('favicon.ico', lambda r: HttpResponse(status=204, content_type='image/x-icon')),
+    path('robots.txt', robots_txt, name='robots-txt'),
+    path('sitemap.xml', sitemap_xml, name='sitemap-xml'),
 ]
 
 if settings.DEBUG:

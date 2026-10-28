@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from core.ratelimit import ratelimit
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +93,15 @@ def booking_list(request):
     available_vehicles = list(get_scoped_vehicles(request.user, depot_param).filter(status__in=['available', 'assigned']).select_related('vehicle_type').order_by('registration_number')[:100])
     available_drivers = list(get_scoped_drivers(request.user, depot_param).filter(status='active').order_by('name')[:100])
 
+    from core.pagination import paginate_queryset
+    trips_page = paginate_queryset(trips_list, request, default_page_size=25, max_page_size=100, page_param='page')
+    bookings_page = paginate_queryset(bookings.distinct(), request, default_page_size=25, max_page_size=100, page_param='bpage')
+
     return render(request, 'operations/booking_list.html', {
-        'trips': list(trips_list[:50]),
-        'bookings': list(bookings.distinct()[:40]),
+        'trips': trips_page.records,
+        'trips_page': trips_page,
+        'bookings': bookings_page.records,
+        'bookings_page': bookings_page,
         'available_vehicles': available_vehicles,
         'available_drivers': available_drivers,
         'current_tab': current_tab,
@@ -2011,6 +2018,7 @@ def api_telemetry_pipeline_ingest_view(request):
 # ==============================================================================
 
 @csrf_exempt
+@ratelimit(rate='30/m', key='ip', block=True)
 def api_rathasarathi_chat(request):
     """
     Rathasārathi AI Chat Endpoint.

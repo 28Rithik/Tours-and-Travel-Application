@@ -9,6 +9,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import admin
 from django.utils import timezone
 from django.db.models import Sum
+from core.ratelimit import ratelimit
 
 from operations.models import Booking
 from core.models import Party
@@ -329,6 +330,7 @@ def cashfree_webhook(request):
 
 
 @csrf_exempt
+@ratelimit(rate='30/m', key='ip', block=True)
 def api_direct_upi_confirm(request):
     """
     Direct Dynamic UPI instant confirmation endpoint.
@@ -394,6 +396,7 @@ def api_direct_upi_confirm(request):
     })
 
 
+@ratelimit(rate='60/m', key='ip', block=True)
 def api_generate_dynamic_upi(request):
     """
     REST API returning dynamic UPI package (SVG, PNG data-URI, Intent URL, deep links)

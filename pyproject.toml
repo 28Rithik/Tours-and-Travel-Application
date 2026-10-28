@@ -1,0 +1,61 @@
+[project]
+name = "travelerp"
+version = "2.0.0"
+description = "Enterprise Tours, Travels, Fleet Logistics & Multi-Depot Operations Platform"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "staticfiles",
+    "media",
+    "logs",
+    "*/migrations/*",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+ignore = [
+    "E501",  # line length handled by formatting
+    "B008",  # do not perform function calls in argument defaults
+    "B904",  # raise ... from err
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py312']
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | staticfiles
+  | media
+  | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip = [".venv", "migrations", "staticfiles"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "travelerp.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--strict-markers --no-migrations"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]

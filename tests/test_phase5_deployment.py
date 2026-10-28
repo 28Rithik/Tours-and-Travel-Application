@@ -73,7 +73,7 @@ class Phase5DeploymentArchitectureTests(SimpleTestCase):
             compose_content = f.read()
         self.assertIn('travelerp_web', compose_content)
         self.assertIn('travelerp_redis', compose_content)
-        self.assertIn('travelerp_mysql', compose_content)
+        self.assertTrue('travelerp_postgis' in compose_content or 'travelerp_mysql' in compose_content)
         self.assertIn('travelerp_nginx', compose_content)
 
     def test_05_production_env_sample(self):

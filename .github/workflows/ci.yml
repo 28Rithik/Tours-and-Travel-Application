@@ -1,0 +1,51 @@
+name: TravelERP CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Django Checks & Automated Test Suite
+    runs-on: ubuntu-latest
+
+    env:
+      DJANGO_SETTINGS_MODULE: travelerp.settings
+      DJANGO_SECRET_KEY: ci-test-secret-key-not-for-production
+      DEBUG: "True"
+      USE_POSTGRES: "0"
+      USE_REDIS: "0"
+      ENABLE_RATE_LIMITING: "False"
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12 Runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django System Consistency Check
+        run: |
+          python manage.py check
+
+      - name: Check for Unapplied or Missing Model Migrations
+        run: |
+          python manage.py makemigrations --check --dry-run
+
+      - name: Execute Django Automated Tests
+        run: |
+          python manage.py test --verbosity=2 --keepdb

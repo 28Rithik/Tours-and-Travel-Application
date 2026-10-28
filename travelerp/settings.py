@@ -95,6 +95,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'core.ratelimit.APIRateLimitMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -695,7 +696,7 @@ def _check_redis_alive(url):
     except Exception:
         return False
 
-_redis_available = _check_redis_alive(REDIS_URL)
+_redis_available = USE_REDIS and _check_redis_alive(REDIS_URL)
 
 if _redis_available:
     CACHES = {
@@ -849,3 +850,25 @@ LOGGING = {
         },
     },
 }
+
+# ==============================================================================
+# API RATE LIMITING CONFIGURATION (DDoS protection & endpoint safety)
+# ==============================================================================
+ENABLE_RATE_LIMITING = os.environ.get('ENABLE_RATE_LIMITING', 'True').lower() in ('true', '1', 'yes')
+GLOBAL_API_RATE_LIMIT = os.environ.get('GLOBAL_API_RATE_LIMIT', '120/m')
+
+# ==============================================================================
+# EMAIL SYSTEM CONFIGURATION (Transactional receipts, booking vouchers, campaigns)
+# ==============================================================================
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'TravelERP Operations <notifications@travelerp.local>')
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+

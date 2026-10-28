@@ -1,0 +1,54 @@
+{% load pagination_tags %}
+{% if page_result and page_result.total_pages > 1 %}
+<div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 text-xs">
+  <div class="text-slate-500 dark:text-slate-400">
+    Showing page <span class="font-semibold text-slate-800 dark:text-slate-200">{{ page_result.current_page }}</span>
+    of <span class="font-semibold text-slate-800 dark:text-slate-200">{{ page_result.total_pages }}</span>
+    (<span class="font-mono font-semibold">{{ page_result.total_count }}</span> total records)
+  </div>
+
+  <div class="inline-flex items-center gap-1">
+    {# Previous Button #}
+    {% if page_result.has_previous %}
+      <a href="?{% url_replace page=page_result.previous_page_number %}"
+         class="inline-flex items-center justify-center h-8 px-2.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition"
+         title="Previous Page">
+        <i class="fa-solid fa-chevron-left text-[10px] mr-1"></i> Prev
+      </a>
+    {% else %}
+      <span class="inline-flex items-center justify-center h-8 px-2.5 rounded border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 cursor-not-allowed">
+        <i class="fa-solid fa-chevron-left text-[10px] mr-1"></i> Prev
+      </span>
+    {% endif %}
+
+    {# Page Number Links #}
+    {% for p in page_result.page_range %}
+      {% if p == "..." %}
+        <span class="inline-flex items-center justify-center w-8 h-8 text-slate-400 dark:text-slate-600 font-bold select-none">…</span>
+      {% elif p == page_result.current_page %}
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded font-bold bg-sky-600 text-white shadow-sm select-none">
+          {{ p }}
+        </span>
+      {% else %}
+        <a href="?{% url_replace page=p %}"
+           class="inline-flex items-center justify-center w-8 h-8 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition">
+          {{ p }}
+        </a>
+      {% endif %}
+    {% endfor %}
+
+    {# Next Button #}
+    {% if page_result.has_next %}
+      <a href="?{% url_replace page=page_result.next_page_number %}"
+         class="inline-flex items-center justify-center h-8 px-2.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 transition"
+         title="Next Page">
+        Next <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+      </a>
+    {% else %}
+      <span class="inline-flex items-center justify-center h-8 px-2.5 rounded border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-600 cursor-not-allowed">
+        Next <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+      </span>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

@@ -414,9 +414,10 @@ html.dark .unfold-tab-badge {
 
     <!-- Unfold Table Footer for Bookings -->
     <div class="unfold-table-footer">
-      <div>Showing <span class="font-mono font-bold">{{ bookings|length }}</span> booking inquiry record{{ bookings|length|pluralize }}</div>
+      <div>Showing <span class="font-mono font-bold">{{ bookings|length }}</span> booking inquiry record{{ bookings|length|pluralize }} {% if bookings_page.total_count %}(of {{ bookings_page.total_count }} total){% endif %}</div>
       <div class="text-xs text-slate-400">Tip: Press <kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[10px] font-mono">/</kbd> to search</div>
     </div>
+    {% include 'includes/pagination.html' with page_result=bookings_page %}
 
     {% else %}
     <!-- ======================================================================
@@ -617,13 +618,14 @@ html.dark .unfold-tab-badge {
 
     <!-- Unfold Table Footer for Trips -->
     <div class="unfold-table-footer">
-      <div>Showing <span class="font-mono font-bold">{{ trips|length }}</span> active dispatch trip{{ trips|length|pluralize }}</div>
+      <div>Showing <span class="font-mono font-bold">{{ trips|length }}</span> active dispatch trip{{ trips|length|pluralize }} {% if trips_page.total_count %}(of {{ trips_page.total_count }} total){% endif %}</div>
       <div class="flex items-center gap-4 text-xs text-slate-400">
         <span><kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded text-[10px] font-mono">/</kbd> Quick Search</span>
         <span>•</span>
         <span>⚡ Live Fleet Radar Connected</span>
       </div>
     </div>
+    {% include 'includes/pagination.html' with page_result=trips_page %}
     {% endif %}
   </div>
 </div>

@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db import connection
 from django.db.models import Sum, Q, Count, Case, When
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.models import Party, Driver, Vehicle, StaffProfile
@@ -32,6 +32,51 @@ def health_check(request):
         status['detail'] = str(e)
         http_status = 503
     return JsonResponse(status, status=http_status)
+
+
+def robots_txt(request):
+    """Serve robots.txt directly for search engines and crawlers."""
+    content = (
+        "User-agent: *\n"
+        "Disallow: /admin/\n"
+        "Disallow: /operations/api/\n"
+        "Disallow: /crm/api/\n"
+        "Disallow: /api/\n"
+        "Disallow: /health/\n"
+        "Disallow: /switch-persona/\n"
+        "Disallow: /staff/roles-matrix/\n"
+        "Allow: /\n"
+        "Allow: /packages/\n"
+        "Allow: /customer-portal/\n"
+        "Allow: /static/\n\n"
+        f"Sitemap: {request.build_absolute_uri('/sitemap.xml')}\n"
+    )
+    return HttpResponse(content, content_type="text/plain")
+
+
+def sitemap_xml(request):
+    """Lightweight XML sitemap for search engine indexing of public routes."""
+    domain = request.build_absolute_uri('/').rstrip('/')
+    today = date.today().isoformat()
+    urls = [
+        {'loc': f"{domain}/", 'changefreq': 'daily', 'priority': '1.0'},
+        {'loc': f"{domain}/packages/", 'changefreq': 'daily', 'priority': '0.9'},
+        {'loc': f"{domain}/customer-portal/", 'changefreq': 'weekly', 'priority': '0.8'},
+    ]
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ]
+    for u in urls:
+        xml_lines.append('  <url>')
+        xml_lines.append(f"    <loc>{u['loc']}</loc>")
+        xml_lines.append(f"    <lastmod>{today}</lastmod>")
+        xml_lines.append(f"    <changefreq>{u['changefreq']}</changefreq>")
+        xml_lines.append(f"    <priority>{u['priority']}</priority>")
+        xml_lines.append('  </url>')
+    xml_lines.append('</urlset>')
+    return HttpResponse('\n'.join(xml_lines), content_type="application/xml")
+
 
 
 def format_indian_currency(val):

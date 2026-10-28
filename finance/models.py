@@ -874,6 +874,14 @@ class CorporateGSTInvoice(models.Model):
 	def __str__(self):
 		return f"{self.invoice_number or f'INV-{self.pk}'} - {self.recipient_legal_name} (₹{self.total_invoice_value})"
 
+	@property
+	def status(self):
+		return self.payment_status
+
+	@property
+	def total_amount(self):
+		return self.total_invoice_value
+
 	def compute_taxes(self):
 		"""Computes CGST, SGST, IGST based on place of supply alignment."""
 		supp_state = (self.supplier_state_code or "33").strip()

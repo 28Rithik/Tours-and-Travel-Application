@@ -1,0 +1,19 @@
+# ==============================================================================
+# TRAVELERP - Robots Exclusion Standard
+# ==============================================================================
+User-agent: *
+Disallow: /admin/
+Disallow: /operations/api/
+Disallow: /crm/api/
+Disallow: /api/
+Disallow: /health/
+Disallow: /switch-persona/
+Disallow: /staff/roles-matrix/
+
+# Allow Public Landing & Customer Facing Pages
+Allow: /
+Allow: /packages/
+Allow: /customer-portal/
+Allow: /static/
+
+Sitemap: /sitemap.xml
