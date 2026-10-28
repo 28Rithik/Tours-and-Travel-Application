@@ -178,3 +178,4 @@ urlpatterns = [
     path('api/operations/route-estimate/', views.api_route_estimate, name='api-operations-route-estimate'),
     path('api/operations/global-search/', views.api_global_search, name='api-operations-global-search'),
 ]
+

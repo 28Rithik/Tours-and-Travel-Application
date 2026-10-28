@@ -3,17 +3,8 @@ URL configuration for travelerp project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
@@ -21,115 +12,7 @@ from django.views.generic import RedirectView
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
-from operations.views import (
-    api_get_booking,
-    api_package_inventory,
-    api_inventory_detail,
-    api_get_trip,
-    api_bulk_contract_context,
-    booking_create,
-    booking_edit,
-    booking_detail,
-    booking_list,
-    customer_confirmation_preview,
-    customer_trip_invoice_view,
-    generate_trip_sheet,
-    trip_sheet_pdf_view,
-    trip_invoice_pdf_view,
-    booking_voucher_pdf_view,
-    trip_create,
-    trip_detail,
-    trip_update_status,
-    api_telematics_ping,
-    api_telematics_live,
-    dispatch_standby_replacement,
-    fleet_live_mission_control,
-    api_fleet_live_feed,
-    admin_fleet_radar_view,
-    api_fleet_telematics_tick,
-    api_request_depot_transfer,
-    api_receive_depot_transfer,
-    api_depot_transfer_history,
-    passenger_live_tracking_view,
-    api_passenger_live_tracking,
-    broadcast_trip_whatsapp_view,
-    broadcast_driver_whatsapp_view,
-    trip_quick_assign_view,
-    api_smart_dispatch_recommendations,
-    driver_handover_view,
-    driver_handover_sos_view,
-    whatsapp_webhook_view,
-    admin_whatsapp_bot_studio_view,
-    api_whatsapp_simulator,
-    api_handover_session_audit,
-    api_dispatch_whatsapp_trip_sheet,
-    api_osrm_route_view,
-    api_spatial_nearest_vehicles_view,
-    api_gis_prometheus_metrics_view,
-    api_gis_health_view,
-    gis_control_center_dashboard_view,
-    api_route_optimizer_view,
-    api_telemetry_pipeline_ingest_view,
-    api_telemetry_stream_publish_view,
-    api_telemetry_stream_consume_view,
-    api_rathasarathi_chat,
-    api_rathasarathi_quick_stats,
-    api_rathasarathi_set_key,
-    admin_rathasarathi_copilot_studio_view,
-    trip_lifecycle_portal_view,
-    api_trip_milestone_advance,
-    api_trip_milestones_status,
-    api_trip_quick_expense,
-    api_trip_customer_signature,
-    api_trip_verify_boarding,
-    api_trip_passengers_list,
-    admin_trip_itinerary_builder_view,
-    api_trip_itinerary_save,
-    api_trip_itinerary_import_package,
-    api_trip_itinerary_get,
-    guest_tour_itinerary_view,
-    api_trip_calculate_bata,
-    api_acknowledge_incident,
-    api_active_geofence_alarms,
-    admin_database_health_dashboard_view,
-    api_database_health_audit,
-    api_database_snapshot_export,
-    api_run_scheduler_maintenance,
-    api_vehicle_quick_telemetry,
-    api_route_estimate,
-    api_global_search,
-    border_permit_studio_view,
-    api_border_permit_check,
-    api_border_permit_record_payment,
-    api_border_permit_seed,
-    api_epass_issue,
-    api_epass_verify,
-    driver_fatigue_sentry_view,
-    api_driver_fatigue_audit,
-    api_driver_fatigue_override,
-    api_driver_fatigue_seed,
-    breakdown_sos_studio_view,
-    api_log_sos_incident,
-    api_dispatch_sos_replacement,
-    pnr_arrivals_studio_view,
-    api_update_arrival_status,
-    trip_cash_envelope_studio_view,
-    api_cash_advance_issue,
-    api_cash_advance_expense_log,
-    api_cash_advance_reconcile,
-    api_cash_advance_seed,
-    statutory_compliance_studio_view,
-    api_compliance_renew_document,
-    api_compliance_seed,
-    echallan_sentry_studio_view,
-    api_echallan_assign_responsibility,
-    api_echallan_mark_paid,
-    api_echallan_seed,
-    empty_leg_studio_view,
-    api_empty_leg_publish,
-    api_empty_leg_book,
-    api_empty_leg_seed,
-)
+
 from statements.views import download_statement, generate_statement
 from maintenance.views import (
     damage_marker_studio_view,
@@ -168,18 +51,17 @@ from finance.views import (
     api_fastag_reconcile_approve,
     tds_194c_ledger_view,
 )
-
 from driver_portal.views import pwa_manifest, pwa_service_worker
-from travelerp.views import dashboard, party_ledger, party_profitability_report, vehicle_profitability_report, switch_persona_view, staff_roles_matrix_view, health_check, robots_txt, sitemap_xml
-from core.views import (
-    api_get_vehicle_types,
-    api_vehicle_check_availability,
-    fleet_vehicles_roster_view,
-    fleet_categories_view,
-    fleet_types_view,
-    fleet_drivers_roster_view,
-    api_toggle_vehicle_status_staff,
-    rate_cards_studio_view,
+from travelerp.views import (
+    dashboard,
+    party_ledger,
+    party_profitability_report,
+    vehicle_profitability_report,
+    switch_persona_view,
+    staff_roles_matrix_view,
+    health_check,
+    robots_txt,
+    sitemap_xml,
 )
 from payments_gateway.views import (
     admin_payment_studio_view,
@@ -208,7 +90,6 @@ from suppliers.views import (
     api_vendor_bill_seed,
 )
 from customer_portal.views import public_landing_view
-from core.gis_views import full_india_tile_proxy_view, api_india_gis_status_view
 from integrations import views as integrations_views
 from fleet_commute import views as fleet_commute_views
 
@@ -216,49 +97,14 @@ urlpatterns = [
     # Health Check (lightweight — safe for Docker/LB probes, no auth required)
     path('health/', health_check, name='health-check'),
     path('', public_landing_view, name='public-landing'),
-    # WhatsApp Business Bot & Driver Handover Studio
-    path('operations/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='operations-whatsapp-bot'),
-    path('admin/operations/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='admin-whatsapp-bot-studio'),
-    path('admin/whatsapp-bot/', admin_whatsapp_bot_studio_view, name='admin-whatsapp-bot-studio-alias'),
-    path('trip/<int:trip_id>/handover/', driver_handover_view, name='driver-handover-view'),
-    path('trips/<int:trip_id>/handover/', driver_handover_view, name='driver-handover-view-alias'),
-    path('trip/<int:trip_id>/handover/sos/', driver_handover_sos_view, name='driver-handover-sos'),
-    # Phase 3: 7-Milestone Tour Lifecycle Cockpit & APIs
-    path('trip/<int:trip_id>/lifecycle/', trip_lifecycle_portal_view, name='trip-lifecycle-portal'),
-    path('driver/trip/<int:trip_id>/lifecycle/', trip_lifecycle_portal_view, name='driver-trip-lifecycle-portal'),
-    path('admin/operations/trip/<int:trip_id>/lifecycle/', trip_lifecycle_portal_view, name='admin-trip-lifecycle-portal'),
-    path('api/trip/<int:trip_id>/milestone/advance/', api_trip_milestone_advance, name='api-trip-milestone-advance'),
-    path('api/trip/<int:trip_id>/milestones/', api_trip_milestones_status, name='api-trip-milestones-status'),
-    path('api/trip/<int:trip_id>/expense/add/', api_trip_quick_expense, name='api-trip-quick-expense'),
-    path('api/trip/<int:trip_id>/signature/', api_trip_customer_signature, name='api-trip-customer-signature'),
-    path('api/trips/<int:trip_id>/signature/', api_trip_customer_signature, name='api-trips-customer-signature'),
-    path('api/trip/<int:trip_id>/verify-boarding/', api_trip_verify_boarding, name='api-trip-verify-boarding'),
-    path('api/trip/<int:trip_id>/passengers/', api_trip_passengers_list, name='api-trip-passengers-list'),
-    path('api/whatsapp/webhook/', whatsapp_webhook_view, name='api-whatsapp-webhook'),
-    path('api/whatsapp/simulate/', api_whatsapp_simulator, name='api-whatsapp-simulate'),
-    path('api/whatsapp/trip/<int:trip_id>/dispatch/', api_dispatch_whatsapp_trip_sheet, name='api-whatsapp-trip-dispatch'),
-    path('api/whatsapp/handover/<int:session_id>/audit/', api_handover_session_audit, name='api-handover-session-audit'),
-    # Phase 4: Multi-Day Tour Itinerary Day-by-Day Builder & Live Guest Experience Portal
-    path('operations/itinerary-builder/', admin_trip_itinerary_builder_view, name='operations-itinerary-builder-hub'),
-    path('operations/trip/<int:trip_id>/itinerary-builder/', admin_trip_itinerary_builder_view, name='operations-trip-itinerary-builder'),
-    path('admin/operations/itinerary-builder/', admin_trip_itinerary_builder_view, name='admin-operations-itinerary-builder-hub'),
-    path('admin/operations/trip/<int:trip_id>/itinerary-builder/', admin_trip_itinerary_builder_view, name='admin-trip-itinerary-builder'),
-    path('admin/trip/<int:trip_id>/itinerary-builder/', admin_trip_itinerary_builder_view, name='admin-trip-itinerary-builder-alias'),
-    path('tour/itinerary/<str:token>/', guest_tour_itinerary_view, name='guest-tour-itinerary'),
-    path('trip/<int:trip_id>/itinerary/', guest_tour_itinerary_view, name='trip-itinerary-portal'),
-    path('api/trip/<int:trip_id>/itinerary/save/', api_trip_itinerary_save, name='api-trip-itinerary-save'),
-    path('api/trip/<int:trip_id>/itinerary/import-package/', api_trip_itinerary_import_package, name='api-trip-itinerary-import-package'),
-    path('api/trip/<int:trip_id>/itinerary/', api_trip_itinerary_get, name='api-trip-itinerary-get'),
-    # Rathasārathi AI Operations Copilot (Powered by Groq / LLM) Studio
-    path('operations/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='operations-rathasarathi-ai'),
-    path('admin/operations/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='admin-rathasarathi-copilot-studio'),
-    path('admin/rathasarathi-ai/', admin_rathasarathi_copilot_studio_view, name='admin-rathasarathi-copilot-studio-alias'),
+
+    # Modularized Operations App & Core App Routes
+    path('', include('operations.urls')),
+    path('', include('core.urls')),
+
     # 2D Interactive Vehicle Damage Marker & Inspection Studio
     path('admin/maintenance/damage-marker/', damage_marker_studio_view, name='admin-damage-marker-studio'),
-    # Unfold Admin Telematics GPS Radar Map
-    path('admin/operations/fleet-radar/', admin_fleet_radar_view, name='admin-fleet-radar'),
-    path('admin/fleet-radar/', admin_fleet_radar_view, name='admin-fleet-radar-alias'),
-    path('api/fleet/simulate-tick/', api_fleet_telematics_tick, name='api-fleet-telematics-tick'),
+
     # Unfold Admin Dynamic UPI & Payment Gateway Studio
     path('admin/finance/payment-studio/', admin_payment_studio_view, name='admin-payment-studio'),
     path('admin/payments/studio/', admin_payment_studio_view, name='admin-payments-studio-alias'),
@@ -269,6 +115,7 @@ urlpatterns = [
     path('api/payments/direct-upi/confirm/', api_direct_upi_confirm, name='api-direct-upi-confirm'),
     path('api/payments/simulate-webhook/', api_simulate_payment_webhook, name='api-simulate-payment-webhook'),
     path('api/payments/studio-metrics/', api_payment_studio_metrics, name='api-payment-studio-metrics'),
+
     # Corporate GST B2B Invoicing & NIC E-Way Bill Studio
     path('finance/gst-studio/', admin_gst_studio_view, name='finance-gst-studio'),
     path('admin/finance/gst-studio/', admin_gst_studio_view, name='admin-gst-studio'),
@@ -278,47 +125,34 @@ urlpatterns = [
     path('api/finance/invoice/<int:invoice_id>/whatsapp/', api_dispatch_corporate_invoice_whatsapp, name='api-finance-invoice-whatsapp-direct'),
     path('finance/invoice/<int:invoice_id>/view/', corporate_invoice_print_view, name='finance-corporate-invoice-view'),
     path('finance/invoice/<int:invoice_id>/pdf/', corporate_invoice_pdf_view, name='corporate-invoice-pdf'),
-    # Phase 5: Petty Cash Float Register & Driver/Tour Manager Cash Wallet Studio
+
+    # Petty Cash Float Register & Driver/Tour Manager Cash Wallet Studio
     path('admin/finance/petty-cash-studio/', admin_petty_cash_studio_view, name='admin-petty-cash-studio'),
     path('admin/petty-cash/', admin_petty_cash_studio_view, name='admin-petty-cash-alias'),
     path('finance/petty-cash-studio/', admin_petty_cash_studio_view, name='finance-petty-cash-studio-alias'),
     path('finance/petty-cash/', admin_petty_cash_studio_view, name='finance-petty-cash-alias'),
     path('driver/wallet/', driver_mobile_wallet_view, name='driver-mobile-wallet'),
-    # P3-1: Highway Fuel Receipt OCR & Bunk Verification Studio
+
+    # Highway Fuel Receipt OCR & Bunk Verification Studio
     path('finance/fuel-receipt-ocr/', fuel_receipt_ocr_studio_view, name='fuel-receipt-ocr-studio'),
     path('admin/finance/fuel-receipt-ocr/', fuel_receipt_ocr_studio_view, name='admin-fuel-receipt-ocr'),
     path('api/finance/fuel-receipt-ocr/', api_fuel_receipt_ocr, name='api-finance-fuel-receipt-ocr'),
     path('api/finance/fuel-receipt-approve/', api_fuel_receipt_approve, name='api-finance-fuel-receipt-approve'),
-    # P4-2: Automated NHAI FASTag CSV Statement Reconciler & Toll Plaza Auditor
+
+    # Automated NHAI FASTag CSV Statement Reconciler & Toll Plaza Auditor
     path('finance/fastag-reconciliation/', fastag_reconciliation_studio_view, name='finance-fastag-reconciliation'),
     path('admin/finance/fastag-reconciliation/', fastag_reconciliation_studio_view, name='admin-fastag-reconciliation'),
     path('api/finance/fastag-reconciliation/parse/', api_fastag_parse_statement, name='api-finance-fastag-parse'),
     path('api/finance/fastag-reconciliation/approve/', api_fastag_reconcile_approve, name='api-finance-fastag-approve'),
 
-    # P5-1: Interstate State Border Entry Tax & AITP Permit Sentry Studio
-    path('operations/border-permits/', border_permit_studio_view, name='operations-border-permits'),
-    path('admin/operations/border-permits/', border_permit_studio_view, name='admin-operations-border-permits'),
-    path('api/operations/border-permits/check/<int:trip_id>/', api_border_permit_check, name='api-operations-border-permits-check'),
-    path('api/operations/border-permits/pay/', api_border_permit_record_payment, name='api-operations-border-permits-pay'),
-    path('api/operations/border-permits/seed/', api_border_permit_seed, name='api-operations-border-permits-seed'),
-    path('api/operations/epass/issue/', api_epass_issue, name='api-operations-epass-issue'),
-    path('api/operations/epass/verify/<int:epass_id>/', api_epass_verify, name='api-operations-epass-verify'),
-
-    # P5-2: Chauffeur Fatigue & Mandatory Duty Rest Sentry
-    path('operations/driver-fatigue-sentry/', driver_fatigue_sentry_view, name='operations-driver-fatigue-sentry'),
-    path('admin/operations/driver-fatigue-sentry/', driver_fatigue_sentry_view, name='admin-operations-driver-fatigue-sentry'),
-    path('api/operations/driver-fatigue/audit/<int:driver_id>/', api_driver_fatigue_audit, name='api-operations-driver-fatigue-audit'),
-    path('api/operations/driver-fatigue/override/', api_driver_fatigue_override, name='api-operations-driver-fatigue-override'),
-    path('api/operations/driver-fatigue/seed/', api_driver_fatigue_seed, name='api-operations-driver-fatigue-seed'),
-
-    # P6-1: Market Fleet Vendor Bill Auditor & Reconciliation Studio
+    # Market Fleet Vendor Bill Auditor & Reconciliation Studio
     path('suppliers/vendor-bill-audit/', vendor_bill_audit_studio_view, name='suppliers-vendor-bill-audit'),
     path('admin/suppliers/vendor-bill-audit/', vendor_bill_audit_studio_view, name='admin-suppliers-vendor-bill-audit'),
     path('api/suppliers/vendor-bill-audit/calculate/', api_vendor_bill_audit_calculate, name='api-suppliers-vendor-bill-audit-calculate'),
     path('api/suppliers/vendor-bill-audit/approve/', api_vendor_bill_audit_approve, name='api-suppliers-vendor-bill-audit-approve'),
     path('api/suppliers/vendor-bill-audit/seed/', api_vendor_bill_seed, name='api-suppliers-vendor-bill-audit-seed'),
 
-    # P6-2: Post-Trip Customer Feedback & Google Review Conversion Engine
+    # Post-Trip Customer Feedback & Google Review Conversion Engine
     path('crm/feedback-reviews/', feedback_reviews_hub_view, name='crm-feedback-reviews'),
     path('admin/crm/feedback-reviews/', feedback_reviews_hub_view, name='admin-crm-feedback-reviews'),
     path('guest/feedback/<str:token>/', guest_trip_feedback_view, name='guest-trip-feedback'),
@@ -327,60 +161,21 @@ urlpatterns = [
     path('api/crm/feedback/google-clicked/<str:token>/', api_google_review_clicked, name='api-crm-feedback-google-clicked'),
     path('api/crm/feedback/seed/', api_feedback_seed, name='api-crm-feedback-seed'),
 
-    # P7-1: Highway Breakdown & Emergency SOS Relief Dispatch Studio
-    path('operations/breakdown-sos/', breakdown_sos_studio_view, name='operations-breakdown-sos'),
-    path('admin/operations/breakdown-sos/', breakdown_sos_studio_view, name='admin-operations-breakdown-sos'),
-    path('api/operations/breakdown-sos/log/', api_log_sos_incident, name='api-operations-breakdown-sos-log'),
-    path('api/operations/breakdown-sos/dispatch/', api_dispatch_sos_replacement, name='api-operations-breakdown-sos-dispatch'),
-
-    # P7-2: Spare Parts & Workshop Consumables Store Inventory Studio
+    # Spare Parts & Workshop Consumables Store Inventory Studio
     path('maintenance/parts-inventory/', parts_inventory_studio_view, name='maintenance-parts-inventory'),
     path('admin/maintenance/parts-inventory/', parts_inventory_studio_view, name='admin-maintenance-parts-inventory'),
     path('api/maintenance/parts-inventory/issue/', api_issue_part_to_jobcard, name='api-maintenance-parts-issue'),
     path('api/maintenance/parts-inventory/receive/', api_receive_part_stock, name='api-maintenance-parts-receive'),
 
-    # P8-1: Flight & Train PNR Group Arrival Manifest Studio
-    path('operations/pnr-arrivals/', pnr_arrivals_studio_view, name='operations-pnr-arrivals'),
-    path('admin/operations/pnr-arrivals/', pnr_arrivals_studio_view, name='admin-operations-pnr-arrivals'),
-    path('api/operations/pnr-arrivals/status/', api_update_arrival_status, name='api-operations-pnr-arrivals-status'),
-
-    # P8-2: Automated CRM WhatsApp Follow-up Drip Cadence Studio
+    # Automated CRM WhatsApp Follow-up Drip Cadence Studio
     path('crm/followup-cadence/', followup_cadence_studio_view, name='crm-followup-cadence'),
     path('admin/crm/followup-cadence/', followup_cadence_studio_view, name='admin-crm-followup-cadence'),
 
-    # P8-3: Section 194C TDS Corporate Withholding Management Ledger
+    # Section 194C TDS Corporate Withholding Management Ledger
     path('finance/tds-194c/', tds_194c_ledger_view, name='finance-tds-194c'),
     path('admin/finance/tds-194c/', tds_194c_ledger_view, name='admin-finance-tds-194c'),
 
-    # P9-1: Trip Cash Advance & Kharcha Settlement Envelope Studio
-    path('operations/cash-envelopes/', trip_cash_envelope_studio_view, name='operations-cash-envelopes'),
-    path('admin/operations/cash-envelopes/', trip_cash_envelope_studio_view, name='admin-operations-cash-envelopes'),
-    path('api/operations/cash-advance/issue/', api_cash_advance_issue, name='api-operations-cash-advance-issue'),
-    path('api/operations/cash-advance/expense-log/', api_cash_advance_expense_log, name='api-operations-cash-advance-expense-log'),
-    path('api/operations/cash-advance/reconcile/', api_cash_advance_reconcile, name='api-operations-cash-advance-reconcile'),
-    path('api/operations/cash-advance/seed/', api_cash_advance_seed, name='api-operations-cash-advance-seed'),
-
-    # P9-2: Commercial Fleet RTO Fitness (FC), AIS-140 & Statutory Compliance Sentry Studio
-    path('operations/statutory-compliance/', statutory_compliance_studio_view, name='operations-statutory-compliance'),
-    path('admin/operations/statutory-compliance/', statutory_compliance_studio_view, name='admin-operations-statutory-compliance'),
-    path('api/operations/statutory-compliance/renew/', api_compliance_renew_document, name='api-operations-compliance-renew'),
-    path('api/operations/statutory-compliance/seed/', api_compliance_seed, name='api-operations-compliance-seed'),
-
-    # P9-3: Parivahan RTO Traffic E-Challan Sentry Studio
-    path('operations/echallan-sentry/', echallan_sentry_studio_view, name='operations-echallan-sentry'),
-    path('admin/operations/echallan-sentry/', echallan_sentry_studio_view, name='admin-operations-echallan-sentry'),
-    path('api/operations/echallan/liability/', api_echallan_assign_responsibility, name='api-operations-echallan-liability'),
-    path('api/operations/echallan/pay/', api_echallan_mark_paid, name='api-operations-echallan-pay'),
-    path('api/operations/echallan/seed/', api_echallan_seed, name='api-operations-echallan-seed'),
-
-    # P9-4: Empty-Leg Return Deadhead Trip Marketplace & Optimizer Studio
-    path('operations/empty-legs/', empty_leg_studio_view, name='operations-empty-legs'),
-    path('admin/operations/empty-legs/', empty_leg_studio_view, name='admin-operations-empty-legs'),
-    path('api/operations/empty-legs/publish/', api_empty_leg_publish, name='api-operations-empty-legs-publish'),
-    path('api/operations/empty-legs/book/', api_empty_leg_book, name='api-operations-empty-legs-book'),
-    path('api/operations/empty-legs/seed/', api_empty_leg_seed, name='api-operations-empty-legs-seed'),
-
-    # Phase 5: Automated Bank Statement CSV Reconciler & UTR Matching Studio
+    # Automated Bank Statement CSV Reconciler & UTR Matching Studio
     path('admin/finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-studio'),
     path('admin/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='admin-bank-reconciliation-alias'),
     path('finance/bank-reconciliation/', admin_bank_reconciliation_studio_view, name='bank-reconciliation-portal'),
@@ -388,9 +183,8 @@ urlpatterns = [
     path('api/finance/bank-reconciliation/upload/', api_bank_reconciliation_upload, name='api-finance-bank-reconciliation-upload'),
     path('api/finance/bank-reconciliation/reconcile/<int:entry_id>/', api_bank_reconciliation_reconcile_entry, name='api-finance-bank-reconciliation-reconcile'),
     path('api/finance/bank-reconciliation/batch/', api_bank_reconciliation_batch, name='api-finance-bank-reconciliation-batch'),
-    # Phase 5: Driver Allowance (Bata) Auto-Calculation Engine
-    path('api/trip/<int:trip_id>/bata/calculate/', api_trip_calculate_bata, name='api-trip-calculate-bata'),
-    # Phase 7: Automated Driver Settlement & 1-Click Payout Studio
+
+    # Automated Driver Settlement & 1-Click Payout Studio
     path('admin/finance/driver-settlement/', admin_driver_settlement_studio_view, name='admin-driver-settlement-studio'),
     path('finance/driver-settlement/', admin_driver_settlement_studio_view, name='finance-driver-settlement-root'),
     path('finance/driver-settlement-studio/', admin_driver_settlement_studio_view, name='finance-driver-settlement-studio'),
@@ -399,44 +193,43 @@ urlpatterns = [
     path('api/finance/settle/<int:trip_id>/context/', api_trip_settlement_context, name='api-finance-settle-context-root'),
     path('api/finance/settle/<int:trip_id>/', api_execute_driver_settlement, name='api-finance-settle-execute-root'),
     path('api/finance/settlement/<int:settlement_id>/acknowledge/', api_driver_settlement_acknowledge, name='api-finance-settle-acknowledge-root'),
-    # Phase 7: Dedicated Staff Fleet & Chauffeurs Management Portal (Within Staff base.html)
-    path('fleet/vehicles/', fleet_vehicles_roster_view, name='fleet-vehicles-roster'),
-    path('fleet/categories/', fleet_categories_view, name='fleet-categories'),
-    path('fleet/types/', fleet_types_view, name='fleet-types'),
-    path('fleet/drivers/', fleet_drivers_roster_view, name='fleet-drivers-roster'),
-    path('api/fleet/vehicles/<int:vehicle_id>/toggle-status/', api_toggle_vehicle_status_staff, name='fleet-vehicle-toggle-status'),
-    # Phase 6: Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub
+
+    # Visual Drag-and-Drop CRM Kanban Board & Lead Follow-Up Hub
     path('admin/crm/kanban/', crm_kanban_board_view, name='admin-crm-kanban'),
     path('admin/kanban/', crm_kanban_board_view, name='admin-crm-kanban-alias'),
     path('crm/kanban/', crm_kanban_board_view, name='crm-kanban-portal-alias'),
     path('kanban/', crm_kanban_board_view, name='kanban-root-alias'),
+
     # Interactive Customer Digital Proposal & Dynamic UPI Auto-Conversion
     path('quote/<str:token>/', public_digital_proposal_view, name='public-digital-proposal'),
     path('quote/<str:token>/brochure.pdf', public_proposal_brochure_pdf_view, name='public-proposal-brochure-pdf'),
     path('quote/<str:token>/confirm/', api_proposal_upi_confirm, name='api-proposal-upi-confirm'),
-    # Full India Native GIS Tile Engine & Edge Cache
-    path('gis/tiles/<int:z>/<int:x>/<int:y>.png', full_india_tile_proxy_view, name='full-india-tile-proxy'),
-    path('api/gis/status/', api_india_gis_status_view, name='api-india-gis-status'),
-    # Phase 6: 2D Axle & Tire Health Studio + Fleet PM Engine
+
+    # 2D Axle & Tire Health Studio + Fleet PM Engine
     path('admin/maintenance/tire-studio/', tire_studio_view, name='admin-tire-studio'),
     path('admin/tire-studio/', tire_studio_view, name='admin-tire-studio-alias'),
     path('maintenance/tire-studio/', tire_studio_view, name='maintenance-tire-studio-portal'),
+
     # Workshop Mechanic Studio & QR Barcode Spare Parts Checkout
     path('admin/maintenance/workshop/', workshop_mechanic_studio_view, name='admin-workshop-studio'),
     path('admin/workshop-studio/', workshop_mechanic_studio_view, name='admin-workshop-studio-alias'),
     path('maintenance/workshop/', workshop_mechanic_studio_view, name='maintenance-workshop-studio'),
     path('maintenance/workshop-studio/', workshop_mechanic_studio_view, name='maintenance-workshop-studio-alias'),
+
     # Omnichannel Integrations Hub, Meta Webhook, Email SES/SMTP Studio, Agent Dashboard & Approvals
     path('admin/integrations/', include('integrations.urls')),
     path('api/integrations/meta/webhook/', integrations_views.api_meta_lead_webhook, name='api_meta_lead_webhook_root'),
     path('api/integrations/meta/simulate/', integrations_views.api_meta_lead_simulate, name='api_meta_lead_simulate_root'),
     path('api/integrations/google-sheets/sync/', integrations_views.api_google_sheet_sync, name='api_google_sheet_sync_root'),
     path('api/integrations/email/test/', integrations_views.api_test_email, name='api_test_email_root'),
+
     # Progressive Web App (PWA) root manifest and service worker
     path('manifest.json', pwa_manifest, name='pwa-manifest'),
     path('sw.js', pwa_service_worker, name='pwa-sw'),
+
     # Fleet Profitability & Cost-Per-KM (CPK) Optimization Radar Studio
     path('', include('finance_fleet.urls')),
+
     # Aliases and redirects for Package Tours Friendly URLs
     path('admin/package_tours/tourbusdeparturebatch/', RedirectView.as_view(url='/admin/package_tours/tourdeparturebatchproxy/', permanent=False)),
     path('admin/package_tours/tourbusdeparturebatch/<path:subpath>', RedirectView.as_view(url='/admin/package_tours/tourdeparturebatchproxy/%(subpath)s', permanent=False)),
@@ -451,14 +244,11 @@ urlpatterns = [
     path('admin/fleet_commute/corporatecommuteshift/', RedirectView.as_view(url='/commute/contracts/?tab=shifts', permanent=False)),
     path('admin/fleet_contracts/transportcontract/', RedirectView.as_view(url='/commute/contracts/?tab=contracts', permanent=False)),
     path('admin/pricing/', RedirectView.as_view(url='/pricing/', permanent=False)),
-    # Database Health Dashboard & Audit API
-    path('operations/database-health/', admin_database_health_dashboard_view, name='operations-database-health'),
-    path('admin/operations/database-health/', admin_database_health_dashboard_view, name='admin-database-health-dashboard'),
-    path('admin/database-health/', admin_database_health_dashboard_view, name='admin-database-health-alias'),
-    path('api/database-health/audit/', api_database_health_audit, name='api-database-health-audit'),
-    path('api/database-health/snapshot/', api_database_snapshot_export, name='api-database-snapshot-export'),
-    path('api/database-health/maintenance/', api_run_scheduler_maintenance, name='api-database-scheduler-maintenance'),
+
+    # Arattai Inbound Webhook
     path('api/integrations/arattai/webhook/', integrations_views.arattai_inbound_webhook_view, name='api_arattai_webhook_root'),
+
+    # Django Admin & Staff Auth
     path('admin/', admin.site.urls),
     path('staff/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('staff/logout/', auth_views.LogoutView.as_view(next_page='/staff/login/'), name='staff_logout'),
@@ -467,78 +257,31 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/staff/login/'), name='logout'),
     path('core/vehicles/', RedirectView.as_view(url='/fleet/vehicles/', permanent=False)),
     path('corporate/', RedirectView.as_view(url='/client/portal/', permanent=False)),
+
     # Corporate Commute Contracts & Shuttle Routes Studio (Staff Portal with sidebar)
     path('commute/contracts/', fleet_commute_views.contracts_studio_view, name='commute-contracts-studio'),
-    # Client Rate Cards & Tariffs Studio (Staff Portal with sidebar)
-    path('pricing/', rate_cards_studio_view, name='client-pricing-studio'),
 
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),
     path('staff/roles-matrix/', staff_roles_matrix_view, name='staff-roles-matrix'),
     path('roles/', staff_roles_matrix_view, name='roles-matrix-alias'),
     path('staff/', staff_roles_matrix_view, name='staff-directory-alias'),
-    path('dispatch/', booking_list, name='dispatch-console'),
-    path('bookings/', booking_list, name='booking-list'),
-    path('bookings/create/', booking_create, name='booking-create'),
-    path('bookings/<int:booking_id>/edit/', booking_edit, name='booking-edit'),
-    path('bookings/<int:booking_id>/', booking_detail, name='booking-detail'),
+
+    # Inspection certificate print
     path('maintenance/damage-inspection/<int:inspection_id>/print/', damage_inspection_print_certificate, name='damage_inspection_print'),
-    path('bookings/<int:booking_id>/pdf/voucher/', booking_voucher_pdf_view, name='booking-voucher-pdf'),
-    path('bookings/<int:booking_id>/trip/create/', trip_create, name='trip-create'),
-    path('api/bookings/<int:booking_id>/', api_get_booking, name='api_get_booking'),
-    path('api/packages/<int:package_id>/inventory/', api_package_inventory, name='api_package_inventory'),
-    path('api/package-inventory/<int:inventory_id>/', api_inventory_detail, name='api_inventory_detail'),
-    path('api/bulk-contracts/<int:contract_id>/', api_bulk_contract_context, name='api_bulk_contract_context'),
-    path('api/trips/<int:trip_id>/', api_get_trip, name='api_get_trip'),
-    path('api/vehicle-types/', api_get_vehicle_types, name='api_get_vehicle_types'),
-    path('api/vehicles/<str:reg_no>/check-availability/', api_vehicle_check_availability, name='api-vehicle-check-availability'),
-    path('api/vehicles/<str:reg_no>/check-availability/', api_vehicle_check_availability, name='api_vehicle_check_availability'),
+
     path('api/payments/context/', api_payment_context, name='api_payment_context'),
-    path('trips/<int:trip_id>/', trip_detail, name='trip-detail'),
-    path('trips/<int:trip_id>/trip-sheet/', generate_trip_sheet, name='trip-sheet'),
-    path('trips/<int:trip_id>/pdf/trip-sheet/', trip_sheet_pdf_view, name='trip-sheet-pdf'),
-    path('trips/<int:trip_id>/pdf/invoice/', trip_invoice_pdf_view, name='trip-invoice-pdf'),
-    path('customer/trip/<int:trip_id>/invoice/', customer_trip_invoice_view, name='customer-trip-invoice'),
-    path('trips/<int:trip_id>/status/', trip_update_status, name='trip-update-status'),
-    path('trips/<int:trip_id>/customer-confirmation/', customer_confirmation_preview, name='customer-confirmation-preview'),
-    path('trips/<int:trip_id>/quick-assign/', trip_quick_assign_view, name='trip-quick-assign'),
-    path('api/trips/<int:trip_id>/dispatch-recommendations/', api_smart_dispatch_recommendations, name='api-trip-dispatch-recommendations'),
-    path('trips/<int:trip_id>/broadcast-whatsapp/', broadcast_trip_whatsapp_view, name='trip-broadcast-whatsapp'),
-    path('trips/<int:trip_id>/broadcast-driver-whatsapp/', broadcast_driver_whatsapp_view, name='trip-broadcast-driver-whatsapp'),
     path('parties/<int:party_id>/ledger/', party_ledger, name='party-ledger'),
     path('statements/generate/', generate_statement, name='generate-statement'),
     path('statements/<int:statement_id>/download/', download_statement, name='download-statement'),
     path('reports/vehicle-profitability/', vehicle_profitability_report, name='vehicle-profitability'),
     path('reports/party-profitability/', party_profitability_report, name='party-profitability'),
-    path('api/telematics/ping/', api_telematics_ping, name='api_telematics_ping'),
-    path('api/telematics/live/<int:vehicle_id>/', api_telematics_live, name='api_telematics_live'),
-    path('fleet/live/', fleet_live_mission_control, name='fleet-live'),
-    path('operations/fleet-radar/', fleet_live_mission_control, name='operations-fleet-radar'),
-    path('api/fleet/live-feed/', api_fleet_live_feed, name='api-fleet-live-feed'),
-    path('api/fleet/simulate-tick/', api_fleet_telematics_tick, name='api-fleet-simulate-tick'),
-    path('api/fleet/transfer/request/', api_request_depot_transfer, name='api-fleet-transfer-request'),
-    path('api/fleet/transfer/<int:transfer_id>/receive/', api_receive_depot_transfer, name='api-fleet-transfer-receive'),
-    path('api/fleet/transfer/history/', api_depot_transfer_history, name='api-fleet-transfer-history'),
-    path('track/<str:token>/', passenger_live_tracking_view, name='passenger-live-tracking'),
-    path('api/track/<str:token>/live/', api_passenger_live_tracking, name='api-passenger-live-tracking'),
-    path('api/routing/route/', api_osrm_route_view, name='api_osrm_route'),
-    path('api/spatial/nearest-vehicles/', api_spatial_nearest_vehicles_view, name='api_spatial_nearest_vehicles'),
-    path('gis/metrics/', api_gis_prometheus_metrics_view, name='gis_prometheus_metrics'),
-    path('gis/health/', api_gis_health_view, name='gis_health'),
-    path('gis/control-center/', gis_control_center_dashboard_view, name='gis_control_center'),
-    path('api/routing/optimize/', api_route_optimizer_view, name='api_route_optimizer'),
-    path('api/telemetry/pipeline-ingest/', api_telemetry_pipeline_ingest_view, name='api_telemetry_pipeline_ingest'),
-    path('api/telemetry/stream-publish/', api_telemetry_stream_publish_view, name='api_telemetry_stream_publish'),
-    path('api/telemetry/stream-consume/', api_telemetry_stream_consume_view, name='api_telemetry_stream_consume'),
-    # Rathasārathi AI Operations Copilot (Powered by Groq / LLM) API
-    path('api/rathasarathi/chat/', api_rathasarathi_chat, name='api-rathasarathi-chat'),
-    path('api/rathasarathi/quick-stats/', api_rathasarathi_quick_stats, name='api-rathasarathi-quick-stats'),
-    path('api/rathasarathi/set-key/', api_rathasarathi_set_key, name='api-rathasarathi-set-key'),
-    path('incidents/<int:incident_id>/dispatch-standby/', dispatch_standby_replacement, name='dispatch-standby-replacement'),
-    path('api/incidents/<str:incident_id>/acknowledge/', api_acknowledge_incident, name='api-acknowledge-incident'),
-    path('api/fleet/geofence-alarms/', api_active_geofence_alarms, name='api-active-geofence-alarms'),
+
+    # Operations & Packages HTMX Includes
     path('htmx/', include('operations.htmx_urls')),
     path('packages/htmx/', include('packages.htmx_urls')),
+
+    # Other App Route Includes
     path('finance/', include('finance.urls')),
     path('maintenance/', include('maintenance.urls')),
     path('driver/', include('driver_portal.urls')),
@@ -583,10 +326,6 @@ urlpatterns = [
         path('sso/<slug:brand_slug>/callback/', fleet_commute_views.client_sso_callback_view),
         path('api/sso/lookup-domain/', fleet_commute_views.api_sso_domain_lookup),
     ])),
-    # P2: Velocity & Cascading Automations
-    path('api/vehicle/<int:vehicle_id>/quick-telemetry/', api_vehicle_quick_telemetry, name='api-vehicle-quick-telemetry'),
-    path('api/operations/route-estimate/', api_route_estimate, name='api-operations-route-estimate'),
-    path('api/operations/global-search/', api_global_search, name='api-operations-global-search'),
     path('packages/', include('packages.urls')),
     path('customer-portal/', include('customer_portal.urls')),
     path('customer/login/', RedirectView.as_view(url='/customer-portal/login/', permanent=False), name='customer-login-alias'),
