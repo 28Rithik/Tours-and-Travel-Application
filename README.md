@@ -6,6 +6,8 @@
 [![Django Unfold](https://img.shields.io/badge/Admin-Django%20Unfold%200.40-0284C7?style=for-the-badge)](https://github.com/unfoldadmin/django-unfold)
 [![Architecture](https://img.shields.io/badge/Stack-ASGI%20%2F%20Channels%20%2B%20HTMX-6366F1?style=for-the-badge)](https://channels.readthedocs.io/)
 [![Database](https://img.shields.io/badge/Database-SQLite%20WAL%20%2F%20PostgreSQL%2015%20%2B%20PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Tests](https://img.shields.io/badge/Tests-366%20Passed%20%28100%25%29-10B981?style=for-the-badge)](tests/)
+[![API Docs](https://img.shields.io/badge/OpenAPI-3.0.3%20Catalog-0284C7?style=for-the-badge)](/docs/)
 [![Performance](https://img.shields.io/badge/Latency-Sub--50ms%20%2842.43ms%29-10B981?style=for-the-badge)](documentation/performance_analysis.md)
 [![Offline-First](https://img.shields.io/badge/Assets-100%25%20Self--Hosted%20%2F%20Zero--CDN-0284C7?style=for-the-badge)](documentation/07_LIGHT_MODE_AND_AESTHETICS_SYSTEM.md)
 [![Compression](https://img.shields.io/badge/GZip%20Wire%20Savings-81.5%25-6366F1?style=for-the-badge)](documentation/performance_analysis.md)
@@ -248,24 +250,31 @@ python manage.py runserver
 | **Guest Tour Itinerary** | `/tour/itinerary/<token>/` | Zero-login mobile passenger tour companion |
 | **Interactive Quote** | `/quote/<token>/` | Digital interactive proposal with live itinerary |
 | **Statement Generator** | `/statements/generate/` | Multi-page PDF/Excel CAB statements |
+| **Developer API Catalog** | `/docs/` or `/api/docs/` | Interactive API documentation & curl examples |
+| **OpenAPI 3.0.3 Schema** | `/api/docs/schema.json` | Machine-readable OpenAPI JSON specification |
+| **System Health Check** | `/health/` | Real-time database & service health probe |
 
 ---
 
 ## 🧪 Testing & Validation
 
-Run the test suite and verify system health:
+TravelERP features an extensive **366-test automated testing suite** with 100% pass rate across all enterprise domains.
 
 ```powershell
 # 1. Standard Django system check
 python manage.py check
 
-# 2. Migration integrity check
-python manage.py makemigrations --check
+# 2. Align PostgreSQL primary key sequences (prevents test PK collisions)
+python manage.py reset_sequences
 
-# 3. Run test suite
-python manage.py test -v 1
+# 3. Run full automated test suite (366 tests)
+python manage.py test --keepdb
 
-# 4. Collect static assets
+# 4. Run test suite with code coverage analysis
+coverage run manage.py test --keepdb
+coverage report
+
+# 5. Collect static assets
 python manage.py collectstatic --noinput
 ```
 

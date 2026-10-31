@@ -225,3 +225,13 @@ class ModularizedRoutingTests(TestCase):
         for name, expected_path in expected_mappings.items():
             reversed_path = reverse(name)
             self.assertEqual(reversed_path, expected_path, f"Route name '{name}' failed reversal.")
+
+
+class ResetSequencesCommandTests(TestCase):
+    def test_reset_sequences_command_executes_successfully(self):
+        from io import StringIO
+        from django.core.management import call_command
+        out = StringIO()
+        call_command('reset_sequences', stdout=out)
+        output = out.getvalue()
+        self.assertTrue('aligned' in output or 'only required for PostgreSQL' in output or 'sequences found' in output)
