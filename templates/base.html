@@ -10,8 +10,15 @@
   {# ✅ Fix: Font Awesome self-hosted locally (0ms CDN latency, full offline support) #}
   <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}"></noscript>
-  {# 🚀 Self-Hosted Tailwind CSS Engine (Zero CDN Dependency, 100% Offline-First) #}
+  {# 🚀 Self-Hosted Tailwind CSS Engine (Zero CDN Dependency, 100% Offline-First with CDN fallback) #}
   <script src="{% static 'js/tailwindcss.js' %}"></script>
+  <script>
+    if (typeof tailwind === 'undefined') {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.tailwindcss.com';
+      document.head.appendChild(s);
+    }
+  </script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -22,6 +29,21 @@
             mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
           },
           colors: {
+            primary: {
+              DEFAULT: '#0284c7',
+              hover: '#0369a1',
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              950: '#082f49',
+            },
             brand: {
               50: '#f0f9ff',
               100: '#e0f2fe',
@@ -33,10 +55,10 @@
       }
     };
   </script>
-  {# ✅ Fix: Extracted 834-line inline <style> block to static file (browser-cacheable, gzip-served) #}
-  <link rel="stylesheet" href="{% static 'css/base-ui.css' %}?v=4.0">
-  <link rel="stylesheet" href="{% static 'app.css' %}?v=3.7">
-  <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}?v=3.7">
+  {# ✅ Fix: Extracted inline style block to static file (browser-cacheable, gzip-served) #}
+  <link rel="stylesheet" href="{% static 'css/base-ui.css' %}?v=5.0">
+  <link rel="stylesheet" href="{% static 'app.css' %}?v=5.0">
+  <link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}?v=5.0">
   <script>
     /* Immediate Anti-FOUC Theme Detection (Matches Django Unfold) */
     (function() {

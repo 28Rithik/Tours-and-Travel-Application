@@ -839,3 +839,246 @@
     }
 
   
+
+/* ==========================================================================
+   ENTERPRISE CORE UI UTILITIES & PROGRESSIVE ENHANCEMENT (ANTI-FOUC ENGINE)
+   Guarantees perfect rendering, hidden modals, high contrast, and responsive
+   grids even before or alongside runtime Tailwind compiler execution.
+   ========================================================================== */
+
+/* ── 1. Strict Modal & Visibility Safeguards (Prevents Modal Bleeding) ── */
+.hidden,
+[hidden],
+div[id*="Modal"].hidden,
+div[id*="modal"].hidden,
+div[id*="Modal"][class*="hidden"],
+div[id*="modal"][class*="hidden"] {
+  display: none !important;
+}
+
+/* Active modal container overlay */
+.fixed.inset-0:not(.hidden) {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 50 !important;
+}
+
+/* ── 2. Primary Brand Color Utilities ── */
+:root {
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
+  --color-primary: #0284c7;
+  --color-primary-hover: #0369a1;
+}
+.bg-primary {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+.bg-primary:hover,
+.hover\:bg-primary-hover:hover {
+  background-color: #0369a1 !important;
+}
+.text-primary,
+a.text-primary,
+button.text-primary {
+  color: #0284c7 !important;
+}
+.hover\:text-primary:hover {
+  color: #0284c7 !important;
+}
+.border-primary {
+  border-color: #0284c7 !important;
+}
+
+/* ── 3. Unfold KPI Metric Cards (.unfold-kpi-card-solid) ── */
+.unfold-kpi-card-solid {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.unfold-kpi-card-solid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+html.dark .unfold-kpi-card-solid,
+.dark .unfold-kpi-card-solid {
+  background: #0f172a !important;
+  border-color: #1e293b !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.unfold-kpi-card-solid .kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  z-index: 1;
+  margin-bottom: 2px;
+}
+html.dark .unfold-kpi-card-solid .kpi-label,
+.dark .unfold-kpi-card-solid .kpi-label {
+  color: #94a3b8;
+}
+
+.unfold-kpi-card-solid .kpi-number {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #0f172a;
+  margin: 4px 0 2px 0;
+  letter-spacing: -0.02em;
+  z-index: 1;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+html.dark .unfold-kpi-card-solid .kpi-number,
+.dark .unfold-kpi-card-solid .kpi-number {
+  color: #f8fafc !important;
+}
+
+.unfold-kpi-card-solid .kpi-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  z-index: 1;
+  margin-top: 2px;
+}
+html.dark .unfold-kpi-card-solid .kpi-sub,
+.dark .unfold-kpi-card-solid .kpi-sub {
+  color: #94a3b8;
+}
+
+.unfold-kpi-card-solid .kpi-bg-icon {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-size: 52px;
+  opacity: 0.09;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+html.dark .unfold-kpi-card-solid .kpi-bg-icon,
+.dark .unfold-kpi-card-solid .kpi-bg-icon {
+  opacity: 0.14;
+}
+
+/* KPI Color Border & Icon Highlights */
+.unfold-kpi-card-solid.blue { border-top: 3px solid #0284c7 !important; }
+.unfold-kpi-card-solid.blue .kpi-bg-icon { color: #0284c7; }
+
+.unfold-kpi-card-solid.green { border-top: 3px solid #10b981 !important; }
+.unfold-kpi-card-solid.green .kpi-bg-icon { color: #10b981; }
+
+.unfold-kpi-card-solid.purple { border-top: 3px solid #8b5cf6 !important; }
+.unfold-kpi-card-solid.purple .kpi-bg-icon { color: #8b5cf6; }
+
+.unfold-kpi-card-solid.amber { border-top: 3px solid #f59e0b !important; }
+.unfold-kpi-card-solid.amber .kpi-bg-icon { color: #f59e0b; }
+
+.unfold-kpi-card-solid.rose { border-top: 3px solid #ef4444 !important; }
+.unfold-kpi-card-solid.rose .kpi-bg-icon { color: #ef4444; }
+
+.unfold-kpi-card-solid.slate { border-top: 3px solid #64748b !important; }
+.unfold-kpi-card-solid.slate .kpi-bg-icon { color: #64748b; }
+
+/* ── 4. Core Layout & Spacing Fallbacks (Anti-FOUC Grid System) ── */
+.space-y-6 > * + * { margin-top: 1.5rem !important; }
+.space-y-5 > * + * { margin-top: 1.25rem !important; }
+.space-y-4 > * + * { margin-top: 1rem !important; }
+.space-y-3 > * + * { margin-top: 0.75rem !important; }
+.space-y-2 > * + * { margin-top: 0.5rem !important; }
+
+.grid {
+  display: grid;
+}
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 768px) {
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 0.75rem; }
+.gap-4 { gap: 1rem; }
+.gap-5 { gap: 1.25rem; }
+.gap-6 { gap: 1.5rem; }
+
+/* ── 5. Standard Form Control Enhancements ── */
+input[type="text"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="email"],
+select,
+textarea {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="datetime-local"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15) !important;
+}
+
+/* High contrast text guarantees */
+.text-slate-900 { color: #0f172a; }
+.text-slate-700 { color: #334155; }
+.text-slate-500 { color: #64748b; }
+.text-slate-400 { color: #94a3b8; }
+html.dark .dark\:text-white,
+.dark .dark\:text-white { color: #ffffff !important; }
+html.dark .dark\:text-slate-200,
+.dark .dark\:text-slate-200 { color: #e2e8f0 !important; }
+html.dark .dark\:text-slate-300,
+.dark .dark\:text-slate-300 { color: #cbd5e1 !important; }
+html.dark .dark\:text-slate-400,
+.dark .dark\:text-slate-400 { color: #94a3b8 !important; }
