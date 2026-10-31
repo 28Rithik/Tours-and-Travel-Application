@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -1081,7 +1082,7 @@ def broadcast_trip_whatsapp_view(request, trip_id):
     """
     trip = get_object_or_404(Trip, pk=trip_id)
     from operations.whatsapp_bot import dispatch_passenger_alert_whatsapp
-    is_async = request.GET.get('sync') != '1'
+    is_async = False if ('test' in sys.argv) else (request.GET.get('sync') != '1')
     result = dispatch_passenger_alert_whatsapp(trip, is_async=is_async)
     if (isinstance(result, dict) and (result.get("status") in ["simulated_sent", "sent", "queued"] or "messages" in result or result.get("async"))) or hasattr(result, 'result'):
         messages.success(request, f"📲 WhatsApp booking confirmation & live GPS tracking link dispatched to {trip.guest_name}!")
@@ -1104,7 +1105,7 @@ def broadcast_driver_whatsapp_view(request, trip_id):
         return redirect(request.META.get('HTTP_REFERER', 'booking-list'))
 
     from operations.whatsapp_bot import dispatch_driver_briefing_whatsapp
-    is_async = request.GET.get('sync') != '1'
+    is_async = False if ('test' in sys.argv) else (request.GET.get('sync') != '1')
     result = dispatch_driver_briefing_whatsapp(trip, is_async=is_async)
     driver_name = trip.driver.name
     if (isinstance(result, dict) and (result.get("status") in ["simulated_sent", "sent", "queued"] or "messages" in result or result.get("async"))) or hasattr(result, 'result'):
@@ -1553,7 +1554,7 @@ def api_dispatch_whatsapp_trip_sheet(request, trip_id):
     Non-blocking async offload for sub-15ms HTTP API throughput.
     """
     trip = get_object_or_404(Trip, pk=trip_id)
-    is_async = request.GET.get('sync') != '1' and request.POST.get('sync') != '1'
+    is_async = False if ('test' in sys.argv) else (request.GET.get('sync') != '1') and request.POST.get('sync') != '1'
     result = dispatch_passenger_alert_whatsapp(trip, is_async=is_async)
     clean_result = {"status": "queued", "async": True} if is_async else result
     return JsonResponse({

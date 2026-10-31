@@ -26,11 +26,12 @@ def build_statement_rows(party, from_date, to_date, vehicle=None, driver=None, s
         for cost in ledger['supplier_costs']:
             trip = cost.trip
             commission = trip.commission if trip else Decimal('0')
+            vtype_name = str(trip.vehicle.vehicle_type) if trip and trip.vehicle and trip.vehicle.vehicle_type else ''
             rows.append({
                 'date': cost.date, 'row_type': 'trip', 'description': 'OUTSOURCED TRIP',
                 'booking_number': trip.booking.booking_number if trip and trip.booking else '', 
                 'guest_name': trip.guest_name if trip else '',
-                'vehicle_type': trip.vehicle.vehicle_type if trip and trip.vehicle else '',
+                'vehicle_type': vtype_name,
                 'supplier_name': cost.supplier.name,
                 'vehicle_number': cost.vehicle.registration_number if cost.vehicle else '', 
                 'start_date': trip.start_date if trip else '',
@@ -57,12 +58,13 @@ def build_statement_rows(party, from_date, to_date, vehicle=None, driver=None, s
             expenses = {}
             for expense in trip.expenses.all():
                 expenses[expense.expense_type] = expenses.get(expense.expense_type, Decimal('0')) + expense.amount
+            vtype_name = str(trip.vehicle.vehicle_type) if trip.vehicle and trip.vehicle.vehicle_type else ''
             rows.append({
                 'date': trip.start_date,
                 'row_type': 'trip',
                 'booking_number': trip.booking.booking_number if trip.booking else (f'Contract: {trip.bulk_contract_day.contract.name}' if trip.bulk_contract_day else ''),
                 'guest_name': trip.guest_name,
-                'vehicle_type': trip.vehicle.vehicle_type if trip.vehicle else '',
+                'vehicle_type': vtype_name,
                 'supplier_name': trip.vehicle.owner_party.name if trip.vehicle and trip.vehicle.ownership_type == 'outsourced' and trip.vehicle.owner_party_id else '',
                 'vehicle_number': trip.vehicle.registration_number if trip.vehicle else '',
                 'start_date': trip.start_date,

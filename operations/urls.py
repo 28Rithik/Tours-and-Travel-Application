@@ -60,6 +60,7 @@ urlpatterns = [
     path('fleet/live/', views.fleet_live_mission_control, name='fleet-live'),
     path('api/fleet/live-feed/', views.api_fleet_live_feed, name='api-fleet-live-feed'),
     path('api/fleet/simulate-tick/', views.api_fleet_telematics_tick, name='api-fleet-simulate-tick'),
+    path('api/fleet/simulate-tick/', views.api_fleet_telematics_tick, name='api-fleet-telematics-tick'),
     path('api/telematics/ping/', views.api_telematics_ping, name='api_telematics_ping'),
     path('api/telematics/live/<int:vehicle_id>/', views.api_telematics_live, name='api_telematics_live'),
     path('api/fleet/transfer/request/', views.api_request_depot_transfer, name='api-fleet-transfer-request'),

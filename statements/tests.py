@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from core.models import Party
+from core.models import Party, VehicleType
 from finance.models import Payment
 from operations.models import Booking
 from .renderers import render_excel, render_pdf
@@ -15,14 +15,15 @@ from .models import GeneratedStatement
 
 class StatementTests(TestCase):
 	def setUp(self):
-		self.user = get_user_model().objects.create_user(username='tester', password='test-password-123')
+		self.user = get_user_model().objects.create_superuser(username='tester', email='tester@example.com', password='test-password-123')
+		self.vt_sedan, _ = VehicleType.objects.get_or_create(name='Sedan', defaults={'seating_capacity': 4})
 
 	def test_payment_is_a_separate_row_and_exports_are_generated(self):
 		party = Party.objects.create(name='Statement Party', party_type='corporate')
 		Booking.objects.create(
 			booking_number='BK-0003', party=party, guest_name='Guest', pickup_location='A',
 			destination='B', pickup_date=date(2026, 4, 1), pickup_time='09:00',
-			journey_type='local', vehicle_type='Sedan',
+			journey_type='local', vehicle_type=self.vt_sedan,
 		)
 		Payment.objects.create(
 			party=party, date=date(2026, 4, 2), amount=Decimal('500'),

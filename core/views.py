@@ -272,8 +272,12 @@ def fleet_vehicles_roster_view(request):
     all_vehicle_types = VehicleType.objects.all()
     all_drivers = Driver.objects.filter(status='active').order_by('name')
 
+    from .pagination import paginate_queryset
+    vehicles_page = paginate_queryset(vehicles_qs, request, default_page_size=25, max_page_size=100)
+
     return render(request, 'core/vehicle_roster.html', {
-        'vehicles': vehicles_qs,
+        'vehicles': vehicles_page.records,
+        'vehicles_page': vehicles_page,
         'counts': counts,
         'current_status': status_filter,
         'search_query': search_query,
@@ -344,8 +348,12 @@ def fleet_drivers_roster_view(request):
     elif status_filter == 'inactive':
         drivers_qs = drivers_qs.filter(status='inactive')
 
+    from .pagination import paginate_queryset
+    drivers_page = paginate_queryset(drivers_qs, request, default_page_size=25, max_page_size=100)
+
     return render(request, 'core/driver_roster.html', {
-        'drivers': drivers_qs,
+        'drivers': drivers_page.records,
+        'drivers_page': drivers_page,
         'counts': counts,
         'current_status': status_filter,
         'search_query': search_query,

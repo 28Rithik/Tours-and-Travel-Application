@@ -1,5 +1,6 @@
 from io import BytesIO
 from decimal import Decimal
+from datetime import date, datetime
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
@@ -83,17 +84,24 @@ def render_excel(party, from_date, to_date, rows, ledger, is_fleet_contract=Fals
             ('Net Payable', 'total')
         ]
         
+    def _safe_val(v):
+        if v is None:
+            return ''
+        if isinstance(v, (str, int, float, Decimal, date)):
+            return v
+        return str(v)
+
     sheet.append([label for label, _ in cols_to_use])
     for cell in sheet[3]:
         cell.font = Font(bold=True)
     for row in rows:
         if is_fleet_contract or is_supplier:
-            sheet.append([row.get(key, '') for _, key in cols_to_use])
+            sheet.append([_safe_val(row.get(key, '')) for _, key in cols_to_use])
         else:
             if row['row_type'] == 'trip':
-                sheet.append([row.get(key, '') for _, key in COLUMNS])
+                sheet.append([_safe_val(row.get(key, '')) for _, key in COLUMNS])
             else:
-                sheet.append([row.get('description', ''), '', '', row.get('supplier_name', ''), row.get('date', ''), '', '', '', '', '', '', '', '', '', '', '', '', '', row.get('total', ''), row.get('received', ''), ''])
+                sheet.append([_safe_val(row.get('description', '')), '', '', _safe_val(row.get('supplier_name', '')), _safe_val(row.get('date', '')), '', '', '', '', '', '', '', '', '', '', '', '', '', _safe_val(row.get('total', '')), _safe_val(row.get('received', '')), ''])
     sheet.append([])
     sheet.append(['Opening balance', ledger['opening_balance']])
     if is_supplier:

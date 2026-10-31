@@ -172,6 +172,8 @@ class Phase9EnterpriseSuiteTestCase(TestCase):
     # 2. Statutory Compliance Sentry Tests
     # --------------------------------------------------------------------------
     def test_statutory_compliance_radar_and_renewal(self):
+        from django.core.cache import cache
+        cache.clear()
         today = timezone.now().date()
 
         # Create FC document expiring in 5 days (Critical)
