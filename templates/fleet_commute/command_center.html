@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Airport Transport Command Center | Enterprise ETS | TravelERP{% endblock %}
+{% block header_title %}Airport Transport Command Center{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <a href="{% url 'fleet_commute:contracts_studio' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Corporate Commute</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Airport Command Center</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="p-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 font-sans">
+    
+    <!-- Top Mission Control Bar -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping mr-1.5"></span> LIVE RADAR SYNCED
+                </span>
+                <span class="text-xs text-slate-500 font-mono">AIRPORT-STYLE MISSION CONTROL</span>
+            </div>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <span>✈️ Transport Command Center</span>
+                <span class="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-mono font-medium">50,000+ Commuter Capacity</span>
+            </h1>
+        </div>
+
+        <!-- Quick Filters & Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+            <form method="GET" class="flex items-center gap-2">
+                <select name="contract_id" onchange="this.form.submit()" class="text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 shadow-sm font-medium">
+                    <option value="">🏢 All Corporate Clients</option>
+                    {% for c in contracts %}
+                    <option value="{{ c.id }}" {% if selected_contract_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <a href="{% url 'fleet_commute:incident_command_center' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-sm transition">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Incident Triage &amp; Recovery</span>
+                {% if metrics.active_incidents_count > 0 %}
+                <span class="px-1.5 py-0.2 bg-white text-rose-600 rounded-full text-[10px] font-black">{{ metrics.active_incidents_count }}</span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'fleet_commute:lost_and_found_studio' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold shadow-sm transition border border-slate-700">
+                <i class="fa-solid fa-box-open"></i>
+                <span>Lost &amp; Found</span>
+            </a>
+
+            <a href="{% url 'fleet_commute:roster_dispatcher_studio' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow-sm transition">
+                <i class="fa-solid fa-route"></i>
+                <span>Roster Dispatch</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Solid Gradient KPI Decks -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 my-6">
+        <!-- 1. Green Normal -->
+        <div class="p-4 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white shadow-md">
+            <div class="text-[11px] uppercase tracking-wider font-semibold opacity-90">🟢 Normal / On-Time</div>
+            <div class="text-3xl font-black font-mono mt-1" id="kpi-green">{{ metrics.green_count }}</div>
+            <div class="text-[10px] mt-1 opacity-80 flex items-center justify-between">
+                <span>OTP {{ metrics.otp_pct }}%</span>
+                <span>Active Duty</span>
+            </div>
+        </div>
+
+        <!-- 2. Yellow Delayed -->
+        <div class="p-4 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-white shadow-md">
+            <div class="text-[11px] uppercase tracking-wider font-semibold opacity-90">🟡 Delayed (>10m)</div>
+            <div class="text-3xl font-black font-mono mt-1" id="kpi-yellow">{{ metrics.yellow_count }}</div>
+            <div class="text-[10px] mt-1 opacity-80 flex items-center justify-between">
+                <span>Congestion Watch</span>
+                <span>{{ metrics.delayed_trips }} Delayed</span>
+            </div>
+        </div>
+
+        <!-- 3. Red Alert / SOS -->
+        <div class="p-4 rounded-xl bg-gradient-to-br from-rose-600 to-red-800 text-white shadow-md">
+            <div class="text-[11px] uppercase tracking-wider font-semibold opacity-90">🔴 Critical / SOS</div>
+            <div class="text-3xl font-black font-mono mt-1" id="kpi-red">{{ metrics.red_count }}</div>
+            <div class="text-[10px] mt-1 opacity-80 flex items-center justify-between">
+                <span>{{ metrics.active_incidents_count }} Active</span>
+                <span>{{ metrics.critical_sos_count }} Distress</span>
+            </div>
+        </div>
+
+        <!-- 4. Total Commuters Transported -->
+        <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-800 text-white shadow-md">
+            <div class="text-[11px] uppercase tracking-wider font-semibold opacity-90">👥 Commuters Shifted</div>
+            <div class="text-3xl font-black font-mono mt-1">{{ metrics.total_passengers }}</div>
+            <div class="text-[10px] mt-1 opacity-80 flex items-center justify-between">
+                <span>{{ metrics.total_trips }} Daily Shifts</span>
+                <span>Passengers</span>
+            </div>
+        </div>
+
+        <!-- 5. Seat Occupancy Rate -->
+        <div class="p-4 rounded-xl bg-gradient-to-br from-purple-600 to-violet-800 text-white shadow-md">
+            <div class="text-[11px] uppercase tracking-wider font-semibold opacity-90">💺 Seat Occupancy</div>
+            <div class="text-3xl font-black font-mono mt-1">{{ metrics.occupancy_pct }}%</div>
+            <div class="text-[10px] mt-1 opacity-80 flex items-center justify-between">
+                <span>Optimization Goal &gt;80%</span>
+                <span>Capacity</span>
+            </div>
+        </div>
+
+        <!-- 6. Cost Per Commuter -->
+        <div class="p-4 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md">
+            <div class="text-[11px] uppercase tracking-wider font-semibold opacity-90">💰 Cost / Commuter</div>
+            <div class="text-3xl font-black font-mono mt-1">₹{{ metrics.cost_per_commuter|floatformat:1 }}</div>
+            <div class="text-[10px] mt-1 opacity-80 flex items-center justify-between">
+                <span>Daily ₹{{ metrics.daily_cost_inr|floatformat:0 }}</span>
+                <span>Bata + Tolls</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Incident Alarm Banner (if any) -->
+    {% if metrics.active_incidents_count > 0 %}
+    <div class="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/60 border-2 border-rose-500 text-rose-900 dark:text-rose-200 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center font-bold text-lg animate-bounce">
+                🚨
+            </div>
+            <div>
+                <h4 class="font-black text-sm uppercase tracking-wide text-rose-900 dark:text-rose-100">
+                    {{ metrics.active_incidents_count }} Active Incident Alert{{ metrics.active_incidents_count|pluralize }} Requiring Alternate Recovery
+                </h4>
+                <p class="text-xs text-rose-700 dark:text-rose-300">
+                    Vehicle breakdown or commuter distress active. Open Incident Command Desk to execute 1-click autonomous standby rescue.
+                </p>
+            </div>
+        </div>
+        <a href="{% url 'fleet_commute:incident_command_center' %}" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-lg shadow uppercase tracking-wider transition">
+            Launch Recovery Desk &rarr;
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Flight / Shift Operations Board (High Density Table) -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+                <h3 class="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>📋 Flight &amp; Shuttle Shift Monitor Board</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono font-bold">{{ metrics.monitored_trips|length }} Active Runs</span>
+                </h3>
+                <p class="text-xs text-slate-500">Live operational status, delay thresholds, and commuter load tracking across corporate contracts.</p>
+            </div>
+
+            <!-- Health Status Tabs -->
+            <div class="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-semibold">
+                <button type="button" onclick="filterTable('all')" class="status-tab-btn active px-3 py-1 rounded bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white">All</button>
+                <button type="button" onclick="filterTable('green')" class="status-tab-btn px-3 py-1 rounded text-emerald-600 dark:text-emerald-400 hover:bg-white/50">🟢 Normal ({{ metrics.green_count }})</button>
+                <button type="button" onclick="filterTable('yellow')" class="status-tab-btn px-3 py-1 rounded text-amber-600 dark:text-amber-400 hover:bg-white/50">🟡 Delayed ({{ metrics.yellow_count }})</button>
+                <button type="button" onclick="filterTable('red')" class="status-tab-btn px-3 py-1 rounded text-rose-600 dark:text-rose-400 hover:bg-white/50">🔴 Alert ({{ metrics.red_count }})</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 uppercase font-mono text-[11px] text-slate-500 border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Trip ID</th>
+                        <th class="py-3 px-4">Client &amp; Shift</th>
+                        <th class="py-3 px-4">Corridor Route</th>
+                        <th class="py-3 px-4">Assigned Vehicle</th>
+                        <th class="py-3 px-4">Captain</th>
+                        <th class="py-3 px-4">Passenger Load</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800" id="trips-table-body">
+                    {% for t in metrics.monitored_trips %}
+                    <tr class="trip-row hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition" data-color="{{ t.status_color }}">
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            {% if t.status_color == 'green' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> {{ t.status_label }}
+                            </span>
+                            {% elif t.status_color == 'yellow' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> {{ t.status_label }}
+                            </span>
+                            {% elif t.status_color == 'red' %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                                <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> {{ t.status_label }}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span> {{ t.status_label }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-slate-100">
+                            #TR-{{ t.trip_id }}
+                            {% if t.is_replacement %}
+                            <span class="ml-1 text-[10px] px-1.5 py-0.5 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded font-bold">RESCUE VEHICLE</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900 dark:text-white">{{ t.contract_name }}</div>
+                            <div class="text-[11px] text-slate-500">{{ t.shift_name }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                                <i class="fa-solid fa-map-pin text-[10px] text-sky-500"></i> {{ t.route_name }}
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-slate-100">
+                            {{ t.vehicle_reg }}
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-medium">{{ t.driver_name }}</div>
+                            {% if t.driver_phone %}
+                            <div class="text-[11px] text-slate-500 font-mono">{{ t.driver_phone }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold text-slate-900 dark:text-white">{{ t.passenger_count }}</span>
+                                <span class="text-[10px] text-slate-500">riders</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-right whitespace-nowrap">
+                            <a href="{% url 'fleet_commute:roster_dispatcher_studio' %}" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded text-xs font-semibold transition">
+                                Dispatch Console &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-500">
+                            No active contract trips logged for today yet. Trips generate automatically from contract shifts.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTable(color) {
+    const rows = document.querySelectorAll('.trip-row');
+    const buttons = document.querySelectorAll('.status-tab-btn');
+    buttons.forEach(b => b.classList.remove('active', 'bg-white', 'dark:bg-slate-700', 'shadow-sm'));
+
+    event.target.classList.add('active', 'bg-white', 'dark:bg-slate-700', 'shadow-sm');
+
+    rows.forEach(r => {
+        if (color === 'all') {
+            r.style.display = '';
+        } else {
+            r.style.display = (r.dataset.color === color) ? '' : 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -6,7 +6,7 @@
 [![Django Unfold](https://img.shields.io/badge/Admin-Django%20Unfold%200.40-0284C7?style=for-the-badge)](https://github.com/unfoldadmin/django-unfold)
 [![Architecture](https://img.shields.io/badge/Stack-ASGI%20%2F%20Channels%20%2B%20HTMX-6366F1?style=for-the-badge)](https://channels.readthedocs.io/)
 [![Database](https://img.shields.io/badge/Database-SQLite%20WAL%20%2F%20PostgreSQL%2015%20%2B%20PostGIS-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/Tests-366%20Passed%20%28100%25%29-10B981?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-373%20Passed%20%28100%25%29-10B981?style=for-the-badge)](tests/)
 [![API Docs](https://img.shields.io/badge/OpenAPI-3.0.3%20Catalog-0284C7?style=for-the-badge)](/docs/)
 [![Performance](https://img.shields.io/badge/Latency-Sub--50ms%20%2842.43ms%29-10B981?style=for-the-badge)](documentation/performance_analysis.md)
 [![Offline-First](https://img.shields.io/badge/Assets-100%25%20Self--Hosted%20%2F%20Zero--CDN-0284C7?style=for-the-badge)](documentation/07_LIGHT_MODE_AND_AESTHETICS_SYSTEM.md)
@@ -53,6 +53,11 @@ The application operates with a **Zero-CDN, 100% locally self-hosted asset archi
 * **Mechanic Garage Floor Studio (`/maintenance/workshop/`)**: Digital job cards, mechanic assignment, time logging, and parts consumption tracking.
 
 ### 4. Corporate Employee Transport (ETS) & Institutional Commute
+* **Airport-Style Transport Command Center (`/commute/command-center/`)**: Real-time airport control room telemetry monitoring 1000+ transit assets. Live visual status grouping into 🟢 Green (Normal), 🟡 Yellow (Delayed >10m), and 🔴 Red (Breakdown/Active SOS) with OTP %, seat occupancy %, and per-commuter cost tracking.
+* **Incident Command Desk & Autonomous Rescue Recovery (`/commute/incidents/`)**: Centralized incident triage queue (Breakdown, Accident, Medical, Harassment, Law & Order) with autonomous discovery of nearest standby vehicles and 1-click rescue authorization.
+* **Dynamic Seat Marketplace & Trust Score**: Airline-style seat surrender workflow reallocating vacant seats to waitlisted colleagues, paired with a 0–100 commuter punctuality/reliability trust score (Gold, Silver, Bronze tiers).
+* **Silent SOS Stealth Distress Pipeline (`/commute/api/sos/silent/`)**: Discreet emergency alert system enabling passengers to signal mission control and night escorts silently without displaying provocative warnings to aggressors.
+* **Corporate Lost & Found Property Ledger (`/commute/lost-and-found/`)**: Enterprise custody tracking for laptops, IDs, and valuables across reported, driver-verified, security custody, and hand-delivered returned milestones.
 * **Batch Roster Dispatcher (`/commute/roster-dispatcher/`)**: Capacity matching and route clustering for corporate IT and school commute operations.
 * **SLA Performance & Penalty Studio (`/commute/sla-penalties/`)**: Delay breach detection linked directly to corporate billing deductions.
 * **Women Safety & Night Escort Command (`/commute/women-safety/`)**: Mandatory security escorts for isolated female drops during night shifts (8 PM - 6 AM).

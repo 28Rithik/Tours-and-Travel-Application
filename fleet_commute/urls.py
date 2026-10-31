@@ -37,6 +37,15 @@ from .views import (
     client_sso_callback_view,
     client_branded_login_view,
     contracts_studio_view,
+    transport_command_center_view,
+    incident_command_center_view,
+    lost_and_found_studio_view,
+    api_commute_command_center_stats,
+    api_incident_find_recovery_vehicles,
+    api_incident_dispatch_recovery,
+    api_commute_silent_sos,
+    api_seat_marketplace_release,
+    api_lost_and_found_update,
 )
 
 app_name = 'fleet_commute'
@@ -106,4 +115,15 @@ urlpatterns = [
     path('api/clusters/optimize/', api_optimize_commute_clusters, name='api_optimize_commute_clusters'),
     path('api/clusters/commit/', api_commit_commute_clusters, name='api_commit_commute_clusters'),
     path('api/clusters/stats/', api_commute_cluster_stats, name='api_commute_cluster_stats'),
+
+    # Enterprise ETS Next-Gen Differentiators: Command Center, Incidents, Lost & Found
+    path('command-center/', transport_command_center_view, name='transport_command_center'),
+    path('incidents/', incident_command_center_view, name='incident_command_center'),
+    path('lost-and-found/', lost_and_found_studio_view, name='lost_and_found_studio'),
+    path('api/command-center/stats/', api_commute_command_center_stats, name='api_commute_command_center_stats'),
+    path('api/incidents/<int:incident_id>/recovery-vehicles/', api_incident_find_recovery_vehicles, name='api_incident_find_recovery_vehicles'),
+    path('api/incidents/<int:incident_id>/dispatch-recovery/', api_incident_dispatch_recovery, name='api_incident_dispatch_recovery'),
+    path('api/silent-sos/', api_commute_silent_sos, name='api_commute_silent_sos'),
+    path('api/seat-marketplace/release/', api_seat_marketplace_release, name='api_seat_marketplace_release'),
+    path('api/lost-and-found/<int:item_id>/update/', api_lost_and_found_update, name='api_lost_and_found_update'),
 ]

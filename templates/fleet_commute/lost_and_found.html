@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Corporate Commute Lost &amp; Found Registry | TravelERP{% endblock %}
+{% block header_title %}Corporate Commute Lost &amp; Found Registry{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <a href="{% url 'fleet_commute:transport_command_center' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Command Center</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Lost &amp; Found Registry</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="p-6 bg-slate-50 dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 font-sans">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800">
+                    <i class="fa-solid fa-shield-halved mr-1.5"></i> CUSTODY CHAIN AUDIT
+                </span>
+                <span class="text-xs text-slate-500 font-mono">ENTERPRISE COMMUTER PROPERTY DESK</span>
+            </div>
+            <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                <span>🎒 Lost &amp; Found Registry</span>
+                <span class="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-mono font-medium">Baggage &amp; Asset Protection</span>
+            </h1>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button type="button" onclick="openNewLostItemModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>Report Forgotten Item</span>
+            </button>
+            <a href="{% url 'fleet_commute:transport_command_center' %}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-bold transition">
+                <span>&larr; Airport Command Center</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
+        <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div class="text-[11px] uppercase font-bold text-slate-500">Total Items Logged</div>
+            <div class="text-2xl font-black font-mono text-slate-900 dark:text-white mt-1">{{ counts.total }}</div>
+        </div>
+        <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 shadow-sm">
+            <div class="text-[11px] uppercase font-bold text-amber-600 dark:text-amber-400">Reported Missing</div>
+            <div class="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-1">{{ counts.reported }}</div>
+        </div>
+        <div class="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 shadow-sm">
+            <div class="text-[11px] uppercase font-bold text-indigo-600 dark:text-indigo-400">In Security / Driver Custody</div>
+            <div class="text-2xl font-black font-mono text-indigo-600 dark:text-indigo-400 mt-1">{{ counts.in_custody }}</div>
+        </div>
+        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 shadow-sm">
+            <div class="text-[11px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Claimed &amp; Handed Over</div>
+            <div class="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-1">{{ counts.returned }}</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 mb-6 shadow-sm">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+                <input type="text" name="q" value="{{ search_q }}" placeholder="Search ref, item, commuter, bus..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
+            </div>
+            <div>
+                <select name="category" onchange="this.form.submit()" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
+                    <option value="all">📦 All Property Categories</option>
+                    {% for code, label in categories %}
+                    <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <select name="status" onchange="this.form.submit()" class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
+                    <option value="all">🔍 All Custody Statuses</option>
+                    {% for code, label in statuses %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg shadow-sm">
+                    Filter Ledger
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Property Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-800/60 uppercase font-mono text-[11px] text-slate-500 border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4">Ticket Ref</th>
+                        <th class="py-3 px-4">Category &amp; Item</th>
+                        <th class="py-3 px-4">Commuter</th>
+                        <th class="py-3 px-4">Bus / Captain</th>
+                        <th class="py-3 px-4">Custody Status</th>
+                        <th class="py-3 px-4">Reported</th>
+                        <th class="py-3 px-4 text-right">Chain of Custody Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    {% for item in items %}
+                    <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition">
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                            {{ item.reference_no }}
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900 dark:text-white">{{ item.item_name }}</div>
+                            <div class="text-[11px] text-slate-500">{{ item.get_item_category_display }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-slate-900 dark:text-slate-100">{{ item.commuter.name }}</div>
+                            <div class="text-[11px] text-slate-500 font-mono">{{ item.commuter.commuter_id }} &bull; {{ item.commuter.phone }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ item.vehicle.registration_number|default:"Shuttle Bus" }}</div>
+                            <div class="text-[11px] text-slate-500">{{ item.driver.name|default:"Unassigned Captain" }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if item.status == 'claimed_and_returned' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                                <i class="fa-solid fa-check"></i> Returned
+                            </span>
+                            {% elif item.status == 'security_custody' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
+                                <i class="fa-solid fa-building-shield"></i> Security Desk
+                            </span>
+                            {% elif item.status == 'driver_verified' %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                                <i class="fa-solid fa-id-badge"></i> Driver Found
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                                <i class="fa-solid fa-clock"></i> Missing
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-slate-500 font-mono">
+                            {{ item.reported_at|date:"d M H:i" }}
+                        </td>
+                        <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                            {% if item.status == 'reported' %}
+                            <button type="button" onclick="updateItemStatus({{ item.id }}, 'driver_verified')" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[11px] font-bold shadow-sm">
+                                Chauffeur Found
+                            </button>
+                            {% elif item.status == 'driver_verified' %}
+                            <button type="button" onclick="updateItemStatus({{ item.id }}, 'security_custody')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[11px] font-bold shadow-sm">
+                                Security Handover
+                            </button>
+                            {% elif item.status == 'security_custody' %}
+                            <button type="button" onclick="updateItemStatus({{ item.id }}, 'claimed_and_returned')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-sm">
+                                Hand to Commuter &check;
+                            </button>
+                            {% else %}
+                            <span class="text-[11px] text-slate-400 font-medium italic">Custody Complete</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="p-8 text-center text-slate-500 text-xs">
+                            No lost property tickets registered. Use "Report Forgotten Item" to log commuter belongings.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Report Forgotten Item -->
+<div id="lost-item-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95">
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="report_lost_item">
+
+            <div class="p-4 bg-indigo-600 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-sm">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>Log Forgotten Property Ticket</span>
+                </div>
+                <button type="button" onclick="closeLostItemModal()" class="text-white/80 hover:text-white font-bold">&times;</button>
+            </div>
+
+            <div class="p-5 space-y-3.5 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Corporate Commuter</label>
+                    <select name="commuter_id" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
+                        <option value="">Select Commuter...</option>
+                        {% for c in commuters %}
+                        <option value="{{ c.id }}">{{ c.name }} ({{ c.commuter_id }}) - {{ c.contract.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                        <select name="item_category" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
+                            {% for code, label in categories %}
+                            <option value="{{ code }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Item Title / Model</label>
+                        <input type="text" name="item_name" required placeholder="e.g. Dell Latitude 7420" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Description &amp; Hints</label>
+                    <textarea name="description" rows="3" placeholder="Seat row, bag color, sticker on laptop, serial hints..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2"></textarea>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+                <button type="button" onclick="closeLostItemModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold rounded-lg">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm">Register Ticket</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openNewLostItemModal() {
+    document.getElementById('lost-item-modal').classList.remove('hidden');
+}
+function closeLostItemModal() {
+    document.getElementById('lost-item-modal').classList.add('hidden');
+}
+
+function updateItemStatus(itemId, newStatus) {
+    let officer = '';
+    if (newStatus === 'security_custody' || newStatus === 'claimed_and_returned') {
+        officer = prompt("Enter Security Officer / Gate Inspector Name for Custody Log:", "SGT Security Desk - Gate 1");
+        if (!officer) return;
+    }
+
+    const fd = new FormData();
+    fd.append('status', newStatus);
+    if (officer) fd.append('security_officer_name', officer);
+
+    fetch(`/commute/api/lost-and-found/${itemId}/update/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: fd
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            window.location.reload();
+        } else {
+            alert("Error: " + data.message);
+        }
+    })
+    .catch(err => alert("Custody update error: " + err.message));
+}
+</script>
+{% endblock %}

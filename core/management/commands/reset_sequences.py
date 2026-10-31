@@ -46,3 +46,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(
                 f"Successfully aligned {reset_count}/{len(sequences)} PostgreSQL auto-increment sequences."
             ))
+

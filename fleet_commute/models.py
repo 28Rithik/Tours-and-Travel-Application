@@ -346,3 +346,263 @@ class EnterpriseSSOConfig(models.Model):
 
 
 
+
+
+# ==============================================================================
+# 7. Enterprise ETS Differentiators: Incident Command, Seat Marketplace & Trust
+# ==============================================================================
+
+class CommuteIncident(models.Model):
+    """
+    Airport-Style Incident Command Center:
+    Active triage room for breakdowns, accidents, route obstructions, and distress.
+    Powers autonomous Alternate Transport Recovery.
+    """
+    INCIDENT_TYPES = [
+        ('breakdown', '🔴 Vehicle Breakdown (Engine/Tire)'),
+        ('accident', '⚠️ Traffic Collision / Accident'),
+        ('medical', '🚑 Commuter Medical Emergency'),
+        ('route_blocked', '🚧 Route Obstruction / Waterlogging'),
+        ('safety_concern', '🚨 Safety / Harassment SOS Alert'),
+        ('weather_hazard', '🌧️ Extreme Weather / Flooding'),
+    ]
+    SEVERITY_LEVELS = [
+        ('low', '🟢 Low / Operational Delay'),
+        ('medium', '🟡 Medium / Attention Needed'),
+        ('high', '🟠 High / Escalation Required'),
+        ('critical', '🔴 Critical / Immediate Response'),
+    ]
+    STATUSES = [
+        ('reported', 'Reported / Triage Pending'),
+        ('assigned', 'Assigned to Incident Officer'),
+        ('rescue_dispatched', 'Alternate Rescue Dispatched'),
+        ('resolved', 'Resolved / Transferred'),
+        ('closed', 'Closed & Audited'),
+    ]
+
+    incident_id = models.CharField(max_length=50, unique=True, help_text="e.g. INC-ETS-2026-0042")
+    incident_type = models.CharField(max_length=30, choices=INCIDENT_TYPES, default='breakdown')
+    severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS, default='high')
+    status = models.CharField(max_length=30, choices=STATUSES, default='reported')
+
+    trip = models.ForeignKey(
+        'fleet_contracts.ContractTripLog',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='commute_incidents'
+    )
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, related_name='commute_incidents')
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True, related_name='commute_incidents')
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_name = models.CharField(max_length=255, blank=True, help_text="e.g. Near TIDEL Park Signal / Avinashi Road Flyover")
+    description = models.TextField(blank=True)
+
+    assigned_officer = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='assigned_commute_incidents'
+    )
+
+    # Alternate Transport Autonomous Recovery Fields
+    rescue_vehicle = models.ForeignKey(
+        Vehicle,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='dispatched_rescues'
+    )
+    rescue_driver = models.ForeignKey(
+        Driver,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='dispatched_rescues'
+    )
+    rescue_eta_minutes = models.PositiveIntegerField(default=0, help_text="Estimated minutes for rescue arrival")
+    passengers_affected = models.PositiveIntegerField(default=0)
+    passengers_reallocated = models.PositiveIntegerField(default=0)
+    action_log = models.JSONField(default=list, blank=True, help_text="Audit log of timeline events and broadcasts")
+
+    # Silent SOS Flag
+    is_silent_sos = models.BooleanField(default=False, help_text="True if stealthily triggered by commuter")
+
+    reported_at = models.DateTimeField(default=timezone.now)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-reported_at']
+        verbose_name = 'Commute Incident & SOS Alert'
+        verbose_name_plural = 'Incident Command & SOS Alerts'
+
+    def __str__(self):
+        return f"{self.incident_id} [{self.get_severity_display()}] - {self.get_incident_type_display()}"
+
+
+class SeatMarketplaceRelease(models.Model):
+    """
+    Dynamic Seat Marketplace:
+    Allows employees to surrender booked seats (WFH, leave, travel).
+    Surrendered seats are instantly matched to waitlisted riders on that corridor.
+    """
+    STATUS_CHOICES = [
+        ('available', '🟢 Available for Reallocation'),
+        ('claimed', '🔵 Claimed by Waitlisted Commuter'),
+        ('recalled', '⚪ Recalled by Original Employee'),
+        ('expired', '⚫ Expired / Shift Completed'),
+    ]
+    REASON_CHOICES = [
+        ('work_from_home', '💻 Work From Home (WFH)'),
+        ('on_leave', '🏖️ Personal / Sick Leave'),
+        ('self_commute', '🚗 Personal Commute / Carpool'),
+        ('shift_swap', '🔄 Shift Swapped'),
+    ]
+
+    commuter = models.ForeignKey(
+        'fleet_contracts.CommuterManifest',
+        on_delete=models.CASCADE,
+        related_name='seat_releases'
+    )
+    trip = models.ForeignKey(
+        'fleet_contracts.ContractTripLog',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='released_seats'
+    )
+    date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
+    reason = models.CharField(max_length=30, choices=REASON_CHOICES, default='work_from_home')
+    claimed_by = models.ForeignKey(
+        'fleet_contracts.CommuterManifest',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='claimed_seats'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    claimed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        verbose_name = 'Seat Marketplace Release'
+        verbose_name_plural = 'Dynamic Seat Marketplace'
+
+    def __str__(self):
+        return f"{self.commuter.name} released seat for {self.date} [{self.status}]"
+
+
+class CommuterTrustScore(models.Model):
+    """
+    Commuter Reliability & Trust Scorecard (0-100):
+    Evaluates punctuality, no-shows, and late cancellations.
+    Gold/Silver/Bronze tiers govern booking priority.
+    """
+    TIER_CHOICES = [
+        ('gold', '⭐ Gold (Score 90-100) - Priority Seat Allocation'),
+        ('silver', '🥈 Silver (Score 75-89) - Standard Allocation'),
+        ('bronze', '🥉 Bronze (Score <75) - Standby / Restricted'),
+    ]
+
+    commuter = models.OneToOneField(
+        'fleet_contracts.CommuterManifest',
+        on_delete=models.CASCADE,
+        related_name='trust_score'
+    )
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=95.00)
+    total_booked_trips = models.PositiveIntegerField(default=0)
+    attended_trips = models.PositiveIntegerField(default=0)
+    no_shows = models.PositiveIntegerField(default=0)
+    late_cancellations = models.PositiveIntegerField(default=0, help_text="Cancellations within 60 mins of shift")
+    punctuality_pct = models.DecimalField(max_digits=5, decimal_places=2, default=100.00)
+    tier = models.CharField(max_length=15, choices=TIER_CHOICES, default='gold')
+    is_restricted = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Commuter Trust Score'
+        verbose_name_plural = 'Commuter Trust Scores'
+
+    def __str__(self):
+        return f"{self.commuter.name}: {self.score}% ({self.get_tier_display()})"
+
+    def recalculate(self):
+        if self.total_booked_trips == 0:
+            self.score = Decimal('95.00')
+            self.tier = 'gold'
+            self.save()
+            return self.score
+
+        # Reliability formula: Attended (70%), No-show penalty (20%), Late cancel penalty (10%)
+        attend_ratio = (self.attended_trips / self.total_booked_trips) * 70
+        no_show_penalty = min(self.no_shows * 10, 20)
+        cancel_penalty = min(self.late_cancellations * 5, 10)
+        calc = 30 + attend_ratio - no_show_penalty - cancel_penalty
+        calc = max(Decimal('10.00'), min(Decimal('100.00'), Decimal(str(round(calc, 2)))))
+
+        self.score = calc
+        if self.score >= 90:
+            self.tier = 'gold'
+            self.is_restricted = False
+        elif self.score >= 75:
+            self.tier = 'silver'
+            self.is_restricted = False
+        else:
+            self.tier = 'bronze'
+            self.is_restricted = True
+        self.save()
+        return self.score
+
+
+class LostAndFoundItem(models.Model):
+    """
+    Corporate Commute Lost & Found Property Registry:
+    Tracks laptops, phones, cards, and belongings left behind in buses and cabs.
+    Links directly to trip, vehicle, and chauffeur.
+    """
+    CATEGORY_CHOICES = [
+        ('laptop', '💻 Laptop / Tablet'),
+        ('phone', '📱 Mobile Smartphone'),
+        ('wallet_purse', '👛 Wallet / Purse / Cash'),
+        ('id_access_card', '🪪 Corporate ID / RFID Card'),
+        ('bag_backpack', '🎒 Bag / Backpack'),
+        ('documents', '📄 Official Documents / Passport'),
+        ('other', '📦 Other Personal Property'),
+    ]
+    STATUS_CHOICES = [
+        ('reported', 'Reported Lost by Commuter'),
+        ('driver_verified', 'Found & Secured by Chauffeur'),
+        ('security_custody', 'Handed to Security Desk'),
+        ('claimed_and_returned', 'Claimed & Handed to Commuter'),
+        ('closed', 'Closed & Archived'),
+    ]
+
+    reference_no = models.CharField(max_length=50, unique=True, help_text="e.g. LF-2026-0042")
+    item_category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='laptop')
+    item_name = models.CharField(max_length=150, help_text="e.g. Dell Latitude 7420 (Black bag) / Apple iPhone 15 Pro")
+    description = models.TextField(blank=True, help_text="Distinctive marks, seat number, or serial hints")
+
+    commuter = models.ForeignKey(
+        'fleet_contracts.CommuterManifest',
+        on_delete=models.CASCADE,
+        related_name='lost_items'
+    )
+    trip = models.ForeignKey(
+        'fleet_contracts.ContractTripLog',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='lost_items'
+    )
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True)
+    driver = models.ForeignKey(Driver, on_delete=models.SET_NULL, null=True, blank=True)
+
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='reported')
+    reported_at = models.DateTimeField(auto_now_add=True)
+    returned_at = models.DateTimeField(null=True, blank=True)
+    security_officer_name = models.CharField(max_length=100, blank=True)
+    claimant_signature_ack = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-reported_at']
+        verbose_name = 'Lost & Found Item'
+        verbose_name_plural = 'Lost & Found Registry'
+
+    def __str__(self):
+        return f"{self.reference_no} - {self.item_name} ({self.get_status_display()})"

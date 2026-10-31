@@ -2156,3 +2156,268 @@ def contracts_studio_view(request):
         'contract_statuses': TransportContract.STATUSES,
     })
 
+
+
+# ==============================================================================
+# Enterprise ETS Suites: Airport Command Center, Incident Recovery, Seat Market
+# ==============================================================================
+from .models import (
+    CommuteIncident, SeatMarketplaceRelease, CommuterTrustScore, LostAndFoundItem
+)
+from .services import (
+    get_airport_control_center_metrics,
+    find_alternate_recovery_vehicles,
+    dispatch_alternate_recovery,
+    process_seat_marketplace_release,
+    trigger_silent_sos,
+)
+
+
+@login_required
+def transport_command_center_view(request):
+    """
+    Airport-Style Transport Command Center:
+    Executive control room monitoring 1000+ vehicles across Green/Yellow/Red health,
+    delayed trips, night drops, seat occupancy, and daily cost telemetry.
+    """
+    contract_id = request.GET.get('contract_id')
+    cid = int(contract_id) if contract_id and contract_id.isdigit() else None
+
+    metrics = get_airport_control_center_metrics(contract_id=cid)
+    contracts = TransportContract.objects.filter(status='active').order_by('name')
+
+    return render(request, 'fleet_commute/command_center.html', {
+        'metrics': metrics,
+        'contracts': contracts,
+        'selected_contract_id': cid,
+    })
+
+
+@login_required
+def incident_command_center_view(request):
+    """
+    Incident Command Center & Alternate Transport Recovery Desk:
+    Real-time incident triage and autonomous recovery vehicle dispatch.
+    """
+    status_filter = request.GET.get('status', 'active')
+    incidents_qs = CommuteIncident.objects.select_related(
+        'trip', 'vehicle', 'driver', 'assigned_officer', 'rescue_vehicle', 'rescue_driver'
+    )
+
+    if status_filter == 'active':
+        incidents_qs = incidents_qs.filter(status__in=['reported', 'assigned', 'rescue_dispatched'])
+    elif status_filter != 'all':
+        incidents_qs = incidents_qs.filter(status=status_filter)
+
+    counts = {
+        'total': CommuteIncident.objects.count(),
+        'active': CommuteIncident.objects.filter(status__in=['reported', 'assigned', 'rescue_dispatched']).count(),
+        'critical': CommuteIncident.objects.filter(severity='critical', status__in=['reported', 'assigned']).count(),
+        'rescued': CommuteIncident.objects.filter(status='rescue_dispatched').count(),
+        'resolved': CommuteIncident.objects.filter(status__in=['resolved', 'closed']).count(),
+    }
+
+    return render(request, 'fleet_commute/incident_command.html', {
+        'incidents': incidents_qs[:40],
+        'counts': counts,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+def lost_and_found_studio_view(request):
+    """
+    Corporate Commute Lost & Found Property Registry:
+    Tracks laptops, phones, cards, and belongings left behind in fleet assets.
+    """
+    category_filter = request.GET.get('category', 'all')
+    status_filter = request.GET.get('status', 'all')
+    search_q = request.GET.get('q', '').strip()
+
+    items_qs = LostAndFoundItem.objects.select_related(
+        'commuter', 'commuter__contract', 'trip', 'vehicle', 'driver'
+    )
+
+    if category_filter != 'all':
+        items_qs = items_qs.filter(item_category=category_filter)
+    if status_filter != 'all':
+        items_qs = items_qs.filter(status=status_filter)
+    if search_q:
+        items_qs = items_qs.filter(
+            Q(reference_no__icontains=search_q) |
+            Q(item_name__icontains=search_q) |
+            Q(commuter__name__icontains=search_q) |
+            Q(vehicle__registration_number__icontains=search_q)
+        )
+
+    # Handle creation of new lost item from modal/form
+    if request.method == 'POST' and request.POST.get('action') == 'report_lost_item':
+        commuter_id = request.POST.get('commuter_id')
+        commuter = CommuterManifest.objects.filter(pk=commuter_id).first()
+        if commuter:
+            import uuid
+            ref_code = f"LF-2026-{uuid.uuid4().hex[:5].upper()}"
+            LostAndFoundItem.objects.create(
+                reference_no=ref_code,
+                item_category=request.POST.get('item_category', 'other'),
+                item_name=request.POST.get('item_name', 'Personal Item'),
+                description=request.POST.get('description', ''),
+                commuter=commuter,
+                status='reported'
+            )
+            messages.success(request, f"Lost item ticket #{ref_code} registered successfully.")
+            return redirect('fleet_commute:lost_and_found_studio')
+
+    counts = {
+        'total': LostAndFoundItem.objects.count(),
+        'reported': LostAndFoundItem.objects.filter(status='reported').count(),
+        'in_custody': LostAndFoundItem.objects.filter(status__in=['driver_verified', 'security_custody']).count(),
+        'returned': LostAndFoundItem.objects.filter(status='claimed_and_returned').count(),
+    }
+
+    commuters = CommuterManifest.objects.filter(is_active=True).select_related('contract')[:50]
+
+    return render(request, 'fleet_commute/lost_and_found.html', {
+        'items': items_qs[:50],
+        'counts': counts,
+        'commuters': commuters,
+        'category_filter': category_filter,
+        'status_filter': status_filter,
+        'search_q': search_q,
+        'categories': LostAndFoundItem.CATEGORY_CHOICES,
+        'statuses': LostAndFoundItem.STATUS_CHOICES,
+    })
+
+
+# ── REST / AJAX APIs ──────────────────────────────────────────────────────────
+
+@login_required
+def api_commute_command_center_stats(request):
+    """JSON API returning fresh metrics for the Airport Command Center."""
+    contract_id = request.GET.get('contract_id')
+    cid = int(contract_id) if contract_id and contract_id.isdigit() else None
+    data = get_airport_control_center_metrics(contract_id=cid)
+    return JsonResponse({'status': 'success', 'data': data})
+
+
+@login_required
+def api_incident_find_recovery_vehicles(request, incident_id):
+    """JSON API returning ranked rescue candidate vehicles for an incident."""
+    incident = get_object_or_404(CommuteIncident, pk=incident_id)
+    candidates = find_alternate_recovery_vehicles(incident)
+    return JsonResponse({
+        'status': 'success',
+        'incident_id': incident.incident_id,
+        'passengers_affected': incident.passengers_affected,
+        'candidates': candidates,
+        'candidates_count': len(candidates)
+    })
+
+
+@login_required
+def api_incident_dispatch_recovery(request, incident_id):
+    """POST endpoint authorizing 1-click alternate transport recovery dispatch."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    incident = get_object_or_404(CommuteIncident, pk=incident_id)
+    vehicle_id = request.POST.get('vehicle_id')
+    driver_id = request.POST.get('driver_id')
+
+    if not vehicle_id:
+        return JsonResponse({'status': 'error', 'message': 'Rescue vehicle ID is required.'}, status=400)
+
+    try:
+        res = dispatch_alternate_recovery(
+            incident=incident,
+            rescue_vehicle_id=int(vehicle_id),
+            rescue_driver_id=int(driver_id) if driver_id else None,
+            authorized_by=request.user
+        )
+        return JsonResponse(res)
+    except Exception as exc:
+        return JsonResponse({'status': 'error', 'message': str(exc)}, status=500)
+
+
+@csrf_exempt
+def api_commute_silent_sos(request):
+    """
+    POST endpoint for Commuter Silent SOS distress signal.
+    Stealth confirmation: visually benign, secretly triggers emergency broadcast.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        body = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        commuter_id = body.get('commuter_id')
+        trip_id = body.get('trip_id')
+        lat = body.get('lat')
+        lng = body.get('lng')
+
+        commuter = CommuterManifest.objects.filter(commuter_id=commuter_id).first()
+        if not commuter:
+            commuter = CommuterManifest.objects.first()
+
+        trip = ContractTripLog.objects.filter(pk=trip_id).first() if trip_id else None
+
+        incident = trigger_silent_sos(
+            commuter=commuter,
+            trip=trip,
+            latitude=float(lat) if lat else None,
+            longitude=float(lng) if lng else None,
+            location_name=body.get('location_name', 'Live GPS Mobile Coordinate Track')
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'screen_notice': 'Trip Status Synchronized with Central Dispatch.',
+            'incident_code': incident.incident_id,
+            'is_stealth': True
+        })
+    except Exception as exc:
+        return JsonResponse({'status': 'error', 'message': str(exc)}, status=500)
+
+
+@login_required
+def api_seat_marketplace_release(request):
+    """POST endpoint to surrender an employee seat into the dynamic marketplace."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    commuter_id = request.POST.get('commuter_id')
+    reason = request.POST.get('reason', 'work_from_home')
+    trip_id = request.POST.get('trip_id')
+
+    commuter = get_object_or_404(CommuterManifest, pk=commuter_id)
+    trip = ContractTripLog.objects.filter(pk=trip_id).first() if trip_id else None
+
+    result = process_seat_marketplace_release(
+        commuter=commuter,
+        reason=reason,
+        trip=trip
+    )
+    return JsonResponse(result)
+
+
+@login_required
+def api_lost_and_found_update(request, item_id):
+    """POST endpoint to advance lost & found status (security custody / returned)."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    item = get_object_or_404(LostAndFoundItem, pk=item_id)
+    new_status = request.POST.get('status')
+    officer = request.POST.get('security_officer_name', '').strip()
+
+    if new_status in dict(LostAndFoundItem.STATUS_CHOICES):
+        item.status = new_status
+        if officer:
+            item.security_officer_name = officer
+        if new_status == 'claimed_and_returned':
+            item.returned_at = timezone.now()
+            item.claimant_signature_ack = True
+        item.save()
+        return JsonResponse({'status': 'success', 'item_id': item.id, 'new_status': item.get_status_display()})
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)

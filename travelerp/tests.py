@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 
@@ -23,8 +24,8 @@ class UiSmokeTests(TestCase):
     def test_public_and_protected_routes(self):
         root_response = self.client.get('/')
         self.assertEqual(root_response.status_code, 200)
-        self.assertRedirects(self.client.get('/dashboard/'), '/staff/login/?next=/dashboard/')
-        self.assertRedirects(self.client.get('/statements/generate/'), '/staff/login/?next=/statements/generate/')
+        self.assertRedirects(self.client.get('/dashboard/'), f'{settings.LOGIN_URL}?next=/dashboard/')
+        self.assertRedirects(self.client.get('/statements/generate/'), f'{settings.LOGIN_URL}?next=/statements/generate/')
         self.client.force_login(self.user)
         for url in ['/dashboard/', '/statements/generate/', '/reports/vehicle-profitability/', '/reports/party-profitability/', f'/parties/{self.party.pk}/ledger/']:
             response = self.client.get(url)

@@ -18,6 +18,10 @@ from .models import (
     CorporateAuthAuditLog,
     CorporateUserRole,
     EnterpriseSSOConfig,
+    CommuteIncident,
+    SeatMarketplaceRelease,
+    CommuterTrustScore,
+    LostAndFoundItem,
 )
 
 
@@ -697,6 +701,148 @@ class EnterpriseSSOConfigAdmin(ModelAdmin):
             '<span style="font-family: monospace; font-weight: 700; background: {}; color: #ffffff; padding: 2px 8px; border-radius: 6px;">{}.travelerp.in</span>',
             obj.brand_primary_color, obj.brand_subdomain_slug
         )
+
+
+# ==============================================================================
+# Enterprise ETS Differentiators Admin
+# ==============================================================================
+
+@admin.register(CommuteIncident)
+class CommuteIncidentAdmin(ModelAdmin):
+    list_display = (
+        'incident_id', 'incident_type_badge', 'severity_badge',
+        'status_badge', 'is_silent_sos_badge', 'trip', 'vehicle', 'driver', 'reported_at'
+    )
+    list_filter = ('incident_type', 'severity', 'status', 'is_silent_sos')
+    search_fields = ('incident_id', 'description', 'location_name', 'vehicle__registration_number', 'driver__name')
+    readonly_fields = ('incident_id', 'reported_at', 'resolved_at')
+
+    @admin.display(description='Type')
+    def incident_type_badge(self, obj):
+        colors = {
+            'breakdown': '#ef4444',
+            'accident': '#dc2626',
+            'medical': '#b91c1c',
+            'harassment': '#7f1d1d',
+            'law_and_order': '#991b1b',
+            'safety_concern': '#f59e0b',
+            'route_issue': '#64748b',
+        }
+        color = colors.get(obj.incident_type, '#475569')
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 11px;">{}</span>',
+            color, obj.get_incident_type_display()
+        )
+
+    @admin.display(description='Severity')
+    def severity_badge(self, obj):
+        colors = {
+            'critical': '#dc2626',
+            'high': '#ea580c',
+            'medium': '#f59e0b',
+            'low': '#059669',
+        }
+        color = colors.get(obj.severity, '#475569')
+        return format_html(
+            '<span style="color: {}; font-weight: 800; font-size: 11px; text-transform: uppercase;">● {}</span>',
+            color, obj.get_severity_display()
+        )
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'reported': '#ef4444',
+            'assigned': '#3b82f6',
+            'rescue_dispatched': '#8b5cf6',
+            'investigating': '#f59e0b',
+            'resolved': '#10b981',
+            'closed': '#64748b',
+        }
+        color = colors.get(obj.status, '#475569')
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">{}</span>',
+            color, obj.get_status_display()
+        )
+
+    @admin.display(description='Distress Flag')
+    def is_silent_sos_badge(self, obj):
+        if obj.is_silent_sos:
+            return format_html('<span style="color: #dc2626; font-weight: 800;">🚨 SILENT SOS</span>')
+        return format_html('<span style="color: #64748b;">Standard</span>')
+
+
+@admin.register(SeatMarketplaceRelease)
+class SeatMarketplaceReleaseAdmin(ModelAdmin):
+    list_display = ('commuter', 'date', 'reason', 'status_badge', 'claimed_by', 'claimed_at', 'created_at')
+    list_filter = ('status', 'reason', 'date')
+    search_fields = ('commuter__name', 'commuter__commuter_id', 'claimed_by__name')
+
+    @admin.display(description='Status')
+    def status_badge(self, obj):
+        colors = {
+            'available': '#10b981',
+            'claimed': '#3b82f6',
+            'expired': '#64748b',
+            'cancelled': '#ef4444',
+        }
+        color = colors.get(obj.status, '#475569')
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">{}</span>',
+            color, obj.get_status_display()
+        )
+
+
+@admin.register(CommuterTrustScore)
+class CommuterTrustScoreAdmin(ModelAdmin):
+    list_display = ('commuter', 'score_badge', 'tier_badge', 'attended_trips', 'no_shows', 'late_cancellations', 'is_restricted')
+    list_filter = ('tier', 'is_restricted')
+    search_fields = ('commuter__name', 'commuter__commuter_id')
+
+    @admin.display(description='Score')
+    def score_badge(self, obj):
+        color = '#10b981' if obj.score >= 85 else ('#f59e0b' if obj.score >= 70 else '#ef4444')
+        return format_html(
+            '<span style="font-weight: 900; font-size: 13px; color: {};">{} / 100</span>',
+            color, obj.score
+        )
+
+    @admin.display(description='Tier')
+    def tier_badge(self, obj):
+        colors = {
+            'gold': ('#fef3c7', '#b45309'),
+            'silver': ('#f1f5f9', '#475569'),
+            'bronze': ('#ffedd5', '#c2410c'),
+            'restricted': ('#fee2e2', '#b91c1c'),
+        }
+        bg, text = colors.get(obj.tier, ('#f1f5f9', '#475569'))
+        return format_html(
+            '<span style="background: {}; color: {}; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 11px;">{}</span>',
+            bg, text, obj.get_tier_display()
+        )
+
+
+@admin.register(LostAndFoundItem)
+class LostAndFoundItemAdmin(ModelAdmin):
+    list_display = ('reference_no', 'item_category', 'item_name', 'commuter', 'trip', 'status_badge', 'security_officer_name', 'reported_at')
+    list_filter = ('status', 'item_category')
+    search_fields = ('reference_no', 'item_name', 'commuter__name', 'security_officer_name')
+    readonly_fields = ('reference_no', 'reported_at')
+
+    @admin.display(description='Custody Status')
+    def status_badge(self, obj):
+        colors = {
+            'reported': '#f59e0b',
+            'driver_verified': '#3b82f6',
+            'security_custody': '#8b5cf6',
+            'claimed_and_returned': '#10b981',
+            'unclaimed_disposed': '#64748b',
+        }
+        color = colors.get(obj.status, '#475569')
+        return format_html(
+            '<span style="background: {}; color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 11px;">{}</span>',
+            color, obj.get_status_display()
+        )
+
 
 
 
