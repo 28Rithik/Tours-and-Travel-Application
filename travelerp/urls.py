@@ -285,6 +285,7 @@ urlpatterns = [
     path('finance/', include('finance.urls')),
     path('maintenance/', include('maintenance.urls')),
     path('driver/', include('driver_portal.urls')),
+    path('driver-portal/', include('driver_portal.urls')),
     path('commute/', include('fleet_commute.urls')),
     path('client/login/', fleet_commute_views.client_portal_login_view, name='client_portal_root_login'),
     path('client/logout/', fleet_commute_views.client_portal_logout_view, name='client_portal_root_logout'),
