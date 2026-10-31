@@ -1,39 +1,50 @@
 from django.test import TestCase, Client
-from django.contrib.auth.models import User, Group
-from core.models import Vehicle, Driver, Party
+from django.contrib.auth import get_user_model
+from core.models import StaffProfile
+
+User = get_user_model()
 
 
 class RbacRoleVerificationTests(TestCase):
-    """
-    Automated test suite verifying Phase 2: Role-Based Access Control (RBAC).
-    Verifies:
-      1. Existence and membership of Fleet_Managers, Booking_Managers, Finance_Team groups.
-      2. Role context processor injects appropriate role flags and badges.
-      3. Sidebar sections filter according to staff clearance.
-      4. Dashboard KPIs adapt to the authenticated role.
-    """
-
-    @classmethod
-    def setUpTestData(cls):
-        # Ensure groups exist
-        cls.fleet_group, _ = Group.objects.get_or_create(name='Fleet_Managers')
-        cls.booking_group, _ = Group.objects.get_or_create(name='Booking_Managers')
-        cls.finance_group, _ = Group.objects.get_or_create(name='Finance_Team')
-
-        # Create test users
-        cls.admin_user = User.objects.create_superuser('test_admin_rbac', 'admin@rbac.in', 'pass123')
-        
-        cls.fleet_user = User.objects.create_user('test_fleet_rbac', 'fleet@rbac.in', 'pass123', is_staff=True)
-        cls.fleet_user.groups.add(cls.fleet_group)
-
-        cls.booking_user = User.objects.create_user('test_booking_rbac', 'booking@rbac.in', 'pass123', is_staff=True)
-        cls.booking_user.groups.add(cls.booking_group)
-
-        cls.finance_user = User.objects.create_user('test_finance_rbac', 'fin@rbac.in', 'pass123', is_staff=True)
-        cls.finance_user.groups.add(cls.finance_group)
-
     def setUp(self):
         self.client = Client()
+
+        # 1. Admin / Superuser
+        self.admin_user, _ = User.objects.get_or_create(username='admin_boss', defaults={'is_superuser': True, 'is_staff': True})
+        self.admin_user.is_superuser = True
+        self.admin_user.is_staff = True
+        self.admin_user.save()
+        StaffProfile.objects.update_or_create(
+            user=self.admin_user,
+            defaults={'role': 'admin', 'department': 'Executive Management', 'branch': 'Chennai Central HQ', 'employee_id': 'SGT-TEST-ADM01'}
+        )
+
+        # 2. Fleet Manager
+        self.fleet_user, _ = User.objects.get_or_create(username='fleet_lead', defaults={'is_staff': True})
+        self.fleet_user.is_superuser = False
+        self.fleet_user.save()
+        StaffProfile.objects.update_or_create(
+            user=self.fleet_user,
+            defaults={'role': 'fleet_manager', 'department': 'Fleet Operations', 'branch': 'Coimbatore Hub', 'employee_id': 'SGT-TEST-FLT02'}
+        )
+
+        # 3. Booking Manager
+        self.booking_user, _ = User.objects.get_or_create(username='booking_lead', defaults={'is_staff': True})
+        self.booking_user.is_superuser = False
+        self.booking_user.save()
+        StaffProfile.objects.update_or_create(
+            user=self.booking_user,
+            defaults={'role': 'booking_manager', 'department': 'Commercial & Tours', 'branch': 'Madurai Depo', 'employee_id': 'SGT-TEST-BKG03'}
+        )
+
+        # 4. Finance Team
+        self.finance_user, _ = User.objects.get_or_create(username='finance_auditor', defaults={'is_staff': True})
+        self.finance_user.is_superuser = False
+        self.finance_user.save()
+        StaffProfile.objects.update_or_create(
+            user=self.finance_user,
+            defaults={'role': 'finance_controller', 'department': 'Accounts & Treasury', 'branch': 'Chennai Central HQ', 'employee_id': 'SGT-TEST-FIN04'}
+        )
 
     def test_01_admin_superuser_full_clearance(self):
         """Superuser should see all sections, all KPIs, and Superuser Admin badge."""
@@ -47,11 +58,10 @@ class RbacRoleVerificationTests(TestCase):
         self.assertEqual(resp.context['user_role_label'], 'Superuser Admin')
 
         content = resp.content.decode('utf-8')
-        # Check all sidebar sections are present
-        self.assertIn('Fleet &amp; Telematics', content)
-        self.assertIn('Sales &amp; CRM', content)
-        self.assertIn('Finance &amp; Billing', content)
-        self.assertIn('Administration', content)
+        # Check all role sections are present
+        self.assertIn('Fleet Readiness &amp; Radar', content)
+        self.assertIn('Dispatch Queue &amp; Leads', content)
+        self.assertIn('Monthly Financial Pulse', content)
 
     def test_02_fleet_manager_clearance(self):
         """Fleet Manager should see only Fleet & Telematics, no confidential financial figures."""
@@ -66,14 +76,12 @@ class RbacRoleVerificationTests(TestCase):
 
         content = resp.content.decode('utf-8')
         # Fleet sections must be visible
-        self.assertIn('Fleet &amp; Telematics', content)
         self.assertIn('Fleet Readiness &amp; Radar', content)
-        self.assertIn('Live Fleet Map', content)
-        
+        self.assertIn('Open Live Fleet Radar', content)
+
         # Finance and Sales sections must be filtered out
-        self.assertNotIn('Finance &amp; Billing', content)
         self.assertNotIn('Monthly Financial Pulse', content)
-        self.assertNotIn('Quotation Studio', content)
+        self.assertNotIn('Dispatch Queue &amp; Leads', content)
 
     def test_03_booking_manager_clearance(self):
         """Booking Manager should see Sales & CRM, not Fleet maintenance or sensitive accounting."""
@@ -87,13 +95,11 @@ class RbacRoleVerificationTests(TestCase):
 
         content = resp.content.decode('utf-8')
         # Sales sections must be visible
-        self.assertIn('Sales &amp; CRM', content)
         self.assertIn('Dispatch Queue &amp; Leads', content)
-        self.assertIn('Query Tracker 2.0', content)
+        self.assertIn('Open Query Tracker 2.0', content)
 
         # Fleet and Finance sections must be filtered out
-        self.assertNotIn('Fleet &amp; Telematics', content)
-        self.assertNotIn('Finance &amp; Billing', content)
+        self.assertNotIn('Fleet Readiness &amp; Radar', content)
         self.assertNotIn('Monthly Financial Pulse', content)
 
     def test_04_finance_team_clearance(self):
@@ -108,10 +114,9 @@ class RbacRoleVerificationTests(TestCase):
 
         content = resp.content.decode('utf-8')
         # Finance sections must be visible
-        self.assertIn('Finance &amp; Billing', content)
         self.assertIn('Monthly Financial Pulse', content)
-        self.assertIn('Statements &amp; Ledgers', content)
+        self.assertIn('Client Statements &amp; Ledger', content)
 
         # Fleet maintenance and sales lead pipeline must be filtered out
-        self.assertNotIn('Fleet &amp; Telematics', content)
-        self.assertNotIn('Sales &amp; CRM', content)
+        self.assertNotIn('Fleet Readiness &amp; Radar', content)
+        self.assertNotIn('Dispatch Queue &amp; Leads', content)

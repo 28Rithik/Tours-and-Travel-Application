@@ -55,6 +55,11 @@
         <span>Itinerary Studio</span>
       </a>
 
+      <a href="{% url 'trip-itinerary-portal' trip.pk %}" target="_blank" class="unfold-btn unfold-btn-secondary">
+        <i class="fa-solid fa-compass text-teal-600"></i>
+        <span>Guest Tour Portal</span>
+      </a>
+
       {% if trip.tracking_token %}
       <a href="{% url 'passenger-live-tracking' trip.tracking_token %}" class="unfold-btn unfold-btn-primary">
         <i class="fa-solid fa-location-crosshairs"></i>
@@ -239,7 +244,7 @@
         <div class="unfold-form-header flex items-center justify-between">
           <div>
             <h3 class="flex items-center gap-2">
-              <span>🗺️ Day-Wise Tour Itinerary</span>
+              <span>🗺️ Tour Itinerary &amp; Sightseeing Schedule</span>
               <span class="unfold-header-count">{{ trip.itinerary_days.count }} Day{{ trip.itinerary_days.count|pluralize }}</span>
             </h3>
             <p>Route stops, sightseeing schedule, and hotel allotments.</p>

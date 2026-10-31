@@ -64,9 +64,9 @@ def rbac_context(request):
     is_super = user.is_superuser
     is_admin = is_super or (role == 'admin') or ('Super_Admins' in group_names)
     is_manager = is_admin or (role == 'manager') or ('General_Managers' in group_names)
-    is_sales_exec = is_admin or is_manager or (role in ('sales_executive', 'tour_designer_lead')) or ('Sales_Executives' in group_names) or ('Booking_Managers' in group_names)
+    is_sales_exec = is_admin or is_manager or (role in ('sales_executive', 'tour_designer_lead', 'booking_manager')) or ('Sales_Executives' in group_names) or ('Booking_Managers' in group_names)
     is_sales = is_sales_exec or (role in ('sales', 'b2b_corporate_lead')) or ('Corporate_Sales' in group_names)
-    is_ops = is_admin or is_manager or (role in ('operations', 'night_dispatcher', 'workshop_manager')) or ('Operations_Dispatch' in group_names) or ('Fleet_Managers' in group_names)
+    is_ops = is_admin or is_manager or (role in ('operations', 'night_dispatcher', 'workshop_manager', 'fleet_manager')) or ('Operations_Dispatch' in group_names) or ('Fleet_Managers' in group_names)
     is_acct = is_admin or is_manager or (role in ('operation_account', 'finance_controller', 'treasury_petty_cashier')) or ('Accounts_Finance' in group_names) or ('Finance_Team' in group_names)
     is_driver = (role == 'driver') or ('Chauffeur_Drivers' in group_names)
     is_cust_service = is_admin or is_manager or (role == 'customer_service') or ('Guest_Support' in group_names)
@@ -81,8 +81,8 @@ def rbac_context(request):
     is_petty_cash = is_admin or is_manager or (role == 'treasury_petty_cashier') or ('Treasury_Cashiers' in group_names)
 
     # Legacy flags for template and test backwards-compatibility
-    is_fleet = ('Fleet_Managers' in group_names) or (role in ('operations', 'admin', 'manager', 'workshop_manager', 'night_dispatcher')) or is_super
-    is_booking = ('Booking_Managers' in group_names) or (role in ('sales_executive', 'tour_designer_lead', 'sales', 'b2b_corporate_lead', 'customer_service', 'admin', 'manager')) or is_super
+    is_fleet = ('Fleet_Managers' in group_names) or (role in ('operations', 'admin', 'manager', 'workshop_manager', 'night_dispatcher', 'fleet_manager')) or is_super
+    is_booking = ('Booking_Managers' in group_names) or (role in ('sales_executive', 'tour_designer_lead', 'sales', 'b2b_corporate_lead', 'customer_service', 'admin', 'manager', 'booking_manager')) or is_super
     is_finance = ('Finance_Team' in group_names) or (role in ('operation_account', 'finance_controller', 'treasury_petty_cashier', 'admin', 'manager')) or is_super
 
     # Simulation HUD Detection
@@ -97,6 +97,8 @@ def rbac_context(request):
         'sales_executive': ('Senior Sales Executive & Proposal Designer', 'fa-solid fa-file-signature', '#10b981'),
         'sales': ('Corporate Sales Representative', 'fa-solid fa-handshake', '#059669'),
         'operations': ('Fleet & Dispatch Operations Lead', 'fa-solid fa-truck-ramp-box', '#0284c7'),
+        'fleet_manager': ('Fleet Manager', 'fa-solid fa-truck-ramp-box', '#0284c7'),
+        'booking_manager': ('Booking Manager', 'fa-solid fa-calendar-check', '#10b981'),
         'night_dispatcher': ('Night Shift & SOS Emergency Dispatcher', 'fa-solid fa-moon', '#312e81'),
         'workshop_manager': ('Fleet Maintenance & Workshop Supervisor', 'fa-solid fa-wrench', '#ea580c'),
         'compliance_rto_officer': ('Safety, Compliance & RTO Liaison Officer', 'fa-solid fa-shield-halved', '#0369a1'),
@@ -107,7 +109,7 @@ def rbac_context(request):
         'customer_service': ('Guest Experience & WhatsApp Concierge', 'fa-solid fa-headset', '#06b6d4'),
     }
 
-    if is_admin and not profile:
+    if is_super:
         role_label, role_icon, role_color = ('Superuser Admin', 'fa-solid fa-crown', '#e11d48')
     elif profile and profile.role in role_meta:
         role_label, role_icon, role_color = role_meta[profile.role]

@@ -1,4 +1,5 @@
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
+from django.db import connections
 from channels.testing import WebsocketCommunicator
 from channels.layers import get_channel_layer
 from travelerp.asgi import application
@@ -15,30 +16,40 @@ from decimal import Decimal
 from django.utils import timezone
 
 
-class FleetLiveRadarWebSocketsTestCase(TestCase):
+class FleetLiveRadarWebSocketsTestCase(TransactionTestCase):
     """
     Test suite for Real-Time WebSockets Live Control Room (Zero-Polling Fleet Radar & SOS).
     """
 
     def setUp(self):
-        self.vehicle_type = VehicleType.objects.create(name="Executive Sedan")
-        self.vehicle = Vehicle.objects.create(
+        connections.close_all()
+        super().setUp()
+        self.vehicle_type, _ = VehicleType.objects.get_or_create(name="Executive Sedan")
+        self.vehicle, _ = Vehicle.objects.get_or_create(
             registration_number="TN-38-BZ-9999",
-            brand="Toyota",
-            model="Innova Crysta",
-            seating_capacity=7,
-            vehicle_type=self.vehicle_type,
-            status="available",
-            current_km=45000,
-            base_depot="Coimbatore Hub",
-            gps_imei="IMEI9999999999",
+            defaults={
+                "brand": "Toyota",
+                "model": "Innova Crysta",
+                "seating_capacity": 7,
+                "vehicle_type": self.vehicle_type,
+                "status": "available",
+                "current_km": 45000,
+                "base_depot": "Coimbatore Hub",
+                "gps_imei": "IMEI9999999999",
+            }
         )
-        self.driver = Driver.objects.create(
-            name="Senthil Kumar",
+        self.driver, _ = Driver.objects.get_or_create(
             phone="+919876543210",
-            license_number="DL-TN-38-2022-0099",
-            status="active",
+            defaults={
+                "name": "Senthil Kumar",
+                "license_number": "DL-TN-38-2022-0099",
+                "status": "active",
+            }
         )
+
+    def tearDown(self):
+        connections.close_all()
+        super().tearDown()
 
     async def test_fleet_radar_websocket_connection_and_initial_snapshot(self):
         """

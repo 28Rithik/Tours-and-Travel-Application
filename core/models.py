@@ -713,7 +713,7 @@ class StaffProfile(models.Model):
 
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='staff_profile')
 	role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='sales_executive')
-	employee_id = models.CharField(max_length=30, unique=True, help_text="e.g. SGT-ADM-01")
+	employee_id = models.CharField(max_length=30, unique=True, blank=True, help_text="e.g. SGT-ADM-01")
 	branch = models.CharField(max_length=100, default='Coimbatore Central HQ')
 	department = models.CharField(max_length=100, default='Operations')
 	designation = models.CharField(max_length=100, blank=True)
@@ -731,6 +731,14 @@ class StaffProfile(models.Model):
 		ordering = ['employee_id']
 		verbose_name = 'Staff Profile'
 		verbose_name_plural = 'Staff Profiles'
+
+	def save(self, *args, **kwargs):
+		if not self.employee_id:
+			import uuid
+			prefix = (self.role or 'STF')[:3].upper()
+			uid = self.user_id if self.user_id else uuid.uuid4().hex[:4].upper()
+			self.employee_id = f"SGT-{prefix}-{uid}"
+		super().save(*args, **kwargs)
 
 	def __str__(self):
 		return f"{self.employee_id} - {self.user.get_full_name() or self.user.username} ({self.get_role_display()})"

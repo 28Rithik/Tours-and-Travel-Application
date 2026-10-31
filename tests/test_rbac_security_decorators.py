@@ -267,6 +267,7 @@ class RBACSecurityDecoratorsTestCase(TestCase):
         acc = PettyCashAccount.objects.create(
             account_name='Branch Vault',
             account_type='branch',
+            base_depot=self.cashier_profile.branch,
             allocated_limit=Decimal('100000.00'),
             current_balance=Decimal('80000.00'),
             warning_threshold=Decimal('10000.00')
