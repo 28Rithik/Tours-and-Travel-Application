@@ -507,6 +507,13 @@ class Command(BaseCommand):
                 total_adv = fuel_cash + toll_cash + permit_cash + bata_cash + cont_cash
 
                 env_status = "reconciled_settled" if tr.status == "completed" else random.choice(["disbursed", "on_trip", "submitted_for_audit"])
+                actual_spent = fuel_cash - Decimal("250.00") if env_status == "reconciled_settled" else Decimal("0.00")
+                tolls_spent = toll_cash if env_status == "reconciled_settled" else Decimal("0.00")
+                permits_spent = permit_cash if env_status == "reconciled_settled" else Decimal("0.00")
+                bata_deducted = bata_cash if env_status == "reconciled_settled" else Decimal("0.00")
+                total_exp = actual_spent + tolls_spent + permits_spent + bata_deducted
+                net_bal = total_adv - total_exp if env_status == "reconciled_settled" else total_adv
+
                 envelopes.append(
                     TripCashAdvanceEnvelope(
                         envelope_code=f"ENV-2026-{50000 + i}",
@@ -519,13 +526,17 @@ class Command(BaseCommand):
                         driver_bata_allocation=bata_cash,
                         contingency_cash=cont_cash,
                         total_advance_disbursed=total_adv,
-                        actual_fuel_spent=fuel_cash - Decimal("250.00") if env_status == "reconciled_settled" else Decimal("0.00"),
-                        actual_toll_spent=toll_cash if env_status == "reconciled_settled" else Decimal("0.00"),
-                        actual_permit_spent=permit_cash if env_status == "reconciled_settled" else Decimal("0.00"),
-                        actual_bata_claimed=bata_cash if env_status == "reconciled_settled" else Decimal("0.00"),
-                        cash_returned_to_cashier=Decimal("250.00") if env_status == "reconciled_settled" else Decimal("0.00"),
-                        supervisor_audit_signed=True,
-                        cashier_clearance_signed=(env_status == "reconciled_settled"),
+                        actual_fuel_spent=actual_spent,
+                        actual_tolls_spent=tolls_spent,
+                        actual_permits_spent=permits_spent,
+                        actual_parking_spent=Decimal("0.00"),
+                        actual_repairs_spent=Decimal("0.00"),
+                        driver_bata_deducted=bata_deducted,
+                        total_expenses_verified=total_exp,
+                        net_balance=net_bal,
+                        driver_signature_acknowledged=True,
+                        settled_at=timezone.now() if env_status == "reconciled_settled" else None,
+                        settlement_notes="Reconciled against verified fuel and toll receipts.",
                         status=env_status
                     )
                 )
@@ -553,6 +564,7 @@ class Command(BaseCommand):
                 v_until = v_from + datetime.timedelta(days=random.randint(7, 30))
                 p_status = "valid" if v_until > timezone.now() else "expired"
 
+                v_cat_code = (tr.vehicle.vehicle_category.code if tr.vehicle.vehicle_category else "muv_suv")[:35]
                 border_permits.append(
                     InterstateBorderPermit(
                         trip=tr,
@@ -565,7 +577,7 @@ class Command(BaseCommand):
                         border_road_tax=actual_tax,
                         tax_amount=Decimal(str(p_fee)) + actual_tax,
                         is_aitp_exempt=is_aitp,
-                        vehicle_category_bracket=tr.vehicle.vehicle_category or "muv_suv",
+                        vehicle_category_bracket=v_cat_code,
                         payment_mode="parivahan_online" if not is_aitp else "aitp_prepaid",
                         receipt_number=f"PARIVAHAN-{st_name[:2].upper()}-2026-{random.randint(100000, 999999)}",
                         valid_from=v_from,
@@ -671,6 +683,7 @@ class Command(BaseCommand):
                 b_stat = random.choice(["resolved", "resolved", "mechanic_dispatched", "reported"])
                 breakdowns.append(
                     HighwayBreakdownSOS(
+                        incident_id=f"SOS-2026-{65000 + i}",
                         trip=tr,
                         vehicle=tr.vehicle,
                         driver=tr.driver,
@@ -700,7 +713,7 @@ class Command(BaseCommand):
                 tr = created_trips[i % len(created_trips)]
                 c_hours = Decimal(str(random.randint(3, 9)))
                 r_hours = Decimal(str(random.randint(4, 12)))
-                risk = "normal" if (c_hours <= 5 and r_hours >= 8) else ("moderate" if c_hours <= 7 else "fatigue_risk")
+                risk = "well_rested" if (c_hours <= 5 and r_hours >= 8) else ("adequate_rest" if c_hours <= 7 else "fatigue_risk")
 
                 fatigue_logs.append(
                     DriverFatigueAuditLog(
@@ -1036,7 +1049,8 @@ class Command(BaseCommand):
                 t_log = created_trip_logs[i % len(created_trip_logs)]
                 dist = Decimal(str(t_log.shift.route.distance_km or 25))
                 p_cnt = t_log.passenger_count or 20
-                is_ev = ("ev" in (t_log.vehicle.vehicle_category or "").lower())
+                v_cat_str = (t_log.vehicle.vehicle_category.code if t_log.vehicle.vehicle_category else "").lower()
+                is_ev = ("ev" in v_cat_str)
                 co2_emit = Decimal("0.00") if is_ev else (dist * Decimal("0.24")).quantize(Decimal("0.01"))
                 co2_saved = (dist * Decimal(str(p_cnt)) * Decimal("0.16") - co2_emit).quantize(Decimal("0.01"))
 
@@ -1218,12 +1232,12 @@ class Command(BaseCommand):
 
             # FASTag Accounts
             fastag_icici, _ = CorporateFastagAccount.objects.get_or_create(
-                account_name="ICICI Bank Corporate FASTag Fleet",
-                defaults={"account_number": "FASTAG-ICICI-88129", "current_balance": Decimal("450000.00"), "is_active": True}
+                account_number="FASTAG-ICICI-88129",
+                defaults={"account_name": "ICICI Bank Corporate FASTag Fleet", "balance": Decimal("450000.00"), "is_active": True}
             )
             fastag_axis, _ = CorporateFastagAccount.objects.get_or_create(
-                account_name="Axis Bank Commercial FASTag Wallet",
-                defaults={"account_number": "FASTAG-AXIS-77210", "current_balance": Decimal("320000.00"), "is_active": True}
+                account_number="FASTAG-AXIS-77210",
+                defaults={"account_name": "Axis Bank Commercial FASTag Wallet", "balance": Decimal("320000.00"), "is_active": True}
             )
 
             # Fuel Records (750+ Records)
@@ -1347,7 +1361,7 @@ class Command(BaseCommand):
                         recipient_gstin="33AAACT1984Q1Z8",
                         recipient_state_code="33",
                         recipient_address=p.address or "TIDEL Park IT Special Economic Zone, Coimbatore",
-                        recipient_pincode=p.pincode or "641014",
+                        recipient_pincode="641014",
                         place_of_supply="33-Tamil Nadu",
                         is_reverse_charge=False,
                         sac_code="996412",
@@ -1402,7 +1416,7 @@ class Command(BaseCommand):
                         amount=inv.paid_amount,
                         payment_type="customer_receipt",
                         payment_mode=random.choice(["bank_transfer", "upi", "card", "cheque"]),
-                        collected_by="Accounts Receivable Desk",
+                        collected_by="Accounts Desk",
                         reference_number=f"NEFT/UTR/{random.randint(100000000, 999999999)}",
                         bank="HDFC Bank Commercial Escrow",
                         notes=f"Settlement against GST Invoice {inv.invoice_number}."
