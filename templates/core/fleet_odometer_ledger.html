@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Odometer &amp; Dead Mileage Ledger | Sivagayathiri TravelERP{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Unfold Top Breadcrumbs & Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-vehicles-roster' %}" class="hover:text-primary transition">Fleet Operations</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Odometer &amp; Dead Mileage Ledger</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Odometer Verification &amp; Dead Mileage Ledger</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+          Dead KM: {{ avg_dead_pct }}%
+        </span>
+      </h1>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <a href="{% url 'fleet-health-sentry' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <span>Health Sentry</span>
+      </a>
+
+      <a href="{% url 'fleet-allocation-studio' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Allocation Studio</span>
+      </a>
+
+      <a href="{% url 'fleet-vehicles-roster' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-list"></i>
+        <span>Vehicle Roster</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Metric Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Trips Audited</div>
+      <div class="kpi-number">{{ total_trips_audited }}</div>
+      <div class="kpi-sub">Corporate &amp; tour runs</div>
+      <span class="material-symbols-outlined kpi-bg-icon">fact_check</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Total Kilometers</div>
+      <div class="kpi-number">{{ total_run_km|floatformat:0 }}</div>
+      <div class="kpi-sub">Total actual run distance</div>
+      <span class="material-symbols-outlined kpi-bg-icon">moving</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Dead Mileage (KM)</div>
+      <div class="kpi-number">{{ total_dead_km }}</div>
+      <div class="kpi-sub">Yard &amp; repositioning float</div>
+      <span class="material-symbols-outlined kpi-bg-icon">route</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid purple">
+      <div class="kpi-label">Average Dead %</div>
+      <div class="kpi-number">{{ avg_dead_pct }}%</div>
+      <div class="kpi-sub">Network efficiency ratio</div>
+      <span class="material-symbols-outlined kpi-bg-icon">percent</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid rose">
+      <div class="kpi-label">Mileage Anomalies</div>
+      <div class="kpi-number">{{ anomaly_count }}</div>
+      <div class="kpi-sub">>20% dead km flagged</div>
+      <span class="material-symbols-outlined kpi-bg-icon">warning</span>
+    </div>
+  </div>
+
+  <!-- Odometer Ledger Table -->
+  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
+            <th class="py-3 px-4">TRIP IDENTIFIER</th>
+            <th class="py-3 px-4">VEHICLE &amp; CHAUFFEUR</th>
+            <th class="py-3 px-4 font-mono">OPENING KM</th>
+            <th class="py-3 px-4 font-mono">CLOSING KM</th>
+            <th class="py-3 px-4 font-mono">ACTUAL RUN</th>
+            <th class="py-3 px-4 font-mono">BILLABLE KM</th>
+            <th class="py-3 px-4 font-mono">DEAD KM (%)</th>
+            <th class="py-3 px-4 text-right">AUDIT STATUS</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono">
+          {% for entry in entries %}
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition {% if entry.is_anomaly %}bg-amber-50/30 dark:bg-amber-950/20{% endif %}">
+            <!-- Trip ID -->
+            <td class="py-3 px-4">
+              <strong class="font-bold text-primary">{{ entry.id }}</strong>
+              <div class="text-[11px] font-sans text-slate-500">{{ entry.title }} &bull; {{ entry.date|date:"d M Y" }}</div>
+            </td>
+
+            <!-- Vehicle & Driver -->
+            <td class="py-3 px-4 font-sans">
+              <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ entry.vehicle_reg }}</span>
+              <div class="text-[11px] text-slate-500">👨‍✈️ {{ entry.driver_name }}</div>
+            </td>
+
+            <!-- Opening KM -->
+            <td class="py-3 px-4">{{ entry.opening_km }} KM</td>
+
+            <!-- Closing KM -->
+            <td class="py-3 px-4">{{ entry.closing_km }} KM</td>
+
+            <!-- Actual Run -->
+            <td class="py-3 px-4 font-bold text-slate-900 dark:text-white">{{ entry.run_km }} KM</td>
+
+            <!-- Billable KM -->
+            <td class="py-3 px-4 text-slate-600 dark:text-slate-400">{{ entry.billable_km }} KM</td>
+
+            <!-- Dead KM & % -->
+            <td class="py-3 px-4">
+              <span class="font-bold {% if entry.dead_pct > 20 %}text-rose-600 dark:text-rose-400{% elif entry.dead_pct > 12 %}text-amber-500{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                {{ entry.dead_km }} KM ({{ entry.dead_pct }}%)
+              </span>
+            </td>
+
+            <!-- Audit Status -->
+            <td class="py-3 px-4 text-right font-sans">
+              {% if entry.is_anomaly %}
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                ⚠️ Dead KM Alert
+              </span>
+              {% else %}
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                ✅ Verified
+              </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center py-10 text-slate-400 font-sans">No odometer audit records found for this scope.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

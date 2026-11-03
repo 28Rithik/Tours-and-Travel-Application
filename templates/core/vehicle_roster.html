@@ -31,6 +31,21 @@
         <span>Register Vehicle</span>
       </button>
 
+      <a href="{% url 'fleet-allocation-studio' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-chart-pie text-sky-500"></i>
+        <span>Allocation</span>
+      </a>
+
+      <a href="{% url 'fleet-health-sentry' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-heart-pulse text-emerald-500"></i>
+        <span>Health Sentry</span>
+      </a>
+
+      <a href="{% url 'fleet-odometer-ledger' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-gauge-high text-amber-500"></i>
+        <span>Odometer</span>
+      </a>
+
       <a href="{% url 'fleet-live' %}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
         <span class="material-symbols-outlined text-[16px]">radar</span>
         <span>Live Radar</span>
@@ -163,9 +178,9 @@
 
               <!-- Reg Plate -->
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="font-mono font-bold px-1.5 py-0.5 rounded text-[11px] bg-amber-50 text-amber-900 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900">
+                <a href="{% url 'fleet-vehicle-detail' v.id %}" class="font-mono font-bold px-1.5 py-0.5 rounded text-[11px] bg-amber-50 text-amber-900 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900 hover:underline">
                   {{ v.registration_number }}
-                </span>
+                </a>
                 <div class="text-[10px] text-slate-400 mt-0.5">
                   {{ v.get_ownership_type_display|default:v.ownership_type|title }}
                 </div>
@@ -249,6 +264,9 @@
               <!-- Actions -->
               <td class="py-2.5 px-3 text-right whitespace-nowrap">
                 <div class="flex items-center justify-end gap-1.5">
+                  <a href="{% url 'fleet-vehicle-detail' v.id %}" class="px-2 py-0.5 text-[11px] font-bold bg-primary/10 text-primary border border-primary/20 rounded hover:bg-primary hover:text-white transition" title="View 360 Asset Dossier">
+                    360&deg;
+                  </a>
                   {% if v.status != 'on_trip' %}
                   <button type="button" onclick="toggleVehicleStatus({{ v.id }})" id="btn-toggle-{{ v.id }}" class="px-2 py-0.5 text-[11px] font-semibold bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded hover:bg-slate-50 transition">
                     {% if v.status == 'available' %}🔧 Workshop{% else %}✅ Ready{% endif %}

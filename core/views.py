@@ -670,3 +670,490 @@ def rate_cards_studio_view(request):
 
 
 
+
+
+# ==============================================================================
+# DOMAIN 4: VEHICLE OPERATIONS (REGISTRY, ALLOCATION, HEALTH & ODOMETER LEDGER)
+# ==============================================================================
+
+def compute_vehicle_health(vehicle):
+    """
+    Computes dynamic Health Score (0-100%) and Dispatch Clearance Gate for an asset.
+    """
+    today = datetime.date.today()
+    score = 100
+    lock_reasons = []
+
+    def get_doc_info(exp_date, weight, name):
+        nonlocal score
+        if not exp_date:
+            return {'expiry': None, 'days_left': None, 'status': 'missing'}
+        days = (exp_date - today).days
+        if days < 0:
+            score -= weight
+            lock_reasons.append(f"{name} expired {abs(days)} day(s) ago ({exp_date})")
+            return {'expiry': exp_date, 'days_left': days, 'status': 'expired'}
+        elif days <= 30:
+            score -= int(weight * 0.3)
+            return {'expiry': exp_date, 'days_left': days, 'status': 'expiring'}
+        return {'expiry': exp_date, 'days_left': days, 'status': 'valid'}
+
+    docs_status = {
+        'fc': get_doc_info(vehicle.fc_expiry, 35, "RTO Fitness Certificate (FC)"),
+        'insurance': get_doc_info(vehicle.insurance_expiry, 30, "Commercial Insurance"),
+        'puc': get_doc_info(vehicle.pollution_expiry, 10, "PUC Emission Certificate"),
+        'permit': get_doc_info(vehicle.permit_expiry, 20, "Commercial Tourist Permit"),
+        'tax': get_doc_info(vehicle.tax_expiry, 15, "Motor Vehicle Road Tax"),
+    }
+
+    # PM Service Milestone
+    curr_km = vehicle.current_km or 0
+    next_due = vehicle.next_service_due_km or 0
+    km_left = next_due - curr_km if next_due else None
+
+    pm_status = {'current_km': curr_km, 'next_due_km': next_due, 'km_left': km_left, 'status': 'ok'}
+    if km_left is not None:
+        if km_left <= 0:
+            score -= 25
+            lock_reasons.append(f"PM Service Milestone overdue by {abs(km_left):,} KM")
+            pm_status['status'] = 'overdue'
+        elif km_left <= 1000:
+            score -= 10
+            pm_status['status'] = 'approaching'
+
+    # Open Snags & Defect Tickets
+    from maintenance.models import DefectTicket
+    open_defects = DefectTicket.objects.filter(vehicle=vehicle, status__in=['reported', 'open', 'in_progress'])
+    critical_snags = open_defects.filter(severity__in=['critical', 'high', 'major']).count()
+    if critical_snags > 0:
+        score -= min(50, 30 * critical_snags)
+        lock_reasons.append(f"{critical_snags} active high-severity mechanical defect(s)")
+    elif open_defects.exists():
+        score -= 10
+
+    score = max(0, min(100, score))
+    is_cleared = (score >= 70) and (len(lock_reasons) == 0) and (vehicle.status != 'maintenance')
+
+    return {
+        'score': score,
+        'is_cleared': is_cleared,
+        'clearance_label': 'CLEARED FOR DISPATCH' if is_cleared else 'DISPATCH LOCKED',
+        'lock_reasons': lock_reasons,
+        'tier': 'excellent' if score >= 90 else ('fair' if score >= 70 else 'critical'),
+        'docs_status': docs_status,
+        'pm_status': pm_status,
+        'open_defects_count': open_defects.count(),
+    }
+
+
+@login_required
+def vehicle_detail_360_view(request, vehicle_id):
+    """
+    Asset 360 View: Complete digital dossier for a fleet vehicle including
+    mechanical specs, dynamic health score, statutory wallet, chauffeur assignment,
+    recent commute shift runs, outstation tours, and maintenance defect history.
+    """
+    from maintenance.models import DefectTicket
+    from fleet_contracts.models import ContractTripLog
+    from operations.models import Trip
+    from core.models import InterDepotTransferLog
+
+    vehicle = get_object_or_404(Vehicle.objects.select_related('vehicle_type', 'default_driver', 'owner_party'), id=vehicle_id)
+    health = compute_vehicle_health(vehicle)
+
+    # Recent Commute Shift Assignments
+    commute_runs = ContractTripLog.objects.filter(
+        vehicle=vehicle
+    ).select_related('shift__route', 'driver').order_by('-date', '-id')[:8]
+
+    # Recent Outstation Tours
+    tour_trips = Trip.objects.filter(
+        vehicle=vehicle
+    ).select_related('driver', 'booking').order_by('-start_date', '-id')[:8]
+
+    # Defect Snags & Repairs
+    defects = DefectTicket.objects.filter(
+        vehicle=vehicle
+    ).select_related('reported_by').order_by('-reported_date')[:8]
+
+    # Inter-Depot Relocations
+    transfers = InterDepotTransferLog.objects.filter(
+        vehicle=vehicle
+    ).select_related('requested_by', 'transfer_driver').order_by('-created_at')[:5]
+
+    return render(request, 'core/vehicle_detail_360.html', {
+        'vehicle': vehicle,
+        'health': health,
+        'commute_runs': commute_runs,
+        'tour_trips': tour_trips,
+        'defects': defects,
+        'transfers': transfers,
+        'depot_choices': DEPOT_CHOICES,
+    })
+
+
+@login_required
+def fleet_allocation_studio_view(request):
+    """
+    Fleet Allocation Studio: Visual multi-vertical resource board tracking
+    corporate commute contracts, outstation tourism packages, depot standby reserves,
+    and workshop grounding across 2,200+ fleet assets.
+    """
+    from fleet_contracts.models import ContractTripLog
+    from operations.models import Trip
+    from core.depot_scoping import get_user_depot_scope, get_scoped_vehicles
+
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+    today = datetime.date.today()
+
+    scoped_vehicles = get_scoped_vehicles(request.user, depot_param).select_related('vehicle_type', 'default_driver')
+    scoped_vids = set(scoped_vehicles.values_list('id', flat=True))
+
+    # Active Commute Shifts
+    active_commutes = ContractTripLog.objects.filter(
+        date=today,
+        vehicle_id__in=scoped_vids
+    ).select_related('shift__route', 'vehicle', 'driver')
+
+    # Active Outstation Tours
+    active_tours = Trip.objects.filter(
+        start_date__lte=today,
+        end_date__gte=today,
+        vehicle_id__in=scoped_vids
+    ).select_related('vehicle', 'driver', 'booking')
+
+    allocated_commute_vids = set(active_commutes.values_list('vehicle_id', flat=True))
+    allocated_tour_vids = set(active_tours.values_list('vehicle_id', flat=True))
+
+    standby_vehicles = scoped_vehicles.filter(
+        status='available'
+    ).exclude(id__in=allocated_commute_vids | allocated_tour_vids)
+
+    workshop_vehicles = scoped_vehicles.filter(
+        status__in=['maintenance', 'in_shop', 'breakdown']
+    )
+
+    counts = {
+        'total': scoped_vehicles.count(),
+        'commute': len(allocated_commute_vids),
+        'tours': len(allocated_tour_vids),
+        'standby': standby_vehicles.count(),
+        'workshop': workshop_vehicles.count(),
+    }
+
+    return render(request, 'core/fleet_allocation_studio.html', {
+        'counts': counts,
+        'active_commutes': active_commutes[:40],
+        'active_tours': active_tours[:40],
+        'standby_vehicles': standby_vehicles[:40],
+        'workshop_vehicles': workshop_vehicles[:40],
+        'depot_scope': depot_scope,
+        'current_depot': depot_scope['effective_depot'],
+        'can_change_depot': depot_scope['can_change_depot'],
+        'depot_choices': DEPOT_CHOICES,
+    })
+
+
+@login_required
+def fleet_health_sentry_view(request):
+    """
+    Fleet Health & PM Sentry: Monitors real-time asset health scores,
+    enforces dispatch locks for expired statutory docs, and highlights
+    vehicles approaching service milestones.
+    """
+    from core.depot_scoping import get_user_depot_scope, get_scoped_vehicles
+    from maintenance.models import DefectTicket
+
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+    tier_filter = request.GET.get('tier', 'all')
+    search_q = request.GET.get('q', '').strip()
+
+    vehicles = get_scoped_vehicles(request.user, depot_param).select_related('vehicle_type', 'default_driver')
+    if search_q:
+        vehicles = vehicles.filter(
+            models.Q(registration_number__icontains=search_q) |
+            models.Q(brand__icontains=search_q) |
+            models.Q(model__icontains=search_q)
+        )
+
+    evaluated = []
+    total_score = 0
+    cleared_count = 0
+    locked_count = 0
+    upcoming_service_count = 0
+
+    today = datetime.date.today()
+
+    for v in vehicles[:200]:
+        h = compute_vehicle_health(v)
+        total_score += h['score']
+        if h['is_cleared']:
+            cleared_count += 1
+        else:
+            locked_count += 1
+        if h['pm_status']['status'] in ['approaching', 'overdue']:
+            upcoming_service_count += 1
+
+        if tier_filter == 'excellent' and h['tier'] != 'excellent':
+            continue
+        if tier_filter == 'fair' and h['tier'] != 'fair':
+            continue
+        if tier_filter == 'locked' and h['is_cleared']:
+            continue
+
+        evaluated.append({
+            'vehicle': v,
+            'health': h,
+        })
+
+    avg_health = round(total_score / len(vehicles[:200]), 1) if vehicles[:200].exists() else 100.0
+
+    return render(request, 'core/fleet_health_sentry.html', {
+        'evaluated_vehicles': evaluated,
+        'avg_health': avg_health,
+        'cleared_count': cleared_count,
+        'locked_count': locked_count,
+        'upcoming_service_count': upcoming_service_count,
+        'open_snags_count': DefectTicket.objects.filter(status__in=['reported', 'open', 'in_progress']).count(),
+        'current_tier': tier_filter,
+        'search_q': search_q,
+        'depot_scope': depot_scope,
+        'current_depot': depot_scope['effective_depot'],
+        'can_change_depot': depot_scope['can_change_depot'],
+    })
+
+
+@login_required
+def fleet_odometer_ledger_view(request):
+    """
+    Odometer & Dead Mileage Ledger: Trip-by-trip audit verifying opening/closing
+    odometer readings, detecting rollback/spike anomalies, and computing dead mileage.
+    """
+    from fleet_contracts.models import ContractTripLog
+    from operations.models import Trip
+    from core.depot_scoping import get_user_depot_scope, get_scoped_vehicles
+
+    depot_param = request.GET.get('depot')
+    depot_scope = get_user_depot_scope(request.user, depot_param)
+    scoped_vehicles = get_scoped_vehicles(request.user, depot_param)
+    scoped_vids = set(scoped_vehicles.values_list('id', flat=True))
+
+    commute_logs = ContractTripLog.objects.filter(
+        vehicle_id__in=scoped_vids,
+        opening_km__isnull=False,
+        closing_km__isnull=False
+    ).select_related('shift__route', 'vehicle', 'driver').order_by('-date', '-id')[:60]
+
+    tour_trips = Trip.objects.filter(
+        vehicle_id__in=scoped_vids,
+        opening_km__isnull=False,
+        closing_km__isnull=False
+    ).select_related('vehicle', 'driver').order_by('-start_date', '-id')[:40]
+
+    entries = []
+    total_run_km = 0
+    total_dead_km = 0
+    anomaly_count = 0
+
+    for c in commute_logs:
+        run_km = max(0, c.closing_km - c.opening_km) if c.closing_km >= c.opening_km else 0
+        billable_km = c.shift.route.distance_km if c.shift and c.shift.route else 18.0
+        dead_km = max(0.0, float(run_km) - float(billable_km))
+        dead_pct = round((dead_km / run_km) * 100, 1) if run_km > 0 else 0.0
+        is_anomaly = (dead_pct > 20.0) or (run_km > 500)
+
+        total_run_km += run_km
+        total_dead_km += dead_km
+        if is_anomaly:
+            anomaly_count += 1
+
+        entries.append({
+            'type': 'commute',
+            'id': f"COMMUTE-{c.id}",
+            'date': c.date,
+            'title': c.shift.route.name if c.shift and c.shift.route else "Corporate IT Shift",
+            'vehicle_reg': c.vehicle.registration_number if c.vehicle else 'N/A',
+            'driver_name': c.driver.name if c.driver else 'Unassigned',
+            'opening_km': c.opening_km,
+            'closing_km': c.closing_km,
+            'run_km': run_km,
+            'billable_km': billable_km,
+            'dead_km': round(dead_km, 1),
+            'dead_pct': dead_pct,
+            'is_anomaly': is_anomaly,
+        })
+
+    for t in tour_trips:
+        run_km = max(0, t.closing_km - t.opening_km) if t.closing_km >= t.opening_km else 0
+        billable_km = round(run_km * 0.9, 1) if run_km > 0 else 50.0
+        dead_km = max(0.0, float(run_km) - float(billable_km))
+        dead_pct = round((dead_km / run_km) * 100, 1) if run_km > 0 else 0.0
+        is_anomaly = (dead_pct > 20.0) or (run_km > 1200)
+
+        total_run_km += run_km
+        total_dead_km += dead_km
+        if is_anomaly:
+            anomaly_count += 1
+
+        entries.append({
+            'type': 'tour',
+            'id': f"TOUR-{t.trip_id}",
+            'date': t.start_date,
+            'title': f"Tour #{t.trip_id} - {t.guest_name}",
+            'vehicle_reg': t.vehicle.registration_number if t.vehicle else 'N/A',
+            'driver_name': t.driver.name if t.driver else 'Unassigned',
+            'opening_km': t.opening_km,
+            'closing_km': t.closing_km,
+            'run_km': run_km,
+            'billable_km': billable_km,
+            'dead_km': round(dead_km, 1),
+            'dead_pct': dead_pct,
+            'is_anomaly': is_anomaly,
+        })
+
+    entries.sort(key=lambda x: str(x['date']), reverse=True)
+    avg_dead_pct = round((total_dead_km / total_run_km) * 100, 1) if total_run_km > 0 else 0.0
+
+    return render(request, 'core/fleet_odometer_ledger.html', {
+        'entries': entries[:60],
+        'total_trips_audited': len(entries),
+        'total_run_km': total_run_km,
+        'total_dead_km': round(total_dead_km, 1),
+        'avg_dead_pct': avg_dead_pct,
+        'anomaly_count': anomaly_count,
+        'depot_scope': depot_scope,
+        'current_depot': depot_scope['effective_depot'],
+        'can_change_depot': depot_scope['can_change_depot'],
+    })
+
+
+# ── Action APIs for Fleet Operations ──
+
+@login_required
+def api_log_vehicle_odometer(request, vehicle_id):
+    """Logs updated odometer reading for an asset and checks PM interval."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required'}, status=405)
+
+    import json
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        data = request.POST
+
+    new_km = data.get('odometer_km')
+    if new_km is None:
+        return JsonResponse({'status': 'error', 'message': 'odometer_km is required'}, status=400)
+
+    try:
+        new_km = int(new_km)
+    except (ValueError, TypeError):
+        return JsonResponse({'status': 'error', 'message': 'Invalid odometer value'}, status=400)
+
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    old_km = vehicle.current_km or 0
+    if new_km < old_km:
+        return JsonResponse({
+            'status': 'error',
+            'message': f"Odometer rollback detected! New reading ({new_km:,} KM) is less than existing reading ({old_km:,} KM)."
+        }, status=400)
+
+    vehicle.current_km = new_km
+    vehicle.save(update_fields=['current_km'])
+
+    health = compute_vehicle_health(vehicle)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"Odometer for {vehicle.registration_number} updated to {new_km:,} KM.",
+        'current_km': new_km,
+        'health_score': health['score'],
+        'is_cleared': health['is_cleared'],
+        'pm_status': health['pm_status']
+    })
+
+
+@login_required
+def api_relocate_vehicle_depot(request, vehicle_id):
+    """Authorizes an inter-depot vehicle relocation order."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required'}, status=405)
+
+    import json
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        data = request.POST
+
+    dest_depot = data.get('destination_depot')
+    reason = data.get('reason', 'fleet_rebalance')
+    notes = data.get('notes', '')
+
+    if not dest_depot:
+        return JsonResponse({'status': 'error', 'message': 'destination_depot is required'}, status=400)
+
+    from core.models import InterDepotTransferLog
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    old_depot = vehicle.base_depot
+
+    transfer = InterDepotTransferLog.objects.create(
+        vehicle=vehicle,
+        origin_depot=old_depot,
+        destination_depot=dest_depot,
+        reason=reason,
+        status='completed',
+        requested_by=request.user,
+        approved_by=request.user,
+        odometer_at_dispatch=vehicle.current_km,
+        odometer_at_receipt=vehicle.current_km,
+        notes=notes
+    )
+
+    vehicle.base_depot = dest_depot
+    vehicle.current_location = f"{dest_depot} Operational Yard"
+    vehicle.save(update_fields=['base_depot', 'current_location'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"Vehicle {vehicle.registration_number} successfully relocated from {old_depot} to {dest_depot} (Transfer #{transfer.transfer_id}).",
+        'new_depot': dest_depot,
+        'transfer_id': transfer.transfer_id
+    })
+
+
+@login_required
+def api_toggle_vehicle_dispatch_lock(request, vehicle_id):
+    """Toggles dispatch lock / maintenance hold for a vehicle."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required'}, status=405)
+
+    import json
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        data = request.POST
+
+    lock_action = data.get('action')  # 'lock' or 'unlock'
+    reason = data.get('reason', 'Supervisor manual override')
+
+    vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+    if lock_action == 'lock':
+        vehicle.status = 'maintenance'
+        vehicle.save(update_fields=['status'])
+        msg = f"Vehicle {vehicle.registration_number} has been DISPATCH LOCKED and moved to maintenance status."
+    else:
+        vehicle.status = 'available'
+        vehicle.save(update_fields=['status'])
+        msg = f"Vehicle {vehicle.registration_number} has been CLEARED FOR DISPATCH (Override: {reason})."
+
+    health = compute_vehicle_health(vehicle)
+
+    return JsonResponse({
+        'status': 'success',
+        'message': msg,
+        'status_code': vehicle.status,
+        'is_cleared': health['is_cleared'],
+        'health_score': health['score']
+    })

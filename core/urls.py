@@ -13,10 +13,17 @@ from . import api_docs
 urlpatterns = [
     # ── Fleet Management & Availability ──
     path('fleet/vehicles/', views.fleet_vehicles_roster_view, name='fleet-vehicles-roster'),
+    path('fleet/vehicles/<int:vehicle_id>/', views.vehicle_detail_360_view, name='fleet-vehicle-detail'),
+    path('fleet/allocation/', views.fleet_allocation_studio_view, name='fleet-allocation-studio'),
+    path('fleet/health/', views.fleet_health_sentry_view, name='fleet-health-sentry'),
+    path('fleet/odometer/', views.fleet_odometer_ledger_view, name='fleet-odometer-ledger'),
     path('fleet/categories/', views.fleet_categories_view, name='fleet-categories'),
     path('fleet/types/', views.fleet_types_view, name='fleet-types'),
     path('fleet/drivers/', views.fleet_drivers_roster_view, name='fleet-drivers-roster'),
     path('api/fleet/vehicles/<int:vehicle_id>/toggle-status/', views.api_toggle_vehicle_status_staff, name='fleet-vehicle-toggle-status'),
+    path('api/fleet/vehicles/<int:vehicle_id>/odometer/', views.api_log_vehicle_odometer, name='api-vehicle-log-odometer'),
+    path('api/fleet/vehicles/<int:vehicle_id>/relocate/', views.api_relocate_vehicle_depot, name='api-vehicle-relocate'),
+    path('api/fleet/vehicles/<int:vehicle_id>/lock/', views.api_toggle_vehicle_dispatch_lock, name='api-vehicle-dispatch-lock'),
     path('api/vehicle-types/', views.api_get_vehicle_types, name='api_get_vehicle_types'),
     path('api/vehicles/<str:reg_no>/check-availability/', views.api_vehicle_check_availability, name='api-vehicle-check-availability'),
     path('pricing/', views.rate_cards_studio_view, name='client-pricing-studio'),

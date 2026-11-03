@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Fleet Health &amp; PM Sentry | Sivagayathiri TravelERP{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Unfold Top Breadcrumbs & Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-vehicles-roster' %}" class="hover:text-primary transition">Fleet Operations</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Fleet Health &amp; PM Sentry</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Fleet Health &amp; Preventive Maintenance Sentry</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+          Average Health: {{ avg_health }}%
+        </span>
+      </h1>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <a href="{% url 'fleet-allocation-studio' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Allocation Studio</span>
+      </a>
+
+      <a href="/operations/statutory-compliance/" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-shield"></i>
+        <span>RTO Compliance</span>
+      </a>
+
+      <a href="{% url 'fleet-vehicles-roster' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-list"></i>
+        <span>Vehicle Roster</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Fleet Average Health</div>
+      <div class="kpi-number">{{ avg_health }}%</div>
+      <div class="kpi-sub">Composite readiness index</div>
+      <span class="material-symbols-outlined kpi-bg-icon">vital_signs</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Cleared for Dispatch</div>
+      <div class="kpi-number">{{ cleared_count }}</div>
+      <div class="kpi-sub">Statutory &amp; PM compliant</div>
+      <span class="material-symbols-outlined kpi-bg-icon">verified_user</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid rose">
+      <div class="kpi-label">Dispatch Locked</div>
+      <div class="kpi-number">{{ locked_count }}</div>
+      <div class="kpi-sub">RTO expiry or snag hold</div>
+      <span class="material-symbols-outlined kpi-bg-icon">lock</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Upcoming PM Service</div>
+      <div class="kpi-number">{{ upcoming_service_count }}</div>
+      <div class="kpi-sub">&lt;1,000 KM milestone due</div>
+      <span class="material-symbols-outlined kpi-bg-icon">build_circle</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid slate">
+      <div class="kpi-label">Open Defect Snags</div>
+      <div class="kpi-number">{{ open_snags_count }}</div>
+      <div class="kpi-sub">Workshop backlog</div>
+      <span class="material-symbols-outlined kpi-bg-icon">home_repair_service</span>
+    </div>
+  </div>
+
+  <!-- Filter & Search Bar -->
+  <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-sm">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <a href="?tier=all{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold {% if current_tier == 'all' %}bg-primary text-white{% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+        All Vehicles
+      </a>
+      <a href="?tier=excellent{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold {% if current_tier == 'excellent' %}bg-emerald-600 text-white{% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+        🟢 Excellent (&ge;90%)
+      </a>
+      <a href="?tier=fair{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold {% if current_tier == 'fair' %}bg-amber-500 text-white{% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+        🟡 Attention (70-89%)
+      </a>
+      <a href="?tier=locked{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg text-xs font-semibold {% if current_tier == 'locked' %}bg-rose-600 text-white{% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+        🔴 Dispatch Locked
+      </a>
+    </div>
+
+    <form method="GET" class="flex items-center gap-2">
+      {% if current_tier != 'all' %}<input type="hidden" name="tier" value="{{ current_tier }}">{% endif %}
+      <input type="text" name="q" value="{{ search_q }}" placeholder="Search reg number, brand..." class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white w-64">
+      <button type="submit" class="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold">Search</button>
+      {% if search_q %}<a href="?tier={{ current_tier }}" class="text-xs text-slate-400 hover:text-slate-600">Clear</a>{% endif %}
+    </form>
+  </div>
+
+  <!-- Vehicle Health Table -->
+  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800 uppercase text-[10px] tracking-wider">
+            <th class="py-3 px-4">VEHICLE PLATE</th>
+            <th class="py-3 px-4">HEALTH SCORE</th>
+            <th class="py-3 px-4">DISPATCH CLEARANCE</th>
+            <th class="py-3 px-4">ODOMETER &amp; PM MILESTONE</th>
+            <th class="py-3 px-4">STATUTORY WALLET</th>
+            <th class="py-3 px-4">DEFECT SNAGS</th>
+            <th class="py-3 px-4 text-right">ACTION</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+          {% for item in evaluated_vehicles %}
+          <tr class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+            <!-- Reg & Model -->
+            <td class="py-3 px-4">
+              <a href="{% url 'fleet-vehicle-detail' item.vehicle.id %}" class="font-mono font-bold text-primary hover:underline">
+                {{ item.vehicle.registration_number }}
+              </a>
+              <div class="text-[11px] text-slate-500">{{ item.vehicle.brand }} {{ item.vehicle.model }} &bull; {{ item.vehicle.base_depot }}</div>
+            </td>
+
+            <!-- Health Score Meter -->
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <span class="font-black font-mono text-sm {% if item.health.tier == 'excellent' %}text-emerald-600 dark:text-emerald-400{% elif item.health.tier == 'fair' %}text-amber-500{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                  {{ item.health.score }}%
+                </span>
+                <div class="w-16 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full {% if item.health.tier == 'excellent' %}bg-emerald-500{% elif item.health.tier == 'fair' %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ item.health.score }}%;"></div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Dispatch Clearance -->
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded font-bold text-[10px] {% if item.health.is_cleared %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+                {% if item.health.is_cleared %}🟢 CLEARED{% else %}🔴 LOCKED{% endif %}
+              </span>
+              {% if item.health.lock_reasons %}
+              <div class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 max-w-xs truncate" title="{{ item.health.lock_reasons|join:', ' }}">
+                {{ item.health.lock_reasons.0 }}
+              </div>
+              {% endif %}
+            </td>
+
+            <!-- Odometer & PM -->
+            <td class="py-3 px-4 font-mono">
+              <div class="font-bold text-slate-800 dark:text-slate-200">{{ item.vehicle.current_km|default:0 }} KM</div>
+              <div class="text-[10px] {% if item.health.pm_status.status == 'overdue' %}text-rose-600 font-bold{% elif item.health.pm_status.status == 'approaching' %}text-amber-600{% else %}text-slate-400{% endif %}">
+                {% if item.health.pm_status.km_left is not None %}
+                  {% if item.health.pm_status.km_left <= 0 %}⚠️ Overdue{% else %}Due in {{ item.health.pm_status.km_left }} km{% endif %}
+                {% else %}
+                  Milestone not set
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- Statutory Wallet Mini -->
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-1 font-mono text-[10px]">
+                <span class="px-1 py-0.2 rounded {% if item.health.docs_status.fc.status == 'valid' %}bg-emerald-50 text-emerald-700{% else %}bg-rose-50 text-rose-700 font-bold{% endif %}" title="FC Expiry">FC</span>
+                <span class="px-1 py-0.2 rounded {% if item.health.docs_status.insurance.status == 'valid' %}bg-emerald-50 text-emerald-700{% else %}bg-rose-50 text-rose-700 font-bold{% endif %}" title="Insurance Expiry">INS</span>
+                <span class="px-1 py-0.2 rounded {% if item.health.docs_status.permit.status == 'valid' %}bg-emerald-50 text-emerald-700{% else %}bg-rose-50 text-rose-700 font-bold{% endif %}" title="Permit Expiry">PMT</span>
+                <span class="px-1 py-0.2 rounded {% if item.health.docs_status.puc.status == 'valid' %}bg-emerald-50 text-emerald-700{% else %}bg-rose-50 text-rose-700 font-bold{% endif %}" title="PUC Expiry">PUC</span>
+              </div>
+            </td>
+
+            <!-- Snag Count -->
+            <td class="py-3 px-4">
+              {% if item.health.open_defects_count > 0 %}
+              <span class="text-amber-600 font-bold">⚠️ {{ item.health.open_defects_count }} Snag(s)</span>
+              {% else %}
+              <span class="text-slate-400">Clean</span>
+              {% endif %}
+            </td>
+
+            <!-- Action -->
+            <td class="py-3 px-4 text-right">
+              <a href="{% url 'fleet-vehicle-detail' item.vehicle.id %}" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-[11px] transition">
+                Dossier &rarr;
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-10 text-slate-400">No vehicles matching this health criteria.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+

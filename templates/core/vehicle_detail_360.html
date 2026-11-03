@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ vehicle.registration_number }} &bull; Asset 360 Dossier | Sivagayathiri TravelERP{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Top Breadcrumbs & Vehicle Header Strip -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-vehicles-roster' %}" class="hover:text-primary transition">Fleet Operations</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">{{ vehicle.registration_number }}</span>
+      </nav>
+      <div class="flex items-center flex-wrap gap-2.5">
+        <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <span>{{ vehicle.registration_number }}</span>
+        </h1>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono {% if vehicle.ownership_type == 'owned' %}bg-sky-100 text-sky-800 dark:bg-sky-950/70 dark:text-sky-300 border border-sky-300 dark:border-sky-800{% else %}bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-300 dark:border-purple-800{% endif %}">
+          {{ vehicle.get_ownership_type_display|default:vehicle.ownership_type|title }}
+        </span>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {% if health.is_cleared %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-300 dark:border-rose-800 animate-pulse{% endif %}">
+          {% if health.is_cleared %}🛡️ {{ health.clearance_label }}{% else %}🚨 {{ health.clearance_label }}{% endif %}
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <strong>{{ vehicle.brand }} {{ vehicle.model }}</strong> &bull; {{ vehicle.vehicle_type.name|default:"Commercial Fleet" }} &bull; 
+        <strong>{{ vehicle.seating_capacity }} Passenger Seats</strong> &bull; Base Hub: <strong class="text-slate-800 dark:text-slate-200">{{ vehicle.base_depot }}</strong>
+      </p>
+    </div>
+
+    <!-- Quick Action Buttons -->
+    <div class="flex items-center flex-wrap gap-2">
+      <button type="button" onclick="openOdometerModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-gauge-high text-sky-400"></i>
+        <span>Log Odometer</span>
+      </button>
+
+      <button type="button" onclick="openRelocateModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-right-left text-amber-500"></i>
+        <span>Relocate Depot</span>
+      </button>
+
+      <button type="button" onclick="toggleDispatchLock()" class="inline-flex items-center gap-1.5 px-3 py-1.5 {% if health.is_cleared %}bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800{% else %}bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800{% endif %} text-xs font-semibold rounded-lg shadow-sm transition">
+        {% if health.is_cleared %}
+        <i class="fa-solid fa-lock text-rose-600"></i>
+        <span>Lock Dispatch</span>
+        {% else %}
+        <i class="fa-solid fa-lock-open text-emerald-600"></i>
+        <span>Clear Dispatch</span>
+        {% endif %}
+      </button>
+
+      <a href="{% url 'operations-fleet-radar' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-satellite-dish"></i>
+        <span>Live Radar</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Lock Reasons Warning Banner (If Any) -->
+  {% if health.lock_reasons %}
+  <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 text-xs text-rose-900 dark:text-rose-200 flex items-start gap-3 shadow-sm">
+    <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5"></i>
+    <div class="space-y-1">
+      <strong class="font-bold text-sm block text-rose-950 dark:text-rose-100">Automated Dispatch Lock Active</strong>
+      <ul class="list-disc list-inside space-y-0.5 text-xs text-rose-800 dark:text-rose-300">
+        {% for reason in health.lock_reasons %}
+        <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+      <p class="text-[11px] text-rose-700 dark:text-rose-400 italic mt-1">Vehicle assignment to new commercial duty slips is restricted until statutory renewal or defect sign-off.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Metric Deck (Asset 360 KPIs) -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Health Score -->
+    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Health Score</span>
+        <span class="text-xs font-bold px-2 py-0.5 rounded font-mono {% if health.tier == 'excellent' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif health.tier == 'fair' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+          {{ health.tier|upper }}
+        </span>
+      </div>
+      <div class="flex items-baseline gap-2 my-2">
+        <span class="text-3xl font-black font-mono {% if health.tier == 'excellent' %}text-emerald-600 dark:text-emerald-400{% elif health.tier == 'fair' %}text-amber-500{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+          {{ health.score }}%
+        </span>
+        <span class="text-xs text-slate-400">/ 100% Index</span>
+      </div>
+      <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+        <div class="h-full rounded-full transition-all {% if health.tier == 'excellent' %}bg-emerald-500{% elif health.tier == 'fair' %}bg-amber-500{% else %}bg-rose-500{% endif %}" style="width: {{ health.score }}%;"></div>
+      </div>
+    </div>
+
+    <!-- Odometer & PM Milestone -->
+    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Odometer Reading</span>
+        <i class="fa-solid fa-gauge text-slate-400"></i>
+      </div>
+      <div class="my-2">
+        <span class="text-2xl font-black font-mono text-slate-900 dark:text-white">
+          {{ vehicle.current_km|default:0|floatformat:0 }} KM
+        </span>
+        <div class="text-[11px] mt-0.5 {% if health.pm_status.status == 'overdue' %}text-rose-600 font-bold{% elif health.pm_status.status == 'approaching' %}text-amber-600 font-bold{% else %}text-slate-500{% endif %}">
+          {% if health.pm_status.km_left is not None %}
+            {% if health.pm_status.km_left <= 0 %}
+              ⚠️ Overdue by {{ health.pm_status.km_left|stringformat:"d"|slice:"1:" }} KM
+            {% else %}
+              Next Service in {{ health.pm_status.km_left }} KM (@ {{ vehicle.next_service_due_km }} KM)
+            {% endif %}
+          {% else %}
+            No service milestone set
+          {% endif %}
+        </div>
+      </div>
+      <span class="text-[10px] text-slate-400 font-mono">Last verified: Today</span>
+    </div>
+
+    <!-- Default Chauffeur -->
+    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Assigned Chauffeur</span>
+        <i class="fa-solid fa-user-tie text-slate-400"></i>
+      </div>
+      <div class="my-2">
+        {% if vehicle.default_driver %}
+        <div class="text-base font-bold text-slate-900 dark:text-white">{{ vehicle.default_driver.name }}</div>
+        <div class="text-xs text-primary font-mono mt-0.5">
+          <a href="tel:{{ vehicle.default_driver.phone }}" class="hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-phone text-[10px]"></i> {{ vehicle.default_driver.phone }}
+          </a>
+        </div>
+        {% else %}
+        <div class="text-sm font-semibold text-slate-500 italic">Pool / Unassigned</div>
+        <div class="text-[11px] text-slate-400">Dispatched via roster queue</div>
+        {% endif %}
+      </div>
+      <span class="text-[10px] text-slate-400 font-mono">Base Depot: {{ vehicle.base_depot }}</span>
+    </div>
+
+    <!-- Active Snags & Defect Tickets -->
+    <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Snag Tickets</span>
+        <i class="fa-solid fa-wrench text-slate-400"></i>
+      </div>
+      <div class="my-2">
+        <span class="text-2xl font-black font-mono {% if health.open_defects_count > 0 %}text-amber-500{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+          {{ health.open_defects_count }} Snag{{ health.open_defects_count|pluralize }}
+        </span>
+        <div class="text-[11px] text-slate-500 mt-0.5">
+          {% if health.open_defects_count > 0 %}
+          Requires workshop repair sign-off
+          {% else %}
+          Zero open mechanical snags
+          {% endif %}
+        </div>
+      </div>
+      <a href="{% url 'maintenance:workshop_mechanic_studio' %}" class="text-[11px] font-semibold text-primary hover:underline">
+        Open Workshop Job Cards &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- Statutory Document Compliance Wallet -->
+  <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-folder-open text-primary text-base"></i>
+        <h2 class="text-base font-bold text-slate-900 dark:text-white">RTO Statutory Document Wallet</h2>
+      </div>
+      <a href="/operations/statutory-compliance/" class="text-xs font-semibold text-primary hover:underline">
+        Full Parivahan Sentry &rarr;
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      <!-- RTO Fitness -->
+      <div class="p-3.5 rounded-lg border {% if health.docs_status.fc.status == 'expired' %}border-rose-300 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-800{% elif health.docs_status.fc.status == 'expiring' %}border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800{% else %}border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40{% endif %}">
+        <div class="flex items-center justify-between mb-1">
+          <strong class="text-xs font-bold text-slate-800 dark:text-slate-200">RTO Fitness (FC)</strong>
+          <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded {% if health.docs_status.fc.status == 'valid' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif health.docs_status.fc.status == 'expiring' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+            {% if health.docs_status.fc.days_left is not None %}{{ health.docs_status.fc.days_left }}d{% else %}N/A{% endif %}
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 font-mono">{{ vehicle.fc_expiry|date:"d M Y"|default:"Not recorded" }}</div>
+        <div class="text-[10px] text-slate-400 mt-1">Section 56 MV Act</div>
+      </div>
+
+      <!-- Insurance -->
+      <div class="p-3.5 rounded-lg border {% if health.docs_status.insurance.status == 'expired' %}border-rose-300 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-800{% elif health.docs_status.insurance.status == 'expiring' %}border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800{% else %}border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40{% endif %}">
+        <div class="flex items-center justify-between mb-1">
+          <strong class="text-xs font-bold text-slate-800 dark:text-slate-200">Commercial Ins.</strong>
+          <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded {% if health.docs_status.insurance.status == 'valid' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif health.docs_status.insurance.status == 'expiring' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+            {% if health.docs_status.insurance.days_left is not None %}{{ health.docs_status.insurance.days_left }}d{% else %}N/A{% endif %}
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 font-mono">{{ vehicle.insurance_expiry|date:"d M Y"|default:"Not recorded" }}</div>
+        <div class="text-[10px] text-slate-400 mt-1">{{ vehicle.insurance_provider|default:"Commercial Carrier" }}</div>
+      </div>
+
+      <!-- Tourist Permit -->
+      <div class="p-3.5 rounded-lg border {% if health.docs_status.permit.status == 'expired' %}border-rose-300 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-800{% elif health.docs_status.permit.status == 'expiring' %}border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800{% else %}border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40{% endif %}">
+        <div class="flex items-center justify-between mb-1">
+          <strong class="text-xs font-bold text-slate-800 dark:text-slate-200">Tourist Permit</strong>
+          <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded {% if health.docs_status.permit.status == 'valid' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif health.docs_status.permit.status == 'expiring' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+            {% if health.docs_status.permit.days_left is not None %}{{ health.docs_status.permit.days_left }}d{% else %}N/A{% endif %}
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 font-mono">{{ vehicle.permit_expiry|date:"d M Y"|default:"Not recorded" }}</div>
+        <div class="text-[10px] text-slate-400 mt-1">{{ vehicle.primary_permit_type|default:"All India Tourist Permit" }}</div>
+      </div>
+
+      <!-- Road Tax -->
+      <div class="p-3.5 rounded-lg border {% if health.docs_status.tax.status == 'expired' %}border-rose-300 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-800{% elif health.docs_status.tax.status == 'expiring' %}border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800{% else %}border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40{% endif %}">
+        <div class="flex items-center justify-between mb-1">
+          <strong class="text-xs font-bold text-slate-800 dark:text-slate-200">Motor Road Tax</strong>
+          <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded {% if health.docs_status.tax.status == 'valid' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif health.docs_status.tax.status == 'expiring' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+            {% if health.docs_status.tax.days_left is not None %}{{ health.docs_status.tax.days_left }}d{% else %}N/A{% endif %}
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 font-mono">{{ vehicle.tax_expiry|date:"d M Y"|default:"Not recorded" }}</div>
+        <div class="text-[10px] text-slate-400 mt-1">TN Statutory MV Tax</div>
+      </div>
+
+      <!-- Pollution PUC -->
+      <div class="p-3.5 rounded-lg border {% if health.docs_status.puc.status == 'expired' %}border-rose-300 bg-rose-50/50 dark:bg-rose-950/20 dark:border-rose-800{% elif health.docs_status.puc.status == 'expiring' %}border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800{% else %}border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40{% endif %}">
+        <div class="flex items-center justify-between mb-1">
+          <strong class="text-xs font-bold text-slate-800 dark:text-slate-200">Pollution (PUC)</strong>
+          <span class="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded {% if health.docs_status.puc.status == 'valid' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif health.docs_status.puc.status == 'expiring' %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+            {% if health.docs_status.puc.days_left is not None %}{{ health.docs_status.puc.days_left }}d{% else %}N/A{% endif %}
+          </span>
+        </div>
+        <div class="text-[11px] text-slate-600 dark:text-slate-400 font-mono">{{ vehicle.pollution_expiry|date:"d M Y"|default:"Not recorded" }}</div>
+        <div class="text-[10px] text-slate-400 mt-1">Bharat Stage VI Sentry</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operational Activity & Assignment History -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Commute Shift Runs -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-building text-sky-500"></i>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Corporate Commute Runs</h3>
+        </div>
+        <span class="text-xs text-slate-400 font-mono">{{ commute_runs|length }} logged</span>
+      </div>
+
+      <div class="space-y-2">
+        {% for c in commute_runs %}
+        <div class="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-xs flex items-center justify-between">
+          <div>
+            <strong class="font-bold text-slate-800 dark:text-slate-200 block">{{ c.shift.route.name|default:"Corporate Transit Route" }}</strong>
+            <span class="text-[11px] text-slate-500">{{ c.date|date:"d M Y" }} &bull; Driver: {{ c.driver.name|default:"Unassigned" }} &bull; {{ c.passenger_count|default:12 }} Pax</span>
+          </div>
+          <div class="text-right">
+            <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold {% if c.status == 'completed' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% elif c.status == 'in_progress' %}bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300{% else %}bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+              {{ c.get_status_display|default:c.status|upper }}
+            </span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-6 text-slate-400 text-xs">No corporate commute shift logs recorded for this vehicle.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Recent Outstation Tours & Packages -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-umbrella-beach text-emerald-500"></i>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Outstation Tours &amp; Charters</h3>
+        </div>
+        <span class="text-xs text-slate-400 font-mono">{{ tour_trips|length }} logged</span>
+      </div>
+
+      <div class="space-y-2">
+        {% for t in tour_trips %}
+        <div class="p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-xs flex items-center justify-between">
+          <div>
+            <strong class="font-bold text-slate-800 dark:text-slate-200 block">Tour #{{ t.trip_id }} &bull; {{ t.guest_name }}</strong>
+            <span class="text-[11px] text-slate-500">{{ t.start_date|date:"d M" }} &rarr; {{ t.end_date|date:"d M Y" }} &bull; Driver: {{ t.driver.name|default:"Unassigned" }}</span>
+          </div>
+          <div class="text-right">
+            <span class="px-2 py-0.5 rounded font-mono text-[10px] font-bold {% if t.status == 'completed' %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300{% else %}bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300{% endif %}">
+              {{ t.status|upper }}
+            </span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-6 text-slate-400 text-xs">No outstation tour charters recorded for this vehicle.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: Log Odometer -->
+<div id="odometerModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden">
+    <div class="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-gauge-high text-primary"></i>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Log Odometer Reading</h3>
+      </div>
+      <button onclick="closeOdometerModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg">&times;</button>
+    </div>
+    <form onsubmit="submitOdometer(event)" class="p-5 space-y-4 text-xs">
+      {% csrf_token %}
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Current Logged Odometer</label>
+        <div class="p-2 rounded bg-slate-100 dark:bg-slate-800 font-mono font-bold text-slate-800 dark:text-slate-200">{{ vehicle.current_km|default:0 }} KM</div>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">New Odometer Reading (KM)</label>
+        <input type="number" id="newOdometerInput" min="{{ vehicle.current_km|default:0 }}" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-bold">
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeOdometerModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 dark:text-slate-300">Cancel</button>
+        <button type="submit" class="px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold">Update Odometer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Relocate Depot -->
+<div id="relocateModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-md overflow-hidden">
+    <div class="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-right-left text-amber-500"></i>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Relocate Vehicle Base Depot</h3>
+      </div>
+      <button onclick="closeRelocateModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-lg">&times;</button>
+    </div>
+    <form onsubmit="submitRelocation(event)" class="p-5 space-y-4 text-xs">
+      {% csrf_token %}
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Current Base Depot</label>
+        <div class="p-2 rounded bg-slate-100 dark:bg-slate-800 font-bold text-slate-800 dark:text-slate-200">{{ vehicle.base_depot }}</div>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">New Destination Depot</label>
+        <select id="destDepotSelect" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold">
+          {% for code, label in depot_choices %}
+            {% if code != vehicle.base_depot %}
+            <option value="{{ code }}">{{ label }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Relocation Reason</label>
+        <select id="relocateReasonSelect" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+          <option value="fleet_rebalance">Routine Network Rebalancing</option>
+          <option value="seasonal_peak">Seasonal Peak Demand (Ooty / Kodai)</option>
+          <option value="conclave_convoy">Corporate Conclave / Wedding Convoy</option>
+          <option value="workshop_overhaul">Major Workshop Overhaul</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <button type="button" onclick="closeRelocateModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-300 text-slate-700 dark:text-slate-300">Cancel</button>
+        <button type="submit" class="px-3.5 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold">Confirm Relocation</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openOdometerModal() { document.getElementById('odometerModal').classList.remove('hidden'); }
+function closeOdometerModal() { document.getElementById('odometerModal').classList.add('hidden'); }
+function openRelocateModal() { document.getElementById('relocateModal').classList.remove('hidden'); }
+function closeRelocateModal() { document.getElementById('relocateModal').classList.add('hidden'); }
+
+async function submitOdometer(e) {
+  e.preventDefault();
+  const km = document.getElementById('newOdometerInput').value;
+  try {
+    const resp = await fetch('{% url "api-vehicle-log-odometer" vehicle.id %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ odometer_km: km })
+    });
+    const data = await resp.json();
+    if (data.status === 'success') {
+      alert(`✅ ${data.message}`);
+      window.location.reload();
+    } else {
+      alert(`❌ ${data.message}`);
+    }
+  } catch (err) {
+    alert('Error updating odometer reading.');
+  }
+}
+
+async function submitRelocation(e) {
+  e.preventDefault();
+  const dest = document.getElementById('destDepotSelect').value;
+  const reason = document.getElementById('relocateReasonSelect').value;
+  try {
+    const resp = await fetch('{% url "api-vehicle-relocate" vehicle.id %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ destination_depot: dest, reason: reason })
+    });
+    const data = await resp.json();
+    if (data.status === 'success') {
+      alert(`✅ ${data.message}`);
+      window.location.reload();
+    } else {
+      alert(`❌ ${data.message}`);
+    }
+  } catch (err) {
+    alert('Error submitting vehicle relocation.');
+  }
+}
+
+async function toggleDispatchLock() {
+  const isCurrentlyCleared = {{ health.is_cleared|yesno:"true,false" }};
+  const action = isCurrentlyCleared ? 'lock' : 'unlock';
+  const reason = prompt(isCurrentlyCleared ? "Enter reason for dispatch locking this vehicle:" : "Enter justification for clearing this vehicle for dispatch:");
+  if (reason === null) return;
+
+  try {
+    const resp = await fetch('{% url "api-vehicle-dispatch-lock" vehicle.id %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({ action: action, reason: reason })
+    });
+    const data = await resp.json();
+    if (data.status === 'success') {
+      alert(`✅ ${data.message}`);
+      window.location.reload();
+    } else {
+      alert(`❌ ${data.message}`);
+    }
+  } catch (err) {
+    alert('Error toggling vehicle dispatch lock.');
+  }
+}
+</script>
+{% endblock %}
+

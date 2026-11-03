@@ -333,6 +333,15 @@
             <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-vehicles-roster' %}is-active{% endif %}" href="{% url 'fleet-vehicles-roster' %}">
               <span>Fleet Vehicles Roster</span>
             </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-allocation-studio' %}is-active{% endif %}" href="{% url 'fleet-allocation-studio' %}">
+              <span>Fleet Allocation Studio</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-health-sentry' %}is-active{% endif %}" href="{% url 'fleet-health-sentry' %}">
+              <span>Health &amp; PM Sentry</span>
+            </a>
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-odometer-ledger' %}is-active{% endif %}" href="{% url 'fleet-odometer-ledger' %}">
+              <span>Odometer Ledger</span>
+            </a>
             <a class="unfold-nav-item {% if request.resolver_match.url_name == 'fleet-drivers-roster' %}is-active{% endif %}" href="{% url 'fleet-drivers-roster' %}">
               <span>Fleet Drivers Roster</span>
             </a>

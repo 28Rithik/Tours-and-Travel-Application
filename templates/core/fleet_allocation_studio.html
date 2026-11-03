@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Fleet Allocation &amp; Transit Capacity Studio | Sivagayathiri TravelERP{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Unfold Top Breadcrumbs & Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet-vehicles-roster' %}" class="hover:text-primary transition">Fleet Operations</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Fleet Allocation Studio</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Fleet Allocation &amp; Capacity Studio</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+          2,200+ Commercial Assets
+        </span>
+      </h1>
+    </div>
+
+    <!-- Actions & Hub Selector -->
+    <div class="flex items-center gap-2">
+      {% if can_change_depot %}
+      <select onchange="window.location.href='?depot=' + encodeURIComponent(this.value)" class="text-xs font-bold py-1.5 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-primary">
+        <option value="" {% if not current_depot %}selected{% endif %}>🌐 Global Fleet (All Hubs)</option>
+        {% for code, label in depot_choices %}
+        <option value="{{ code }}" {% if current_depot == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+
+      <a href="{% url 'fleet-vehicles-roster' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-list"></i>
+        <span>Vehicle Roster</span>
+      </a>
+
+      <a href="{% url 'operations-fleet-radar' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-satellite-dish"></i>
+        <span>Live Radar</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Allocation Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Total Monitored Fleet</div>
+      <div class="kpi-number">{{ counts.total }}</div>
+      <div class="kpi-sub">Total assets in registry</div>
+      <span class="material-symbols-outlined kpi-bg-icon">directions_bus</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Corporate Commute</div>
+      <div class="kpi-number">{{ counts.commute }}</div>
+      <div class="kpi-sub">Committed to IT Shift runs</div>
+      <span class="material-symbols-outlined kpi-bg-icon">business_center</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid purple">
+      <div class="kpi-label">Tourism &amp; Charters</div>
+      <div class="kpi-number">{{ counts.tours }}</div>
+      <div class="kpi-sub">Outstation &amp; holiday packages</div>
+      <span class="material-symbols-outlined kpi-bg-icon">beach_access</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Depot Standby Float</div>
+      <div class="kpi-number">{{ counts.standby }}</div>
+      <div class="kpi-sub">Ready yard reserve capacity</div>
+      <span class="material-symbols-outlined kpi-bg-icon">local_parking</span>
+    </div>
+
+    <div class="unfold-kpi-card-solid rose">
+      <div class="kpi-label">Workshop Hold</div>
+      <div class="kpi-number">{{ counts.workshop }}</div>
+      <div class="kpi-sub">Service or snag grounded</div>
+      <span class="material-symbols-outlined kpi-bg-icon">build</span>
+    </div>
+  </div>
+
+  <!-- Vertical Tabs Navigation -->
+  <div class="border-b border-slate-200 dark:border-slate-800">
+    <nav class="flex space-x-6 overflow-x-auto">
+      <button onclick="switchTab('commute')" id="btnTabCommute" class="pb-3 text-sm font-bold border-b-2 border-primary text-primary whitespace-nowrap">
+        🏢 Corporate IT Shifts ({{ counts.commute }})
+      </button>
+      <button onclick="switchTab('tours')" id="btnTabTours" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 whitespace-nowrap">
+        🏖️ Tourism Charters ({{ counts.tours }})
+      </button>
+      <button onclick="switchTab('standby')" id="btnTabStandby" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 whitespace-nowrap">
+        ⚓ Depot Standby Float ({{ counts.standby }})
+      </button>
+      <button onclick="switchTab('workshop')" id="btnTabWorkshop" class="pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 whitespace-nowrap">
+        🔧 Workshop Hold ({{ counts.workshop }})
+      </button>
+    </nav>
+  </div>
+
+  <!-- Tab 1: Corporate Commute -->
+  <div id="sectionCommute" class="allocation-section space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for c in active_commutes %}
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <div class="flex items-start justify-between">
+          <div>
+            <a href="{% url 'fleet-vehicle-detail' c.vehicle.id %}" class="font-mono font-bold text-sm text-primary hover:underline">
+              {{ c.vehicle.registration_number }}
+            </a>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ c.vehicle.brand }} {{ c.vehicle.model }} &bull; {{ c.vehicle.seating_capacity }}s</div>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+            {{ c.status|upper }}
+          </span>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs space-y-1">
+          <div class="font-bold text-slate-800 dark:text-slate-200">{{ c.shift.route.name|default:"Corporate Transit Route" }}</div>
+          <div class="text-[11px] text-slate-500">📍 {{ c.shift.route.origin|default:"Coimbatore Hub" }} &rarr; 🎯 {{ c.shift.route.destination|default:"IT Park" }}</div>
+          <div class="text-[11px] text-slate-600 dark:text-slate-300 flex items-center justify-between pt-1">
+            <span>👨‍✈️ {{ c.driver.name|default:"Unassigned" }}</span>
+            <span class="font-mono font-bold text-primary">{{ c.passenger_count|default:12 }} Pax</span>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center py-12 text-slate-400 text-sm">No corporate shift runs currently allocated for today.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tab 2: Tourism & Outstation Charters -->
+  <div id="sectionTours" class="allocation-section space-y-4 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for t in active_tours %}
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+        <div class="flex items-start justify-between">
+          <div>
+            <a href="{% url 'fleet-vehicle-detail' t.vehicle.id %}" class="font-mono font-bold text-sm text-primary hover:underline">
+              {{ t.vehicle.registration_number }}
+            </a>
+            <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ t.vehicle.brand }} {{ t.vehicle.model }}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+            TOUR #{{ t.trip_id }}
+          </span>
+        </div>
+        <div class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs space-y-1">
+          <div class="font-bold text-slate-800 dark:text-slate-200">{{ t.guest_name }}</div>
+          <div class="text-[11px] text-slate-500">{{ t.start_date|date:"d M" }} &rarr; {{ t.end_date|date:"d M Y" }}</div>
+          <div class="text-[11px] text-slate-600 dark:text-slate-300 pt-1">
+            👨‍✈️ {{ t.driver.name|default:"Unassigned Chauffeur" }}
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center py-12 text-slate-400 text-sm">No outstation tour charters currently active.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tab 3: Standby Float -->
+  <div id="sectionStandby" class="allocation-section space-y-4 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {% for v in standby_vehicles %}
+      <div class="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <a href="{% url 'fleet-vehicle-detail' v.id %}" class="font-mono font-bold text-xs text-primary hover:underline">
+            {{ v.registration_number }}
+          </a>
+          <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+            {{ v.seating_capacity }}s
+          </span>
+        </div>
+        <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ v.brand }} {{ v.model }}</div>
+        <div class="text-[11px] text-slate-500">Yard: <strong>{{ v.base_depot }}</strong></div>
+        <div class="pt-1 border-t border-slate-100 dark:border-slate-800 flex justify-between text-[11px]">
+          <span class="text-slate-400">{{ v.current_km|default:0 }} KM</span>
+          <span class="text-emerald-600 font-bold">🟢 Standby Ready</span>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-4 text-center py-12 text-slate-400 text-sm">All vehicles currently assigned; zero idle standby float.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tab 4: Workshop Hold -->
+  <div id="sectionWorkshop" class="allocation-section space-y-4 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for v in workshop_vehicles %}
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900 shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <a href="{% url 'fleet-vehicle-detail' v.id %}" class="font-mono font-bold text-sm text-rose-600 hover:underline">
+            {{ v.registration_number }}
+          </a>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+            GROUNDED
+          </span>
+        </div>
+        <div class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ v.brand }} {{ v.model }}</div>
+        <div class="text-[11px] text-slate-500">Service Bay: {{ v.base_depot }} Workshop</div>
+        <div class="text-[11px] text-rose-600 font-medium">⚠️ Under inspection / open snag ticket</div>
+      </div>
+      {% empty %}
+      <div class="col-span-3 text-center py-12 text-emerald-600 text-sm font-semibold">Zero vehicles grounded in workshop. 100% fleet operational readiness!</div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.allocation-section').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('nav button').forEach(btn => {
+    btn.classList.remove('border-primary', 'text-primary', 'font-bold');
+    btn.classList.add('border-transparent', 'text-slate-500', 'font-semibold');
+  });
+
+  if (tab === 'commute') {
+    document.getElementById('sectionCommute').classList.remove('hidden');
+    document.getElementById('btnTabCommute').classList.add('border-primary', 'text-primary', 'font-bold');
+  } else if (tab === 'tours') {
+    document.getElementById('sectionTours').classList.remove('hidden');
+    document.getElementById('btnTabTours').classList.add('border-primary', 'text-primary', 'font-bold');
+  } else if (tab === 'standby') {
+    document.getElementById('sectionStandby').classList.remove('hidden');
+    document.getElementById('btnTabStandby').classList.add('border-primary', 'text-primary', 'font-bold');
+  } else if (tab === 'workshop') {
+    document.getElementById('sectionWorkshop').classList.remove('hidden');
+    document.getElementById('btnTabWorkshop').classList.add('border-primary', 'text-primary', 'font-bold');
+  }
+}
+</script>
+{% endblock %}
+
