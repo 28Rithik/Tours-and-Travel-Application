@@ -852,18 +852,77 @@
 div[id*="Modal"].hidden,
 div[id*="modal"].hidden,
 div[id*="Modal"][class*="hidden"],
-div[id*="modal"][class*="hidden"] {
+div[id*="modal"][class*="hidden"],
+div[id^="tab"].hidden,
+section[id^="tab"].hidden {
   display: none !important;
 }
 
-/* Active modal container overlay */
-.fixed.inset-0:not(.hidden) {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  z-index: 50 !important;
+/* Universal Button Reset & Base Styling (No ugly Windows 95 bevels) */
+button {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  text-align: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Tab Navigation Buttons */
+nav button,
+.tab-btn,
+button[id^="tabBtn"],
+button[id*="tab"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 10px 18px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  border-radius: 0 !important;
+  transition: all 0.15s ease !important;
+}
+nav button:hover,
+button[id^="tabBtn"]:hover {
+  color: #0284c7 !important;
+}
+nav button.active,
+button[id^="tabBtn"].border-emerald-500,
+button[id^="tabBtn"].border-primary,
+button[id^="tabBtn"].text-emerald-600,
+button[id^="tabBtn"].text-primary {
+  color: #0284c7 !important;
+  border-bottom: 2px solid #0284c7 !important;
+  font-weight: 700 !important;
+}
+html.dark nav button,
+html.dark button[id^="tabBtn"] {
+  color: #94a3b8 !important;
+}
+html.dark nav button.active,
+html.dark button[id^="tabBtn"].border-emerald-500,
+html.dark button[id^="tabBtn"].border-primary {
+  color: #38bdf8 !important;
+  border-bottom: 2px solid #38bdf8 !important;
+}
+
+/* Universal strict hidden rule */
+.hidden,
+[hidden],
+.modal.hidden,
+div.hidden {
+  display: none !important;
 }
 
 /* ── 2. Primary Brand Color Utilities ── */
@@ -1082,3 +1141,98 @@ html.dark .dark\:text-slate-300,
 .dark .dark\:text-slate-300 { color: #cbd5e1 !important; }
 html.dark .dark\:text-slate-400,
 .dark .dark\:text-slate-400 { color: #94a3b8 !important; }
+
+
+/* ── 6. Universal Flexbox & Layout Utilities ── */
+.flex { display: flex !important; }
+.inline-flex { display: inline-flex !important; }
+.flex-col { flex-direction: column !important; }
+.flex-row { flex-direction: row !important; }
+.items-center { align-items: center !important; }
+.items-start { align-items: flex-start !important; }
+.items-end { align-items: flex-end !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-center { justify-content: center !important; }
+.justify-end { justify-content: flex-end !important; }
+.flex-1 { flex: 1 1 0% !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+
+/* ── 7. Essential Visual & Sizing Utilities ── */
+.w-full { width: 100% !important; }
+.max-w-7xl { max-width: 80rem !important; }
+.max-w-md { max-width: 28rem !important; }
+.max-w-lg { max-width: 32rem !important; }
+.max-w-xl { max-width: 36rem !important; }
+.max-w-2xl { max-width: 42rem !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.overflow-hidden { overflow: hidden !important; }
+.overflow-x-auto { overflow-x: auto !important; }
+.rounded-lg { border-radius: 8px !important; }
+.rounded-xl { border-radius: 12px !important; }
+.rounded-2xl { border-radius: 16px !important; }
+.rounded-3xl { border-radius: 24px !important; }
+.rounded-full { border-radius: 9999px !important; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
+.shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important; }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1) !important; }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important; }
+.border { border-width: 1px !important; }
+.border-b { border-bottom-width: 1px !important; }
+.border-t { border-top-width: 1px !important; }
+.border-2 { border-width: 2px !important; }
+
+/* Backgrounds */
+.bg-white { background-color: #ffffff !important; }
+.bg-slate-50 { background-color: #f8fafc !important; }
+.bg-slate-100 { background-color: #f1f5f9 !important; }
+.bg-slate-900 { background-color: #0f172a !important; }
+.bg-slate-950 { background-color: #020617 !important; }
+.bg-emerald-600 { background-color: #059669 !important; }
+.bg-emerald-500 { background-color: #10b981 !important; }
+.bg-teal-600 { background-color: #0d9488 !important; }
+
+/* ── 8. Filter Sidebars & Lists ── */
+.filter-item,
+a.filter-item {
+  display: block !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  color: #475569 !important;
+  transition: all 0.15s ease !important;
+}
+.filter-item:hover {
+  background: #f1f5f9 !important;
+  color: #0284c7 !important;
+}
+.filter-item.active,
+.filter-item.text-primary {
+  background: #e0f2fe !important;
+  color: #0284c7 !important;
+  font-weight: 700 !important;
+}
+html.dark .filter-item {
+  color: #94a3b8 !important;
+}
+html.dark .filter-item:hover {
+  background: #1e293b !important;
+  color: #38bdf8 !important;
+}
+html.dark .filter-item.active,
+html.dark .filter-item.text-primary {
+  background: rgba(2, 132, 199, 0.2) !important;
+  color: #38bdf8 !important;
+}
+
+ul.filter-list,
+.filter-group ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+ul.filter-list li,
+.filter-group ul li {
+  margin-bottom: 4px !important;
+}

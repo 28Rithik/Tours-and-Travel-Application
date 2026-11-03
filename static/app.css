@@ -227,18 +227,42 @@ h4 { font-size: 1.05rem; }
 
 [style*="background: #1e293b"] p,
 [style*="background: #0f172a"] p,
-.text-white,
-.text-white h1,
-.text-white h2,
-.text-white h3,
-.text-white h4,
-[class*="from-slate-900"] h1,
-[class*="from-slate-900"] h2,
-[class*="from-slate-900"] h3,
-[class*="bg-slate-900"] h1,
-[class*="bg-slate-900"] h2,
-[class*="bg-slate-900"] h3 {
+html.dark .text-white,
+html.dark [class*="bg-slate-900"] h1,
+html.dark [class*="bg-slate-900"] h2,
+html.dark [class*="bg-slate-900"] h3,
+html.dark [class*="from-slate-900"] h1,
+html.dark [class*="from-slate-900"] h2,
+html.dark [class*="from-slate-900"] h3,
+.admin-dark-hero,
+.admin-dark-hero h1,
+.admin-dark-hero h2,
+.admin-dark-hero h3,
+[style*="background: #0f172a"] h1,
+[style*="background: #0f172a"] h2,
+[style*="background: #0f172a"] h3,
+[style*="background: #1e293b"] h1,
+[style*="background: #1e293b"] h2,
+[style*="background: #1e293b"] h3 {
   color: #ffffff !important;
+}
+
+/* In light mode, ensure elements on light backgrounds NEVER have white text */
+html:not(.dark) .bg-white h1,
+html:not(.dark) .bg-white h2,
+html:not(.dark) .bg-white h3,
+html:not(.dark) .bg-white h4,
+html:not(.dark) .permit-card h1,
+html:not(.dark) .permit-card h2,
+html:not(.dark) .permit-card h3,
+html:not(.dark) [class*="bg-white"] h1,
+html:not(.dark) [class*="bg-white"] h2,
+html:not(.dark) [class*="bg-white"] h3,
+html:not(.dark) [class*="bg-white"] h4,
+html:not(.dark) [class*="bg-slate-50"] h1,
+html:not(.dark) [class*="bg-slate-50"] h2,
+html:not(.dark) [class*="bg-slate-50"] h3 {
+  color: #0f172a !important;
 }
 [style*="background: #0f172a"] p {
   color: #94a3b8 !important;

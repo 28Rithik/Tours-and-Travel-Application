@@ -388,7 +388,7 @@
 </style>
 
 <!-- Modal Overlay -->
-<div id="smartLeadModalOverlay">
+<div id="smartLeadModalOverlay" class="hidden">
   <div class="lead-modal-container">
     
     <!-- Header -->
@@ -694,7 +694,10 @@ Need Innova Crysta for 3 days from Coimbatore to Munnar starting 28th Oct, 5 pax
   function openSmartLeadModal() {
     const overlay = document.getElementById('smartLeadModalOverlay');
     if (overlay) {
+      overlay.classList.remove('hidden');
       overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden', 'false');
+    }
       // Set default dates if empty
       const today = new Date();
       const tomorrow = new Date(today);
@@ -719,7 +722,11 @@ Need Innova Crysta for 3 days from Coimbatore to Munnar starting 28th Oct, 5 pax
 
   function closeSmartLeadModal() {
     const overlay = document.getElementById('smartLeadModalOverlay');
-    if (overlay) overlay.style.display = 'none';
+    if (overlay) {
+      overlay.classList.add('hidden');
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
+    }
   }
 
   function switchLeadTab(tab) {
