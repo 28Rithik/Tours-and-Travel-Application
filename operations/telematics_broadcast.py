@@ -11,6 +11,8 @@ from channels.layers import get_channel_layer
 from core.models import Vehicle, Driver
 from core.depot_scoping import get_user_depot_scope, get_scoped_vehicles
 from operations.models import Trip, VehicleTelematicsPing, EmergencyIncidentAlert, GeofenceZone, DriverBehaviorLog
+from fleet_contracts.models import ContractTripLog
+from driver_portal.models import RouteIssueReport
 from operations.services import calculate_haversine_distance_meters
 from maintenance.models import DefectTicket, PreTripInspectionChecklist
 from analytics.models import DriverScorecard
@@ -36,6 +38,131 @@ DESTINATION_COORDINATES = {
     'tiruchirappalli': (10.7905, 78.7047),
     'pondicherry': (11.9416, 79.8083),
 }
+
+
+
+def build_trip_monitoring_payload(user=None, depot_param=None) -> Dict[str, Any]:
+    """
+    Constructs the Airport Flight Information Display System (FIDS) payload for Trip Monitoring:
+    Categorizes trips into Active, Delayed, Unstarted, and Completed lists.
+    """
+    today = timezone.now().date()
+    depot_scope = get_user_depot_scope(user, depot_param)
+    scoped_vehicles = get_scoped_vehicles(user, depot_param)
+    scoped_vids = set(scoped_vehicles.values_list('id', flat=True))
+
+    commute_qs = ContractTripLog.objects.filter(
+        date=today,
+        vehicle_id__in=scoped_vids
+    ).select_related('shift__route', 'vehicle', 'driver').prefetch_related('route_issues')
+
+    tour_qs = Trip.objects.filter(
+        start_date=today,
+        vehicle_id__in=scoped_vids
+    ).select_related('vehicle', 'driver', 'booking')
+
+    active_list = []
+    delayed_list = []
+    unstarted_list = []
+    completed_list = []
+
+    for c in commute_qs:
+        route_name = c.shift.route.name if c.shift and c.shift.route else "Corporate Staff Commute"
+        origin = c.shift.route.origin if c.shift and c.shift.route else "Coimbatore Depot"
+        destination = c.shift.route.destination if c.shift and c.shift.route else "TIDEL / KGISL IT Park"
+        delay_min = c.delay_minutes or 0
+        latest_issue = c.route_issues.order_by('-reported_at').first()
+        if latest_issue and latest_issue.status in ['reported', 'acknowledged']:
+            delay_min = max(delay_min, latest_issue.delay_minutes)
+
+        trip_dict = {
+            'id': f"COMMUTE-{c.id}",
+            'pk': c.id,
+            'type': 'commute',
+            'title': route_name,
+            'shift': c.shift.shift_name if c.shift else 'Daily Shift',
+            'origin': origin,
+            'destination': destination,
+            'vehicle_reg': c.vehicle.registration_number if c.vehicle else 'Unassigned',
+            'vehicle_model': f"{c.vehicle.brand} {c.vehicle.model}" if c.vehicle else '',
+            'driver_name': c.driver.name if c.driver else 'Unassigned',
+            'driver_phone': c.driver.phone if c.driver else '',
+            'pax_count': c.passenger_count or 12,
+            'scheduled_time': c.scheduled_departure_time.strftime('%I:%M %p') if c.scheduled_departure_time else '07:45 AM',
+            'actual_departure': c.actual_departure_time.strftime('%I:%M %p') if c.actual_departure_time else '',
+            'actual_arrival': c.actual_arrival_time.strftime('%I:%M %p') if c.actual_arrival_time else '',
+            'status': c.status,
+            'status_label': c.get_status_display(),
+            'delay_minutes': delay_min,
+            'delay_reason': c.delay_reason or (latest_issue.notes if latest_issue else ''),
+            'opening_km': c.opening_km or 0,
+            'closing_km': c.closing_km or 0,
+            'distance_km': (c.closing_km - c.opening_km) if c.closing_km and c.opening_km and c.closing_km >= c.opening_km else (c.shift.route.distance_km if c.shift and c.shift.route else 18),
+        }
+
+        if c.status == 'completed':
+            completed_list.append(trip_dict)
+        elif delay_min > 0 and c.status in ['in_progress', 'assigned']:
+            delayed_list.append(trip_dict)
+            if c.status == 'in_progress':
+                active_list.append(trip_dict)
+        elif c.status in ['in_progress']:
+            active_list.append(trip_dict)
+        else:
+            unstarted_list.append(trip_dict)
+
+    for t in tour_qs:
+        delay_min = getattr(t, 'delay_minutes', 0)
+        trip_dict = {
+            'id': f"TRP-{t.trip_id}",
+            'pk': t.id,
+            'type': 'tour',
+            'title': f"Tour #{t.trip_id} - {t.guest_name}",
+            'shift': 'Outstation Tour',
+            'origin': t.pickup_location or 'Main Terminal',
+            'destination': t.destination or 'Outstation Hub',
+            'vehicle_reg': t.vehicle.registration_number if t.vehicle else 'Unassigned',
+            'vehicle_model': f"{t.vehicle.brand} {t.vehicle.model}" if t.vehicle else '',
+            'driver_name': t.driver.name if t.driver else 'Unassigned',
+            'driver_phone': t.driver.phone if t.driver else '',
+            'pax_count': t.pax_count or 4,
+            'scheduled_time': t.start_time.strftime('%I:%M %p') if t.start_time else '09:00 AM',
+            'actual_departure': t.start_time.strftime('%I:%M %p') if t.start_time else '',
+            'actual_arrival': t.end_time.strftime('%I:%M %p') if t.end_time else '',
+            'status': t.status,
+            'status_label': t.get_status_display(),
+            'delay_minutes': delay_min,
+            'delay_reason': t.partner_handover_notes or '',
+            'opening_km': t.opening_km or 0,
+            'closing_km': t.closing_km or 0,
+            'distance_km': (t.closing_km - t.opening_km) if t.closing_km and t.opening_km and t.closing_km >= t.opening_km else 0,
+        }
+
+        if t.status == 'completed':
+            completed_list.append(trip_dict)
+        elif delay_min > 0 and t.status in ['started', 'assigned']:
+            delayed_list.append(trip_dict)
+            if t.status == 'started':
+                active_list.append(trip_dict)
+        elif t.status == 'started':
+            active_list.append(trip_dict)
+        else:
+            unstarted_list.append(trip_dict)
+
+    return {
+        'status': 'success',
+        'counts': {
+            'active': len(active_list),
+            'delayed': len(delayed_list),
+            'unstarted': len(unstarted_list),
+            'completed': len(completed_list),
+            'total': len(active_list) + len(unstarted_list) + len(completed_list),
+        },
+        'active_trips': active_list,
+        'delayed_trips': delayed_list,
+        'unstarted_trips': unstarted_list,
+        'completed_trips': completed_list,
+    }
 
 
 def build_fleet_live_feed_payload(user=None, depot_param=None) -> Dict[str, Any]:
@@ -80,6 +207,14 @@ def build_fleet_live_feed_payload(user=None, depot_param=None) -> Dict[str, Any]
     ).select_related('driver', 'booking', 'vehicle')
     trip_by_vehicle = {t.vehicle_id: t for t in active_trips if t.vehicle_id}
 
+    # Active corporate commute logs
+    active_commute_logs = ContractTripLog.objects.filter(
+        date=now.date(),
+        status__in=['assigned', 'in_progress'],
+        vehicle_id__in=scoped_vehicle_ids
+    ).select_related('shift__route', 'driver', 'vehicle').prefetch_related('route_issues')
+    commute_by_vehicle = {c.vehicle_id: c for c in active_commute_logs if c.vehicle_id}
+
     # Recent trips in 5 days
     recent_trip_vehicle_ids = set(
         Trip.objects.filter(start_date__gte=five_days_ago, vehicle_id__in=scoped_vehicle_ids).values_list('vehicle_id', flat=True)
@@ -113,6 +248,7 @@ def build_fleet_live_feed_payload(user=None, depot_param=None) -> Dict[str, Any]
 
     vehicle_list = []
     active_count = 0
+    delayed_count = 0
     standby_count = 0
     workshop_count = 0
     idle_count = 0
@@ -138,21 +274,39 @@ def build_fleet_live_feed_payload(user=None, depot_param=None) -> Dict[str, Any]
         )
         has_recent_trip = (v.id in recent_trip_vehicle_ids) or (active_trip is not None)
 
+        active_commute = commute_by_vehicle.get(v.id)
+        has_active_run = (active_trip is not None) or (active_commute is not None)
+        has_recent_trip = (v.id in recent_trip_vehicle_ids) or has_active_run
+
         if incident:
             status_code = 'sos_alert'
             status_label = f"🔴 SOS: {incident.get_incident_type_display()}"
             status_color = "#ef4444"
             sos_count += 1
+        elif has_active_run:
+            trip_delay = 0
+            if active_trip and getattr(active_trip, 'delay_minutes', 0) > 0:
+                trip_delay = active_trip.delay_minutes
+            elif active_commute:
+                trip_delay = active_commute.delay_minutes or 0
+                if not trip_delay and active_commute.route_issues.filter(status__in=['reported', 'acknowledged']).exists():
+                    trip_delay = 15
+
+            if trip_delay > 0:
+                status_code = 'delayed'
+                status_label = f"🟡 Delayed (+{trip_delay}m)"
+                status_color = "#eab308"
+                delayed_count += 1
+            else:
+                status_code = 'on_trip'
+                status_label = "🟢 On Trip"
+                status_color = "#10b981"
+                active_count += 1
         elif in_workshop:
             status_code = 'workshop'
             status_label = "🟠 In Workshop / Grounded"
-            status_color = "#f59e0b"
+            status_color = "#f97316"
             workshop_count += 1
-        elif active_trip:
-            status_code = 'on_trip'
-            status_label = "🟢 On Trip"
-            status_color = "#10b981"
-            active_count += 1
         elif not has_recent_trip:
             status_code = 'idle'
             status_label = "⚪ Idle (>5 Days)"
@@ -382,7 +536,10 @@ def build_fleet_live_feed_payload(user=None, depot_param=None) -> Dict[str, Any]
         },
         "summary": {
             "total_vehicles": len(vehicle_list),
+            "running_count": active_count + delayed_count,
             "active_count": active_count,
+            "delayed_count": delayed_count,
+            "waiting_count": standby_count + idle_count,
             "standby_count": standby_count,
             "workshop_count": workshop_count,
             "idle_count": idle_count,
@@ -391,6 +548,7 @@ def build_fleet_live_feed_payload(user=None, depot_param=None) -> Dict[str, Any]
             "active_alerts_count": len(incidents_list),
             "violations_count": len(recent_violations),
         },
+        "trip_monitoring": build_trip_monitoring_payload(user, depot_param),
         "vehicles": vehicle_list,
         "active_incidents": incidents_list,
         "recent_violations": recent_violations,

@@ -861,16 +861,89 @@ def fleet_live_mission_control(request):
         active_incidents = active_incidents.filter(vehicle_id__in=scoped_vehicle_ids)
     geofences = GeofenceZone.objects.filter(is_active=True)
 
+    from operations.telematics_broadcast import build_trip_monitoring_payload
+    trip_monitoring = build_trip_monitoring_payload(user=request.user, depot_param=depot_param)
+
     return render(request, 'operations/fleet_live_mission_control.html', {
         'total_vehicles_count': vehicles.count(),
         'standby_vehicles': standby_vehicles,
         'active_incidents': active_incidents,
         'geofences': geofences,
+        'trip_monitoring': trip_monitoring,
         'is_admin_radar': False,
         'depot_scope': depot_scope,
         'current_depot': depot_scope['effective_depot'],
         'can_change_depot': depot_scope['can_change_depot'],
     })
+
+
+@login_required
+def api_trip_monitoring_feed(request):
+    """
+    REST endpoint returning real-time Airport FIDS trip monitoring payload:
+    Active Trips, Delayed Trips, Unstarted Trips, and Completed Trips.
+    """
+    from operations.telematics_broadcast import build_trip_monitoring_payload
+    payload = build_trip_monitoring_payload(user=request.user, depot_param=request.GET.get('depot'))
+    return JsonResponse(payload)
+
+
+@login_required
+def api_trip_standby_swap(request):
+    """
+    Emergency Trip Recovery / Standby Swap:
+    Reassigns an available standby vehicle (and optional relief driver) to a delayed or broken trip/commute run.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST method required'}, status=405)
+
+    import json
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        data = request.POST
+
+    trip_type = data.get('trip_type', 'commute')
+    trip_id = data.get('trip_id')
+    standby_vehicle_id = data.get('standby_vehicle_id')
+    relief_driver_id = data.get('driver_id')
+    reason = data.get('reason', 'Route delay mitigation / Standby relief')
+
+    if not trip_id or not standby_vehicle_id:
+        return JsonResponse({'status': 'error', 'message': 'trip_id and standby_vehicle_id are required'}, status=400)
+
+    from core.models import Vehicle, Driver
+    standby_v = get_object_or_404(Vehicle, id=standby_vehicle_id)
+    relief_d = Driver.objects.filter(id=relief_driver_id).first() if relief_driver_id else standby_v.default_driver
+
+    if trip_type == 'commute':
+        from fleet_contracts.models import ContractTripLog
+        commute_run = get_object_or_404(ContractTripLog, id=trip_id)
+        old_reg = commute_run.vehicle.registration_number if commute_run.vehicle else 'Unassigned'
+        commute_run.vehicle = standby_v
+        if relief_d:
+            commute_run.driver = relief_d
+        commute_run.delay_reason = f"{commute_run.delay_reason or ''} [Standby Swapped to {standby_v.registration_number}]".strip()
+        commute_run.save(update_fields=['vehicle', 'driver', 'delay_reason'])
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Commute Run #{trip_id} successfully swapped from {old_reg} to standby vehicle {standby_v.registration_number}.",
+            'vehicle_reg': standby_v.registration_number,
+            'driver_name': relief_d.name if relief_d else 'Unassigned'
+        })
+    else:
+        trip = get_object_or_404(Trip, id=trip_id)
+        old_reg = trip.vehicle.registration_number if trip.vehicle else 'Unassigned'
+        trip.vehicle = standby_v
+        if relief_d:
+            trip.driver = relief_d
+        trip.save(update_fields=['vehicle', 'driver'])
+        return JsonResponse({
+            'status': 'success',
+            'message': f"Trip #{trip.trip_id} successfully swapped from {old_reg} to standby vehicle {standby_v.registration_number}.",
+            'vehicle_reg': standby_v.registration_number,
+            'driver_name': relief_d.name if relief_d else 'Unassigned'
+        })
 
 
 @login_required

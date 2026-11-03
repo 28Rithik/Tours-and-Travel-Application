@@ -33,6 +33,11 @@
                 <span class="mc-kpi-val" id="kpiActiveCount">--</span>
                 <span class="mc-kpi-lbl">On Duty</span>
             </div>
+            <div class="mc-kpi-pill is-delayed" title="Delayed Behind Schedule (>15m)">
+                <span class="mc-kpi-icon">🟡</span>
+                <span class="mc-kpi-val" id="kpiDelayedCount">{{ trip_monitoring.counts.delayed|default:0 }}</span>
+                <span class="mc-kpi-lbl">Delayed</span>
+            </div>
             <div class="mc-kpi-pill is-standby" title="Available in Depot Yard">
                 <span class="mc-kpi-icon">🔵</span>
                 <span class="mc-kpi-val" id="kpiStandbyCount">--</span>
@@ -51,6 +56,9 @@
         </div>
 
         <div class="mc-header-actions">
+            <button id="btnOpenFidsWall" type="button" class="mc-btn" style="background: linear-gradient(135deg, #0284c7, #3b82f6); color: #fff; font-weight: 700;" onclick="toggleFidsWall(true)" title="Launch Fullscreen Airport FIDS Flight Information Display">
+                ✈️ FIDS Wall Board
+            </button>
             <button id="btnDevPauseMap" class="mc-btn" title="Developer Mode: Toggle map auto-loading and background polling" style="border: 1px dashed #f59e0b; color: #fbbf24; background: rgba(245, 158, 11, 0.12); font-weight: 700;">
                 <span id="devPauseIcon">⏸️</span> <span id="devPauseText">Dev: Map Paused</span>
             </button>
@@ -93,6 +101,7 @@
         <div class="mc-filter-pills" id="statusFilterPills">
             <button class="filter-pill is-active" data-filter="all">All Vehicles (<span id="countPillAll">0</span>)</button>
             <button class="filter-pill" data-filter="on_trip">🟢 Moving (<span id="countPillActive">0</span>)</button>
+            <button class="filter-pill" data-filter="delayed">🟡 Delayed (<span id="countPillDelayed">{{ trip_monitoring.counts.delayed|default:0 }}</span>)</button>
             <button class="filter-pill" data-filter="standby">🔵 Standby (<span id="countPillStandby">0</span>)</button>
             <button class="filter-pill" data-filter="workshop">🟠 Workshop (<span id="countPillWorkshop">0</span>)</button>
             <button class="filter-pill" data-filter="sos_alert">🔴 SOS Alert (<span id="countPillSos">0</span>)</button>
@@ -157,6 +166,7 @@
             <!-- Map Floating Legend Overlay -->
             <div class="mc-map-legend">
                 <div class="legend-row"><span class="legend-dot green"></span> Moving On Trip</div>
+                <div class="legend-row"><span class="legend-dot yellow"></span> Delayed (>15m)</div>
                 <div class="legend-row"><span class="legend-dot blue"></span> Ready Standby</div>
                 <div class="legend-row"><span class="legend-dot orange"></span> Maintenance / Defect</div>
                 <div class="legend-row"><span class="legend-dot red pulsing"></span> SOS / Breakdown</div>
@@ -167,6 +177,7 @@
         <aside class="mc-sidebar" id="mcSidebar">
             <div class="mc-tab-headers">
                 <button class="mc-tab-btn is-active" data-tab="telemetry">⚡ Telemetry</button>
+                <button class="mc-tab-btn" data-tab="trips">✈️ Trip Desk (<span id="tripMonitoringCount">{{ trip_monitoring.counts.total|default:0 }}</span>)</button>
                 <button class="mc-tab-btn" data-tab="roster">📋 Fleet List (<span id="rosterListCount">0</span>)</button>
                 <button class="mc-tab-btn" data-tab="safety">🛡️ Safety Ticker (<span id="safetyEventsCount">0</span>)</button>
             </div>
@@ -328,6 +339,23 @@
                 </div>
             </div>
 
+
+            <!-- Tab: Trip Monitoring Desk (Airport FIDS) -->
+            <div class="mc-tab-content" id="tabContentTrips">
+                <div class="fids-desk-header">
+                    <div class="fids-sub-tabs">
+                        <button type="button" class="fids-pill is-active" data-fids="all" onclick="filterFidsTab('all')">All (<span id="fidsAllCount">{{ trip_monitoring.counts.total|default:0 }}</span>)</button>
+                        <button type="button" class="fids-pill" data-fids="active" onclick="filterFidsTab('active')">🟢 Active (<span id="fidsActiveCount">{{ trip_monitoring.counts.active|default:0 }}</span>)</button>
+                        <button type="button" class="fids-pill" data-fids="delayed" onclick="filterFidsTab('delayed')">🟡 Delayed (<span id="fidsDelayedCount">{{ trip_monitoring.counts.delayed|default:0 }}</span>)</button>
+                        <button type="button" class="fids-pill" data-fids="unstarted" onclick="filterFidsTab('unstarted')">⏳ Scheduled (<span id="fidsUnstartedCount">{{ trip_monitoring.counts.unstarted|default:0 }}</span>)</button>
+                        <button type="button" class="fids-pill" data-fids="completed" onclick="filterFidsTab('completed')">✅ Done (<span id="fidsCompletedCount">{{ trip_monitoring.counts.completed|default:0 }}</span>)</button>
+                    </div>
+                </div>
+                <div class="fids-list-container" id="fidsListContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
             <!-- Tab 3: Safety & Violation Ticker -->
             <div class="mc-tab-content" id="tabContentSafety">
                 <div class="safety-events-feed" id="safetyEventsFeed">
@@ -391,6 +419,104 @@
         </form>
     </div>
 </div>
+
+<!-- Fullscreen Airport FIDS Wall Display Overlay -->
+<div id="fidsWallOverlay" class="fids-wall-backdrop" style="display: none;">
+    <div class="fids-wall-container">
+        <header class="fids-wall-header">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="font-size: 36px;">✈️</span>
+                <div>
+                    <h2 class="fids-wall-title">SIVAGAYATHIRI AIRPORT CONTROL ROOM &bull; LIVE FLIGHT INFORMATION BOARD</h2>
+                    <p class="fids-wall-subtitle">Real-Time Corporate Transit &amp; Outstation Passenger Manifest Sentry &bull; 2,200+ Fleet Radar</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="fids-clock" id="fidsWallClock">--:--:--</div>
+                <button type="button" onclick="toggleFidsWall(false)" class="mc-btn mc-btn-secondary" style="font-size: 13px; padding: 8px 16px;">
+                    ✕ Close Wall Display
+                </button>
+            </div>
+        </header>
+
+        <div class="fids-wall-kpi-bar">
+            <div class="fids-kpi-box is-total"><span class="kpi-num" id="wallTotalTrips">0</span><span class="kpi-txt">TODAY MONITORED</span></div>
+            <div class="fids-kpi-box is-active"><span class="kpi-num" id="wallActiveTrips">0</span><span class="kpi-txt">ON THE ROAD (ACTIVE)</span></div>
+            <div class="fids-kpi-box is-delayed"><span class="kpi-num" id="wallDelayedTrips">0</span><span class="kpi-txt">DELAYED RUNS (>15M)</span></div>
+            <div class="fids-kpi-box is-pending"><span class="kpi-num" id="wallUnstartedTrips">0</span><span class="kpi-txt">GATE READY / DISPATCH</span></div>
+            <div class="fids-kpi-box is-done"><span class="kpi-num" id="wallCompletedTrips">0</span><span class="kpi-txt">COMPLETED SAFELY</span></div>
+        </div>
+
+        <div class="fids-wall-table-wrapper">
+            <table class="fids-wall-table">
+                <thead>
+                    <tr>
+                        <th>TRIP / SHIFT</th>
+                        <th>ROUTE CORRIDOR</th>
+                        <th>VEHICLE PLATE</th>
+                        <th>CHAUFFEUR</th>
+                        <th>PAX</th>
+                        <th>SCHEDULED</th>
+                        <th>STATUS</th>
+                        <th>GATE / RESCUE ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="fidsWallTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Standby Swap Modal for Delayed Trips -->
+<div id="quickStandbySwapModal" class="mc-modal-backdrop" style="display: none;">
+    <div class="mc-modal-card">
+        <div class="mc-modal-header" style="background: linear-gradient(135deg, #854d0e, #ca8a04); color: #fff;">
+            <h3>⚡ Standby Swap &amp; Route Rescue</h3>
+            <button type="button" onclick="closeStandbySwapModal()" class="mc-modal-close">&times;</button>
+        </div>
+        <form id="standbySwapForm" onsubmit="submitStandbySwap(event)">
+            {% csrf_token %}
+            <input type="hidden" id="swapTripType" name="trip_type" value="commute">
+            <input type="hidden" id="swapTripId" name="trip_id" value="">
+            <div class="mc-modal-body">
+                <p class="modal-sub">Deploy a fresh standby vehicle and driver from depot yard to recover delayed commuters.</p>
+                <div class="form-group">
+                    <label>Delayed Route / Trip</label>
+                    <div id="swapTripSummary" style="padding: 10px 14px; background: rgba(234, 179, 8, 0.1); border: 1.5px solid #eab308; border-radius: 8px; font-weight: 700; color: #fde047; font-size: 13px;">
+                        COMMUTE #1 - Tideway Shift (TN-38-BZ-1234)
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Select Standby Vehicle</label>
+                        <select id="swapStandbyVehicleSelect" name="standby_vehicle_id" required class="mc-select">
+                            {% for v in standby_vehicles %}
+                                <option value="{{ v.id }}">{{ v.registration_number }} - {{ v.brand }} {{ v.model }} ({{ v.seating_capacity }} seats)</option>
+                            {% empty %}
+                                <option value="">No Standby Vehicles in Yard</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label>Swap Reason</label>
+                        <select name="reason" class="mc-select">
+                            <option value="traffic_delay">Highway Traffic Bottleneck Mitigation</option>
+                            <option value="breakdown">Mechanical Glitch / Breakdown Rescue</option>
+                            <option value="overspeed">Driver Replacement / Safety</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="mc-modal-footer">
+                <button type="button" onclick="closeStandbySwapModal()" class="mc-btn mc-btn-secondary">Cancel</button>
+                <button type="submit" class="mc-btn" style="background: linear-gradient(135deg, #eab308, #ca8a04); color: #000; font-weight: 800;">⚡ Authorize Immediate Swap</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <!-- Inter-Depot Asset Relocation Modal -->
 <div id="interDepotTransferModal" class="mc-modal-backdrop" style="display: none;">
@@ -1494,8 +1620,287 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
     border: 1px solid #cbd5e1 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
+
+/* --- Airport FIDS Trip Monitoring & Delay Styles --- */
+.mc-kpi-pill.is-delayed {
+    background: rgba(234, 179, 8, 0.12);
+    border-color: rgba(234, 179, 8, 0.35);
+}
+.mc-kpi-pill.is-delayed .mc-kpi-val { color: #eab308; }
+.legend-dot.yellow { background: #eab308; }
+.marker-pin-inner.yellow {
+    background: #eab308;
+    box-shadow: 0 0 14px rgba(234, 179, 8, 0.75);
+    color: #0f172a;
+}
+
+.fids-desk-header {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1e293b;
+    margin-bottom: 12px;
+}
+.fids-sub-tabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.fids-pill {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+.fids-pill:hover { background: #334155; color: #f8fafc; }
+.fids-pill.is-active {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+}
+
+.fids-card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.fids-card:hover {
+    transform: translateY(-1px);
+    border-color: #374151;
+}
+.fids-card.is-delayed {
+    border-left: 4px solid #eab308;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, #111827 100%);
+    border-color: rgba(234, 179, 8, 0.4);
+}
+.fids-card.is-active { border-left: 4px solid #10b981; }
+.fids-card.is-unstarted { border-left: 4px solid #38bdf8; }
+.fids-card.is-completed { border-left: 4px solid #64748b; opacity: 0.85; }
+
+.fids-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+.fids-trip-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #1f2937;
+    color: #93c5fd;
+}
+.fids-status-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+}
+.fids-status-badge.active { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.fids-status-badge.delayed { background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid #eab308; }
+.fids-status-badge.unstarted { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+.fids-status-badge.completed { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+.fids-route-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #f9fafb;
+    margin: 2px 0 6px;
+    line-height: 1.3;
+}
+.fids-route-corridor {
+    font-size: 11px;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.fids-meta-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+.fids-meta-item strong {
+    color: #f3f4f6;
+    display: block;
+    font-weight: 600;
+}
+.fids-meta-item span {
+    color: #9ca3af;
+    font-size: 10px;
+}
+.fids-delay-alert-box {
+    background: rgba(234, 179, 8, 0.15);
+    border: 1px solid rgba(234, 179, 8, 0.5);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #fef08a;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.fids-actions {
+    display: flex;
+    gap: 6px;
+}
+.fids-btn {
+    flex: 1;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none;
+}
+.fids-btn-phone {
+    background: #1f2937;
+    color: #38bdf8;
+    border: 1px solid #374151;
+}
+.fids-btn-phone:hover { background: #374151; }
+.fids-btn-rescue {
+    background: linear-gradient(135deg, #eab308, #ca8a04);
+    color: #0f172a;
+    font-weight: 800;
+}
+.fids-btn-rescue:hover { background: #eab308; }
+
+/* Fullscreen Airport FIDS Wall Board */
+.fids-wall-backdrop {
+    position: fixed;
+    inset: 0;
+    background: #060913;
+    z-index: 9999;
+    padding: 24px;
+    overflow-y: auto;
+    color: #f8fafc;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.fids-wall-container {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+.fids-wall-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #1e293b;
+    margin-bottom: 20px;
+}
+.fids-wall-title {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    color: #38bdf8;
+    margin: 0;
+}
+.fids-wall-subtitle {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 4px 0 0;
+}
+.fids-clock {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 800;
+    color: #f8fafc;
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 6px 16px;
+    border-radius: 8px;
+    letter-spacing: 0.1em;
+}
+.fids-wall-kpi-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+.fids-kpi-box {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+}
+.fids-kpi-box .kpi-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.1;
+}
+.fids-kpi-box .kpi-txt {
+    font-size: 10px;
+    font-weight: 800;
+    color: #94a3b8;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+}
+.fids-kpi-box.is-total .kpi-num { color: #f8fafc; }
+.fids-kpi-box.is-active .kpi-num { color: #10b981; }
+.fids-kpi-box.is-delayed .kpi-num { color: #eab308; }
+.fids-kpi-box.is-pending .kpi-num { color: #38bdf8; }
+.fids-kpi-box.is-done .kpi-num { color: #94a3b8; }
+
+.fids-wall-table-wrapper {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.fids-wall-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+.fids-wall-table thead tr {
+    background: #1e293b;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+.fids-wall-table th, .fids-wall-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #1e293b;
+}
+.fids-wall-table tbody tr:hover { background: rgba(30, 41, 59, 0.5); }
+.fids-wall-table tr.is-delayed { background: rgba(234, 179, 8, 0.08); }
+
 </style>
 
+{{ trip_monitoring|json_script:"initial-trip-monitoring" }}
 <script src="/static/leaflet/leaflet.js"></script>
 <script>
 (function() {
@@ -1599,6 +2004,7 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
         renderRosterList(fleetData);
         renderSafetyEvents(data.recent_violations || [], data.active_incidents || []);
         checkSosAlerts(data.active_incidents || []);
+        if (data.trip_monitoring) updateTripMonitoring(data.trip_monitoring);
 
         const syncText = document.getElementById('mcLastSyncText');
         if (syncText) {
@@ -1871,15 +2277,279 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
     };
 
     // --- Update Counters ---
-    function updateSummaryCounters(summary) {
+
+    // --- Airport FIDS Trip Monitoring & Standby Swap State ---
+    let currentFidsFilter = 'all';
+    let cachedTripMonitoring = null;
+    let wallClockTimer = null;
+
+    function filterFidsTab(filter) {
+        currentFidsFilter = filter;
+        document.querySelectorAll('.fids-pill').forEach(btn => {
+            btn.classList.toggle('is-active', btn.dataset.fids === filter);
+        });
+        if (cachedTripMonitoring) {
+            renderFidsList(cachedTripMonitoring);
+        }
+    }
+
+    function renderFidsList(monitoring) {
+        cachedTripMonitoring = monitoring;
+        const container = document.getElementById('fidsListContainer');
+        if (!container) return;
+
+        let trips = [];
+        if (currentFidsFilter === 'all') {
+            trips = [...(monitoring.delayed_trips || []), ...(monitoring.active_trips || []), ...(monitoring.unstarted_trips || []), ...(monitoring.completed_trips || [])];
+        } else if (currentFidsFilter === 'active') {
+            trips = monitoring.active_trips || [];
+        } else if (currentFidsFilter === 'delayed') {
+            trips = monitoring.delayed_trips || [];
+        } else if (currentFidsFilter === 'unstarted') {
+            trips = monitoring.unstarted_trips || [];
+        } else if (currentFidsFilter === 'completed') {
+            trips = monitoring.completed_trips || [];
+        }
+
+        // Deduplicate by ID
+        const seen = new Set();
+        const uniqueTrips = [];
+        trips.forEach(t => {
+            if (!seen.has(t.id)) {
+                seen.add(t.id);
+                uniqueTrips.push(t);
+            }
+        });
+
+        if (uniqueTrips.length === 0) {
+            container.innerHTML = `<div style="text-align: center; color: #64748b; padding: 24px; font-size: 12px;">No trips found matching '${currentFidsFilter}'.</div>`;
+            return;
+        }
+
+        container.innerHTML = uniqueTrips.map(t => {
+            const isDelayed = (t.delay_minutes || 0) > 0;
+            const cardClass = isDelayed ? 'is-delayed' : (t.status === 'in_progress' ? 'is-active' : (t.status === 'completed' ? 'is-completed' : 'is-unstarted'));
+            const statusBadgeClass = isDelayed ? 'delayed' : (t.status === 'in_progress' ? 'active' : (t.status === 'completed' ? 'completed' : 'unstarted'));
+            const statusLabel = isDelayed ? `⚠️ +${t.delay_minutes}m Delay` : (t.status === 'in_progress' ? '🟢 On Route' : (t.status === 'completed' ? '✅ Completed' : '⏳ Gate Ready'));
+
+            return `
+                <div class="fids-card ${cardClass}">
+                    <div class="fids-card-head">
+                        <span class="fids-trip-badge">${t.id}</span>
+                        <span class="fids-status-badge ${statusBadgeClass}">${statusLabel}</span>
+                    </div>
+                    <div class="fids-route-title">${t.title}</div>
+                    <div class="fids-route-corridor">
+                        <span>📍 ${t.origin || 'Depot'}</span>
+                        <span>&rarr;</span>
+                        <span>🎯 ${t.destination || 'Destination'}</span>
+                    </div>
+                    <div class="fids-meta-row">
+                        <div class="fids-meta-item">
+                            <span>VEHICLE</span>
+                            <strong>${t.vehicle_reg}</strong>
+                        </div>
+                        <div class="fids-meta-item">
+                            <span>CHAUFFEUR</span>
+                            <strong>${t.driver_name}</strong>
+                        </div>
+                        <div class="fids-meta-item">
+                            <span>DEPARTURE</span>
+                            <strong>${t.actual_departure || t.scheduled_time || '07:45 AM'}</strong>
+                        </div>
+                        <div class="fids-meta-item">
+                            <span>COMMUTERS</span>
+                            <strong>${t.pax_count} Pax</strong>
+                        </div>
+                    </div>
+                    ${isDelayed ? `
+                        <div class="fids-delay-alert-box">
+                            <div>
+                                <strong>⚠️ Delay:</strong> ${t.delay_reason || 'Traffic congestion en-route'}
+                            </div>
+                            <span style="font-weight: 800; font-family: monospace;">+${t.delay_minutes}m</span>
+                        </div>
+                        <div class="fids-actions">
+                            ${t.driver_phone ? `<a href="tel:${t.driver_phone}" class="fids-btn fids-btn-phone">📞 Call Driver</a>` : ''}
+                            <button type="button" onclick="openStandbySwapModal('${t.type}', '${t.pk}', '${t.title.replace(/'/g, "\\'")}', '${t.vehicle_reg}')" class="fids-btn fids-btn-rescue">
+                                ⚡ Standby Swap
+                            </button>
+                        </div>
+                    ` : `
+                        <div class="fids-actions">
+                            ${t.driver_phone ? `<a href="tel:${t.driver_phone}" class="fids-btn fids-btn-phone" style="width: 100%;">📞 Contact Chauffeur (${t.driver_phone})</a>` : ''}
+                        </div>
+                    `}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateTripMonitoring(monitoring) {
+        if (!monitoring) return;
+        cachedTripMonitoring = monitoring;
+        const counts = monitoring.counts || {};
+
+        const tripMonitoringCount = document.getElementById('tripMonitoringCount');
+        if (tripMonitoringCount) tripMonitoringCount.innerText = counts.total || 0;
+
+        const fidsAll = document.getElementById('fidsAllCount');
+        if (fidsAll) fidsAll.innerText = counts.total || 0;
+        const fidsActive = document.getElementById('fidsActiveCount');
+        if (fidsActive) fidsActive.innerText = counts.active || 0;
+        const fidsDelayed = document.getElementById('fidsDelayedCount');
+        if (fidsDelayed) fidsDelayed.innerText = counts.delayed || 0;
+        const fidsUnstarted = document.getElementById('fidsUnstartedCount');
+        if (fidsUnstarted) fidsUnstarted.innerText = counts.unstarted || 0;
+        const fidsCompleted = document.getElementById('fidsCompletedCount');
+        if (fidsCompleted) fidsCompleted.innerText = counts.completed || 0;
+
+        // Wall display counters
+        const wallTotal = document.getElementById('wallTotalTrips');
+        if (wallTotal) wallTotal.innerText = counts.total || 0;
+        const wallActive = document.getElementById('wallActiveTrips');
+        if (wallActive) wallActive.innerText = counts.active || 0;
+        const wallDelayed = document.getElementById('wallDelayedTrips');
+        if (wallDelayed) wallDelayed.innerText = counts.delayed || 0;
+        const wallUnstarted = document.getElementById('wallUnstartedTrips');
+        if (wallUnstarted) wallUnstarted.innerText = counts.unstarted || 0;
+        const wallCompleted = document.getElementById('wallCompletedTrips');
+        if (wallCompleted) wallCompleted.innerText = counts.completed || 0;
+
+        renderFidsList(monitoring);
+        renderFidsWallTable(monitoring);
+    }
+
+    function renderFidsWallTable(monitoring) {
+        const tbody = document.getElementById('fidsWallTableBody');
+        if (!tbody || !monitoring) return;
+
+        const allTrips = [
+            ...(monitoring.delayed_trips || []),
+            ...(monitoring.active_trips || []),
+            ...(monitoring.unstarted_trips || []),
+            ...(monitoring.completed_trips || [])
+        ];
+
+        const seen = new Set();
+        const unique = [];
+        allTrips.forEach(t => {
+            if (!seen.has(t.id)) {
+                seen.add(t.id);
+                unique.push(t);
+            }
+        });
+
+        if (unique.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">No flight/transit schedules recorded for today.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = unique.map(t => {
+            const isDelayed = (t.delay_minutes || 0) > 0;
+            const rowClass = isDelayed ? 'is-delayed' : '';
+            const statusBadge = isDelayed ? `<span class="fids-status-badge delayed">⚠️ DELAYED +${t.delay_minutes}m</span>` : (t.status === 'in_progress' ? '<span class="fids-status-badge active">🟢 EN ROUTE</span>' : (t.status === 'completed' ? '<span class="fids-status-badge completed">✅ ARRIVED</span>' : '<span class="fids-status-badge unstarted">⏳ GATE READY</span>'));
+
+            return `
+                <tr class="${rowClass}">
+                    <td><strong style="color: #38bdf8; font-family: monospace;">${t.id}</strong><br><span style="font-size: 11px; color: #cbd5e1;">${t.title}</span></td>
+                    <td><strong>${t.origin || 'Depot'}</strong> &rarr; ${t.destination || 'Destination'}</td>
+                    <td><span style="font-family: monospace; font-weight: 700; color: #f8fafc;">${t.vehicle_reg}</span><br><span style="font-size: 10px; color: #94a3b8;">${t.vehicle_model || ''}</span></td>
+                    <td><strong>${t.driver_name}</strong><br><span style="font-size: 10px; color: #38bdf8;">${t.driver_phone || ''}</span></td>
+                    <td><strong style="font-family: monospace;">${t.pax_count}</strong> Pax</td>
+                    <td><strong>${t.actual_departure || t.scheduled_time || '07:45 AM'}</strong></td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        ${isDelayed ? `
+                            <button type="button" onclick="openStandbySwapModal('${t.type}', '${t.pk}', '${t.title.replace(/'/g, "\\'")}', '${t.vehicle_reg}')" class="mc-btn" style="background: #eab308; color: #000; font-weight: 800; padding: 4px 10px; font-size: 11px;">
+                                ⚡ Standby Swap
+                            </button>
+                        ` : `<span style="color: #64748b; font-size: 11px;">Gate Cleared</span>`}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function toggleFidsWall(show) {
+        const overlay = document.getElementById('fidsWallOverlay');
+        if (!overlay) return;
+        overlay.style.display = show ? 'block' : 'none';
+        if (show) {
+            updateWallClock();
+            if (!wallClockTimer) wallClockTimer = setInterval(updateWallClock, 1000);
+            if (cachedTripMonitoring) renderFidsWallTable(cachedTripMonitoring);
+        } else {
+            if (wallClockTimer) {
+                clearInterval(wallClockTimer);
+                wallClockTimer = null;
+            }
+        }
+    }
+
+    function updateWallClock() {
+        const clockEl = document.getElementById('fidsWallClock');
+        if (clockEl) {
+            const now = new Date();
+            clockEl.innerText = now.toLocaleTimeString();
+        }
+    }
+
+    function openStandbySwapModal(tripType, tripId, tripTitle, vehicleReg) {
+        document.getElementById('swapTripType').value = tripType;
+        document.getElementById('swapTripId').value = tripId;
+        document.getElementById('swapTripSummary').innerText = `${tripTitle} (${vehicleReg})`;
+        document.getElementById('quickStandbySwapModal').style.display = 'flex';
+    }
+
+    function closeStandbySwapModal() {
+        document.getElementById('quickStandbySwapModal').style.display = 'none';
+    }
+
+    async function submitStandbySwap(event) {
+        event.preventDefault();
+        const tripType = document.getElementById('swapTripType').value;
+        const tripId = document.getElementById('swapTripId').value;
+        const standbyVId = document.getElementById('swapStandbyVehicleSelect').value;
+
+        try {
+            const resp = await fetch('/api/fleet/trip-standby-swap/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    trip_type: tripType,
+                    trip_id: tripId,
+                    standby_vehicle_id: standbyVId
+                })
+            });
+            const res = await resp.json();
+            if (res.status === 'success') {
+                alert(`✅ ${res.message}`);
+                closeStandbySwapModal();
+                fetchLiveFeed();
+            } else {
+                alert(`❌ ${res.message || 'Error executing standby swap'}`);
+            }
+        } catch (e) {
+            console.error('Error in standby swap:', e);
+            alert('Error processing standby swap.');
+        }
+    }
+
+        function updateSummaryCounters(summary) {
         document.getElementById('kpiTotalCount').innerText = summary.total_vehicles || 0;
         document.getElementById('kpiActiveCount').innerText = summary.active_count || 0;
+        if (document.getElementById('kpiDelayedCount')) document.getElementById('kpiDelayedCount').innerText = summary.delayed_count || 0;
         document.getElementById('kpiStandbyCount').innerText = summary.standby_count || 0;
         document.getElementById('kpiWorkshopCount').innerText = summary.workshop_count || 0;
         document.getElementById('kpiSosCount').innerText = summary.sos_count || 0;
 
         document.getElementById('countPillAll').innerText = summary.total_vehicles || 0;
         document.getElementById('countPillActive').innerText = summary.active_count || 0;
+        if (document.getElementById('countPillDelayed')) document.getElementById('countPillDelayed').innerText = summary.delayed_count || 0;
         document.getElementById('countPillStandby').innerText = summary.standby_count || 0;
         document.getElementById('countPillWorkshop').innerText = summary.workshop_count || 0;
         document.getElementById('countPillSos').innerText = summary.sos_count || 0;
@@ -1945,6 +2615,9 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
             } else if (v.status_code === 'workshop') {
                 colorClass = 'orange';
                 iconSymbol = '🔧';
+            } else if (v.status_code === 'delayed') {
+                colorClass = 'yellow';
+                iconSymbol = '⚠️';
             } else if (v.status_code === 'on_trip') {
                 colorClass = 'green';
             } else if (v.status_code === 'idle') {
@@ -2572,6 +3245,13 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
     // --- Setup Listeners ---
     document.addEventListener('DOMContentLoaded', () => {
         updateDevPauseUI();
+        const initTmEl = document.getElementById('initial-trip-monitoring');
+        if (initTmEl) {
+            try {
+                const initTm = JSON.parse(initTmEl.textContent);
+                if (initTm) updateTripMonitoring(initTm);
+            } catch (e) { console.warn('Error parsing initial trip monitoring:', e); }
+        }
 
         if (isDevMapPaused) {
             const placeholder = document.getElementById('devMapPlaceholder');
