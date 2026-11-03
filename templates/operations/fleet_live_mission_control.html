@@ -2509,7 +2509,7 @@ html:not(.dark) #btnDevAlwaysAutoLoad {
 
     // --- Developer Mode: Map Auto-Load Controller ---
     let isMapLoaded = false;
-    let isDevMapPaused = localStorage.getItem('travelerp_dev_pause_maps') === 'true';
+    let isDevMapPaused = false;
 
     function updateDevPauseUI() {
         const btnText = document.getElementById('devPauseText');
