@@ -1,6 +1,7 @@
 import random
 import secrets
 from decimal import Decimal
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -606,3 +607,81 @@ class LostAndFoundItem(models.Model):
 
     def __str__(self):
         return f"{self.reference_no} - {self.item_name} ({self.get_status_display()})"
+
+
+class CommuterTransportRequest(models.Model):
+    """
+    Corporate Employee Ad-hoc & Shift Transport Requests.
+    Allows employees to request ad-hoc transport, change pickup points,
+    or request weekend / overtime emergency commute cabs.
+    """
+    TYPE_CHOICES = [
+        ('adhoc_shift', 'Ad-hoc Shift Transport'),
+        ('wfo_ondemand', 'Work From Office On-Demand'),
+        ('temporary_pickup_change', 'Temporary Pickup / Stop Change'),
+        ('weekend_ot', 'Weekend / Overtime Sprint Cabs'),
+        ('permanent_relocation', 'Permanent Home Relocation'),
+    ]
+
+    DIRECTION_CHOICES = [
+        ('pickup', 'Home ➔ Office (Login Shift)'),
+        ('drop', 'Office ➔ Home (Logout Shift)'),
+        ('both', 'Round Trip (Both Shifts)'),
+    ]
+
+    STATUS_CHOICES = [
+        ('pending', 'Under Transport Desk Review'),
+        ('approved', 'Approved & Rostered into Cab'),
+        ('rejected', 'Rejected (Outside SLA Matrix)'),
+        ('cancelled', 'Cancelled by Commuter'),
+    ]
+
+    request_number = models.CharField(max_length=40, unique=True, editable=False)
+    commuter = models.ForeignKey(
+        'fleet_contracts.CommuterManifest',
+        on_delete=models.CASCADE,
+        related_name='transport_requests'
+    )
+    request_type = models.CharField(max_length=35, choices=TYPE_CHOICES, default='adhoc_shift')
+    travel_date = models.DateField(help_text="Requested date of transport")
+    direction = models.CharField(max_length=20, choices=DIRECTION_CHOICES, default='pickup')
+    shift_time = models.CharField(max_length=20, default="08:30", help_text="Requested pickup or drop time")
+
+    temporary_pickup_address = models.CharField(max_length=255, blank=True, help_text="Alternative pickup address if applicable")
+    temporary_landmark = models.CharField(max_length=150, blank=True)
+    reason = models.TextField(help_text="Business justification or manager approval reference")
+
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='pending')
+    assigned_trip = models.ForeignKey(
+        'fleet_contracts.ContractTripLog',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='assigned_transport_requests'
+    )
+    transport_desk_notes = models.TextField(blank=True, help_text="Notes from transport controller")
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='reviewed_transport_requests'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-travel_date', '-created_at']
+        verbose_name = 'Commuter Transport Request'
+        verbose_name_plural = 'Commuter Transport Requests'
+
+    def save(self, *args, **kwargs):
+        if not self.request_number:
+            import datetime
+            year = datetime.date.today().year
+            from django.utils.crypto import get_random_string
+            rnd = get_random_string(6, allowed_chars='0123456789')
+            self.request_number = f"REQ-{year}-{rnd}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.request_number} - {self.commuter.name} ({self.get_request_type_display()})"

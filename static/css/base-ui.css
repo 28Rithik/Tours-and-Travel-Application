@@ -1236,3 +1236,49 @@ ul.filter-list li,
 .filter-group ul li {
   margin-bottom: 4px !important;
 }
+
+
+/* ── 9. Unfold KPIs Grid System ── */
+.unfold-kpis-grid {
+  display: grid !important;
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  gap: 1rem !important;
+  margin-bottom: 1.25rem !important;
+}
+.unfold-kpis-grid.cols-5 {
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+}
+@media (min-width: 640px) {
+  .unfold-kpis-grid.cols-5,
+  .unfold-kpis-grid.\!grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .unfold-kpis-grid.sm\:\!grid-cols-3,
+  .sm\:\!grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 768px) {
+  .unfold-kpis-grid.md\:\!grid-cols-4,
+  .md\:\!grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 1024px) {
+  .unfold-kpis-grid.cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+  .unfold-kpis-grid.cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .unfold-kpis-grid.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Important grid overrides */
+.\!grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)) !important; }
+.\!grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.\!grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.\!grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.\!grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
