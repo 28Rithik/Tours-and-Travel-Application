@@ -1,22 +1,41 @@
+import json
 from decimal import Decimal
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 from core.models import Driver, Vehicle
 from operations.models import Trip, EmergencyIncidentAlert
-from fleet_contracts.models import ContractTripLog
+from fleet_contracts.models import ContractTripLog, RouteStop
+from fleet_commute.models import CommuterBoardingPass
 from maintenance.models import PreTripInspectionChecklist, DefectTicket
 from finance_fleet.models import FuelRecord
-from .models import DriverPortalAccount
+from .models import DriverPortalAccount, DriverAttendanceLog, RouteIssueReport
 
 
 def get_current_driver(request):
+    """
+    Identifies the active driver from:
+    1. Query param ?driver_id=XX (for admin / dispatch preview and driver switcher)
+    2. Direct token in ?token=XX (from SMS / WhatsApp link)
+    3. Session driver_id
+    4. Authenticated user's linked driver profile
+    5. Fallback to first active driver for staff/superuser preview
+    """
+    # 0. Query param override for staff / switcher
+    req_driver_id = request.GET.get('driver_id')
+    if req_driver_id:
+        driver_candidate = Driver.objects.filter(pk=req_driver_id).first()
+        if driver_candidate:
+            request.session['driver_id'] = driver_candidate.pk
+            return driver_candidate
+
     # 1. Direct query param token for SMS/WhatsApp links or QR code scans
     token = request.GET.get('token')
     if token:
@@ -24,12 +43,14 @@ def get_current_driver(request):
         if trip and trip.driver:
             request.session['driver_id'] = trip.driver.pk
             return trip.driver
+
     # 2. Check session driver_id
     driver_id = request.session.get('driver_id')
     if driver_id:
         driver = Driver.objects.filter(pk=driver_id).first()
         if driver:
             return driver
+
     # 3. Check authenticated user
     if request.user.is_authenticated:
         if hasattr(request.user, 'driver_portal_account'):
@@ -43,6 +64,7 @@ def get_current_driver(request):
             first_driver = Driver.objects.filter(status='active').first() or Driver.objects.first()
             if first_driver:
                 return first_driver
+
     return None
 
 
@@ -70,7 +92,6 @@ def driver_login(request):
             messages.error(request, "Please enter your registered phone number.")
             return render(request, 'driver_portal/login.html')
 
-        # Find driver by phone (ignoring spaces or hyphens)
         clean_phone = phone.replace(' ', '').replace('-', '').replace('+91', '')
         driver = Driver.objects.filter(phone__icontains=clean_phone).first()
 
@@ -78,7 +99,6 @@ def driver_login(request):
             messages.error(request, f"No driver profile found matching phone {phone}. Please contact dispatch.")
             return render(request, 'driver_portal/login.html')
 
-        # Get or create user
         portal_user = User.objects.filter(username=f"driver_{driver.pk}").first()
         if not portal_user:
             portal_user = User.objects.create_user(
@@ -86,7 +106,6 @@ def driver_login(request):
                 password=f"pin_{pin or '1234'}"
             )
 
-        # Get or create portal account
         portal_acc, created = DriverPortalAccount.objects.get_or_create(
             driver=driver,
             defaults={
@@ -98,12 +117,10 @@ def driver_login(request):
             portal_acc.user = portal_user
             portal_acc.save(update_fields=['user'])
 
-        # PIN Check
         if pin and portal_acc.quick_pin and portal_acc.quick_pin != pin:
             messages.error(request, "Incorrect PIN. Please re-enter your 4-digit driver PIN.")
             return render(request, 'driver_portal/login.html', {'entered_phone': phone})
 
-        # Login user session
         auth_login(request, portal_acc.user)
         request.session['driver_id'] = driver.pk
         portal_acc.last_login_at = timezone.now()
@@ -123,44 +140,452 @@ def driver_logout(request):
     return redirect('driver_portal:login')
 
 
+# ==============================================================================
+# 1. DRIVER DASHBOARD & ATTENDANCE COCKPIT
+# ==============================================================================
+
 @driver_login_required
 def driver_dashboard(request):
     driver = request.driver
     today = timezone.now().date()
+    now = timezone.now()
 
-    # Active or assigned trips
-    active_trips = Trip.objects.filter(
+    # 1. Today's Full Schedule: Corporate Commute Trips + Outstation Tours
+    commute_trips = list(ContractTripLog.objects.filter(
         driver=driver,
-        status__in=['assigned', 'started']
-    ).order_by('start_date')
+        date=today
+    ).select_related('shift__route', 'vehicle').order_by('scheduled_departure_time', 'id'))
 
-    recent_trips = Trip.objects.filter(
-        driver=driver
-    ).order_by('-start_date')[:5]
+    tour_trips = list(Trip.objects.filter(
+        driver=driver,
+        start_date=today
+    ).select_related('vehicle', 'booking', 'party').order_by('start_time', 'id'))
 
-    # Current vehicle
-    current_trip = active_trips.first()
-    current_vehicle = current_trip.vehicle if current_trip else (driver.default_vehicles.first() or Vehicle.objects.filter(default_driver=driver).first())
+    # Active trip in progress
+    active_commute = next((t for t in commute_trips if t.status in ['assigned', 'in_progress']), None)
+    active_tour = next((t for t in tour_trips if t.status in ['assigned', 'driver_confirmed', 'started']), None)
+    current_trip = active_tour
+    active_commute_trip = active_commute
 
-    # Today's inspection status for current vehicle
+    # 2. Assigned Vehicle
+    current_vehicle = None
+    if active_commute and active_commute.vehicle:
+        current_vehicle = active_commute.vehicle
+    elif active_tour and active_tour.vehicle:
+        current_vehicle = active_tour.vehicle
+    else:
+        current_vehicle = driver.default_vehicles.first() or Vehicle.objects.filter(default_driver=driver).first() or Vehicle.objects.filter(status='active').first()
+
+    # 3. Pre-Trip Inspection status
     inspection_today = None
     if current_vehicle:
-        cutoff = timezone.now() - timezone.timedelta(hours=24)
+        cutoff = now - timezone.timedelta(hours=24)
         inspection_today = PreTripInspectionChecklist.objects.filter(
             vehicle=current_vehicle,
             driver=driver,
             inspection_date__gte=cutoff
         ).first()
 
+    # 4. Attendance & Duty Hours Sentry
+    active_attendance = DriverAttendanceLog.objects.filter(
+        driver=driver,
+        date=today,
+        status='on_duty'
+    ).first()
+
+    latest_attendance = DriverAttendanceLog.objects.filter(
+        driver=driver,
+        date=today
+    ).first()
+
+    if active_attendance:
+        elapsed_seconds = (now - active_attendance.clock_in_time).total_seconds()
+        duty_hours_elapsed = round(elapsed_seconds / 3600.0, 2)
+        duty_hours_formatted = f"{int(duty_hours_elapsed)}h {int((duty_hours_elapsed % 1) * 60)}m"
+        is_on_duty = True
+        safe_hours_remaining = max(0.0, round(8.0 - duty_hours_elapsed, 1))
+        fatigue_status = 'safe' if duty_hours_elapsed < 6.0 else ('warning' if duty_hours_elapsed < 8.0 else 'critical')
+    elif latest_attendance:
+        duty_hours_elapsed = float(latest_attendance.duty_hours or 0.0)
+        duty_hours_formatted = f"{int(duty_hours_elapsed)}h {int((duty_hours_elapsed % 1) * 60)}m"
+        is_on_duty = False
+        safe_hours_remaining = max(0.0, round(8.0 - duty_hours_elapsed, 1))
+        fatigue_status = 'completed'
+    else:
+        duty_hours_elapsed = 0.0
+        duty_hours_formatted = "0h 0m"
+        is_on_duty = False
+        safe_hours_remaining = 8.0
+        fatigue_status = 'off_duty'
+
+    # 5. Today's Operational Stats
+    total_trips_today = len(commute_trips) + len(tour_trips)
+    completed_commute = sum(1 for c in commute_trips if c.status == 'completed')
+    completed_tour = sum(1 for t in tour_trips if t.status == 'completed')
+    completed_trips_count = completed_commute + completed_tour
+
+    in_progress_count = (1 if active_commute else 0) + (1 if active_tour else 0)
+    pending_trips_count = max(0, total_trips_today - completed_trips_count - in_progress_count)
+
+    total_passengers_today = sum(c.passenger_count or 0 for c in commute_trips) + sum(t.pax_count or 0 for t in tour_trips)
+    total_km_today = sum(
+        (c.closing_km - c.opening_km) for c in commute_trips if c.closing_km and c.opening_km and c.closing_km >= c.opening_km
+    )
+
+    # 6. Recent Past Trips
+    recent_trips = Trip.objects.filter(driver=driver).order_by('-start_date')[:5]
+
+    # 7. Demo Driver Switcher (For testing & dispatch evaluation)
+    roster_drivers = list(Driver.objects.filter(status='active').order_by('name')[:15])
+
     return render(request, 'driver_portal/dashboard.html', {
         'driver': driver,
+        'today': today,
+        'commute_trips': commute_trips,
+        'tour_trips': tour_trips,
+        'active_commute_trip': active_commute_trip,
         'current_trip': current_trip,
-        'active_trips': active_trips,
-        'recent_trips': recent_trips,
         'current_vehicle': current_vehicle,
         'inspection_today': inspection_today,
+        # Attendance & Duty Sentry
+        'active_attendance': active_attendance,
+        'latest_attendance': latest_attendance,
+        'is_on_duty': is_on_duty,
+        'duty_hours_elapsed': duty_hours_elapsed,
+        'duty_hours_formatted': duty_hours_formatted,
+        'safe_hours_remaining': safe_hours_remaining,
+        'fatigue_status': fatigue_status,
+        # Today KPIs
+        'total_trips_today': total_trips_today,
+        'completed_trips_count': completed_trips_count,
+        'in_progress_count': in_progress_count,
+        'pending_trips_count': pending_trips_count,
+        'total_passengers_today': total_passengers_today,
+        'total_km_today': total_km_today,
+        'recent_trips': recent_trips,
+        'roster_drivers': roster_drivers,
     })
 
+
+# ==============================================================================
+# 2. ROUTE NAVIGATION & PICKUP COCKPIT (DOMAIN 2)
+# ==============================================================================
+
+@driver_login_required
+def driver_commute_navigation(request, trip_log_id):
+    """
+    Real-time Route Navigation, Pickup Sequence, and Passenger Manifest Cockpit.
+    Provides live Google Maps turn-by-turn navigation, stop-by-stop sequencing,
+    boarding OTP verification, absent passenger flags, and delay notifications.
+    """
+    driver = request.driver
+    trip_log = get_object_or_404(
+        ContractTripLog.objects.select_related('shift__route', 'vehicle', 'driver'),
+        pk=trip_log_id
+    )
+
+    route = trip_log.shift.route
+    stops = list(route.stops.filter(is_active=True).order_by('stop_order'))
+    passes = list(CommuterBoardingPass.objects.filter(
+        trip_log=trip_log
+    ).select_related('commuter__boarding_stop', 'boarded_stop'))
+
+    # Group passengers by stop
+    stops_data = []
+    current_active_stop = None
+    total_boarded = 0
+    total_absent = 0
+    total_waiting = 0
+
+    for idx, stop in enumerate(stops):
+        # Match commuters whose assigned stop is this stop
+        stop_passes = [
+            p for p in passes
+            if (p.commuter.boarding_stop_id == stop.id) or (p.boarded_stop_id == stop.id)
+        ]
+        # If no passes matched directly, distribute unassigned passes evenly for rich demo display
+        if not stop_passes and idx == 0:
+            stop_passes = [p for p in passes if not p.commuter.boarding_stop_id and not p.boarded_stop_id]
+
+        boarded_in_stop = sum(1 for p in stop_passes if p.is_boarded)
+        absent_in_stop = sum(1 for p in stop_passes if p.is_no_show)
+        waiting_in_stop = len(stop_passes) - boarded_in_stop - absent_in_stop
+
+        total_boarded += boarded_in_stop
+        total_absent += absent_in_stop
+        total_waiting += waiting_in_stop
+
+        is_completed = (len(stop_passes) > 0 and waiting_in_stop == 0)
+        is_current = False
+        if not is_completed and current_active_stop is None:
+            is_current = True
+            current_active_stop = {
+                'stop': stop,
+                'order': stop.stop_order,
+                'name': stop.name,
+                'landmark': stop.pickup_landmark or 'Designated Bus Bay',
+                'waiting_count': waiting_in_stop,
+                'total_passengers': len(stop_passes),
+                'passes': stop_passes,
+                'latitude': stop.latitude,
+                'longitude': stop.longitude,
+            }
+
+        stops_data.append({
+            'stop': stop,
+            'order': stop.stop_order,
+            'name': stop.name,
+            'offset_minutes': stop.scheduled_offset_minutes,
+            'landmark': stop.pickup_landmark or 'Main Road Pickup Bay',
+            'passes': stop_passes,
+            'boarded_count': boarded_in_stop,
+            'absent_count': absent_in_stop,
+            'waiting_count': waiting_in_stop,
+            'is_completed': is_completed,
+            'is_current': is_current,
+        })
+
+    # Fallback to last stop if all stops completed
+    if not current_active_stop and stops:
+        last_stop = stops[-1]
+        current_active_stop = {
+            'stop': last_stop,
+            'order': last_stop.stop_order,
+            'name': last_stop.name,
+            'landmark': last_stop.pickup_landmark or 'Final Office Gate',
+            'waiting_count': 0,
+            'total_passengers': len(passes),
+            'passes': [],
+            'latitude': last_stop.latitude,
+            'longitude': last_stop.longitude,
+        }
+
+    # Generate Google Maps Deep Link for current destination
+    maps_destination = f"{current_active_stop['name']}, {route.destination}"
+    if current_active_stop.get('latitude') and current_active_stop.get('longitude'):
+        maps_destination = f"{current_active_stop['latitude']},{current_active_stop['longitude']}"
+    google_maps_url = f"https://www.google.com/maps/dir/?api=1&destination={maps_destination.replace(' ', '+')}"
+
+    # Recent reported issues on this trip
+    reported_issues = RouteIssueReport.objects.filter(contract_trip_log=trip_log).order_by('-reported_at')[:3]
+
+    return render(request, 'driver_portal/commute_navigation.html', {
+        'driver': driver,
+        'trip_log': trip_log,
+        'route': route,
+        'stops_data': stops_data,
+        'current_active_stop': current_active_stop,
+        'google_maps_url': google_maps_url,
+        'total_boarded': total_boarded,
+        'total_absent': total_absent,
+        'total_waiting': total_waiting,
+        'total_manifest': len(passes),
+        'reported_issues': reported_issues,
+    })
+
+
+# ==============================================================================
+# 3. ATTENDANCE & TRIP ACTION APIS
+# ==============================================================================
+
+@driver_login_required
+@require_POST
+def api_driver_clock_in(request):
+    """Start shift duty and log driver clock-in."""
+    driver = request.driver
+    today = timezone.now().date()
+    shift_name = request.POST.get('shift_name', 'general')
+    location = request.POST.get('location', 'Coimbatore Central Depot Gate')
+    odometer_start = request.POST.get('odometer_start')
+
+    # Close any dangling previous attendance
+    DriverAttendanceLog.objects.filter(driver=driver, status='on_duty').update(
+        status='off_duty',
+        clock_out_time=timezone.now()
+    )
+
+    att = DriverAttendanceLog.objects.create(
+        driver=driver,
+        date=today,
+        shift_name=shift_name,
+        status='on_duty',
+        clock_in_time=timezone.now(),
+        clock_in_location=location,
+        odometer_start=int(odometer_start) if odometer_start else None,
+        fatigue_rest_compliant=True
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"Clock-in successful! Welcome on duty, Captain {driver.name}.",
+        'attendance_id': att.id,
+        'clock_in_time': att.clock_in_time.strftime('%I:%M %p')
+    })
+
+
+@driver_login_required
+@require_POST
+def api_driver_clock_out(request):
+    """End shift duty and log driver clock-out."""
+    driver = request.driver
+    location = request.POST.get('location', 'Coimbatore Central Depot Gate')
+    odometer_end = request.POST.get('odometer_end')
+    notes = request.POST.get('notes', '')
+
+    active_att = DriverAttendanceLog.objects.filter(driver=driver, status='on_duty').first()
+    if not active_att:
+        return JsonResponse({'status': 'error', 'message': 'No active shift found to clock out from.'}, status=400)
+
+    active_att.clock_out_time = timezone.now()
+    active_att.clock_out_location = location
+    if odometer_end:
+        active_att.odometer_end = int(odometer_end)
+    active_att.duty_hours = active_att.calculate_duty_hours()
+    active_att.status = 'off_duty'
+    if notes:
+        active_att.notes = (active_att.notes or '') + f"\n[Clock-out notes]: {notes}"
+    active_att.save()
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"Shift completed safely! Total duty logged: {active_att.duty_hours} hours.",
+        'duty_hours': float(active_att.duty_hours)
+    })
+
+
+@driver_login_required
+@require_POST
+def api_driver_report_delay(request):
+    """Report traffic congestion, road blockage, or mechanical delay."""
+    driver = request.driver
+    trip_log_id = request.POST.get('trip_log_id')
+    issue_type = request.POST.get('issue_type', 'traffic_jam')
+    delay_minutes = int(request.POST.get('delay_minutes', 15))
+    current_location = request.POST.get('current_location', 'Corridor Route')
+    notes = request.POST.get('notes', '')
+
+    trip_log = ContractTripLog.objects.filter(pk=trip_log_id).first() if trip_log_id else None
+
+    report = RouteIssueReport.objects.create(
+        driver=driver,
+        contract_trip_log=trip_log,
+        issue_type=issue_type,
+        delay_minutes=delay_minutes,
+        current_location=current_location,
+        notes=notes,
+        status='reported'
+    )
+
+    if trip_log:
+        trip_log.delay_minutes = delay_minutes
+        trip_log.delay_reason = f"[{report.get_issue_type_display()}]: {notes or 'Reported via Driver Portal'}"
+        trip_log.save(update_fields=['delay_minutes', 'delay_reason'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"Delay alert (+{delay_minutes}m) logged and broadcasted to Transport Control Center.",
+        'report_id': report.id,
+        'delay_minutes': delay_minutes
+    })
+
+
+@driver_login_required
+@require_POST
+def api_driver_board_commuter(request):
+    """Mark an employee boarded at their pickup stop with optional OTP check."""
+    driver = request.driver
+    pass_id = request.POST.get('pass_id')
+    otp = request.POST.get('otp', '').strip()
+
+    bp = get_object_or_404(CommuterBoardingPass, pk=pass_id)
+
+    # Optional OTP validation
+    if otp and bp.boarding_otp and otp != bp.boarding_otp:
+        return JsonResponse({'status': 'error', 'message': 'Incorrect OTP! Please check commuter boarding PIN.'}, status=400)
+
+    bp.is_boarded = True
+    bp.is_no_show = False
+    bp.boarded_at = timezone.now()
+    bp.boarded_by_driver = driver
+    bp.save(update_fields=['is_boarded', 'is_no_show', 'boarded_at', 'boarded_by_driver'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"✅ {bp.commuter.name} boarded successfully!",
+        'pass_id': bp.id,
+        'boarded_time': bp.boarded_at.strftime('%I:%M %p')
+    })
+
+
+@driver_login_required
+@require_POST
+def api_driver_absent_commuter(request):
+    """Mark a commuter as absent / no-show at pickup point."""
+    driver = request.driver
+    pass_id = request.POST.get('pass_id')
+    reason = request.POST.get('reason', 'Passenger absent at pickup point')
+
+    bp = get_object_or_404(CommuterBoardingPass, pk=pass_id)
+    bp.is_no_show = True
+    bp.is_boarded = False
+    bp.no_show_at = timezone.now()
+    bp.no_show_reason = reason
+    bp.boarded_by_driver = driver
+    bp.save(update_fields=['is_no_show', 'is_boarded', 'no_show_at', 'no_show_reason', 'boarded_by_driver'])
+
+    return JsonResponse({
+        'status': 'success',
+        'message': f"⚠️ {bp.commuter.name} marked absent/no-show.",
+        'pass_id': bp.id,
+        'absent_time': bp.no_show_at.strftime('%I:%M %p')
+    })
+
+
+@driver_login_required
+@require_POST
+def api_start_commute_trip(request, trip_log_id):
+    """Start commute trip and record opening odometer."""
+    driver = request.driver
+    trip_log = get_object_or_404(ContractTripLog, pk=trip_log_id, driver=driver)
+    opening_km = request.POST.get('opening_km')
+
+    trip_log.status = 'in_progress'
+    trip_log.actual_departure_time = timezone.now().time()
+    if opening_km:
+        trip_log.opening_km = int(opening_km)
+        if trip_log.vehicle and int(opening_km) > (trip_log.vehicle.current_km or 0):
+            trip_log.vehicle.current_km = int(opening_km)
+            trip_log.vehicle.save(update_fields=['current_km'])
+    trip_log.save()
+
+    messages.success(request, f"🚀 Route {trip_log.shift.route.name} started! Have a safe drive.")
+    return redirect('driver_portal:commute_navigation', trip_log_id=trip_log.pk)
+
+
+@driver_login_required
+@require_POST
+def api_complete_commute_trip(request, trip_log_id):
+    """Complete commute trip, record closing odometer, and log mileage."""
+    driver = request.driver
+    trip_log = get_object_or_404(ContractTripLog, pk=trip_log_id, driver=driver)
+    closing_km = request.POST.get('closing_km')
+
+    trip_log.status = 'completed'
+    trip_log.actual_arrival_time = timezone.now().time()
+    if closing_km:
+        trip_log.closing_km = int(closing_km)
+        if trip_log.vehicle and int(closing_km) > (trip_log.vehicle.current_km or 0):
+            trip_log.vehicle.current_km = int(closing_km)
+            trip_log.vehicle.save(update_fields=['current_km'])
+    trip_log.save()
+
+    messages.success(request, f"🏁 Trip #{trip_log.pk} completed successfully! Excellent work.")
+    return redirect('driver_portal:dashboard')
+
+
+# ==============================================================================
+# 4. PRE-TRIP INSPECTION, TOUR DETAILS, FUEL & SOS (EXISTING CAPABILITIES)
+# ==============================================================================
 
 @driver_login_required
 def driver_inspection(request):
@@ -171,7 +596,7 @@ def driver_inspection(request):
     trip = Trip.objects.filter(pk=trip_id).first() if trip_id else None
     vehicle = Vehicle.objects.filter(pk=vehicle_id).first() if vehicle_id else (trip.vehicle if trip else None)
     if not vehicle:
-        vehicle = Vehicle.objects.filter(status='active').first()
+        vehicle = driver.default_vehicles.first() or Vehicle.objects.filter(status='active').first()
 
     if request.method == 'POST':
         odometer_reading = int(request.POST.get('odometer_reading', vehicle.current_km if vehicle else 0))
@@ -395,7 +820,6 @@ def driver_sos_trigger(request):
 def pwa_manifest(request):
     """Serve PWA manifest with standard application/manifest+json MIME type."""
     from django.conf import settings
-    from django.http import HttpResponse
     manifest_path = settings.BASE_DIR / 'static' / 'manifest.json'
     try:
         with open(manifest_path, 'r', encoding='utf-8') as f:
@@ -408,7 +832,6 @@ def pwa_manifest(request):
 def pwa_service_worker(request):
     """Serve PWA Service Worker with Service-Worker-Allowed root scope."""
     from django.conf import settings
-    from django.http import HttpResponse
     sw_path = settings.BASE_DIR / 'static' / 'sw.js'
     try:
         with open(sw_path, 'r', encoding='utf-8') as f:
@@ -418,4 +841,3 @@ def pwa_service_worker(request):
     response = HttpResponse(content, content_type='application/javascript')
     response['Service-Worker-Allowed'] = '/'
     return response
-

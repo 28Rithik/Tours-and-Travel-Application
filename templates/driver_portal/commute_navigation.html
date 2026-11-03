@@ -1,0 +1,325 @@
+{% extends "driver_portal/base.html" %}
+
+{% block title %}Route Navigation & Pickup Cockpit | Trip #{{ trip_log.pk }}{% endblock %}
+
+{% block content %}
+<!-- Top Header: Back to Dashboard & Route Status -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <a href="{% url 'driver_portal:dashboard' %}" style="color: var(--primary); text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+        &larr; Duty Dashboard
+    </a>
+    <div style="display: flex; align-items: center; gap: 6px;">
+        <span class="badge {% if trip_log.status == 'in_progress' %}badge-success{% elif trip_log.status == 'completed' %}badge-info{% else %}badge-warning{% endif %}" style="font-size: 11px;">
+            {{ trip_log.get_status_display }}
+        </span>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">#LOG-{{ trip_log.pk }}</span>
+    </div>
+</div>
+
+<!-- Route Header Hero Card -->
+<div class="card" style="border-top: 4px solid var(--primary); margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+        <div>
+            <div style="font-size: 10px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">{{ trip_log.shift.shift_name }}</div>
+            <h1 style="font-size: 17px; font-weight: 800; color: var(--text-primary); margin: 2px 0;">{{ route.name }}</h1>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 800; color: var(--text-primary);">⏰ {{ trip_log.scheduled_departure_time|time:"h:i A" }}</div>
+            <div style="font-size: 10px; color: var(--text-muted);">{{ trip_log.date|date:"d M Y" }}</div>
+        </div>
+    </div>
+
+    <div style="background: var(--bg-surface); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 12px; font-size: 12px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span style="color: var(--text-muted);">Assigned Vehicle:</span>
+            <strong style="color: var(--text-primary);">🚗 {{ trip_log.vehicle.registration_number }} ({{ trip_log.vehicle.brand }} {{ trip_log.vehicle.model }})</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Passenger Manifest:</span>
+            <strong style="color: var(--primary);">👥 {{ total_boarded }} / {{ total_manifest }} Boarded ({{ total_absent }} Absent)</strong>
+        </div>
+    </div>
+
+    <!-- Trip Start / End Status Bar -->
+    {% if trip_log.status != 'in_progress' and trip_log.status != 'completed' %}
+    <form method="POST" action="{% url 'driver_portal:api_start_commute_trip' trip_log.pk %}" style="display: flex; gap: 8px;">
+        {% csrf_token %}
+        <input type="number" name="opening_km" value="{{ trip_log.vehicle.current_km|default:0 }}" placeholder="Opening Odometer KM" required style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px; font-weight: 700;">
+        <button type="submit" class="btn btn-success" style="padding: 10px 16px; font-size: 13px; font-weight: 800; white-space: nowrap;">
+            ▶️ Start Route
+        </button>
+    </form>
+    {% elif trip_log.status == 'in_progress' %}
+    <form method="POST" action="{% url 'driver_portal:api_complete_commute_trip' trip_log.pk %}" style="display: flex; gap: 8px;">
+        {% csrf_token %}
+        <input type="number" name="closing_km" value="{{ trip_log.vehicle.current_km|default:0 }}" placeholder="Closing Odometer KM" required style="flex: 1; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px; font-weight: 700;">
+        <button type="submit" class="btn btn-danger" style="padding: 10px 16px; font-size: 13px; font-weight: 800; white-space: nowrap;">
+            🏁 Complete Route
+        </button>
+    </form>
+    {% else %}
+    <div style="text-align: center; font-size: 12px; font-weight: 700; color: #10b981; padding: 6px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+        ✅ Route Completed & Bullpen Settled
+    </div>
+    {% endif %}
+</div>
+
+<!-- CURRENT ACTIVE STOP SPOTLIGHT -->
+{% if current_active_stop %}
+<div class="card" style="border: 2px solid #38bdf8; background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), transparent); margin-bottom: 16px; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="background: #0284c7; color: #fff; border-radius: 6px; padding: 2px 7px; font-size: 10px; font-weight: 800;">CURRENT STOP #{{ current_active_stop.order }}</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Next Destination</span>
+        </div>
+        <span style="font-size: 11px; font-weight: 700; color: var(--primary);">
+            👥 {{ current_active_stop.waiting_count }} waiting to board
+        </span>
+    </div>
+
+    <div style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 2px;">
+        📍 {{ current_active_stop.name }}
+    </div>
+    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+        Landmark: {{ current_active_stop.landmark }}
+    </div>
+
+    <!-- Navigation & Arrival Buttons -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <a href="{{ google_maps_url }}" target="_blank" class="btn btn-primary" style="padding: 10px; font-size: 13px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; background: #0284c7;">
+            <span>🗺️ Google Maps Nav</span>
+        </a>
+        <button type="button" onclick="reportDelayModal()" class="btn btn-secondary" style="padding: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px;">
+            <span>⚠️ Traffic Delay</span>
+        </button>
+    </div>
+</div>
+{% endif %}
+
+<!-- STOP-BY-STOP PICKUP SEQUENCE & PASSENGER MANIFEST -->
+<div style="margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 style="font-size: 16px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+            <span>🚏 Route Pickup Sequence</span>
+            <span style="background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-muted); border-radius: 999px; padding: 1px 7px; font-size: 10px; font-weight: 700;">{{ stops_data|length }} Stops</span>
+        </h2>
+        <span style="font-size: 11px; color: var(--text-muted);">Ordered by scheduled ETA</span>
+    </div>
+
+    {% for s in stops_data %}
+    <div class="card" style="padding: 14px; margin-bottom: 12px; border-left: 4px solid {% if s.is_completed %}#10b981{% elif s.is_current %}#0284c7{% else %}#cbd5e1{% endif %};">
+        <!-- Stop Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 11px; font-weight: 800; color: {% if s.is_completed %}#10b981{% elif s.is_current %}#0284c7{% else %}var(--text-muted){% endif %};">
+                        STOP {{ s.order }}
+                    </span>
+                    <span style="font-size: 14px; font-weight: 800; color: var(--text-primary);">{{ s.name }}</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                    🚩 {{ s.landmark }} &bull; +{{ s.offset_minutes }} mins from origin
+                </div>
+            </div>
+            <div style="text-align: right;">
+                {% if s.is_completed %}
+                    <span class="badge badge-success" style="font-size: 10px;">✅ Completed</span>
+                {% elif s.is_current %}
+                    <span class="badge badge-primary" style="font-size: 10px;">🟢 Arriving Now</span>
+                {% else %}
+                    <span class="badge badge-secondary" style="font-size: 10px; color: var(--text-muted);">Upcoming</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Passenger Manifest Table for this stop -->
+        <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; display: flex; justify-content: space-between;">
+                <span>Employees at this Stop:</span>
+                <span>{{ s.boarded_count }} Boarded &bull; {{ s.waiting_count }} Waiting</span>
+            </div>
+
+            {% for bp in s.passes %}
+            <div id="passCard-{{ bp.pk }}" style="background: var(--bg-surface); border: 1px solid {% if bp.is_boarded %}rgba(16, 185, 129, 0.35){% elif bp.is_no_show %}rgba(239, 68, 68, 0.35){% else %}var(--border){% endif %}; border-radius: 8px; padding: 10px; margin-bottom: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                            <span>{{ bp.commuter.name }}</span>
+                            <span style="font-size: 9px; font-weight: 700; background: var(--bg-base); border: 1px solid var(--border); border-radius: 4px; padding: 1px 4px; color: var(--text-muted);">
+                                {{ bp.commuter.commuter_id }}
+                            </span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 1px;">
+                            {{ bp.commuter.department_or_grade|default:"Corporate Staff" }}
+                        </div>
+                    </div>
+                    <div>
+                        {% if bp.is_boarded %}
+                            <span class="badge badge-success" style="font-size: 10px;">✅ Boarded</span>
+                        {% elif bp.is_no_show %}
+                            <span class="badge badge-danger" style="font-size: 10px;">❌ Absent</span>
+                        {% else %}
+                            <span class="badge badge-warning" style="font-size: 10px;">⏳ Waiting</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-bottom: 8px;">
+                    <a href="tel:{{ bp.commuter.phone }}" style="color: var(--primary); text-decoration: none; font-weight: 700;">
+                        📞 {{ bp.commuter.phone }}
+                    </a>
+                    <div style="font-family: monospace; background: rgba(2, 132, 199, 0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 800;">
+                        OTP: {{ bp.boarding_otp }}
+                    </div>
+                </div>
+
+                <!-- Action Buttons: Board / Absent -->
+                {% if not bp.is_boarded and not bp.is_no_show %}
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" onclick="boardCommuter({{ bp.pk }}, '{{ bp.boarding_otp }}')" class="btn btn-success" style="flex: 2; padding: 6px 10px; font-size: 11px; font-weight: 700;">
+                        ✅ Boarded
+                    </button>
+                    <button type="button" onclick="absentCommuter({{ bp.pk }})" class="btn btn-secondary" style="flex: 1; padding: 6px 10px; font-size: 11px; font-weight: 700; color: #ef4444;">
+                        ❌ Absent
+                    </button>
+                </div>
+                {% elif bp.is_boarded %}
+                <div style="font-size: 10px; color: #10b981; font-weight: 600;">
+                    Boarded at {{ bp.boarded_at|date:"h:i A"|default:"Verified" }}
+                </div>
+                {% elif bp.is_no_show %}
+                <div style="font-size: 10px; color: #ef4444; font-weight: 600;">
+                    Marked absent at {{ bp.no_show_at|date:"h:i A"|default:"Recorded" }} ({{ bp.no_show_reason|default:"No-show" }})
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 4px 0;">
+                No registered passengers designated at this stop.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Delay Modal -->
+<div id="delayCockpitModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); max-width: 400px; width: 100%; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 12px; color: var(--text-primary);">⚠️ Report Route Traffic Delay</h3>
+        <form onsubmit="submitCockpitDelay(event)">
+            {% csrf_token %}
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Delay Type:</label>
+                <select id="cockpitIssueType" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+                    <option value="traffic_jam">🚗 Heavy Congestion / Bottleneck</option>
+                    <option value="road_closure">🚧 Road Diversion / Flyover Block</option>
+                    <option value="waterlogging">🌧️ Waterlogging / Heavy Rain</option>
+                    <option value="passenger_delay">⏱️ Passenger Waiting at Stop</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Delay Minutes:</label>
+                <input type="number" id="cockpitDelayMins" value="15" min="5" max="90" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px; font-weight: 700;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Location / Remarks:</label>
+                <input type="text" id="cockpitDelayNotes" value="Near {{ current_active_stop.name|default:'Highway' }}" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button type="button" onclick="closeCockpitDelay()" class="btn btn-secondary" style="padding: 10px; font-size: 12px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px; font-size: 12px; font-weight: 700;">Broadcast to Control Desk</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function reportDelayModal() {
+    var m = document.getElementById('delayCockpitModal');
+    if (m) m.style.display = 'flex';
+}
+function closeCockpitDelay() {
+    var m = document.getElementById('delayCockpitModal');
+    if (m) m.style.display = 'none';
+}
+function submitCockpitDelay(e) {
+    e.preventDefault();
+    var fd = new FormData();
+    fd.append('trip_log_id', '{{ trip_log.pk }}');
+    fd.append('issue_type', document.getElementById('cockpitIssueType').value);
+    fd.append('delay_minutes', document.getElementById('cockpitDelayMins').value);
+    fd.append('notes', document.getElementById('cockpitDelayNotes').value);
+
+    fetch("{% url 'driver_portal:api_report_delay' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            alert(d.message);
+            closeCockpitDelay();
+        } else {
+            alert('Error: ' + d.message);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+
+function boardCommuter(passId, defaultOtp) {
+    var otpPrompt = prompt("Verify 4-digit commuter OTP (or leave empty to confirm manual check-in):", defaultOtp || "");
+    if (otpPrompt === null) return; // user cancelled
+
+    var fd = new FormData();
+    fd.append('pass_id', passId);
+    fd.append('otp', otpPrompt);
+
+    fetch("{% url 'driver_portal:api_board_commuter' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            alert(d.message);
+            window.location.reload();
+        } else {
+            alert('Verification Error: ' + d.message);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+
+function absentCommuter(passId) {
+    if (!confirm("Are you sure you want to mark this employee as Absent / No-Show at pickup stop?")) return;
+    var reason = prompt("Enter reason for absence:", "Passenger not at stop / phone unreachable");
+    if (reason === null) return;
+
+    var fd = new FormData();
+    fd.append('pass_id', passId);
+    fd.append('reason', reason);
+
+    fetch("{% url 'driver_portal:api_absent_commuter' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            alert(d.message);
+            window.location.reload();
+        } else {
+            alert('Error: ' + d.message);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
+{% endblock %}

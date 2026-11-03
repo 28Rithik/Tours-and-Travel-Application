@@ -142,6 +142,9 @@ class CommuterBoardingPass(models.Model):
         null=True,
         blank=True
     )
+    is_no_show = models.BooleanField(default=False, help_text='Marked absent / no-show by driver at pickup stop')
+    no_show_at = models.DateTimeField(null=True, blank=True)
+    no_show_reason = models.CharField(max_length=120, blank=True)
 
     # Phase 1: Women Safety IVR & Commute Buddy
     commute_buddy = models.ForeignKey(

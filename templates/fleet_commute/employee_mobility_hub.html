@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Corporate Employee Mobility Self-Service Experience Hub | Sivagayathiri ERP{% endblock %}
+
+{% block extra_head %}
+<style>
+  .commute-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+  html.dark .commute-card, .dark .commute-card {
+    background: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  }
+  .otp-pill {
+    letter-spacing: 0.35em;
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 6px 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    display: inline-block;
+  }
+  .live-pulse {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse-ring 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Unfold Top Breadcrumbs & Page Action Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="/commute/roster-studio/" class="hover:text-primary transition">Corporate Commute Desk</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Employee Mobility Hub</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Corporate Employee Mobility Self-Service Portal</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+          ETS 2.0 Live
+        </span>
+      </h1>
+    </div>
+
+    <!-- Switch Commuter (For Desk Testing & Supervisors) -->
+    <div class="flex items-center gap-2">
+      <form method="GET" class="flex items-center gap-1.5">
+        <span class="text-xs text-slate-500 dark:text-slate-400">Viewing Commuter:</span>
+        <select name="commuter_id" onchange="this.form.submit()" class="text-xs py-1.5 px-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 font-semibold focus:outline-none focus:border-primary">
+          {% for c in all_commuters %}
+            <option value="{{ c.commuter_id }}" {% if commuter and commuter.commuter_id == c.commuter_id %}selected{% endif %}>
+              {{ c.name }} ({{ c.commuter_id }}) — {{ c.contract.client.name|default:c.contract.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+
+      <button onclick="openRequestTransportModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">add_task</span>
+        <span>Request Transport</span>
+      </button>
+
+      <button onclick="openSosModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm transition">
+        <span class="material-symbols-outlined text-[16px]">emergency</span>
+        <span>SOS</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages Feedback -->
+  {% if messages %}
+    <div class="space-y-2">
+      {% for message in messages %}
+        <div class="p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900{% else %}bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900{% endif %}">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">{% if message.tags == 'error' %}warning{% else %}check_circle{% endif %}</span>
+            <span>{{ message }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Top Hero: Commuter Profile & Live Active Cab Status Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Card 1: Commuter Profile & Route Assignment -->
+    <div class="commute-card p-5 space-y-4">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+            {{ commuter.name|slice:":2"|upper }}
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">{{ commuter.name }}</h2>
+            <div class="text-xs text-slate-500 dark:text-slate-400 font-mono">ID: {{ commuter.commuter_id }}</div>
+            <div class="text-[11px] font-semibold text-primary mt-0.5">
+              {{ commuter.contract.client.name|default:commuter.contract.name }}
+            </div>
+          </div>
+        </div>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {% if commuter.is_active %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300{% else %}bg-slate-100 text-slate-600{% endif %}">
+          {{ commuter.get_commuter_type_display }}
+        </span>
+      </div>
+
+      <div class="border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Department / Role:</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200">{{ commuter.department_or_grade|default:"Software Engineering" }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Designated Stop:</span>
+          <span class="font-semibold text-slate-800 dark:text-slate-200 text-right">{{ commuter.boarding_stop.stop_name|default:"TIDEL Main Gate" }}</span>
+        </div>
+        <div class="flex justify-between items-start">
+          <span class="text-slate-500 whitespace-nowrap mr-2">Pickup Address:</span>
+          <span class="font-medium text-slate-700 dark:text-slate-300 text-right">{{ commuter.pickup_address|default:"Siruseri IT Corridor, OMR" }}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Night Escort Guard:</span>
+          <span class="font-semibold {% if commuter.requires_night_escort %}text-amber-600 dark:text-amber-400 flex items-center gap-1{% else %}text-slate-400{% endif %}">
+            {% if commuter.requires_night_escort %}
+              <span class="material-symbols-outlined text-[14px]">shield</span>
+              <span>Active Mandate</span>
+            {% else %}
+              Standard Day Shift
+            {% endif %}
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500">Emergency Contact:</span>
+          <span class="font-mono text-slate-700 dark:text-slate-300">{{ commuter.emergency_contact_name|default:"Depot Desk" }} ({{ commuter.emergency_contact_phone|default:"+91 98421 23456" }})</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 & 3: Today's Assigned Cab & Live Telematics Tracking -->
+    <div class="commute-card p-5 lg:col-span-2 space-y-5 bg-gradient-to-br from-white via-sky-50/20 to-white dark:from-slate-900 dark:via-slate-900/60 dark:to-slate-900 border-sky-200 dark:border-sky-950">
+      
+      <!-- Live Cab Banner -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="live-pulse"></div>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Live Cab Radar</span>
+          <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+          <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ cab_info.status }}</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-500">Estimated Arrival:</span>
+          <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 font-bold text-xs flex items-center gap-1">
+            <span class="material-symbols-outlined text-[15px]">schedule</span>
+            <span>~{{ cab_info.eta_mins }} Mins</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Cab & Driver Information -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Chauffeur Profile -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-base shadow-sm">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+          <div class="flex-1 min-w-0 text-xs">
+            <div class="font-bold text-slate-900 dark:text-white truncate">{{ cab_info.driver_name }}</div>
+            <div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+              <span class="text-amber-500 font-bold">★ {{ cab_info.driver_rating }}</span>
+              <span>&bull;</span>
+              <span>Police Verified</span>
+            </div>
+            <div class="mt-1 flex items-center gap-2">
+              <a href="tel:{{ cab_info.driver_phone }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-primary hover:bg-slate-50">
+                <span class="material-symbols-outlined text-[12px]">call</span>
+                <span>{{ cab_info.driver_phone }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vehicle Details -->
+        <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+            <span class="material-symbols-outlined">directions_bus</span>
+          </div>
+          <div class="flex-1 min-w-0 text-xs">
+            <div class="font-mono font-bold text-slate-900 dark:text-white text-sm tracking-wide">{{ cab_info.vehicle_reg }}</div>
+            <div class="text-[11px] text-slate-500 mt-0.5 truncate">{{ cab_info.vehicle_model }} &bull; {{ cab_info.vehicle_capacity }} Seats</div>
+            <div class="mt-1 flex items-center gap-1.5 text-[10px] text-slate-400">
+              <span class="inline-flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span class="material-symbols-outlined text-[12px]">speed</span>
+                <span>{{ cab_info.speed_kmh }} km/h</span>
+              </span>
+              <span>&bull;</span>
+              <span>AIS-140 GPS Active</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Boarding Pass Verification Deck: 4-Digit OTP & Check-in Action -->
+      <div class="p-4 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
+            Boarding Security Pass &bull; Show Chauffeur
+          </span>
+          <div class="flex items-center gap-3">
+            <div class="otp-pill font-mono">
+              {{ today_bp.boarding_otp|default:"7409" }}
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-900 dark:text-white">4-Digit Boarding OTP</div>
+              <div class="text-[11px] text-slate-500">Scan QR or share OTP when boarding</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          {% if today_bp and today_bp.is_boarded %}
+            <span class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow">
+              <span class="material-symbols-outlined text-base">check_circle</span>
+              <span>Boarded &bull; Safe Journey</span>
+            </span>
+          {% else %}
+            <form method="POST">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="confirm_boarding">
+              <input type="hidden" name="boarding_pass_id" value="{{ today_bp.id|default:'' }}">
+              <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+                <span>Confirm Boarding</span>
+              </button>
+            </form>
+          {% endif %}
+
+          <a href="/commute/track/{{ today_bp.pass_token|default:'demo' }}/" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 font-semibold text-xs shadow-sm transition flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base text-primary">map</span>
+            <span>Live Radar Map</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Tabbed Operations Workspace: Requests, History, Safety -->
+  <div class="border-b border-slate-200 dark:border-slate-800">
+    <nav class="flex space-x-6 overflow-x-auto text-xs">
+      <button id="tabBtnRequests" onclick="switchCommuteTab('requests')" class="pb-3 text-sm font-semibold border-b-2 border-primary text-primary whitespace-nowrap">
+        My Transport Requests ({{ transport_requests|length }})
+      </button>
+      <button id="tabBtnHistory" onclick="switchCommuteTab('history')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 whitespace-nowrap">
+        Trip &amp; Boarding History ({{ trip_history|length }})
+      </button>
+      <button id="tabBtnSafety" onclick="switchCommuteTab('safety')" class="pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 whitespace-nowrap">
+        Safety, Grievance &amp; SOS Center
+      </button>
+    </nav>
+  </div>
+
+  <!-- TAB 1: Transport Requests Ledger -->
+  <div id="tabRequests" class="space-y-4">
+    <div class="commute-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Ad-hoc &amp; On-Demand Transport Requests</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Shift adjustments, WFO on-demand requests, overtime cabs, and stop changes</p>
+        </div>
+        <button onclick="openRequestTransportModal()" class="px-3 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition">
+          + New Transport Request
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Request #</th>
+              <th class="py-3 px-4">Request Type</th>
+              <th class="py-3 px-4">Travel Date</th>
+              <th class="py-3 px-4">Direction &amp; Shift</th>
+              <th class="py-3 px-4">Pickup Address / Notes</th>
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4 text-right">Assigned Cab</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for r in transport_requests %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                {{ r.request_number }}
+              </td>
+              <td class="py-3.5 px-4 font-semibold text-slate-800 dark:text-slate-200">
+                {{ r.get_request_type_display }}
+              </td>
+              <td class="py-3.5 px-4 font-mono text-slate-600 dark:text-slate-300">
+                {{ r.travel_date|date:"d M Y" }}
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="font-medium text-slate-800 dark:text-slate-200">{{ r.get_direction_display }}</div>
+                <div class="text-[11px] text-slate-500">Shift: {{ r.shift_time }}</div>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="text-slate-700 dark:text-slate-300 max-w-xs truncate">{{ r.reason }}</div>
+                {% if r.temporary_pickup_address %}
+                  <div class="text-[10px] text-primary font-medium truncate">Alt: {{ r.temporary_pickup_address }}</div>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4">
+                {% if r.status == 'approved' %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                    Approved
+                  </span>
+                {% elif r.status == 'rejected' %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                    Rejected
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                    Review Pending
+                  </span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 text-right font-mono font-semibold text-slate-800 dark:text-slate-200">
+                {% if r.assigned_trip and r.assigned_trip.vehicle %}
+                  {{ r.assigned_trip.vehicle.registration_number }}
+                {% else %}
+                  <span class="text-slate-400 font-normal">Pending Allocation</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-8 text-slate-400">
+                No special transport requests submitted. Regular daily commute roster applies.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Trip & Boarding History -->
+  <div id="tabHistory" class="space-y-4 hidden">
+    <div class="commute-card overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white">Trip &amp; Boarding Log Ledger</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Verified commute history, boarding timestamps, and chauffeur allocations</p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Shift &amp; Route</th>
+              <th class="py-3 px-4">Assigned Vehicle</th>
+              <th class="py-3 px-4">Chauffeur</th>
+              <th class="py-3 px-4">Boarding Status</th>
+              <th class="py-3 px-4">Boarded Timestamp</th>
+              <th class="py-3 px-4 text-right">Digital Pass</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for th in trip_history %}
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                {{ th.date|date:"d M Y" }}
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="font-semibold text-slate-800 dark:text-slate-200">{{ th.shift.name|default:"General Shift" }}</div>
+                <div class="text-[11px] text-slate-500">{{ th.shift.route.name|default:"OMR IT Expressway Corridor" }}</div>
+              </td>
+              <td class="py-3.5 px-4 font-mono font-medium text-slate-800 dark:text-slate-200">
+                {{ th.trip_log.vehicle.registration_number|default:"TN 38 CX 4091" }}
+              </td>
+              <td class="py-3.5 px-4 text-slate-700 dark:text-slate-300">
+                {{ th.trip_log.driver.name|default:"Ramesh Kumar" }}
+              </td>
+              <td class="py-3.5 px-4">
+                {% if th.is_boarded %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                    Boarded
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    Completed
+                  </span>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 font-mono text-slate-500">
+                {{ th.boarded_at|date:"H:i A"|default:"Verified on Route" }}
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <a href="/commute/track/{{ th.pass_token }}/" class="text-primary hover:underline font-semibold">
+                  View Pass &rarr;
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-8 text-slate-400">No previous trip logs recorded.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Safety & Grievance SOS Desk -->
+  <div id="tabSafety" class="space-y-4 hidden">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- SOS Alert Box -->
+      <div class="commute-card p-5 border-rose-200 dark:border-rose-950 bg-rose-50/20 dark:bg-rose-950/20 space-y-3">
+        <div class="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold text-sm">
+          <span class="material-symbols-outlined">emergency</span>
+          <span>Emergency SOS Dispatch</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">
+          Immediate priority alert sent to 24x7 Transport Control Room with your exact GPS coordinates and assigned vehicle number.
+        </p>
+        <button onclick="openSosModal()" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-base">warning</span>
+          <span>Trigger Instant SOS</span>
+        </button>
+      </div>
+
+      <!-- Safe-Drop Confirmation -->
+      <div class="commute-card p-5 space-y-3">
+        <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+          <span class="material-symbols-outlined">verified_user</span>
+          <span>Safe-Drop Acknowledgement</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">
+          Confirms that you have reached your doorstep safely. Mandatory for female employees traveling on night shifts between 20:00 and 06:00.
+        </p>
+        <button onclick="alert('Safe-drop acknowledged for today! Transport Desk status updated.')" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition">
+          I Have Reached Safely
+        </button>
+      </div>
+
+      <!-- Lost & Found / Feedback -->
+      <div class="commute-card p-5 space-y-3">
+        <div class="flex items-center gap-2 text-primary font-bold text-sm">
+          <span class="material-symbols-outlined">luggage</span>
+          <span>Lost &amp; Found / Grievance</span>
+        </div>
+        <p class="text-xs text-slate-600 dark:text-slate-400">
+          Report items left behind in cabs (laptops, mobile phones, bags) or file driver service &amp; air-conditioning complaints.
+        </p>
+        <a href="/commute/lost-and-found/" class="block text-center w-full py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs shadow-sm transition hover:bg-slate-50">
+          Open Lost &amp; Found Registry &rarr;
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal: New Ad-hoc Transport Request -->
+<div id="requestModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-lg overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-lg">add_task</span>
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Submit Ad-hoc Transport Request</h3>
+      </div>
+      <button onclick="closeRequestTransportModal()" class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xl font-bold">&times;</button>
+    </div>
+
+    <form method="POST" class="p-5 space-y-4 text-xs">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="request_transport">
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Request Category</label>
+        <select name="request_type" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+          <option value="adhoc_shift">Ad-hoc Shift Transport (Different Shift)</option>
+          <option value="wfo_ondemand">Work From Office On-Demand Request</option>
+          <option value="temporary_pickup_change">Temporary Pickup / Stop Change</option>
+          <option value="weekend_ot">Weekend / Overtime Sprint Cab</option>
+          <option value="permanent_relocation">Permanent Home Address Relocation</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Travel Date</label>
+          <input type="date" name="travel_date" value="{{ today|date:'Y-m-d' }}" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Shift Time</label>
+          <input type="text" name="shift_time" value="08:30" placeholder="e.g. 08:30 or 21:00" required class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Direction</label>
+        <select name="direction" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+          <option value="pickup">Home ➔ Office (Login Shift)</option>
+          <option value="drop">Office ➔ Home (Logout Shift)</option>
+          <option value="both">Round Trip (Both Shifts)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Alternative Pickup Address (Optional)</label>
+        <input type="text" name="temporary_pickup_address" placeholder="e.g. Sholinganallur Junction / Velachery" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Business Reason / Manager Approval</label>
+        <textarea name="reason" required rows="2" placeholder="e.g. Client deployment release sprint until 22:30. Approved by manager." class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-primary"></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" onclick="closeRequestTransportModal()" class="px-4 py-2 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg shadow-sm transition">Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Emergency SOS Confirmation -->
+<div id="sosModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border-2 border-rose-500 w-full max-w-md overflow-hidden">
+    <div class="p-6 bg-gradient-to-br from-rose-600 via-rose-700 to-slate-900 text-white text-center">
+      <div class="inline-flex p-3 bg-white/10 rounded-2xl backdrop-blur-md mb-2 border border-white/20">
+        <span class="material-symbols-outlined text-rose-200 text-4xl">emergency</span>
+      </div>
+      <h3 class="text-xl font-black tracking-wide">BROADCAST EMERGENCY SOS</h3>
+      <p class="text-xs text-rose-200 font-medium">Transmits live alert to Sivagayathiri 24x7 Control Desk</p>
+    </div>
+
+    <form method="POST" class="p-6 space-y-4 text-xs">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="trigger_sos">
+      <input type="hidden" id="sosLat" name="latitude" value="11.0168">
+      <input type="hidden" id="sosLon" name="longitude" value="76.9558">
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Emergency Nature</label>
+        <select name="sos_reason" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-semibold">
+          <option value="Route Deviation / Safety Concern">Route Deviation / Safety Concern</option>
+          <option value="Vehicle Breakdown on Dark Highway">Vehicle Breakdown on Dark Highway</option>
+          <option value="Medical Emergency">Medical Emergency</option>
+          <option value="Driver Misconduct / Rash Driving">Driver Misconduct / Rash Driving</option>
+          <option value="Other Immediate Assistance">Other Immediate Assistance</option>
+        </select>
+      </div>
+
+      <p class="text-[11px] text-slate-500 leading-relaxed">
+        By tapping "Confirm Emergency SOS", your live coordinates and phone number will be shared immediately with the Transport Desk controller and the Quick Reaction Team.
+      </p>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+        <button type="button" onclick="closeSosModal()" class="w-full py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold hover:bg-slate-50 transition">Cancel</button>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black shadow-lg transition">CONFIRM SOS</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function switchCommuteTab(tab) {
+    const tabs = ['requests', 'history', 'safety'];
+    tabs.forEach(t => {
+      const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+      if (el) el.classList.add('hidden');
+      if (btn) {
+        btn.classList.remove('border-primary', 'text-primary');
+        btn.classList.add('border-transparent', 'text-slate-500');
+      }
+    });
+
+    const activeEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+    const activeBtn = document.getElementById('tabBtn' + tab.charAt(0).toUpperCase() + tab.slice(1));
+    if (activeEl) activeEl.classList.remove('hidden');
+    if (activeBtn) {
+      activeBtn.classList.add('border-primary', 'text-primary');
+      activeBtn.classList.remove('border-transparent', 'text-slate-500');
+    }
+  }
+
+  function openRequestTransportModal() {
+    const modal = document.getElementById('requestModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeRequestTransportModal() {
+    const modal = document.getElementById('requestModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function openSosModal() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        document.getElementById('sosLat').value = pos.coords.latitude;
+        document.getElementById('sosLon').value = pos.coords.longitude;
+      }, function() {});
+    }
+    const modal = document.getElementById('sosModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeSosModal() {
+    const modal = document.getElementById('sosModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeRequestTransportModal();
+      closeSosModal();
+    }
+  });
+</script>
+{% endblock %}
+

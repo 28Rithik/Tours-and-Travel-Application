@@ -1,42 +1,225 @@
 {% extends "driver_portal/base.html" %}
 
-{% block title %}Dashboard | Captain {{ driver.name }}{% endblock %}
+{% block title %}Driver Dashboard | Captain {{ driver.name }}{% endblock %}
 
 {% block content %}
-<!-- Driver Welcome Banner -->
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-    <div>
-        <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Welcome, Captain</div>
-        <h1 style="font-size: 22px; font-weight: 800;">{{ driver.name }}</h1>
+<!-- Driver Switcher & Profile Header -->
+<div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);">
+                {{ driver.name|slice:":1" }}
+            </div>
+            <div>
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Duty Chauffeur &bull; Lic: {{ driver.license_number|default:"Commercial" }}</div>
+                <h1 style="font-size: 19px; font-weight: 800; margin: 1px 0; color: var(--text-primary);">Captain {{ driver.name }}</h1>
+                <div style="font-size: 12px; color: var(--text-secondary);">📞 {{ driver.phone }}</div>
+            </div>
+        </div>
+        <div style="text-align: right;">
+            {% if is_on_duty %}
+                <span class="badge badge-success" style="font-size: 11px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 5px;">
+                    <span style="width: 7px; height: 7px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                    ON DUTY
+                </span>
+            {% else %}
+                <span class="badge badge-secondary" style="font-size: 11px; padding: 4px 10px; background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-muted);">
+                    OFF DUTY
+                </span>
+            {% endif %}
+        </div>
     </div>
-    <div style="text-align: right;">
-        <span class="badge badge-success">🟢 Active Duty</span>
-        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">{{ driver.phone }}</div>
+
+    <!-- Driver Switcher Dropdown (Evaluation / Dispatch Preview) -->
+    {% if roster_drivers %}
+    <div style="border-top: 1px solid var(--border); padding-top: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+        <span style="color: var(--text-muted);">Switch Driver Persona:</span>
+        <select onchange="if(this.value) window.location.href='?driver_id='+this.value;" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 600;">
+            {% for d in roster_drivers %}
+                <option value="{{ d.id }}" {% if d.id == driver.id %}selected{% endif %}>{{ d.name }} ({{ d.phone }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Driver Attendance & Statutory Duty Hours Sentry -->
+<div class="card" style="border-left: 4px solid {% if is_on_duty %}#10b981{% else %}#64748b{% endif %}; margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Duty Attendance & Shift Hours</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--text-primary); margin-top: 2px;">
+                {% if is_on_duty %}
+                    🟢 Active Shift: {{ active_attendance.get_shift_name_display|default:"Morning Duty" }}
+                {% else %}
+                    ⚪ Currently Off Duty
+                {% endif %}
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                {% if is_on_duty %}
+                    Clocked in at {{ active_attendance.clock_in_time|date:"h:i A" }} &bull; {{ active_attendance.clock_in_location }}
+                {% elif latest_attendance %}
+                    Last duty: {{ latest_attendance.date|date:"d M" }} &bull; Total: {{ latest_attendance.duty_hours }} hrs
+                {% else %}
+                    No shift clocked in today.
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            {% if is_on_duty %}
+                <button type="button" onclick="openClockOutModal()" class="btn btn-secondary" style="font-size: 11px; padding: 6px 12px; font-weight: 700;">
+                    🏁 Clock Out
+                </button>
+            {% else %}
+                <button type="button" onclick="openClockInModal()" class="btn btn-primary" style="font-size: 11px; padding: 6px 12px; font-weight: 700;">
+                    🟢 Clock In
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Duty Hours & 8-Hour Fatigue Guard Progress Bar -->
+    <div style="background: var(--bg-surface); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+            <span>⏱️ Steering Duty: <span style="color: var(--primary);">{{ duty_hours_formatted }}</span></span>
+            <span style="color: {% if fatigue_status == 'critical' %}#ef4444{% elif fatigue_status == 'warning' %}#f59e0b{% else %}#10b981{% endif %};">
+                {% if is_on_duty %}
+                    {{ safe_hours_remaining }}h safe duty remaining
+                {% else %}
+                    Statutory 8h standard
+                {% endif %}
+            </span>
+        </div>
+        <div style="height: 6px; background: rgba(0,0,0,0.08); border-radius: 999px; overflow: hidden;">
+            <div style="height: 100%; width: {% if duty_hours_elapsed %}{% widthratio duty_hours_elapsed 8 100 %}{% else %}0{% endif %}%; background: {% if fatigue_status == 'critical' %}#ef4444{% elif fatigue_status == 'warning' %}#f59e0b{% else %}#10b981{% endif %}; border-radius: 999px;"></div>
+        </div>
+        <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px; display: flex; justify-content: space-between;">
+            <span>Mandatory rest: 8h between tours</span>
+            <span>Max continuous duty: 8h</span>
+        </div>
     </div>
 </div>
 
 <!-- Big Emergency SOS Button -->
 <a href="{% url 'driver_portal:sos' %}" style="display: block; text-decoration: none; margin-bottom: 16px;">
-    <div style="background: linear-gradient(135deg, #b91c1c, #ef4444); border-radius: var(--radius-lg); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35); border: 1px solid rgba(254, 202, 202, 0.2);">
-        <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+    <div style="background: linear-gradient(135deg, #b91c1c, #ef4444); border-radius: var(--radius-lg); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); border: 1px solid rgba(254, 202, 202, 0.2);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 42px; height: 42px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px;">
                 🚨
             </div>
             <div>
-                <div style="color: #fff; font-weight: 800; font-size: 16px; letter-spacing: -0.01em;">EMERGENCY SOS</div>
-                <div style="color: rgba(255, 255, 255, 0.85); font-size: 12px;">Accident / Breakdown / Medical Help</div>
+                <div style="color: #fff; font-weight: 800; font-size: 15px; letter-spacing: -0.01em;">EMERGENCY SOS DISTRESS</div>
+                <div style="color: rgba(255, 255, 255, 0.88); font-size: 11px;">Breakdown &bull; Accident &bull; Control Room Alert</div>
             </div>
         </div>
-        <span style="color: #fff; font-size: 20px; font-weight: 800;">&rsaquo;</span>
+        <span style="color: #fff; font-size: 18px; font-weight: 800;">&rsaquo;</span>
     </div>
 </a>
 
-<!-- Vehicle & Safety Inspection Card -->
-<div class="card" style="border-left: 4px solid var(--primary);">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+<!-- Today's Schedule & Assigned Trips (Domain 2 Core) -->
+<div style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2 style="font-size: 16px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+            <span>📅 Today's Schedule</span>
+            <span style="background: var(--primary); color: #fff; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 800;">{{ total_trips_today }}</span>
+        </h2>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">{{ today|date:"l, d F Y" }}</span>
+    </div>
+
+    <!-- Active Commute Trip Spotlight -->
+    {% if active_commute_trip %}
+    <div class="card" style="border: 2px solid var(--primary); background: linear-gradient(180deg, rgba(2, 132, 199, 0.03), transparent); margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span class="badge badge-primary" style="font-size: 11px;">
+                {% if active_commute_trip.status == 'in_progress' %}🚀 IN PROGRESS{% else %}📋 ASSIGNED TODAY{% endif %}
+            </span>
+            <span style="font-size: 12px; font-weight: 700; color: var(--text-primary);">
+                ⏰ Departure: {{ active_commute_trip.scheduled_departure_time|time:"h:i A" }}
+            </span>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <div style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                {{ active_commute_trip.shift.route.name }}
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                <span>📍 {{ active_commute_trip.shift.route.origin }}</span>
+                <span>&rarr;</span>
+                <span>🏁 {{ active_commute_trip.shift.route.destination }}</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                👥 {{ active_commute_trip.passenger_count|default:12 }} Corporate Employees &bull; {{ active_commute_trip.shift.shift_name }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <a href="{% url 'driver_portal:commute_navigation' active_commute_trip.pk %}" class="btn btn-primary" style="padding: 10px; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <span>🗺️ Route Cockpit & Nav</span>
+            </a>
+            <button type="button" onclick="openDelayModal({{ active_commute_trip.pk }})" class="btn btn-secondary" style="padding: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                <span>⚠️ Report Delay</span>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- List of Other Scheduled Commute Trips -->
+    {% for trip in commute_trips %}
+        {% if trip.pk != active_commute_trip.pk %}
+        <div class="card" style="padding: 12px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                    <span style="font-weight: 800; font-size: 13px; color: var(--text-primary);">{{ trip.shift.shift_name }}</span>
+                    <span class="badge {% if trip.status == 'completed' %}badge-success{% else %}badge-info{% endif %}" style="font-size: 10px;">
+                        {{ trip.get_status_display }}
+                    </span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted);">
+                    {{ trip.shift.route.origin }} &rarr; {{ trip.shift.route.destination }}
+                </div>
+                <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">
+                    ⏰ {{ trip.scheduled_departure_time|time:"h:i A" }} &bull; 👥 {{ trip.passenger_count }} Pax
+                </div>
+            </div>
+            <div>
+                <a href="{% url 'driver_portal:commute_navigation' trip.pk %}" class="btn btn-secondary" style="padding: 6px 10px; font-size: 11px; font-weight: 700;">
+                    Open Nav &rarr;
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    {% empty %}
+        {% if not active_commute_trip and not tour_trips %}
+        <div class="card" style="text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 13px;">
+            ☕ No assigned trips currently scheduled for today. Contact dispatch desk.
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Outstation Tour Trips -->
+    {% for trip in tour_trips %}
+    <div class="card" style="border-top: 4px solid var(--accent-green); margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="badge badge-info">Outstation Tour #{{ trip.trip_id }}</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">{{ trip.get_status_display }}</span>
+        </div>
+        <div style="font-size: 14px; font-weight: 800; margin-bottom: 4px;">👤 {{ trip.guest_name }}</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+            {{ trip.pickup_location }} &rarr; {{ trip.destination }}
+        </div>
+        <a href="{% url 'driver_portal:trip_detail' trip.pk %}" class="btn btn-secondary" style="padding: 8px; font-size: 12px; font-weight: 700; width: 100%; text-align: center;">
+            View Tour Details &rarr;
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Assigned Fleet Vehicle & Pre-Trip Safety -->
+<div class="card" style="border-left: 4px solid var(--primary); margin-bottom: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
         <div>
-            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Assigned Fleet Vehicle</div>
-            <div style="font-size: 18px; font-weight: 800; color: var(--primary); margin-top: 2px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Assigned Vehicle</div>
+            <div style="font-size: 17px; font-weight: 800; color: var(--primary); margin-top: 2px;">
                 🚗 {{ current_vehicle.registration_number|default:"No Vehicle Assigned" }}
             </div>
             <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
@@ -58,7 +241,7 @@
         </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; background: var(--bg-surface); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 12px;">
+    <div style="display: flex; justify-content: space-between; background: var(--bg-surface); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 12px; border: 1px solid var(--border);">
         <div>
             <span style="color: var(--text-muted);">Current Odometer:</span>
             <strong style="color: var(--text-primary); margin-left: 4px;">{{ current_vehicle.current_km|default:0 }} KM</strong>
@@ -70,103 +253,251 @@
     </div>
 
     {% if not inspection_today or inspection_today.overall_status == 'failed' %}
-        <a href="{% url 'driver_portal:inspection' %}{% if current_vehicle %}?vehicle_id={{ current_vehicle.pk }}{% endif %}{% if current_trip %}&trip_id={{ current_trip.pk }}{% endif %}" class="btn btn-primary" style="padding: 11px; font-size: 13px;">
-            📋 Complete Pre-Trip Inspection Checklist
+        <a href="{% url 'driver_portal:inspection' %}{% if current_vehicle %}?vehicle_id={{ current_vehicle.pk }}{% endif %}" class="btn btn-primary" style="padding: 10px; font-size: 13px; font-weight: 700;">
+            📋 Complete Pre-Trip Safety Inspection
         </a>
     {% else %}
         <div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
             <span>Certified today: #{{ inspection_today.inspection_number }}</span>
-            <a href="{% url 'driver_portal:inspection' %}?vehicle_id={{ current_vehicle.pk }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">Re-inspect</a>
+            <a href="{% url 'driver_portal:inspection' %}?vehicle_id={{ current_vehicle.pk }}" style="color: var(--primary); text-decoration: none; font-weight: 700;">Re-inspect</a>
         </div>
     {% endif %}
 </div>
 
-<!-- Active Trip Card -->
-{% if current_trip %}
-<div class="card" style="border-top: 4px solid var(--accent-green);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <div>
-            <span class="badge badge-info">Trip #{{ current_trip.trip_id }}</span>
-            <span style="font-size: 12px; color: var(--text-muted); margin-left: 6px;">{{ current_trip.get_status_display }}</span>
-        </div>
-        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">
-            📅 {{ current_trip.pickup_date|date:"D, d M" }}
-        </div>
+<!-- Operational Summary 4-KPI Deck -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px;">
+    <div class="card" style="padding: 10px 8px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 18px; font-weight: 800; color: var(--primary);">{{ total_trips_today }}</div>
+        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Trips</div>
     </div>
-
-    <div style="margin-bottom: 14px;">
-        <div style="font-size: 16px; font-weight: 700; margin-bottom: 4px;">
-            👤 {{ current_trip.guest_name }}
-        </div>
-        <div style="font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
-            <span>📍 {{ current_trip.pickup_location }}</span>
-            <span>&rarr;</span>
-            <span>🏁 {{ current_trip.destination }}</span>
-        </div>
-        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-            👥 {{ current_trip.pax_count|default:1 }} Passengers &bull; Reporting: {{ current_trip.reporting_time|default:"On Time" }}
-        </div>
+    <div class="card" style="padding: 10px 8px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 18px; font-weight: 800; color: #10b981;">{{ completed_trips_count }}</div>
+        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Completed</div>
     </div>
-
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <a href="{% url 'driver_portal:trip_detail' current_trip.pk %}" class="btn btn-secondary" style="padding: 10px; font-size: 13px;">
-            📄 View Details
-        </a>
-        {% if current_trip.status != 'started' %}
-            <form method="POST" action="{% url 'driver_portal:trip_start' current_trip.pk %}">
-                {% csrf_token %}
-                <input type="hidden" name="opening_km" value="{{ current_vehicle.current_km|default:0 }}">
-                <button type="submit" class="btn btn-success" style="padding: 10px; font-size: 13px;">
-                    ▶️ Start Trip
-                </button>
-            </form>
-        {% else %}
-            <form method="POST" action="{% url 'driver_portal:trip_end' current_trip.pk %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger" style="padding: 10px; font-size: 13px;">
-                    ⏹️ End Trip
-                </button>
-            </form>
-        {% endif %}
+    <div class="card" style="padding: 10px 8px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 18px; font-weight: 800; color: #8b5cf6;">{{ total_passengers_today }}</div>
+        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Pax</div>
+    </div>
+    <div class="card" style="padding: 10px 8px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 18px; font-weight: 800; color: #f59e0b;">{{ total_km_today }}</div>
+        <div style="font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Total KM</div>
     </div>
 </div>
-{% endif %}
 
-<!-- Quick Actions Grid -->
+<!-- Quick Action Shortcuts -->
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
-    <a href="{% url 'driver_portal:inspection' %}" class="card" style="margin-bottom: 0; padding: 14px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
-        <div style="font-size: 26px;">📋</div>
-        <div style="font-weight: 700; font-size: 13px;">Pre-Trip Inspection</div>
-        <div style="font-size: 11px; color: var(--text-muted);">Vehicle safety checks</div>
+    <a href="{% url 'driver_portal:inspection' %}" class="card" style="margin-bottom: 0; padding: 14px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;">
+        <div style="font-size: 24px;">📋</div>
+        <div style="font-weight: 700; font-size: 13px;">Inspection</div>
+        <div style="font-size: 10px; color: var(--text-muted);">Pre-trip safety pass</div>
     </a>
-    <a href="{% url 'driver_portal:fuel_log' %}" class="card" style="margin-bottom: 0; padding: 14px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;">
-        <div style="font-size: 26px;">⛽</div>
+    <a href="{% url 'driver_portal:fuel_log' %}" class="card" style="margin-bottom: 0; padding: 14px; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px;">
+        <div style="font-size: 24px;">⛽</div>
         <div style="font-weight: 700; font-size: 13px;">Log Fuel Fill</div>
-        <div style="font-size: 11px; color: var(--text-muted);">Upload bill & litres</div>
+        <div style="font-size: 10px; color: var(--text-muted);">Upload bill & litres</div>
     </a>
 </div>
 
-<!-- Recent Completed Trips -->
-{% if recent_trips %}
-<div>
-    <div style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text-secondary);">
-        Recent Trip History
+<!-- MODAL: Driver Clock-In -->
+<div id="clockInModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); max-width: 400px; width: 100%; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 12px; color: var(--text-primary);">🟢 Clock In for Duty Shift</h3>
+        <form onsubmit="submitClockIn(event)">
+            {% csrf_token %}
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Assigned Shift:</label>
+                <select id="clockInShift" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+                    <option value="morning">Morning Shift (05:00 - 14:00)</option>
+                    <option value="general" selected>General Shift (09:00 - 18:00)</option>
+                    <option value="evening">Evening Shift (14:00 - 23:00)</option>
+                    <option value="night">Night Shift (22:00 - 07:00)</option>
+                    <option value="outstation">Outstation Tour Duty</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Reporting Location:</label>
+                <input type="text" id="clockInLocation" value="Coimbatore Central Depot Gate" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Starting Odometer (KM):</label>
+                <input type="number" id="clockInOdo" value="{{ current_vehicle.current_km|default:0 }}" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button type="button" onclick="closeClockInModal()" class="btn btn-secondary" style="padding: 10px; font-size: 12px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px; font-size: 12px; font-weight: 700;">Confirm Duty Start</button>
+            </div>
+        </form>
     </div>
-    {% for trip in recent_trips %}
-        <div class="card" style="padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-weight: 700; font-size: 13px;">Trip #{{ trip.trip_id }} &bull; {{ trip.guest_name }}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">{{ trip.pickup_location }} &rarr; {{ trip.destination }}</div>
-            </div>
-            <div style="text-align: right;">
-                <span class="badge {% if trip.status == 'completed' %}badge-success{% else %}badge-info{% endif %}">
-                    {{ trip.get_status_display }}
-                </span>
-                <div style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">{{ trip.start_date|date:"d M" }}</div>
-            </div>
-        </div>
-    {% endfor %}
 </div>
-{% endif %}
 
+<!-- MODAL: Driver Clock-Out -->
+<div id="clockOutModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); max-width: 400px; width: 100%; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 12px; color: var(--text-primary);">🏁 Clock Out & End Shift</h3>
+        <form onsubmit="submitClockOut(event)">
+            {% csrf_token %}
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Closing Odometer (KM):</label>
+                <input type="number" id="clockOutOdo" value="{{ current_vehicle.current_km|default:0 }}" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Handover Depot / Location:</label>
+                <input type="text" id="clockOutLocation" value="Coimbatore Central Depot Bay 4" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Shift Notes / Vehicle Status:</label>
+                <input type="text" id="clockOutNotes" placeholder="Vehicle parked, keys in dispatch lockbox" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button type="button" onclick="closeClockOutModal()" class="btn btn-secondary" style="padding: 10px; font-size: 12px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px; font-size: 12px; font-weight: 700;">Complete Clock-Out</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: Route Delay Alert -->
+<div id="delayModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div style="background: var(--bg-card); border-radius: var(--radius-lg); max-width: 400px; width: 100%; padding: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 12px; color: var(--text-primary);">⚠️ Report Route Delay / Traffic</h3>
+        <form onsubmit="submitDelay(event)">
+            {% csrf_token %}
+            <input type="hidden" id="delayTripLogId" value="">
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Delay Reason:</label>
+                <select id="delayIssueType" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+                    <option value="traffic_jam">🚗 Heavy Traffic / Gridlock</option>
+                    <option value="road_closure">🚧 Road Closed / Diversion</option>
+                    <option value="waterlogging">🌧️ Waterlogging / Heavy Rain</option>
+                    <option value="accident_ahead">🚨 Accident / Emergency Ahead</option>
+                    <option value="passenger_delay">⏱️ Passenger Delay at Stop</option>
+                    <option value="mechanical_warning">⚠️ Vehicle Warning / Slow Run</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Estimated Delay Minutes:</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                    <button type="button" onclick="setDelayMins(15)" class="btn btn-secondary" style="flex: 1; padding: 6px; font-size: 11px; font-weight: 700;">+15m</button>
+                    <button type="button" onclick="setDelayMins(30)" class="btn btn-secondary" style="flex: 1; padding: 6px; font-size: 11px; font-weight: 700;">+30m</button>
+                    <button type="button" onclick="setDelayMins(45)" class="btn btn-secondary" style="flex: 1; padding: 6px; font-size: 11px; font-weight: 700;">+45m</button>
+                </div>
+                <input type="number" id="delayMinutes" value="15" min="5" max="120" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Current Location / Notes:</label>
+                <input type="text" id="delayNotes" placeholder="Near Hope College Bridge / heavy congestion" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 12px;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button type="button" onclick="closeDelayModal()" class="btn btn-secondary" style="padding: 10px; font-size: 12px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px; font-size: 12px; font-weight: 700;">Broadcast Alert</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openClockInModal() {
+    var m = document.getElementById('clockInModal');
+    if (m) m.style.display = 'flex';
+}
+function closeClockInModal() {
+    var m = document.getElementById('clockInModal');
+    if (m) m.style.display = 'none';
+}
+function submitClockIn(e) {
+    e.preventDefault();
+    var fd = new FormData();
+    fd.append('shift_name', document.getElementById('clockInShift').value);
+    fd.append('location', document.getElementById('clockInLocation').value);
+    fd.append('odometer_start', document.getElementById('clockInOdo').value);
+
+    fetch("{% url 'driver_portal:api_clock_in' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            alert(d.message);
+            window.location.reload();
+        } else {
+            alert('Error: ' + d.message);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+
+function openClockOutModal() {
+    var m = document.getElementById('clockOutModal');
+    if (m) m.style.display = 'flex';
+}
+function closeClockOutModal() {
+    var m = document.getElementById('clockOutModal');
+    if (m) m.style.display = 'none';
+}
+function submitClockOut(e) {
+    e.preventDefault();
+    var fd = new FormData();
+    fd.append('odometer_end', document.getElementById('clockOutOdo').value);
+    fd.append('location', document.getElementById('clockOutLocation').value);
+    fd.append('notes', document.getElementById('clockOutNotes').value);
+
+    fetch("{% url 'driver_portal:api_clock_out' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            alert(d.message);
+            window.location.reload();
+        } else {
+            alert('Error: ' + d.message);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+
+function openDelayModal(tripLogId) {
+    document.getElementById('delayTripLogId').value = tripLogId || '';
+    var m = document.getElementById('delayModal');
+    if (m) m.style.display = 'flex';
+}
+function closeDelayModal() {
+    var m = document.getElementById('delayModal');
+    if (m) m.style.display = 'none';
+}
+function setDelayMins(m) {
+    document.getElementById('delayMinutes').value = m;
+}
+function submitDelay(e) {
+    e.preventDefault();
+    var fd = new FormData();
+    fd.append('trip_log_id', document.getElementById('delayTripLogId').value);
+    fd.append('issue_type', document.getElementById('delayIssueType').value);
+    fd.append('delay_minutes', document.getElementById('delayMinutes').value);
+    fd.append('notes', document.getElementById('delayNotes').value);
+
+    fetch("{% url 'driver_portal:api_report_delay' %}", {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        body: fd
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            alert(d.message);
+            closeDelayModal();
+        } else {
+            alert('Error: ' + d.message);
+        }
+    })
+    .catch(err => alert('Network error: ' + err));
+}
+</script>
 {% endblock %}

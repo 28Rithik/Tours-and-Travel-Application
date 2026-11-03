@@ -40,7 +40,7 @@ def rbac_context(request):
 
     # ── CACHE KEY: includes persona simulation state so switching roles invalidates cache ──
     simulating_persona = request.session.get('simulating_persona', '')
-    cache_key = f'rbac_ctx_v2_{user.pk}_{simulating_persona}'
+    cache_key = f'rbac_ctx_v3_{user.username}_{user.pk}_{simulating_persona}'
 
     cached_ctx = cache.get(cache_key)
     if cached_ctx is not None:

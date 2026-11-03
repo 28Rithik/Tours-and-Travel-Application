@@ -46,6 +46,7 @@ from .views import (
     api_commute_silent_sos,
     api_seat_marketplace_release,
     api_lost_and_found_update,
+    employee_mobility_hub_view,
 )
 
 app_name = 'fleet_commute'
@@ -126,4 +127,8 @@ urlpatterns = [
     path('api/silent-sos/', api_commute_silent_sos, name='api_commute_silent_sos'),
     path('api/seat-marketplace/release/', api_seat_marketplace_release, name='api_seat_marketplace_release'),
     path('api/lost-and-found/<int:item_id>/update/', api_lost_and_found_update, name='api_lost_and_found_update'),
+
+    # Domain 1: Corporate Employee Mobility Experience Hub
+    path('employee/', employee_mobility_hub_view, name='employee_mobility_hub'),
+    path('employee/my-commute/', employee_mobility_hub_view, name='commuter_my_commute'),
 ]

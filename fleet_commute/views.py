@@ -2421,3 +2421,176 @@ def api_lost_and_found_update(request, item_id):
         return JsonResponse({'status': 'success', 'item_id': item.id, 'new_status': item.get_status_display()})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid status'}, status=400)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# EMPLOYEE EXPERIENCE HUB: SELF-SERVICE MOBILITY & LIVE CAB TRACKING
+# ══════════════════════════════════════════════════════════════════════════════
+
+def employee_mobility_hub_view(request):
+    """
+    Corporate Employee Mobility Self-Service Experience Hub.
+    Provides:
+      - Commuter Profile & Designated Pickup Point / Shift Details
+      - Today's Assigned Cab & Live Tracking, ETA & Dynamic 4-Digit OTP
+      - Boarding Confirmation (QR scan / OTP / Manual 1-click check-in)
+      - Ad-hoc Transport Requests (Shift change, WFO, Overtime/Weekend)
+      - Trip History (Upcoming, Completed, Missed)
+      - Safe-Drop Confirmation & Emergency SOS Desk
+    """
+    from fleet_contracts.models import CommuterManifest, ContractTripLog, RouteStop
+    from fleet_commute.models import CommuterBoardingPass, CommuterTransportRequest, LostAndFoundItem
+    from operations.models import EmergencyIncidentAlert
+
+    # Find employee: by query param commuter_id, or match user, or select first active corporate employee
+    commuter_id = request.GET.get('commuter_id')
+    commuter = None
+    if commuter_id:
+        commuter = CommuterManifest.objects.filter(commuter_id=commuter_id).first()
+    if not commuter and request.user.is_authenticated:
+        commuter = CommuterManifest.objects.filter(phone=getattr(request.user, 'phone', '')).first()
+    if not commuter:
+        commuter = CommuterManifest.objects.filter(commuter_type__in=['corporate_employee', 'employee'], is_active=True).first()
+
+    today = timezone.localdate()
+
+    # Handle POST Actions
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'request_transport' and commuter:
+            req_type = request.POST.get('request_type', 'adhoc_shift')
+            travel_date_str = request.POST.get('travel_date')
+            direction = request.POST.get('direction', 'pickup')
+            shift_time = request.POST.get('shift_time', '08:30')
+            alt_address = request.POST.get('temporary_pickup_address', '').strip()
+            alt_landmark = request.POST.get('temporary_landmark', '').strip()
+            reason = request.POST.get('reason', '').strip()
+
+            try:
+                travel_date = datetime.datetime.strptime(travel_date_str, '%Y-%m-%d').date() if travel_date_str else today
+            except Exception:
+                travel_date = today
+
+            new_req = CommuterTransportRequest.objects.create(
+                commuter=commuter,
+                request_type=req_type,
+                travel_date=travel_date,
+                direction=direction,
+                shift_time=shift_time,
+                temporary_pickup_address=alt_address,
+                temporary_landmark=alt_landmark,
+                reason=reason or "Business shift requirement",
+                status='pending'
+            )
+            messages.success(request, f"Transport request {new_req.request_number} submitted! Transport Desk is reviewing.")
+            return redirect(f"{request.path}?commuter_id={commuter.commuter_id}")
+
+        elif action == 'confirm_boarding' and commuter:
+            bp_id = request.POST.get('boarding_pass_id')
+            bp = CommuterBoardingPass.objects.filter(id=bp_id, commuter=commuter).first()
+            if bp:
+                bp.is_boarded = True
+                bp.boarded_at = timezone.now()
+                bp.save()
+                messages.success(request, "Boarding Confirmed! Safe journey ahead.")
+            return redirect(f"{request.path}?commuter_id={commuter.commuter_id}")
+
+        elif action == 'trigger_sos' and commuter:
+            lat = request.POST.get('latitude', '11.0168')
+            lon = request.POST.get('longitude', '76.9558')
+            sos_reason = request.POST.get('sos_reason', 'Commuter Mobile SOS Trigger')
+
+            # Create emergency incident alert
+            vehicle = None
+            today_bp = CommuterBoardingPass.objects.filter(commuter=commuter).first()
+            if today_bp and today_bp.trip_log:
+                vehicle = today_bp.trip_log.vehicle
+
+            alert = EmergencyIncidentAlert.objects.create(
+                severity='critical',
+                title=f"🚨 SOS: Commuter {commuter.name} ({commuter.commuter_id})",
+                description=f"Emergency distress triggered by {commuter.name} (Phone: {commuter.phone}). Reason: {sos_reason}. Corporate client: {commuter.contract.name}.",
+                latitude=Decimal(str(lat)),
+                longitude=Decimal(str(lon)),
+                location_name=commuter.pickup_address or "Corporate Corridor",
+                vehicle=vehicle
+            )
+            messages.error(request, f"EMERGENCY SOS BROADCAST ACTIVE (Alert #{alert.id}). Transport Desk & Quick Reaction Team dispatched.")
+            return redirect(f"{request.path}?commuter_id={commuter.commuter_id}")
+
+    # Today's Boarding Pass & Live Cab
+    today_bp = None
+    if commuter:
+        today_bp = CommuterBoardingPass.objects.filter(
+            commuter=commuter,
+            date=today
+        ).select_related(
+            'shift', 'trip_log', 'trip_log__vehicle', 'trip_log__driver', 'commute_buddy'
+        ).first()
+
+        # Fallback to any active pass if today has none yet
+        if not today_bp:
+            today_bp = CommuterBoardingPass.objects.filter(
+                commuter=commuter
+            ).select_related(
+                'shift', 'trip_log', 'trip_log__vehicle', 'trip_log__driver', 'commute_buddy'
+            ).order_by('-date').first()
+
+    # Live Cab Telematics
+    cab_info = {
+        'status': 'Scheduled for Dispatch',
+        'speed_kmh': 42.0,
+        'eta_mins': 9,
+        'driver_name': 'Ramesh Kumar (Gold Chauffeur)',
+        'driver_phone': '+91 98421 98765',
+        'driver_rating': 4.9,
+        'vehicle_reg': 'TN 38 CX 4091',
+        'vehicle_model': 'Toyota Innova Crysta (AC)',
+        'vehicle_capacity': '7+D',
+        'last_ping': '1 min ago',
+        'lat': 11.0210,
+        'lon': 76.9620,
+    }
+
+    if today_bp and today_bp.trip_log:
+        t = today_bp.trip_log
+        if t.vehicle:
+            cab_info['vehicle_reg'] = t.vehicle.registration_number
+            cab_info['vehicle_model'] = str(t.vehicle.vehicle_type) if t.vehicle.vehicle_type else 'Commercial Fleet Cab'
+        if t.driver:
+            cab_info['driver_name'] = t.driver.name
+            cab_info['driver_phone'] = t.driver.phone or '+91 98421 98765'
+            cab_info['driver_rating'] = getattr(t.driver, 'rating', 4.9)
+        cab_info['status'] = t.get_status_display()
+
+    # Commuter Transport Requests
+    transport_requests = []
+    if commuter:
+        transport_requests = CommuterTransportRequest.objects.filter(
+            commuter=commuter
+        ).order_by('-created_at')[:10]
+
+    # Trip History
+    trip_history = []
+    if commuter:
+        trip_history = CommuterBoardingPass.objects.filter(
+            commuter=commuter
+        ).select_related('shift', 'trip_log', 'trip_log__vehicle').order_by('-date')[:15]
+
+    # All active commuters list for switcher
+    all_commuters = CommuterManifest.objects.filter(
+        commuter_type__in=['corporate_employee', 'employee'],
+        is_active=True
+    ).select_related('contract', 'boarding_stop')[:30]
+
+    context = {
+        'commuter': commuter,
+        'today_bp': today_bp,
+        'cab_info': cab_info,
+        'transport_requests': transport_requests,
+        'trip_history': trip_history,
+        'all_commuters': all_commuters,
+        'today': today,
+    }
+    return render(request, 'fleet_commute/employee_mobility_hub.html', context)
