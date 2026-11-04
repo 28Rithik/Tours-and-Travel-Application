@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Chauffeur Duty Bhatta &amp; Night Shift Allowance Ledger | Sivagayathiri TravelERP{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Unfold Top Breadcrumbs & Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'fleet_contracts:contract-billing-studio' %}" class="hover:text-primary transition">Finance</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Driver Bhatta Ledger</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Chauffeur Duty Bhatta &amp; Allowance Ledger</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
+          Corporate Commute Shifts
+        </span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Date Range: <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono">{{ from_date }}</span> to <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono">{{ to_date }}</span> &middot; Standard duty bhatta, night duty bonus (+&#8377;250), and advance deductions.
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <a href="{% url 'fleet_contracts:contract-billing-studio' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span>Contract Billing</span>
+      </a>
+
+      <a href="{% url 'operations-fleet-radar' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-satellite-dish"></i>
+        <span>Live Radar</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Total Bhatta Accrued</div>
+      <div class="kpi-number">&#8377;{{ total_bhatta_accrued|floatformat:0 }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Base shift duty allowances</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Night Duty Bonuses</div>
+      <div class="kpi-number">&#8377;{{ total_night_bonuses|floatformat:0 }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Late night (22:00+) &amp; dawn bonuses</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid emerald">
+      <div class="kpi-label">Net Payable Amount</div>
+      <div class="kpi-number">&#8377;{{ total_net_payable|floatformat:0 }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Cleared for payroll payout</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid amber">
+      <div class="kpi-label">Active Chauffeurs</div>
+      <div class="kpi-number">{{ drivers_summary|length }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Drivers with completed shifts</div>
+    </div>
+  </div>
+
+  <!-- Date & Driver Filter Bar -->
+  <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-xs">
+    <form method="get" class="flex flex-wrap items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="font-medium text-slate-600 dark:text-slate-300">From:</span>
+        <input type="date" name="from_date" value="{{ from_date }}" class="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200" />
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <span class="font-medium text-slate-600 dark:text-slate-300">To:</span>
+        <input type="date" name="to_date" value="{{ to_date }}" class="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200" />
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <span class="font-medium text-slate-600 dark:text-slate-300">Driver:</span>
+        <select name="driver_id" class="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="">All Chauffeurs</option>
+          {% for d in all_drivers %}
+          <option value="{{ d.id }}" {% if current_driver_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button type="submit" class="px-3 py-1 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white rounded-lg font-semibold transition">
+        Filter
+      </button>
+    </form>
+  </div>
+
+  <!-- Chauffeur Bhatta Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[11px]">
+            <th class="py-3 px-4">Chauffeur</th>
+            <th class="py-3 px-4">Completed Shifts</th>
+            <th class="py-3 px-4">Base Duty Bhatta</th>
+            <th class="py-3 px-4">Night Duty Bonuses</th>
+            <th class="py-3 px-4">Gross Earnings</th>
+            <th class="py-3 px-4">Advances Adjusted</th>
+            <th class="py-3 px-4">Net Payable</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+          {% for item in drivers_summary %}
+          <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition">
+            <td class="py-3 px-4">
+              <div class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-user-tie text-slate-400"></i>
+                <span>{{ item.driver_name }}</span>
+              </div>
+              <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{ item.driver_phone }}</div>
+            </td>
+            <td class="py-3 px-4 font-mono font-semibold text-slate-800 dark:text-slate-200">
+              {{ item.total_shifts }} shifts
+            </td>
+            <td class="py-3 px-4 font-mono text-slate-800 dark:text-slate-200">
+              &#8377;{{ item.standard_bata|floatformat:2 }}
+            </td>
+            <td class="py-3 px-4 font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
+              +&#8377;{{ item.night_allowance|add:item.early_morning_allowance|floatformat:2 }}
+            </td>
+            <td class="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">
+              &#8377;{{ item.total_earnings|floatformat:2 }}
+            </td>
+            <td class="py-3 px-4 font-mono text-rose-500">
+              -&#8377;{{ item.total_advances|floatformat:2 }}
+            </td>
+            <td class="py-3 px-4 font-mono font-bold text-sm text-emerald-600 dark:text-emerald-400">
+              &#8377;{{ item.net_payable|floatformat:2 }}
+            </td>
+            <td class="py-3 px-4 text-right">
+              <div class="inline-flex items-center gap-1.5">
+                <button onclick="openSettleModal('{{ item.driver_id }}', '{{ item.driver_name|escapejs }}', '{{ item.net_payable }}')" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded font-semibold text-[11px] hover:bg-emerald-100 transition shadow-sm">
+                  <i class="fa-solid fa-money-bill-transfer"></i> Settle
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-8 text-center text-slate-500 dark:text-slate-400">
+              <i class="fa-solid fa-user-clock text-3xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
+              No chauffeur bhatta records logged for the selected period.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Settle Bhatta Modal -->
+<div id="settleModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-money-bill-transfer text-emerald-600"></i>
+        <span>Settle Chauffeur Commute Bhatta</span>
+      </h3>
+      <button onclick="closeSettleModal()" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <input type="hidden" id="settleDriverId" />
+
+    <div class="space-y-3 text-xs">
+      <div>
+        <label class="block text-slate-500 mb-1">Chauffeur:</label>
+        <div id="settleDriverName" class="font-bold text-sm text-slate-900 dark:text-white"></div>
+      </div>
+
+      <div>
+        <label class="block text-slate-500 mb-1">Net Payable Amount:</label>
+        <div id="settleAmount" class="font-mono font-bold text-lg text-emerald-600"></div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Mode:</label>
+        <select id="settlePaymentMode" class="w-full py-1.5 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="bank_transfer">Direct Bank Transfer (NEFT/IMPS)</option>
+          <option value="upi">UPI Instant Payout</option>
+          <option value="petty_cash">Depot Petty Cash Voucher</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transaction Reference (UTR / Voucher #):</label>
+        <input type="text" id="settleRefInput" placeholder="e.g. UTR-982189382101" class="w-full py-1.5 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200" />
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+      <button type="button" onclick="closeSettleModal()" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
+        Cancel
+      </button>
+      <button type="button" onclick="executeSettleBhatta()" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow transition">
+        Confirm Payout
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openSettleModal(driverId, driverName, amount) {
+    document.getElementById('settleDriverId').value = driverId;
+    document.getElementById('settleDriverName').innerText = driverName;
+    document.getElementById('settleAmount').innerText = '₹' + parseFloat(amount).toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('settleModal').classList.remove('hidden');
+  }
+
+  function closeSettleModal() {
+    document.getElementById('settleModal').classList.add('hidden');
+  }
+
+  async function executeSettleBhatta() {
+    const driverId = document.getElementById('settleDriverId').value;
+    const mode = document.getElementById('settlePaymentMode').value;
+    const ref = document.getElementById('settleRefInput').value;
+
+    try {
+      const resp = await fetch('/contracts/api/billing/settle-bhatta/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          driver_id: driverId,
+          from_date: '{{ from_date }}',
+          to_date: '{{ to_date }}',
+          payment_mode: mode,
+          reference: ref
+        })
+      });
+      const data = await resp.json();
+      if (data.status === 'success') {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        alert('Settlement error: ' + (data.message || 'Failed to settle bhatta'));
+      }
+    } catch (err) {
+      alert('Network error: ' + err);
+    }
+  }
+</script>
+{% endblock %}
+

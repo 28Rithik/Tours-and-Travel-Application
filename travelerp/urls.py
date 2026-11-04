@@ -92,6 +92,7 @@ from suppliers.views import (
 from customer_portal.views import public_landing_view
 from integrations import views as integrations_views
 from fleet_commute import views as fleet_commute_views
+from fleet_contracts import views as fleet_contracts_views
 
 urlpatterns = [
     # Health Check (lightweight — safe for Docker/LB probes, no auth required)
@@ -262,6 +263,14 @@ urlpatterns = [
     path('commute/contracts/', fleet_commute_views.contracts_studio_view, name='commute-contracts-studio'),
     path('dispatch/planning/', fleet_commute_views.dispatch_brain_studio_view, name='dispatch-planning-brain'),
     path('commute/dispatch-brain/', fleet_commute_views.dispatch_brain_studio_view, name='commute-dispatch-brain-alias'),
+
+    # Domain 6: Tariff, Billing & Contract Revenue Studio
+    path('contracts/', include('fleet_contracts.urls')),
+    path('billing/', fleet_contracts_views.contract_billing_studio_view, name='contract-billing-root'),
+    path('billing/invoices/<int:invoice_id>/', fleet_contracts_views.contract_invoice_detail_view, name='contract-invoice-detail-alias'),
+    path('billing/driver-bhatta/', fleet_contracts_views.driver_commute_bhatta_view, name='driver-commute-bhatta-alias'),
+    path('finance/contract-billing/', fleet_contracts_views.contract_billing_studio_view, name='finance-contract-billing'),
+    path('finance/commute-bhatta/', fleet_contracts_views.driver_commute_bhatta_view, name='finance-commute-bhatta'),
 
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),

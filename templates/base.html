@@ -323,6 +323,12 @@
             <a class="unfold-nav-item {% if request.resolver_match.url_name == 'client-pricing-studio' %}is-active{% endif %}" href="{% url 'client-pricing-studio' %}">
               <span>Client Rate Cards</span>
             </a>
+            <a class="unfold-nav-item {% if 'billing' in request.path and 'bhatta' not in request.path %}is-active{% endif %}" href="{% url 'fleet_contracts:contract-billing-studio' %}">
+              <span>Contract Invoicing</span>
+            </a>
+            <a class="unfold-nav-item {% if 'driver-bhatta' in request.path or 'commute-bhatta' in request.path %}is-active{% endif %}" href="{% url 'finance-commute-bhatta' %}">
+              <span>Driver Commute Bhatta</span>
+            </a>
           </div>
         </div>
 
