@@ -247,7 +247,7 @@ class DispatchBrainTests(TestCase):
         self.assertEqual(log.vehicle, self.vehicle_muv)
 
         # Verify boarding pass with 4-digit OTP
-        bp = CommuterBoardingPass.objects.filter(contract_trip_log=log).first()
+        bp = CommuterBoardingPass.objects.filter(trip_log=log).first()
         self.assertIsNotNone(bp)
         self.assertEqual(len(bp.boarding_otp), 4)
 

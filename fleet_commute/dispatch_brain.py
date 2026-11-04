@@ -103,7 +103,7 @@ class DispatchBrainEngine:
             "is_cleared": is_cleared,
             "reasons": reasons,
             "health_score": health_info["score"],
-            "health_label": health_info["label"],
+            "health_label": health_info.get("tier", "good").upper(),
         }
 
     @classmethod
@@ -112,7 +112,7 @@ class DispatchBrainEngine:
         reasons = []
         is_cleared = True
 
-        if driver.status not in ['available', 'on_duty']:
+        if driver.status not in ['available', 'active', 'on_duty']:
             is_cleared = False
             reasons.append(f"Driver status is '{driver.status}'.")
 
@@ -447,7 +447,7 @@ class DispatchBrainEngine:
         """Finds an available, compliant chauffeur."""
         exclude_ids = exclude_driver_ids or []
         qs = Driver.objects.filter(
-            status='available'
+            status__in=['available', 'active', 'on_duty']
         ).exclude(id__in=exclude_ids)
 
         candidates = list(qs)
@@ -555,16 +555,13 @@ class DispatchBrainEngine:
                         import random
                         otp_code = f"{random.randint(1000, 9999)}"
                         pass_obj, p_created = CommuterBoardingPass.objects.get_or_create(
-                            commuter_id=commuter.commuter_id,
+                            commuter=commuter,
                             shift=shift,
                             date=target_date,
                             defaults={
-                                'contract_trip_log': trip_log,
-                                'commuter_name': commuter.name,
+                                'trip_log': trip_log,
                                 'boarding_otp': otp_code,
-                                'seat_status': 'confirmed',
-                                'pickup_stop_name': commuter.boarding_stop.name if commuter.boarding_stop else route.origin,
-                                'scheduled_pickup_time': shift.timing,
+                                'boarded_stop': commuter.boarding_stop,
                             }
                         )
                         if p_created:
@@ -574,12 +571,12 @@ class DispatchBrainEngine:
                 if entry["escort_required"]:
                     NightSafetyEscortLog.objects.get_or_create(
                         trip_log=trip_log,
-                        date=target_date,
                         defaults={
-                            'security_agency_name': 'Tiger Security & Escort Guards',
-                            'guard_name': 'Ramasamy Guard #44',
-                            'guard_phone': '+919876500011',
-                            'is_verified': True
+                            'security_agency': 'Tiger Security & Escort Guards',
+                            'escort_guard_name': 'Ramasamy Guard #44',
+                            'guard_contact_phone': '+919876500011',
+                            'female_passengers_count': 1,
+                            'last_drop_verification_status': 'assigned'
                         }
                     )
 

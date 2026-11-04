@@ -1,3 +1,4 @@
+import datetime
 import csv
 import json
 import math
@@ -22,7 +23,7 @@ from fleet_commute.models import (
     CorporateUserRole, EnterpriseSSOConfig
 )
 from customer_portal.models import CustomerOTP
-from core.models import Client
+from core.models import Client, Vehicle, Driver
 from fleet_commute.safety_engine import WomenSafetyEngine
 from fleet_commute.commute_services import CommuteService
 
@@ -2631,7 +2632,7 @@ def dispatch_brain_studio_view(request):
 
     contracts = TransportContract.objects.filter(status='active').order_by('name')
     standby_vehicles = Vehicle.objects.filter(status='available').order_by('seating_capacity')[:40]
-    standby_drivers = Driver.objects.filter(status='available').order_by('name')[:40]
+    standby_drivers = Driver.objects.filter(status__in=['available', 'active']).order_by('name')[:40]
 
     context = {
         'target_date': target_date,
