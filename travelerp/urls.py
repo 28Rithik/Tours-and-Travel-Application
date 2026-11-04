@@ -260,6 +260,8 @@ urlpatterns = [
 
     # Corporate Commute Contracts & Shuttle Routes Studio (Staff Portal with sidebar)
     path('commute/contracts/', fleet_commute_views.contracts_studio_view, name='commute-contracts-studio'),
+    path('dispatch/planning/', fleet_commute_views.dispatch_brain_studio_view, name='dispatch-planning-brain'),
+    path('commute/dispatch-brain/', fleet_commute_views.dispatch_brain_studio_view, name='commute-dispatch-brain-alias'),
 
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),

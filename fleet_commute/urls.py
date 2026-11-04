@@ -47,6 +47,11 @@ from .views import (
     api_seat_marketplace_release,
     api_lost_and_found_update,
     employee_mobility_hub_view,
+    dispatch_brain_studio_view,
+    api_dispatch_brain_matrix,
+    api_dispatch_brain_auto_optimize,
+    api_dispatch_brain_swap,
+    api_dispatch_brain_broadcast,
 )
 
 app_name = 'fleet_commute'
@@ -131,4 +136,12 @@ urlpatterns = [
     # Domain 1: Corporate Employee Mobility Experience Hub
     path('employee/', employee_mobility_hub_view, name='employee_mobility_hub'),
     path('employee/my-commute/', employee_mobility_hub_view, name='commuter_my_commute'),
+
+    # Domain 5: Trip Planning & Commute Shift Engine (The Dispatch Brain)
+    path('dispatch-brain/', dispatch_brain_studio_view, name='dispatch_brain_studio'),
+    path('planning/', dispatch_brain_studio_view, name='dispatch_planning_studio'),
+    path('api/dispatch-brain/matrix/', api_dispatch_brain_matrix, name='api_dispatch_brain_matrix'),
+    path('api/dispatch-brain/auto-optimize/', api_dispatch_brain_auto_optimize, name='api_dispatch_brain_auto_optimize'),
+    path('api/dispatch-brain/swap/', api_dispatch_brain_swap, name='api_dispatch_brain_swap'),
+    path('api/dispatch-brain/broadcast/', api_dispatch_brain_broadcast, name='api_dispatch_brain_broadcast'),
 ]

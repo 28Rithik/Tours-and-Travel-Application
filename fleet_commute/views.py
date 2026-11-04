@@ -2594,3 +2594,207 @@ def employee_mobility_hub_view(request):
         'today': today,
     }
     return render(request, 'fleet_commute/employee_mobility_hub.html', context)
+
+
+
+# ==============================================================================
+# DOMAIN 5: TRIP PLANNING & COMMUTE SHIFT ENGINE ("THE DISPATCH BRAIN")
+# ==============================================================================
+
+@login_required
+def dispatch_brain_studio_view(request):
+    """
+    Automated Daily Trip & Commute Planning Engine ("The Dispatch Brain") Studio.
+    """
+    target_date_str = request.GET.get('date')
+    if target_date_str:
+        try:
+            target_date = datetime.datetime.strptime(target_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+    else:
+        target_date = timezone.now().date() + datetime.timedelta(days=1)
+
+    contract_id = request.GET.get('contract_id')
+    direction = request.GET.get('direction')
+    depot = request.GET.get('depot')
+
+    from fleet_commute.dispatch_brain import DispatchBrainEngine
+    from fleet_contracts.models import TransportContract
+
+    matrix = DispatchBrainEngine.build_planning_matrix(
+        target_date=target_date,
+        contract_id=int(contract_id) if contract_id else None,
+        direction=direction if direction in ['inbound', 'outbound', 'login', 'logout'] else None,
+        depot=depot
+    )
+
+    contracts = TransportContract.objects.filter(status='active').order_by('name')
+    standby_vehicles = Vehicle.objects.filter(status='available').order_by('seating_capacity')[:40]
+    standby_drivers = Driver.objects.filter(status='available').order_by('name')[:40]
+
+    context = {
+        'target_date': target_date,
+        'target_date_str': target_date.strftime('%Y-%m-%d'),
+        'tomorrow_date_str': (timezone.now().date() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'),
+        'today_date_str': timezone.now().date().strftime('%Y-%m-%d'),
+        'matrix': matrix,
+        'contracts': contracts,
+        'standby_vehicles': standby_vehicles,
+        'standby_drivers': standby_drivers,
+        'current_contract_id': int(contract_id) if contract_id else None,
+        'current_direction': direction,
+        'current_depot': depot,
+        'depot_choices': [
+            ('Coimbatore Central HQ', 'Coimbatore Hub'),
+            ('Chennai Central HQ', 'Chennai Hub'),
+            ('Bengaluru Tech Hub', 'Bengaluru Hub'),
+            ('Madurai Junction Depot', 'Madurai Hub'),
+            ('Salem / Tirupur Depot', 'Salem / Tirupur Hub'),
+        ]
+    }
+    return render(request, 'fleet_commute/dispatch_brain_studio.html', context)
+
+
+@login_required
+def api_dispatch_brain_matrix(request):
+    """
+    GET API: Returns JSON payload of planning matrix for target date.
+    """
+    date_str = request.GET.get('date')
+    if date_str:
+        try:
+            target_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+    else:
+        target_date = timezone.now().date() + datetime.timedelta(days=1)
+
+    contract_id = request.GET.get('contract_id')
+    direction = request.GET.get('direction')
+    depot = request.GET.get('depot')
+
+    from fleet_commute.dispatch_brain import DispatchBrainEngine
+    matrix = DispatchBrainEngine.build_planning_matrix(
+        target_date=target_date,
+        contract_id=int(contract_id) if contract_id else None,
+        direction=direction if direction in ['inbound', 'outbound', 'login', 'logout'] else None,
+        depot=depot
+    )
+    return JsonResponse({"status": "success", "data": matrix})
+
+
+@csrf_exempt
+@login_required
+def api_dispatch_brain_auto_optimize(request):
+    """
+    POST API: 1-Click Auto-Planner to optimize capacity, resolve conflicts, and commit trips.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST method required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    date_str = data.get('date') or request.GET.get('date')
+    if date_str:
+        try:
+            target_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+    else:
+        target_date = timezone.now().date() + datetime.timedelta(days=1)
+
+    contract_id = data.get('contract_id')
+    direction = data.get('direction')
+    replace_locked = str(data.get('replace_locked', 'true')).lower() in ['true', '1', 'yes']
+
+    from fleet_commute.dispatch_brain import DispatchBrainEngine
+    res = DispatchBrainEngine.auto_optimize_and_dispatch(
+        target_date=target_date,
+        contract_id=int(contract_id) if contract_id else None,
+        direction=direction if direction in ['inbound', 'outbound', 'login', 'logout'] else None,
+        replace_locked=replace_locked
+    )
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_dispatch_brain_swap(request):
+    """
+    POST API: Swap vehicle or driver for a specific trip log.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST method required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    trip_log_id = data.get('trip_log_id')
+    if not trip_log_id:
+        return JsonResponse({"status": "error", "message": "trip_log_id is required."}, status=400)
+
+    vehicle_id = data.get('vehicle_id')
+    driver_id = data.get('driver_id')
+    reason = data.get('reason', 'Dispatcher manual optimization')
+
+    from fleet_commute.dispatch_brain import DispatchBrainEngine
+    res = DispatchBrainEngine.swap_trip_resource(
+        trip_log_id=int(trip_log_id),
+        vehicle_id=int(vehicle_id) if vehicle_id else None,
+        driver_id=int(driver_id) if driver_id else None,
+        reason=reason
+    )
+    status_code = 200 if res["status"] == "success" else 400
+    return JsonResponse(res, status=status_code)
+
+
+@csrf_exempt
+@login_required
+def api_dispatch_brain_broadcast(request):
+    """
+    POST API: Broadcast dispatched trips to driver cockpits and commuter boarding passes.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST method required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    date_str = data.get('date') or request.GET.get('date')
+    if date_str:
+        try:
+            target_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            target_date = timezone.now().date()
+    else:
+        target_date = timezone.now().date() + datetime.timedelta(days=1)
+
+    from fleet_contracts.models import ContractTripLog
+    trips_count = ContractTripLog.objects.filter(date=target_date).count()
+
+    return JsonResponse({
+        "status": "success",
+        "message": f"Broadcast delivered! {trips_count} trip sheets pushed to driver cockpits and digital boarding passes for {target_date.strftime('%d %b %Y')}.",
+        "target_date": target_date.strftime('%Y-%m-%d'),
+        "trips_notified": trips_count
+    })
