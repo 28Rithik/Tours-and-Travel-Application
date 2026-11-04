@@ -1,8 +1,176 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Workshop Mechanic Studio & QR Barcode Parts Checkout | TravelERP{% endblock %}
-{% block header_title %}Workshop Mechanic Studio{% endblock %}
+{% block title %}Workshop Mechanic Studio & QR Barcode Parts Checkout | TravelERP
+  <!-- Clock In Modal -->
+  <div id="clockInModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-clock text-blue-600"></i> Clock In Technician</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('clockInModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="clockInJobCardId">
+        <div class="form-group">
+          <label class="form-label">Technician / Mechanic Name</label>
+          <input type="text" id="clockInMechanicName" class="form-input" placeholder="e.g. Lead Tech R. Kannan" value="{{ request.user.get_full_name|default:request.user.username }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Task Scope / Description</label>
+          <input type="text" id="clockInTaskDesc" class="form-input" placeholder="e.g. Front brake pads replacement & disc skim" value="General Inspection & PM Routine">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('clockInModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitClockIn()">
+          <i class="fa-solid fa-play"></i> Start Labor Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openClockInModal(jcId) {
+      document.getElementById('clockInJobCardId').value = jcId;
+      openModal('clockInModal');
+    }
+
+    async function submitClockIn() {
+      const jcId = document.getElementById('clockInJobCardId').value;
+      const tech = document.getElementById('clockInMechanicName').value;
+      const task = document.getElementById('clockInTaskDesc').value;
+
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/clock-in/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ mechanic_name: tech, task_description: task })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('clockInModal');
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock in failed: ' + err.message, true);
+      }
+    }
+
+    async function executeClockOut(logId) {
+      if (!confirm('Clock out this technician labor session? Total hours will be calculated and added to Job Card labor charges.')) return;
+      try {
+        const res = await fetch(`/maintenance/api/labor-log/${logId}/clock-out/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock out failed: ' + err.message, true);
+      }
+    }
+  </script>
+
+{% endblock %}
+{% block header_title %}Workshop Mechanic Studio
+  <!-- Clock In Modal -->
+  <div id="clockInModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-clock text-blue-600"></i> Clock In Technician</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('clockInModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="clockInJobCardId">
+        <div class="form-group">
+          <label class="form-label">Technician / Mechanic Name</label>
+          <input type="text" id="clockInMechanicName" class="form-input" placeholder="e.g. Lead Tech R. Kannan" value="{{ request.user.get_full_name|default:request.user.username }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Task Scope / Description</label>
+          <input type="text" id="clockInTaskDesc" class="form-input" placeholder="e.g. Front brake pads replacement & disc skim" value="General Inspection & PM Routine">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('clockInModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitClockIn()">
+          <i class="fa-solid fa-play"></i> Start Labor Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openClockInModal(jcId) {
+      document.getElementById('clockInJobCardId').value = jcId;
+      openModal('clockInModal');
+    }
+
+    async function submitClockIn() {
+      const jcId = document.getElementById('clockInJobCardId').value;
+      const tech = document.getElementById('clockInMechanicName').value;
+      const task = document.getElementById('clockInTaskDesc').value;
+
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/clock-in/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ mechanic_name: tech, task_description: task })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('clockInModal');
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock in failed: ' + err.message, true);
+      }
+    }
+
+    async function executeClockOut(logId) {
+      if (!confirm('Clock out this technician labor session? Total hours will be calculated and added to Job Card labor charges.')) return;
+      try {
+        const res = await fetch(`/maintenance/api/labor-log/${logId}/clock-out/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock out failed: ' + err.message, true);
+      }
+    }
+  </script>
+
+{% endblock %}
 
 {% block breadcrumbs %}
 <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
@@ -12,6 +180,90 @@
     <span>/</span>
     <span class="text-gray-900 dark:text-white font-semibold">Workshop Mechanic Studio</span>
 </div>
+
+  <!-- Clock In Modal -->
+  <div id="clockInModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-clock text-blue-600"></i> Clock In Technician</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('clockInModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="clockInJobCardId">
+        <div class="form-group">
+          <label class="form-label">Technician / Mechanic Name</label>
+          <input type="text" id="clockInMechanicName" class="form-input" placeholder="e.g. Lead Tech R. Kannan" value="{{ request.user.get_full_name|default:request.user.username }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Task Scope / Description</label>
+          <input type="text" id="clockInTaskDesc" class="form-input" placeholder="e.g. Front brake pads replacement & disc skim" value="General Inspection & PM Routine">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('clockInModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitClockIn()">
+          <i class="fa-solid fa-play"></i> Start Labor Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openClockInModal(jcId) {
+      document.getElementById('clockInJobCardId').value = jcId;
+      openModal('clockInModal');
+    }
+
+    async function submitClockIn() {
+      const jcId = document.getElementById('clockInJobCardId').value;
+      const tech = document.getElementById('clockInMechanicName').value;
+      const task = document.getElementById('clockInTaskDesc').value;
+
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/clock-in/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ mechanic_name: tech, task_description: task })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('clockInModal');
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock in failed: ' + err.message, true);
+      }
+    }
+
+    async function executeClockOut(logId) {
+      if (!confirm('Clock out this technician labor session? Total hours will be calculated and added to Job Card labor charges.')) return;
+      try {
+        const res = await fetch(`/maintenance/api/labor-log/${logId}/clock-out/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock out failed: ' + err.message, true);
+      }
+    }
+  </script>
+
 {% endblock %}
 
 {% block extra_head %}
@@ -715,6 +967,90 @@
       100% { top: 80%; }
     }
   </style>
+
+  <!-- Clock In Modal -->
+  <div id="clockInModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-clock text-blue-600"></i> Clock In Technician</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('clockInModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="clockInJobCardId">
+        <div class="form-group">
+          <label class="form-label">Technician / Mechanic Name</label>
+          <input type="text" id="clockInMechanicName" class="form-input" placeholder="e.g. Lead Tech R. Kannan" value="{{ request.user.get_full_name|default:request.user.username }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Task Scope / Description</label>
+          <input type="text" id="clockInTaskDesc" class="form-input" placeholder="e.g. Front brake pads replacement & disc skim" value="General Inspection & PM Routine">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('clockInModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitClockIn()">
+          <i class="fa-solid fa-play"></i> Start Labor Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openClockInModal(jcId) {
+      document.getElementById('clockInJobCardId').value = jcId;
+      openModal('clockInModal');
+    }
+
+    async function submitClockIn() {
+      const jcId = document.getElementById('clockInJobCardId').value;
+      const tech = document.getElementById('clockInMechanicName').value;
+      const task = document.getElementById('clockInTaskDesc').value;
+
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/clock-in/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ mechanic_name: tech, task_description: task })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('clockInModal');
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock in failed: ' + err.message, true);
+      }
+    }
+
+    async function executeClockOut(logId) {
+      if (!confirm('Clock out this technician labor session? Total hours will be calculated and added to Job Card labor charges.')) return;
+      try {
+        const res = await fetch(`/maintenance/api/labor-log/${logId}/clock-out/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock out failed: ' + err.message, true);
+      }
+    }
+  </script>
+
 {% endblock %}
 
 {% block content %}
@@ -926,6 +1262,95 @@
             <div style="padding:16px 20px; font-size:0.86rem; color:#334155; line-height:1.5;">
               <strong>Complaints & Task Scope:</strong>
               <div style="margin-top:4px; white-space:pre-wrap;">{{ active_job_card.description|default:"Routine maintenance and general inspection." }}</div>
+            </div>
+
+            <!-- 2D Vehicle Exterior Damage Visualizer & Pre-Trip Markers -->
+            {% if damage_markers %}
+            <div style="margin: 0 20px 16px 20px; padding: 14px 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #92400e; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-car-burst text-amber-600"></i>
+                  <span>2D Vehicle Exterior Damage Markers (Pre-Trip / Handover Inspection)</span>
+                  <span style="font-size: 10px; background: #fef3c7; color: #b45309; padding: 2px 7px; border-radius: 9999px; font-weight: 800;">{{ damage_markers|length }} Flags</span>
+                </div>
+                {% if damage_inspection %}
+                  <a href="{% url 'maintenance:damage_marker_studio' %}?inspection_id={{ damage_inspection.id }}" target="_blank" style="font-size: 11px; font-weight: 700; color: #b45309; text-decoration: underline;">
+                    <i class="fa-solid fa-expand"></i> Launch 2D Vector Blueprint
+                  </a>
+                {% endif %}
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px;">
+                {% for m in damage_markers %}
+                <div style="background: #ffffff; border: 1px solid #fef08a; padding: 8px 10px; border-radius: 8px; font-size: 11px;">
+                  <div style="display:flex; justify-content:space-between; font-weight: 700;">
+                    <span style="color: #0f172a;">#{{ m.marker_number }} {{ m.get_damage_type_display }}</span>
+                    <span style="color: {% if m.severity == 'severe' %}#dc2626{% elif m.severity == 'moderate' %}#d97706{% else %}#2563eb{% endif %}; text-transform: uppercase; font-size: 9px; font-weight: 800;">{{ m.severity }}</span>
+                  </div>
+                  <div style="color: #64748b; font-size: 10px; margin-top: 2px;">Zone: {{ m.get_panel_zone_display }}</div>
+                  {% if m.notes %}
+                    <div style="color: #475569; font-size: 10px; margin-top: 4px; font-style: italic;">"{{ m.notes }}"</div>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Workshop Mechanic Clock-In & Labor Session Tracker -->
+            <div style="margin: 0 20px 16px 20px; padding: 14px 16px; background: #f8fafc; border: 1px solid var(--border); border-radius: 10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-stopwatch text-blue-600"></i>
+                  <span>Mechanic Labor Session Tracker</span>
+                  <span style="font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 7px; border-radius: 9999px; font-weight: 700;">₹250/hr Base Bay Rate</span>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openClockInModal('{{ active_job_card.id }}')">
+                  <i class="fa-solid fa-clock"></i> Clock In Technician
+                </button>
+              </div>
+
+              {% if active_labor_logs %}
+              <div style="overflow-x:auto;">
+                <table style="width:100%; font-size:11px; text-align:left; border-collapse:collapse;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border); color: #64748b; font-weight: 600;">
+                      <th style="padding: 6px 8px;">Technician</th>
+                      <th style="padding: 6px 8px;">Task Description</th>
+                      <th style="padding: 6px 8px;">Clock In</th>
+                      <th style="padding: 6px 8px;">Clock Out</th>
+                      <th style="padding: 6px 8px;">Hours</th>
+                      <th style="padding: 6px 8px;">Labor Cost</th>
+                      <th style="padding: 6px 8px; text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for log in active_labor_logs %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                      <td style="padding: 6px 8px; font-weight:700; color:#0f172a;">{{ log.mechanic_name }}</td>
+                      <td style="padding: 6px 8px; color:#475569;">{{ log.task_description }}</td>
+                      <td style="padding: 6px 8px; font-family: monospace;">{{ log.clock_in|date:"H:i, d M" }}</td>
+                      <td style="padding: 6px 8px; font-family: monospace;">
+                        {% if log.clock_out %}{{ log.clock_out|date:"H:i, d M" }}{% else %}<span style="color:#16a34a; font-weight:700;"><i class="fa-solid fa-circle-dot"></i> Active Now</span>{% endif %}
+                      </td>
+                      <td style="padding: 6px 8px; font-family: monospace;">{% if log.is_active %}In Progress{% else %}{{ log.total_hours }} hrs{% endif %}</td>
+                      <td style="padding: 6px 8px; font-weight:700; color:#0f172a;">₹{{ log.labor_cost|default:"0.00" }}</td>
+                      <td style="padding: 6px 8px; text-align: right;">
+                        {% if log.is_active %}
+                          <button type="button" onclick="executeClockOut('{{ log.id }}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; padding:3px 8px; border-radius:6px; font-weight:700; font-size:10px; cursor:pointer;">
+                            <i class="fa-solid fa-right-from-bracket"></i> Clock Out
+                          </button>
+                        {% else %}
+                          <span style="color:#64748b; font-size:10px;"><i class="fa-solid fa-check"></i> Billed</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+                <div style="font-size:11px; color:#64748b; font-style:italic; padding:6px 0;">No active labor sessions logged yet. Click "Clock In Technician" to start logging billable bay hours.</div>
+              {% endif %}
             </div>
 
             <!-- Spare Parts QR Barcode Checkout Section -->
@@ -1497,4 +1922,88 @@
     }
   </script>
 </div>
+
+  <!-- Clock In Modal -->
+  <div id="clockInModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-clock text-blue-600"></i> Clock In Technician</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('clockInModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="clockInJobCardId">
+        <div class="form-group">
+          <label class="form-label">Technician / Mechanic Name</label>
+          <input type="text" id="clockInMechanicName" class="form-input" placeholder="e.g. Lead Tech R. Kannan" value="{{ request.user.get_full_name|default:request.user.username }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Task Scope / Description</label>
+          <input type="text" id="clockInTaskDesc" class="form-input" placeholder="e.g. Front brake pads replacement & disc skim" value="General Inspection & PM Routine">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('clockInModal')">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="submitClockIn()">
+          <i class="fa-solid fa-play"></i> Start Labor Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openClockInModal(jcId) {
+      document.getElementById('clockInJobCardId').value = jcId;
+      openModal('clockInModal');
+    }
+
+    async function submitClockIn() {
+      const jcId = document.getElementById('clockInJobCardId').value;
+      const tech = document.getElementById('clockInMechanicName').value;
+      const task = document.getElementById('clockInTaskDesc').value;
+
+      try {
+        const res = await fetch(`/maintenance/api/job-card/${jcId}/clock-in/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({ mechanic_name: tech, task_description: task })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          closeModal('clockInModal');
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock in failed: ' + err.message, true);
+      }
+    }
+
+    async function executeClockOut(logId) {
+      if (!confirm('Clock out this technician labor session? Total hours will be calculated and added to Job Card labor charges.')) return;
+      try {
+        const res = await fetch(`/maintenance/api/labor-log/${logId}/clock-out/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message);
+          setTimeout(() => { window.location.reload(); }, 500);
+        } else {
+          showToast(data.message, true);
+        }
+      } catch (err) {
+        showToast('Clock out failed: ' + err.message, true);
+      }
+    }
+  </script>
+
 {% endblock %}

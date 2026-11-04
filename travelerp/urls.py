@@ -22,6 +22,8 @@ from maintenance.views import (
     parts_inventory_studio_view,
     api_issue_part_to_jobcard,
     api_receive_part_stock,
+    predictive_pm_sentry_view,
+    tire_audit_ledger_view,
 )
 from finance.views import (
     api_payment_context,
@@ -216,6 +218,11 @@ urlpatterns = [
     path('admin/workshop-studio/', workshop_mechanic_studio_view, name='admin-workshop-studio-alias'),
     path('maintenance/workshop/', workshop_mechanic_studio_view, name='maintenance-workshop-studio'),
     path('maintenance/workshop-studio/', workshop_mechanic_studio_view, name='maintenance-workshop-studio-alias'),
+
+    # Domain 9: Enterprise Predictive PM Sentry & Tire Audit Ledger
+    path('maintenance/pm-sentry/', predictive_pm_sentry_view, name='maintenance-pm-sentry'),
+    path('pm-sentry/', predictive_pm_sentry_view, name='pm-sentry-root-alias'),
+    path('maintenance/tire-ledger/', tire_audit_ledger_view, name='maintenance-tire-ledger'),
 
     # Omnichannel Integrations Hub, Meta Webhook, Email SES/SMTP Studio, Agent Dashboard & Approvals
     path('admin/integrations/', include('integrations.urls')),

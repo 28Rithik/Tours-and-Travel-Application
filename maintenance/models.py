@@ -219,6 +219,7 @@ class ServiceRecord(models.Model):
 	completed_at = models.DateTimeField(null=True, blank=True)
 	defect_ticket = models.ForeignKey('maintenance.DefectTicket', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards')
 	inspection_checklist = models.ForeignKey('maintenance.PreTripInspectionChecklist', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards')
+	damage_inspection = models.ForeignKey('maintenance.VehicleDamageInspection', on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards', help_text="Linked 2D damage inspection for bodywork and repairs")
 	
 	created_at = models.DateTimeField(auto_now_add=True)
 
@@ -277,6 +278,43 @@ class ServiceRecord(models.Model):
 					if part.inventory_item.current_stock <= part.inventory_item.minimum_stock_level:
 						PartPurchaseRequisition.trigger_auto_requisition(part.inventory_item)
 
+
+
+class MechanicLaborLog(models.Model):
+	service_record = models.ForeignKey(ServiceRecord, on_delete=models.CASCADE, related_name='labor_logs')
+	mechanic = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='workshop_labor_logs')
+	mechanic_name = models.CharField(max_length=150, blank=True)
+	task_description = models.CharField(max_length=255, default='General Servicing & Inspection')
+	clock_in = models.DateTimeField(default=timezone.now)
+	clock_out = models.DateTimeField(null=True, blank=True)
+	hourly_rate = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('250.00'))
+	total_hours = models.DecimalField(max_digits=6, decimal_places=2, default=Decimal('0.00'))
+	labor_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+	is_active = models.BooleanField(default=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+
+	class Meta:
+		ordering = ['-clock_in']
+		verbose_name = 'Mechanic Labor Log'
+		verbose_name_plural = 'Mechanic Labor Logs'
+
+	def __str__(self):
+		return f"{self.mechanic_name or 'Mechanic'} on {self.service_record.job_card_number} ({self.total_hours} hrs)"
+
+	def clock_out_session(self, clock_out_time=None):
+		self.clock_out = clock_out_time or timezone.now()
+		delta = self.clock_out - self.clock_in
+		secs = max(0, delta.total_seconds())
+		hours = Decimal(str(round(max(0.1, secs / 3600.0), 2)))
+		self.total_hours = hours
+		self.labor_cost = (hours * self.hourly_rate).quantize(Decimal('0.01'))
+		self.is_active = False
+		self.save(update_fields=['clock_out', 'total_hours', 'labor_cost', 'is_active'])
+
+		total_labor = sum(log.labor_cost for log in self.service_record.labor_logs.all())
+		self.service_record.labor_charges = total_labor
+		self.service_record.recalculate_totals()
+		return self.labor_cost
 
 class SparePart(models.Model):
 	service_record = models.ForeignKey(ServiceRecord, on_delete=models.CASCADE, related_name='spare_parts')

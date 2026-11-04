@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} | TravelERP{% endblock %}
+{% block header_title %}Tyre Retread &amp; Tread Depth Audit Ledger{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <a href="{% url 'maintenance:compliance_dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Maintenance &amp; Compliance</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Tyre Audit Ledger</span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="p-4 md:p-6 space-y-6">
+
+  <!-- Header Card -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl font-bold">
+        <i class="fa-solid fa-ring"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          Fleet Tyre Retread &amp; Tread Depth Audit Ledger
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 font-semibold uppercase">Statutory Safety</span>
+        </h1>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          Millimeter-precision tread audits &bull; Cold inflation PSI tracking &bull; Casing retread lifecycle governance
+        </p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="{% url 'maintenance:tire_studio' %}" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-orange-600 text-white hover:bg-orange-700 shadow-sm">
+        <i class="fa-solid fa-car-side"></i> 2D Axle Chassis Studio
+      </a>
+      <a href="{% url 'maintenance:pm_sentry' %}" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+        <i class="fa-solid fa-satellite-dish"></i> PM Sentry
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 Solid Unfold KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="rounded-xl p-4 text-white shadow-sm bg-blue-600">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Total Monitored Tyres</div>
+      <div class="text-3xl font-extrabold mt-1">{{ kpi.total_tires }}</div>
+      <div class="text-xs mt-1 opacity-80"><i class="fa-solid fa-truck-monster"></i> Full fleet active wheelsets</div>
+    </div>
+    <div class="rounded-xl p-4 text-white shadow-sm bg-rose-600">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Critical Bald Tyres (&le;2.5mm)</div>
+      <div class="text-3xl font-extrabold mt-1">{{ kpi.critical_tires }}</div>
+      <div class="text-xs mt-1 opacity-80"><i class="fa-solid fa-triangle-exclamation"></i> Immediate replacement/retread</div>
+    </div>
+    <div class="rounded-xl p-4 text-white shadow-sm bg-amber-600">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Active Retreaded Casings</div>
+      <div class="text-3xl font-extrabold mt-1">{{ kpi.retread_tires }}</div>
+      <div class="text-xs mt-1 opacity-80"><i class="fa-solid fa-recycle"></i> Extended lifecycle economics</div>
+    </div>
+    <div class="rounded-xl p-4 text-white shadow-sm bg-gray-700">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Scrapped / Condemned</div>
+      <div class="text-3xl font-extrabold mt-1">{{ kpi.scrapped_tires }}</div>
+      <div class="text-xs mt-1 opacity-80"><i class="fa-solid fa-trash-can"></i> End of lifecycle written off</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm flex flex-wrap gap-4 items-center justify-between">
+    <form method="GET" class="flex flex-wrap gap-3 items-center text-xs">
+      <div>
+        <label class="block font-medium text-gray-500 mb-1">Depot</label>
+        <select name="depot" onchange="this.form.submit()" class="border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <option value="">All Depots</option>
+          {% for val, lbl in depot_choices %}
+            <option value="{{ val }}" {% if depot == val %}selected{% endif %}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-medium text-gray-500 mb-1">Status</label>
+        <select name="status" onchange="this.form.submit()" class="border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <option value="">All Statuses</option>
+          <option value="in_use" {% if status_filter == 'in_use' %}selected{% endif %}>In Use (Mounted)</option>
+          <option value="spare" {% if status_filter == 'spare' %}selected{% endif %}>Spare / Stepney</option>
+          <option value="retreading" {% if status_filter == 'retreading' %}selected{% endif %}>At Retread Vendor</option>
+          <option value="scrapped" {% if status_filter == 'scrapped' %}selected{% endif %}>Scrapped</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-medium text-gray-500 mb-1">Wear Severity</label>
+        <select name="wear" onchange="this.form.submit()" class="border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <option value="">All Conditions</option>
+          <option value="critical" {% if wear_filter == 'critical' %}selected{% endif %}>Critical (&le; 2.5 mm)</option>
+          <option value="warning" {% if wear_filter == 'warning' %}selected{% endif %}>Warning (2.6 - 4.0 mm)</option>
+          <option value="good" {% if wear_filter == 'good' %}selected{% endif %}>Healthy (&gt; 4.0 mm)</option>
+        </select>
+      </div>
+    </form>
+    <div class="text-xs text-gray-500">
+      Showing <strong>{{ ledger|length }}</strong> matching tyre assets
+    </div>
+  </div>
+
+  <!-- Tyre Ledger Table -->
+  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 uppercase font-semibold text-[11px] border-b border-gray-200 dark:border-gray-700">
+          <tr>
+            <th class="py-3 px-3">Serial No</th>
+            <th class="py-3 px-3">Vehicle</th>
+            <th class="py-3 px-3">Wheel Position</th>
+            <th class="py-3 px-3">Brand &amp; Size</th>
+            <th class="py-3 px-3">Tread Depth (mm)</th>
+            <th class="py-3 px-3">Pressure (PSI)</th>
+            <th class="py-3 px-3">Retread Cycle</th>
+            <th class="py-3 px-3">Life Run</th>
+            <th class="py-3 px-3">Cost / KM</th>
+            <th class="py-3 px-3">Status</th>
+            <th class="py-3 px-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-800 dark:text-gray-200 font-medium">
+          {% for item in ledger %}
+          <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40">
+            <td class="py-3 px-3 font-mono font-bold text-gray-900 dark:text-white">
+              {{ item.serial_number }}
+            </td>
+            <td class="py-3 px-3">
+              {% if item.vehicle_id %}
+                <a href="{% url 'admin-vehicle-detail-360' item.vehicle_id %}" class="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                  {{ item.vehicle_reg }}
+                </a>
+              {% else %}
+                <span class="text-gray-400 italic">Depot Spare Store</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-3 font-semibold text-gray-700 dark:text-gray-300">
+              {{ item.position_display|default:"Spare / Rack" }}
+            </td>
+            <td class="py-3 px-3">
+              <div>{{ item.brand }}</div>
+              <div class="text-[10px] text-gray-500">{{ item.model_or_size }}</div>
+            </td>
+            <td class="py-3 px-3">
+              {% if item.current_tread_depth_mm <= 2.5 %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-rose-100 text-rose-800 font-bold border border-rose-300">
+                  {{ item.current_tread_depth_mm }} mm (CRITICAL)
+                </span>
+              {% elif item.current_tread_depth_mm <= 4.0 %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-amber-100 text-amber-800 font-bold border border-amber-300">
+                  {{ item.current_tread_depth_mm }} mm (WARNING)
+                </span>
+              {% else %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">
+                  {{ item.current_tread_depth_mm }} mm
+                </span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-3 font-mono">
+              {{ item.psi_pressure }} PSI
+            </td>
+            <td class="py-3 px-3">
+              {% if item.retread_count == 0 %}
+                <span class="text-gray-500">Virgin New</span>
+              {% else %}
+                <span class="font-bold text-amber-700 dark:text-amber-400">#{{ item.retread_count }} of {{ item.max_retread_cycles }}</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-3 font-mono text-gray-600 dark:text-gray-400">
+              {{ item.current_run_km }} KM
+            </td>
+            <td class="py-3 px-3 font-mono font-semibold">
+              &#8377;{{ item.cost_per_km }}
+            </td>
+            <td class="py-3 px-3">
+              {% if item.status == 'in_use' %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Mounted</span>
+              {% elif item.status == 'spare' %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">Stepney</span>
+              {% elif item.status == 'retreading' %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">At Vendor</span>
+              {% else %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-700">Scrapped</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-3 text-right">
+              <a href="{% url 'maintenance:tire_studio' %}{% if item.vehicle_id %}?vehicle_id={{ item.vehicle_id }}{% endif %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+                Inspect / Rotate
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="11" class="py-8 text-center text-gray-500">
+              No tyre assets match the selected filter.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

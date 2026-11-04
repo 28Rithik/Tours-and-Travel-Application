@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Predictive PM Sentry & Workshop Bay Radar | TravelERP{% endblock %}
+{% block header_title %}Predictive PM Sentry{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-2 border-b border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+    <a href="{% url 'dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Operations Desk</a>
+    <span>/</span>
+    <a href="{% url 'maintenance:compliance_dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Maintenance &amp; Compliance</a>
+    <span>/</span>
+    <span class="text-gray-900 dark:text-white font-semibold">Predictive PM Sentry</span>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .pm-studio-wrapper {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .risk-badge-critical {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+    font-weight: 700;
+  }
+  .risk-badge-high {
+    background: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fb923c;
+    font-weight: 700;
+  }
+  .risk-badge-medium {
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #facc15;
+    font-weight: 600;
+  }
+  .risk-badge-healthy {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+    font-weight: 600;
+  }
+  .bay-card-occupied {
+    background: #fff1f2;
+    border: 1.5px solid #f43f5e;
+  }
+  .bay-card-available {
+    background: #f0fdf4;
+    border: 1.5px dashed #22c55e;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pm-studio-wrapper p-4 md:p-6 space-y-6">
+
+  <!-- Studio Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl font-bold">
+          <i class="fa-solid fa-satellite-dish"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            Predictive PM Sentry &amp; Breakdown Radar
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 font-semibold uppercase tracking-wider">Domain 9</span>
+          </h1>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Real-time GPS telematics kilometer accumulation forecasting &bull; Breakdown risk prevention &bull; Auto-scheduled workshop bays
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      <form method="GET" class="flex items-center gap-2">
+        <select name="depot" onchange="this.form.submit()" class="text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <option value="">All Operating Depots</option>
+          {% for val, lbl in depot_choices %}
+            <option value="{{ val }}" {% if depot == val %}selected{% endif %}>{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </form>
+      <a href="{% url 'maintenance:workshop_mechanic_studio' %}" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
+        <i class="fa-solid fa-wrench"></i> Workshop Cockpit
+      </a>
+      <a href="{% url 'maintenance:tire_audit_ledger' %}" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+        <i class="fa-solid fa-ring"></i> Tyre Ledger
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 Solid Unfold KPI Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- Fleet Health Score -->
+    <div class="rounded-xl p-4 text-white shadow-sm {% if radar.fleet_health_score >= 85 %}bg-emerald-600{% elif radar.fleet_health_score >= 70 %}bg-amber-600{% else %}bg-rose-600{% endif %}">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Fleet PM Health Index</div>
+      <div class="text-3xl font-extrabold mt-1">{{ radar.fleet_health_score }}%</div>
+      <div class="text-xs mt-1 opacity-80 flex items-center gap-1">
+        <i class="fa-solid fa-shield-heart"></i> {{ radar.healthy_count }} healthy vehicles
+      </div>
+    </div>
+
+    <!-- Critical / Overdue Candidates -->
+    <div class="rounded-xl p-4 text-white shadow-sm bg-rose-600">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Critical / Overdue PM</div>
+      <div class="text-3xl font-extrabold mt-1">{{ radar.critical_count }}</div>
+      <div class="text-xs mt-1 opacity-80 flex items-center gap-1">
+        <i class="fa-solid fa-triangle-exclamation"></i> Immediate bay attention
+      </div>
+    </div>
+
+    <!-- 7-Day Forecast Horizon -->
+    <div class="rounded-xl p-4 text-white shadow-sm bg-amber-600">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Forecast Due in 7 Days</div>
+      <div class="text-3xl font-extrabold mt-1">{{ radar.forecast_due_7_days }}</div>
+      <div class="text-xs mt-1 opacity-80 flex items-center gap-1">
+        <i class="fa-solid fa-clock-rotate-left"></i> GPS rate accumulation
+      </div>
+    </div>
+
+    <!-- 30-Day Budget Requirement -->
+    <div class="rounded-xl p-4 text-white shadow-sm bg-indigo-600">
+      <div class="text-xs font-medium uppercase tracking-wider opacity-90">Forecast 30D PM Budget</div>
+      <div class="text-3xl font-extrabold mt-1">&#8377;{{ radar.estimated_budget_30d|floatformat:0 }}</div>
+      <div class="text-xs mt-1 opacity-80 flex items-center gap-1">
+        <i class="fa-solid fa-coins"></i> {{ radar.forecast_due_30_days }} forecasted services
+      </div>
+    </div>
+  </div>
+
+  <!-- Workshop Bays Status Grid (Bays 1 - 6) -->
+  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm space-y-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-warehouse text-blue-600"></i> Central Workshop Bay Status Board
+        </h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Live bay occupancy and active work orders across ramps</p>
+      </div>
+      <span class="text-xs px-2.5 py-1 rounded bg-gray-100 dark:bg-gray-700 font-semibold text-gray-700 dark:text-gray-300">
+        6 Active Service Bays
+      </span>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+      {% for bay in bays_status %}
+      <div class="rounded-lg p-3.5 flex flex-col justify-between transition-all {% if bay.is_occupied %}bay-card-occupied{% else %}bay-card-available{% endif %}">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-bold {% if bay.is_occupied %}text-rose-900{% else %}text-emerald-900{% endif %}">{{ bay.bay_name }}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase {% if bay.is_occupied %}bg-rose-200 text-rose-800{% else %}bg-emerald-200 text-emerald-800{% endif %}">
+            {% if bay.is_occupied %}In Bay{% else %}Clear{% endif %}
+          </span>
+        </div>
+        
+        <div class="my-2">
+          {% if bay.is_occupied %}
+            <div class="font-extrabold text-sm text-gray-900">{{ bay.vehicle.registration_number }}</div>
+            <div class="text-[11px] text-gray-700 font-medium truncate">{{ bay.service_type }}</div>
+            <div class="text-[10px] text-gray-500 mt-1 flex items-center gap-1">
+              <i class="fa-solid fa-user-gear"></i> {{ bay.mechanic_name|default:"Lead Tech" }}
+            </div>
+          {% else %}
+            <div class="text-xs text-emerald-700 font-semibold py-2">Available for PM</div>
+            <div class="text-[10px] text-emerald-600">Ready for check-in</div>
+          {% endif %}
+        </div>
+
+        {% if bay.is_occupied %}
+          <a href="{% url 'maintenance:workshop_mechanic_studio' %}?job_card_id={{ bay.job_card.id }}" class="text-[10px] text-center font-bold text-rose-700 hover:underline mt-1">
+            Open Job Card &rarr;
+          </a>
+        {% else %}
+          <span class="text-[10px] text-gray-400 italic">Empty Bay</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Predictive PM Sentry Forecast Table -->
+  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm space-y-4">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div>
+        <h2 class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-chart-line text-blue-600"></i> Predictive PM Forecast Radar
+        </h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400">
+          Showing {{ forecast_list|length }} fleet vehicles with forecasted service dates based on daily GPS accumulation
+        </p>
+      </div>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="inline-flex items-center gap-1 px-2 py-1 rounded risk-badge-critical text-[11px]"><i class="fa-solid fa-circle"></i> Critical / Overdue</span>
+        <span class="inline-flex items-center gap-1 px-2 py-1 rounded risk-badge-high text-[11px]"><i class="fa-solid fa-circle"></i> High Risk (&le;7d)</span>
+        <span class="inline-flex items-center gap-1 px-2 py-1 rounded risk-badge-medium text-[11px]"><i class="fa-solid fa-circle"></i> Medium (&le;15d)</span>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead class="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 uppercase font-semibold text-[11px] border-b border-gray-200 dark:border-gray-700">
+          <tr>
+            <th class="py-3 px-3">Vehicle</th>
+            <th class="py-3 px-3">Depot</th>
+            <th class="py-3 px-3">PM Task</th>
+            <th class="py-3 px-3">Current KM</th>
+            <th class="py-3 px-3">Due KM</th>
+            <th class="py-3 px-3">GPS Run Rate</th>
+            <th class="py-3 px-3">Days Remaining</th>
+            <th class="py-3 px-3">Predicted Due Date</th>
+            <th class="py-3 px-3">Risk Tier</th>
+            <th class="py-3 px-3 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-800 dark:text-gray-200 font-medium">
+          {% for item in forecast_list %}
+          <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/40 transition-colors">
+            <td class="py-3 px-3 font-bold text-gray-900 dark:text-white">
+              <a href="{% url 'admin-vehicle-detail-360' item.vehicle_id %}" class="hover:underline text-blue-600 dark:text-blue-400">
+                {{ item.vehicle_reg }}
+              </a>
+              <div class="text-[11px] font-normal text-gray-500">{{ item.vehicle_model }}</div>
+            </td>
+            <td class="py-3 px-3 text-gray-600 dark:text-gray-400">{{ item.depot }}</td>
+            <td class="py-3 px-3 max-w-[220px]">
+              <div class="font-semibold truncate" title="{{ item.task_name }}">{{ item.task_name }}</div>
+            </td>
+            <td class="py-3 px-3 font-mono">{{ item.current_km }} KM</td>
+            <td class="py-3 px-3 font-mono font-semibold">{{ item.due_km }} KM</td>
+            <td class="py-3 px-3 font-mono text-gray-600 dark:text-gray-400">{{ item.daily_accumulation_km }} KM/day</td>
+            <td class="py-3 px-3">
+              {% if item.days_until_due <= 0 %}
+                <span class="text-rose-600 font-bold">OVERDUE</span>
+              {% else %}
+                <span class="font-bold">{{ item.days_until_due }} days</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-3 font-mono font-semibold">{{ item.predicted_due_date }}</td>
+            <td class="py-3 px-3">
+              {% if item.risk_tier == 'CRITICAL' %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] risk-badge-critical uppercase tracking-wide">Critical ({{ item.risk_score }}%)</span>
+              {% elif item.risk_tier == 'HIGH' %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] risk-badge-high uppercase tracking-wide">High ({{ item.risk_score }}%)</span>
+              {% elif item.risk_tier == 'MEDIUM' %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] risk-badge-medium uppercase tracking-wide">Medium ({{ item.risk_score }}%)</span>
+              {% else %}
+                <span class="inline-block px-2 py-0.5 rounded text-[10px] risk-badge-healthy uppercase tracking-wide">Healthy</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-3 text-right">
+              <button onclick="openScheduleModal({{ item.vehicle_id }}, '{{ item.vehicle_reg|escapejs }}', '{{ item.task_name|escapejs }}')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded bg-blue-600 text-white hover:bg-blue-700 shadow-xs">
+                <i class="fa-solid fa-calendar-plus"></i> Schedule Bay
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="10" class="py-8 text-center text-gray-500 dark:text-gray-400">
+              <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2"></i>
+              <div>All vehicles are currently operating within safe PM limits.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Critical Tires Section -->
+  {% if critical_tires %}
+  <div class="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 rounded-xl p-5 shadow-sm space-y-3">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-bold text-sm">
+        <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+        <span>Critical Tyre Tread Warnings (&le; 2.5 mm Legal Threshold)</span>
+      </div>
+      <a href="{% url 'maintenance:tire_studio' %}" class="text-xs font-bold text-rose-700 dark:text-rose-400 hover:underline">
+        Launch 2D Axle Studio &rarr;
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      {% for tire in critical_tires %}
+      <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-rose-200 dark:border-rose-900 shadow-xs">
+        <div class="flex justify-between items-start">
+          <span class="font-bold text-xs text-gray-900 dark:text-white">{{ tire.serial_number }}</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-800">{{ tire.current_tread_depth_mm }} mm</span>
+        </div>
+        <div class="text-[11px] text-gray-600 dark:text-gray-400 mt-1">
+          Mounted: {{ tire.vehicle.registration_number }} ({{ tire.get_position_display }})
+        </div>
+        <div class="text-[10px] text-gray-500 mt-1 flex justify-between">
+          <span>{{ tire.brand }}</span>
+          <span>Retreads: {{ tire.retread_count }}/{{ tire.max_retread_cycles }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- 1-Click Auto-Schedule Job Card Modal -->
+<div id="scheduleModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-gray-200 dark:border-gray-700">
+    <div class="flex justify-between items-center border-b pb-3 border-gray-200 dark:border-gray-700">
+      <h3 class="font-bold text-base text-gray-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-wrench text-blue-600"></i> Auto-Schedule PM Job Card
+      </h3>
+      <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+    </div>
+
+    <div class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Target Vehicle</label>
+        <input type="text" id="modalVehicleReg" readonly class="w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-2 font-bold text-gray-900 dark:text-white">
+        <input type="hidden" id="modalVehicleId">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Scheduled PM Scope</label>
+        <input type="text" id="modalTaskName" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+      </div>
+
+      <div>
+        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Workshop Bay Designation</label>
+        <select id="modalBayNumber" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 font-medium bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+          <option value="Bay 1">Bay 1 (Heavy Ramp / Coach Inspection)</option>
+          <option value="Bay 2">Bay 2 (General PM &amp; Lubricant Flush)</option>
+          <option value="Bay 3">Bay 3 (Brake &amp; Suspension Overhaul)</option>
+          <option value="Bay 4">Bay 4 (Tire Alignment &amp; Balancing)</option>
+          <option value="Bay 5">Bay 5 (Electrical &amp; AC Servicing)</option>
+          <option value="Bay 6">Bay 6 (Fast-Track Inspection)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Technician Notes</label>
+        <textarea id="modalNotes" rows="2" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Pre-fill parts requisition (e.g. Engine Oil, Oil Filter)"></textarea>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+      <button onclick="closeScheduleModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">Cancel</button>
+      <button onclick="executeScheduleJobCard()" id="btnSubmitSchedule" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm flex items-center gap-1.5">
+        <i class="fa-solid fa-check"></i> Create Job Card &amp; Ground Vehicle
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openScheduleModal(vehicleId, vehicleReg, taskName) {
+  document.getElementById('modalVehicleId').value = vehicleId;
+  document.getElementById('modalVehicleReg').value = vehicleReg;
+  document.getElementById('modalTaskName').value = taskName;
+  document.getElementById('modalNotes').value = 'Scheduled via Predictive PM Engine based on telematics run-rate.';
+  document.getElementById('scheduleModal').classList.remove('hidden');
+}
+
+function closeScheduleModal() {
+  document.getElementById('scheduleModal').classList.add('hidden');
+}
+
+function getCsrfToken() {
+  const cookieValue = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+  return cookieValue ? cookieValue.split('=')[1] : '{{ csrf_token }}';
+}
+
+function executeScheduleJobCard() {
+  const btn = document.getElementById('btnSubmitSchedule');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Scheduling...';
+
+  const payload = {
+    vehicle_id: document.getElementById('modalVehicleId').value,
+    task_name: document.getElementById('modalTaskName').value,
+    bay_number: document.getElementById('modalBayNumber').value,
+    notes: document.getElementById('modalNotes').value,
+  };
+
+  fetch('/maintenance/api/pm-sentry/auto-schedule/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCsrfToken(),
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(res => res.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Create Job Card & Ground Vehicle';
+    if (data.success) {
+      alert(data.message);
+      window.location.href = '/maintenance/workshop-studio/?job_card_id=' + data.job_card_id;
+    } else {
+      alert('Error: ' + data.message);
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Create Job Card & Ground Vehicle';
+    alert('Network error: ' + err);
+  });
+}
+</script>
+{% endblock %}

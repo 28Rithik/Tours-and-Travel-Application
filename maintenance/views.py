@@ -531,7 +531,7 @@ def workshop_mechanic_studio_view(request):
     search_q = request.GET.get('q', '').strip()
     selected_job_card_id = request.GET.get('job_card_id')
 
-    qs = ServiceRecord.objects.select_related('vehicle', 'assigned_mechanic', 'defect_ticket').prefetch_related('spare_parts__inventory_item', 'part_usage_logs').order_by('-created_at')
+    qs = ServiceRecord.objects.select_related('vehicle', 'assigned_mechanic', 'defect_ticket', 'damage_inspection').prefetch_related('spare_parts__inventory_item', 'part_usage_logs', 'labor_logs').order_by('-created_at')
 
     if status_filter == 'active':
         qs = qs.filter(status__in=['open', 'in_progress', 'awaiting_parts', 'quality_check'])
@@ -557,7 +557,7 @@ def workshop_mechanic_studio_view(request):
 
     active_job_card = None
     if selected_job_card_id:
-        active_job_card = ServiceRecord.objects.filter(pk=selected_job_card_id).prefetch_related('spare_parts__inventory_item', 'part_usage_logs').first()
+        active_job_card = ServiceRecord.objects.filter(pk=selected_job_card_id).prefetch_related('spare_parts__inventory_item', 'part_usage_logs', 'labor_logs').first()
     if not active_job_card and job_cards:
         active_job_card = job_cards[0]
 
@@ -573,6 +573,18 @@ def workshop_mechanic_studio_view(request):
     vehicles_list = Vehicle.objects.filter(status__in=['available', 'maintenance']).order_by('registration_number')
     recent_usage_logs = SparePartUsageLog.objects.select_related('inventory_item', 'service_record', 'vehicle').order_by('-created_at')[:8]
     open_requisitions = PartPurchaseRequisition.objects.select_related('inventory_item').filter(status__in=['draft', 'auto_triggered', 'approved'])[:5]
+    damage_inspection = None
+    damage_markers = []
+    active_labor_logs = []
+    if active_job_card:
+        damage_inspection = active_job_card.damage_inspection
+        if not damage_inspection and active_job_card.vehicle:
+            from .models import VehicleDamageInspection
+            damage_inspection = VehicleDamageInspection.objects.filter(vehicle=active_job_card.vehicle).first()
+        if damage_inspection:
+            damage_markers = list(damage_inspection.markers.all())
+        active_labor_logs = list(active_job_card.labor_logs.all().order_by('-clock_in'))
+
 
     context = {
         'title': 'Workshop Mechanic Studio & QR Barcode Checkout',
@@ -593,6 +605,9 @@ def workshop_mechanic_studio_view(request):
         'vehicles_list': vehicles_list,
         'recent_usage_logs': recent_usage_logs,
         'open_requisitions': open_requisitions,
+        'damage_inspection': damage_inspection,
+        'damage_markers': damage_markers,
+        'active_labor_logs': active_labor_logs,
     }
     return render(request, 'maintenance/workshop_mechanic_studio.html', context)
 
@@ -1064,3 +1079,238 @@ def api_receive_part_stock(request):
 
 
 
+
+
+# ==============================================================================
+# DOMAIN 9: PREDICTIVE PM SENTRY & WORKSHOP STUDIO EXTENSIONS
+# ==============================================================================
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def predictive_pm_sentry_view(request):
+    """
+    Enterprise Predictive PM Sentry Dashboard (Domain 9).
+    Monitors telematics GPS kilometer accumulation rates, projects service due dates,
+    displays workshop bay status boards, and provides 1-click PM Job Card creation.
+    """
+    from .pm_engine import get_fleet_predictive_pm_radar, predict_preventive_service_due, get_fleet_tire_audit_ledger
+    from .models import ServiceRecord, VehicleAsset
+    from core.models import Vehicle
+    from core.depot_scoping import DEPOT_CHOICES
+
+    depot = request.GET.get('depot', '')
+    if depot == 'all':
+        depot = ''
+
+    radar_metrics = get_fleet_predictive_pm_radar(depot=depot if depot else None)
+    forecast_list = predict_preventive_service_due(depot=depot if depot else None)
+
+    # Active Workshop Bays (Bays 1 - 6 status)
+    active_job_cards = ServiceRecord.objects.filter(
+        status__in=['open', 'in_progress', 'awaiting_parts', 'quality_check']
+    ).select_related('vehicle', 'assigned_mechanic')
+
+    bays_status = []
+    occupied_bay_map = {jc.bay_number: jc for jc in active_job_cards if jc.bay_number}
+
+    for b in range(1, 7):
+        bay_name = f"Bay {b}"
+        occupant = occupied_bay_map.get(bay_name)
+        bays_status.append({
+            'bay_name': bay_name,
+            'is_occupied': bool(occupant),
+            'job_card': occupant,
+            'vehicle': occupant.vehicle if occupant else None,
+            'service_type': occupant.get_service_type_display() if occupant else None,
+            'status': occupant.get_status_display() if occupant else 'Available / Clear',
+            'mechanic_name': occupant.mechanic_name if occupant else None,
+        })
+
+    # Critical Tires
+    critical_tires = VehicleAsset.objects.filter(
+        asset_type='tyre',
+        status='in_use',
+        current_tread_depth_mm__lte=Decimal('2.50')
+    ).select_related('vehicle')[:8]
+
+    context = {
+        'title': 'Predictive PM Sentry & Workshop Bay Radar',
+        'depot': depot,
+        'depot_choices': DEPOT_CHOICES,
+        'radar': radar_metrics,
+        'forecast_list': forecast_list[:30],
+        'bays_status': bays_status,
+        'critical_tires': critical_tires,
+        'total_forecast_count': len(forecast_list),
+    }
+    return render(request, 'maintenance/pm_sentry_studio.html', context)
+
+
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_pm_sentry_forecast(request):
+    """
+    JSON REST API returning PM forecast predictions and risk tiers for fleet vehicles.
+    """
+    from .pm_engine import predict_preventive_service_due, get_fleet_predictive_pm_radar
+
+    depot = request.GET.get('depot', '')
+    if depot == 'all':
+        depot = ''
+    vehicle_id = request.GET.get('vehicle_id')
+    vid = int(vehicle_id) if vehicle_id and vehicle_id.isdigit() else None
+
+    radar = get_fleet_predictive_pm_radar(depot=depot if depot else None)
+    forecast = predict_preventive_service_due(vehicle_id=vid, depot=depot if depot else None)
+
+    return JsonResponse({
+        'success': True,
+        'radar': radar,
+        'forecast_count': len(forecast),
+        'forecast': forecast,
+    })
+
+
+@csrf_exempt
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_pm_sentry_auto_schedule(request):
+    """
+    1-Click Auto-Schedule API: Converts a predictive PM alert into an active workshop Job Card.
+    """
+    import json
+    from .pm_engine import auto_schedule_preventive_job_card
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        vehicle_id = int(data.get('vehicle_id'))
+        task_name = data.get('task_name', 'Predictive Preventive Maintenance')
+        bay_number = data.get('bay_number', 'Bay 1')
+        notes = data.get('notes', '')
+
+        result = auto_schedule_preventive_job_card(
+            vehicle_id=vehicle_id,
+            task_name=task_name,
+            bay_number=bay_number,
+            mechanic_user=request.user,
+            notes=notes
+        )
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_mechanic_clock_in(request, job_card_id):
+    """
+    Starts an active mechanic labor session on a workshop job card.
+    """
+    import json
+    from .pm_engine import clock_in_mechanic
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body.decode('utf-8')) if request.body else request.POST
+        task_desc = data.get('task_description', 'Routine Servicing & Diagnostics')
+        tech_name = data.get('mechanic_name', '')
+
+        result = clock_in_mechanic(
+            job_card_id=job_card_id,
+            mechanic_user=request.user,
+            mechanic_name=tech_name,
+            task_description=task_desc
+        )
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@login_required
+@require_staff_capability('maintenance_work_orders')
+def api_mechanic_clock_out(request, labor_log_id):
+    """
+    Ends a mechanic labor session and calculates billable labor hours and cost.
+    """
+    from .pm_engine import clock_out_mechanic
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    try:
+        result = clock_out_mechanic(labor_log_id=labor_log_id)
+        return JsonResponse(result)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+@login_required
+def api_tire_audit_ledger(request):
+    """
+    JSON API returning complete fleet tire asset health audit ledger.
+    """
+    from .pm_engine import get_fleet_tire_audit_ledger
+
+    depot = request.GET.get('depot', '')
+    status_filter = request.GET.get('status', '')
+    wear_filter = request.GET.get('wear', '')
+
+    ledger = get_fleet_tire_audit_ledger(
+        depot=depot if depot and depot != 'all' else None,
+        status_filter=status_filter if status_filter and status_filter != 'all' else None,
+        wear_filter=wear_filter if wear_filter and wear_filter != 'all' else None,
+    )
+
+    return JsonResponse({
+        'success': True,
+        'count': len(ledger),
+        'ledger': ledger,
+    })
+
+
+@login_required
+def tire_audit_ledger_view(request):
+    """
+    Dedicated view for the Tyre Retread & Tread Depth Audit Ledger.
+    """
+    from .pm_engine import get_fleet_tire_audit_ledger
+    from core.depot_scoping import DEPOT_CHOICES
+    from .models import VehicleAsset
+
+    depot = request.GET.get('depot', '')
+    status_filter = request.GET.get('status', '')
+    wear_filter = request.GET.get('wear', '')
+
+    ledger = get_fleet_tire_audit_ledger(
+        depot=depot if depot and depot != 'all' else None,
+        status_filter=status_filter if status_filter and status_filter != 'all' else None,
+        wear_filter=wear_filter if wear_filter and wear_filter != 'all' else None,
+    )
+
+    total_tires = VehicleAsset.objects.filter(asset_type='tyre').count()
+    critical_tires = VehicleAsset.objects.filter(asset_type='tyre', current_tread_depth_mm__lte=Decimal('2.50')).count()
+    retread_tires = VehicleAsset.objects.filter(asset_type='tyre', retread_count__gt=0).count()
+    scrapped_tires = VehicleAsset.objects.filter(asset_type='tyre', status='scrapped').count()
+
+    context = {
+        'title': 'Fleet Tyre Retread & Tread Depth Audit Ledger',
+        'ledger': ledger,
+        'depot': depot,
+        'status_filter': status_filter,
+        'wear_filter': wear_filter,
+        'depot_choices': DEPOT_CHOICES,
+        'kpi': {
+            'total_tires': total_tires,
+            'critical_tires': critical_tires,
+            'retread_tires': retread_tires,
+            'scrapped_tires': scrapped_tires,
+        }
+    }
+    return render(request, 'maintenance/tire_ledger.html', context)

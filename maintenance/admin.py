@@ -10,7 +10,7 @@ from .models import (
     VehicleAsset, AssetRotationLog, TireInspectionLog, DefectTicket, ServiceReminder,
     PreTripInspectionChecklist,
     VehicleDamageInspection, VehicleDamageMarker,
-    SparePartUsageLog, PartPurchaseRequisition,
+    SparePartUsageLog, PartPurchaseRequisition, MechanicLaborLog,
 )
 
 
@@ -162,6 +162,12 @@ class SparePartUsageLogInline(TabularInline):
     fields = ('created_at', 'inventory_item', 'quantity', 'unit_price', 'total_cost', 'checkout_mode', 'checked_out_by', 'mechanic_name')
 
 
+class MechanicLaborLogInline(TabularInline):
+    model = MechanicLaborLog
+    extra = 0
+    fields = ('mechanic_name', 'task_description', 'clock_in', 'clock_out', 'hourly_rate', 'total_hours', 'labor_cost', 'is_active')
+    readonly_fields = ('total_hours', 'labor_cost')
+
 @admin.register(ServiceRecord)
 class ServiceRecordAdmin(ModelAdmin):
     list_display = (
@@ -172,7 +178,7 @@ class ServiceRecordAdmin(ModelAdmin):
     search_fields = ('job_card_number', 'vehicle__registration_number', 'mechanic_name', 'garage_name', 'description')
     autocomplete_fields = ['vehicle']
     date_hierarchy = 'date'
-    inlines = [SparePartInline, SparePartUsageLogInline]
+    inlines = [SparePartInline, SparePartUsageLogInline, MechanicLaborLogInline]
     list_per_page = 30
     actions = [mark_services_completed]
 
@@ -1104,3 +1110,9 @@ class VehicleDamageMarkerAdmin(ModelAdmin):
 
 
 
+
+@admin.register(MechanicLaborLog)
+class MechanicLaborLogAdmin(ModelAdmin):
+    list_display = ('id', 'service_record', 'mechanic_name', 'task_description', 'clock_in', 'clock_out', 'total_hours', 'labor_cost', 'is_active')
+    list_filter = ('is_active', 'clock_in')
+    search_fields = ('mechanic_name', 'task_description', 'service_record__job_card_number')
