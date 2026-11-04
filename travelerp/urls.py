@@ -272,6 +272,18 @@ urlpatterns = [
     path('finance/contract-billing/', fleet_contracts_views.contract_billing_studio_view, name='finance-contract-billing'),
     path('finance/commute-bhatta/', fleet_contracts_views.driver_commute_bhatta_view, name='finance-commute-bhatta'),
 
+    # Domain 7: Safety, SOS & Incident Response Desk
+    path('safety/', fleet_commute_views.safety_incident_desk_view, name='safety-root'),
+    path('safety/incidents/', fleet_commute_views.safety_incident_desk_view, name='safety-incidents-alias'),
+    path('safety/night-escort/', fleet_commute_views.night_escort_governance_view, name='safety-night-escort-alias'),
+    path('api/safety/sos/trigger/', fleet_commute_views.api_safety_trigger_sos, name='api-safety-trigger-sos-root'),
+    path('api/safety/rescue/dispatch/', fleet_commute_views.api_safety_dispatch_rescue, name='api-safety-dispatch-rescue-root'),
+    path('api/safety/incident/escalate/', fleet_commute_views.api_safety_escalate_incident, name='api-safety-escalate-incident-root'),
+    path('api/safety/night-escort/signoff/', fleet_commute_views.api_safety_night_escort_signoff, name='api-safety-night-escort-signoff-root'),
+    path('api/safety/incident/resolve/', fleet_commute_views.api_safety_resolve_incident, name='api-safety-resolve-incident-root'),
+    path('api/safety/geofence/check/', fleet_commute_views.api_safety_geofence_check, name='api-safety-geofence-check-root'),
+    path('api/safety/metrics/', fleet_commute_views.api_safety_metrics, name='api-safety-metrics-root'),
+
     path('dashboard/', dashboard, name='dashboard'),
     path('auth/switch-persona/<str:username>/', switch_persona_view, name='auth-switch-persona'),
     path('staff/roles-matrix/', staff_roles_matrix_view, name='staff-roles-matrix'),

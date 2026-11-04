@@ -52,6 +52,15 @@ from .views import (
     api_dispatch_brain_auto_optimize,
     api_dispatch_brain_swap,
     api_dispatch_brain_broadcast,
+    safety_incident_desk_view,
+    night_escort_governance_view,
+    api_safety_trigger_sos,
+    api_safety_dispatch_rescue,
+    api_safety_escalate_incident,
+    api_safety_night_escort_signoff,
+    api_safety_resolve_incident,
+    api_safety_geofence_check,
+    api_safety_metrics,
 )
 
 app_name = 'fleet_commute'
@@ -144,4 +153,16 @@ urlpatterns = [
     path('api/dispatch-brain/auto-optimize/', api_dispatch_brain_auto_optimize, name='api_dispatch_brain_auto_optimize'),
     path('api/dispatch-brain/swap/', api_dispatch_brain_swap, name='api_dispatch_brain_swap'),
     path('api/dispatch-brain/broadcast/', api_dispatch_brain_broadcast, name='api_dispatch_brain_broadcast'),
+
+    # Domain 7: Safety, SOS & Incident Response Desk
+    path('safety/', safety_incident_desk_view, name='safety_incident_desk'),
+    path('safety/incidents/', safety_incident_desk_view, name='safety_incidents_alias'),
+    path('safety/night-escort/', night_escort_governance_view, name='night_escort_governance'),
+    path('api/safety/sos/trigger/', api_safety_trigger_sos, name='api_safety_trigger_sos'),
+    path('api/safety/rescue/dispatch/', api_safety_dispatch_rescue, name='api_safety_dispatch_rescue'),
+    path('api/safety/incident/escalate/', api_safety_escalate_incident, name='api_safety_escalate_incident'),
+    path('api/safety/night-escort/signoff/', api_safety_night_escort_signoff, name='api_safety_night_escort_signoff'),
+    path('api/safety/incident/resolve/', api_safety_resolve_incident, name='api_safety_resolve_incident'),
+    path('api/safety/geofence/check/', api_safety_geofence_check, name='api_safety_geofence_check'),
+    path('api/safety/metrics/', api_safety_metrics, name='api_safety_metrics'),
 ]

@@ -2799,3 +2799,378 @@ def api_dispatch_brain_broadcast(request):
         "target_date": target_date.strftime('%Y-%m-%d'),
         "trips_notified": trips_count
     })
+
+
+# ==============================================================================
+# DOMAIN 7: SAFETY, SOS & INCIDENT RESPONSE DESK
+# ==============================================================================
+from fleet_commute.safety_engine import SafetyIncidentEngine
+from fleet_contracts.models import NightSafetyEscortLog
+
+
+@login_required
+def safety_incident_desk_view(request):
+    """
+    Domain 7: Safety, SOS & Incident Response Desk Studio
+    Unified real-time distress radar, active incident triage, standby rescue dispatch,
+    night escort governance, and speed-dial emergency escalation protocols.
+    """
+    status_filter = request.GET.get('status', 'all')
+    severity_filter = request.GET.get('severity', 'all')
+    search_q = request.GET.get('q', '').strip()
+
+    metrics = SafetyIncidentEngine.get_safety_desk_metrics()
+
+    incidents_qs = CommuteIncident.objects.select_related(
+        'trip', 'vehicle', 'driver', 'rescue_vehicle', 'rescue_driver', 'assigned_officer'
+    )
+
+    if status_filter == 'active':
+        incidents_qs = incidents_qs.filter(status__in=['reported', 'assigned', 'rescue_dispatched'])
+    elif status_filter == 'critical':
+        incidents_qs = incidents_qs.filter(severity='critical', status__in=['reported', 'assigned'])
+    elif status_filter == 'rescue_dispatched':
+        incidents_qs = incidents_qs.filter(status='rescue_dispatched')
+    elif status_filter == 'resolved':
+        incidents_qs = incidents_qs.filter(status__in=['resolved', 'closed'])
+    elif status_filter == 'deviation':
+        incidents_qs = incidents_qs.filter(incident_type__in=['route_blocked', 'accident'])
+
+    if severity_filter != 'all':
+        incidents_qs = incidents_qs.filter(severity=severity_filter)
+
+    if search_q:
+        incidents_qs = incidents_qs.filter(
+            Q(incident_id__icontains=search_q) |
+            Q(location_name__icontains=search_q) |
+            Q(vehicle__registration_number__icontains=search_q) |
+            Q(driver__name__icontains=search_q) |
+            Q(description__icontains=search_q)
+        )
+
+    # Active SOS alarms for live alert ticker
+    active_sos_alerts = list(CommuteIncident.objects.filter(
+        severity='critical',
+        status__in=['reported', 'assigned']
+    ).select_related('vehicle', 'driver')[:5])
+
+    # Standby resources available for instant rescue dispatch
+    standby_vehicles = list(Vehicle.objects.filter(status='available')[:15])
+    standby_drivers = list(Driver.objects.filter(status='active')[:15])
+
+    # Context items for modal triggers
+    recent_trips = list(ContractTripLog.objects.select_related('vehicle', 'driver', 'shift__route').order_by('-date')[:15])
+    commuters = list(CommuterManifest.objects.filter(is_active=True).select_related('contract')[:20])
+
+    context = {
+        'title': 'Safety, SOS & Incident Response Desk',
+        'metrics': metrics,
+        'incidents': incidents_qs[:50],
+        'active_sos_alerts': active_sos_alerts,
+        'standby_vehicles': standby_vehicles,
+        'standby_drivers': standby_drivers,
+        'recent_trips': recent_trips,
+        'commuters': commuters,
+        'status_filter': status_filter,
+        'severity_filter': severity_filter,
+        'search_q': search_q,
+    }
+    return render(request, 'fleet_commute/safety_incident_desk.html', context)
+
+
+@login_required
+def night_escort_governance_view(request):
+    """
+    Domain 7: Night Escort & Safe-Drop Governance Desk
+    Statutory oversight for female employee night drops (20:00 - 06:00),
+    guard badge verification, first-pickup/last-drop timings, and safe arrival sign-offs.
+    """
+    status_filter = request.GET.get('status', 'all')
+    search_q = request.GET.get('q', '').strip()
+
+    escorts_qs = NightSafetyEscortLog.objects.select_related(
+        'trip_log', 'trip_log__shift', 'trip_log__shift__route', 'trip_log__vehicle', 'trip_log__driver'
+    ).order_by('-id')
+
+    if status_filter == 'pending':
+        escorts_qs = escorts_qs.filter(last_drop_verification_status__in=['pending', 'assigned'])
+    elif status_filter == 'verified':
+        escorts_qs = escorts_qs.filter(last_drop_verification_status__in=['verified_call', 'verified_sms', 'supervisor_signoff', 'safe_drop_confirmed'])
+
+    if search_q:
+        escorts_qs = escorts_qs.filter(
+            Q(escort_guard_name__icontains=search_q) |
+            Q(guard_badge_number__icontains=search_q) |
+            Q(security_agency__icontains=search_q) |
+            Q(trip_log__vehicle__registration_number__icontains=search_q) |
+            Q(safe_drop_confirmed_by__icontains=search_q)
+        )
+
+    total_count = NightSafetyEscortLog.objects.count()
+    verified_count = NightSafetyEscortLog.objects.filter(
+        last_drop_verification_status__in=['verified_call', 'verified_sms', 'supervisor_signoff', 'safe_drop_confirmed']
+    ).count()
+    pending_count = total_count - verified_count
+    compliance_pct = round((verified_count / total_count * 100.0), 1) if total_count > 0 else 100.0
+
+    context = {
+        'title': 'Night Escort & Safe-Drop Governance Desk',
+        'escorts': escorts_qs[:60],
+        'total_count': total_count,
+        'verified_count': verified_count,
+        'pending_count': pending_count,
+        'compliance_pct': compliance_pct,
+        'status_filter': status_filter,
+        'search_q': search_q,
+    }
+    return render(request, 'fleet_commute/night_escort_desk.html', context)
+
+
+@csrf_exempt
+@login_required
+def api_safety_trigger_sos(request):
+    """
+    POST API: Instant Emergency SOS Trigger
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    source_type = data.get('source_type', 'commuter_silent')
+    commuter_id = data.get('commuter_id')
+    driver_id = data.get('driver_id')
+    trip_id = data.get('trip_id')
+    vehicle_id = data.get('vehicle_id')
+    lat = data.get('latitude')
+    lng = data.get('longitude')
+    location_name = data.get('location_name', '')
+    description = data.get('description', '')
+    is_silent = str(data.get('is_silent', '')).lower() in ['true', '1', 'yes']
+
+    try:
+        lat_val = float(lat) if lat else None
+        lng_val = float(lng) if lng else None
+    except ValueError:
+        lat_val, lng_val = None, None
+
+    res = SafetyIncidentEngine.trigger_panic_sos(
+        source_type=source_type,
+        commuter_id=commuter_id,
+        driver_id=int(driver_id) if driver_id else None,
+        trip_id=int(trip_id) if trip_id else None,
+        vehicle_id=int(vehicle_id) if vehicle_id else None,
+        latitude=lat_val,
+        longitude=lng_val,
+        location_name=location_name,
+        description=description,
+        is_silent=is_silent,
+        officer_user=request.user
+    )
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_safety_dispatch_rescue(request):
+    """
+    POST API: 1-Click Standby Rescue Dispatch
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    incident_id = data.get('incident_id')
+    standby_vehicle_id = data.get('standby_vehicle_id')
+    standby_driver_id = data.get('standby_driver_id')
+    eta_minutes = data.get('eta_minutes', 15)
+    notes = data.get('notes', '')
+
+    if not incident_id or not standby_vehicle_id or not standby_driver_id:
+        return JsonResponse({"status": "error", "message": "incident_id, standby_vehicle_id, and standby_driver_id are required."}, status=400)
+
+    try:
+        eta_int = int(eta_minutes)
+    except ValueError:
+        eta_int = 15
+
+    res = SafetyIncidentEngine.dispatch_standby_rescue(
+        incident_id=str(incident_id),
+        standby_vehicle_id=int(standby_vehicle_id),
+        standby_driver_id=int(standby_driver_id),
+        eta_minutes=eta_int,
+        officer_user=request.user,
+        notes=notes
+    )
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_safety_escalate_incident(request):
+    """
+    POST API: Speed-Dial Emergency Protocol Escalation
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    incident_id = data.get('incident_id')
+    escalation_target = data.get('escalation_target', 'police_112')
+    notes = data.get('notes', '')
+
+    if not incident_id:
+        return JsonResponse({"status": "error", "message": "incident_id is required."}, status=400)
+
+    res = SafetyIncidentEngine.escalate_emergency_protocol(
+        incident_id=str(incident_id),
+        escalation_target=escalation_target,
+        notes=notes,
+        officer_user=request.user
+    )
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_safety_night_escort_signoff(request):
+    """
+    POST API: Night Escort Safe-Drop Governance Sign-off
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    trip_id = data.get('trip_id')
+    guard_name = data.get('guard_name', 'M. Velusamy')
+    agency = data.get('agency', 'SIS Security Services')
+    badge_number = data.get('badge_number', 'SEC-TN-042')
+    female_count = data.get('female_count', 1)
+    verification_status = data.get('verification_status', 'verified_call')
+    confirmed_by = data.get('confirmed_by', request.user.get_full_name() or request.user.username)
+    remarks = data.get('remarks', '')
+
+    if not trip_id:
+        return JsonResponse({"status": "error", "message": "trip_id is required."}, status=400)
+
+    res = SafetyIncidentEngine.verify_night_safe_drop(
+        trip_id=int(trip_id),
+        guard_name=guard_name,
+        agency=agency,
+        badge_number=badge_number,
+        female_count=int(female_count) if female_count else 1,
+        verification_status=verification_status,
+        confirmed_by=confirmed_by,
+        remarks=remarks
+    )
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_safety_resolve_incident(request):
+    """
+    POST API: Resolve & Archive Incident
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    incident_id = data.get('incident_id')
+    resolution_notes = data.get('resolution_notes', 'All commuters transferred safely.')
+
+    if not incident_id:
+        return JsonResponse({"status": "error", "message": "incident_id is required."}, status=400)
+
+    res = SafetyIncidentEngine.resolve_incident(
+        incident_id=str(incident_id),
+        resolution_notes=resolution_notes,
+        officer_user=request.user
+    )
+    return JsonResponse(res)
+
+
+@csrf_exempt
+@login_required
+def api_safety_geofence_check(request):
+    """
+    POST API: Check Corridor Deviation
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "POST required."}, status=405)
+
+    data = {}
+    if request.content_type == 'application/json' and request.body:
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            data = {}
+    else:
+        data = request.POST
+
+    trip_id = data.get('trip_id')
+    lat = data.get('latitude')
+    lng = data.get('longitude')
+    threshold = data.get('threshold_meters', 600.0)
+
+    if not trip_id or lat is None or lng is None:
+        return JsonResponse({"status": "error", "message": "trip_id, latitude, and longitude are required."}, status=400)
+
+    try:
+        res = SafetyIncidentEngine.detect_corridor_deviation(
+            trip_id=int(trip_id),
+            current_lat=float(lat),
+            current_lng=float(lng),
+            threshold_meters=float(threshold)
+        )
+        return JsonResponse(res)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+@login_required
+def api_safety_metrics(request):
+    """
+    GET API: Live metrics for dashboard polling
+    """
+    metrics = SafetyIncidentEngine.get_safety_desk_metrics()
+    return JsonResponse({"status": "success", "metrics": metrics})

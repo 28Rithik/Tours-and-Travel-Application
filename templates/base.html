@@ -379,6 +379,12 @@
             <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
           </div>
           <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if '/safety/' in request.path and not 'night-escort' in request.path %}is-active{% endif %}" href="/safety/">
+              <span>Safety &amp; SOS Command Desk</span>
+            </a>
+            <a class="unfold-nav-item {% if 'night-escort' in request.path %}is-active{% endif %}" href="/safety/night-escort/">
+              <span>Night Escort Governance</span>
+            </a>
             <a class="unfold-nav-item {% if 'border-permits' in request.path %}is-active{% endif %}" href="/operations/border-permits/">
               <span>Border Permits Sentry</span>
             </a>
