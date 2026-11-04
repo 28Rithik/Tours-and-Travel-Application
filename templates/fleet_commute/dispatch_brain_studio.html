@@ -1,0 +1,619 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Shift Planning &amp; Dispatch Brain | Sivagayathiri TravelERP{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <!-- Unfold Top Breadcrumbs & Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+    <div>
+      <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <span>/</span>
+        <a href="{% url 'dispatch-console' %}" class="hover:text-primary transition">Operations</a>
+        <span>/</span>
+        <span class="text-slate-900 dark:text-white font-semibold">Dispatch Brain Planner</span>
+      </nav>
+      <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+        <span>Shift Planning &amp; Dispatch Brain</span>
+        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300">
+          Capacity Optimization Engine
+        </span>
+      </h1>
+      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        Target Operating Date: <span class="font-semibold text-slate-800 dark:text-slate-200 font-mono">{{ target_date_str }}</span>
+        {% if target_date_str == tomorrow_date_str %}
+        <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 font-bold">Tomorrow Planning</span>
+        {% elif target_date_str == today_date_str %}
+        <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 font-bold">Today Active</span>
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Quick Date Navigation & Actions -->
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex rounded-lg border border-slate-300 dark:border-slate-700 p-0.5 bg-slate-100 dark:bg-slate-800 text-xs">
+        <a href="?date={{ today_date_str }}" class="px-2.5 py-1 rounded-md font-medium transition {% if target_date_str == today_date_str %}bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900{% endif %}">
+          Today
+        </a>
+        <a href="?date={{ tomorrow_date_str }}" class="px-2.5 py-1 rounded-md font-medium transition {% if target_date_str == tomorrow_date_str %}bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900{% endif %}">
+          Tomorrow
+        </a>
+      </div>
+
+      <input type="date" value="{{ target_date_str }}" onchange="window.location.href='?date=' + this.value" class="text-xs font-mono py-1 px-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200" />
+
+      <button onclick="openAutoOptimizeModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>Auto-Optimize &amp; Dispatch</span>
+      </button>
+
+      <button onclick="broadcastToCockpits()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Broadcast to Cockpits</span>
+      </button>
+
+      <a href="{% url 'operations-fleet-radar' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg shadow-sm transition">
+        <i class="fa-solid fa-satellite-dish"></i>
+        <span>Live Radar</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Deck -->
+  <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="unfold-kpi-card-solid blue">
+      <div class="kpi-label">Planned Shifts</div>
+      <div class="kpi-number">{{ matrix.total_shifts }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Operating shifts on date</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Capacity Efficiency</div>
+      <div class="kpi-number">{{ matrix.avg_occupancy }}%</div>
+      <div class="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5">{{ matrix.total_pax_demand }} / {{ matrix.total_seats_capacity }} Total Seats</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid green">
+      <div class="kpi-label">Cleared for Dispatch</div>
+      <div class="kpi-number">{{ matrix.cleared_count }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Compliant vehicle &amp; driver</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid {% if matrix.locked_count > 0 %}red{% else %}blue{% endif %}">
+      <div class="kpi-label">Dispatch Locked</div>
+      <div class="kpi-number">{{ matrix.locked_count }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">FC, Insurance or PM Hold</div>
+    </div>
+
+    <div class="unfold-kpi-card-solid {% if matrix.conflict_count > 0 %}red{% else %}green{% endif %}">
+      <div class="kpi-label">Roster Conflicts</div>
+      <div class="kpi-number">{{ matrix.conflict_count }}</div>
+      <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Overlapping duty sentry</div>
+    </div>
+  </div>
+
+  <!-- Capacity Utilization Sentry Bar -->
+  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/80 p-4 shadow-sm">
+    <div class="flex items-center justify-between text-xs mb-2">
+      <div class="flex items-center gap-2 font-semibold text-slate-800 dark:text-slate-200">
+        <i class="fa-solid fa-chart-line text-indigo-500"></i>
+        <span>Fleet Capacity Utilization &amp; Dead Mileage Guard</span>
+      </div>
+      <div class="text-slate-500 dark:text-slate-400">
+        <span class="font-bold text-slate-800 dark:text-slate-200">{{ matrix.total_pax_demand }}</span> Commuters Booked &middot;
+        <span class="font-bold text-slate-800 dark:text-slate-200">{{ matrix.total_seats_capacity }}</span> Assigned Seats
+      </div>
+    </div>
+    <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+      <div class="bg-gradient-to-r from-emerald-500 to-indigo-600 h-3 rounded-full transition-all duration-500" style="width: {{ matrix.avg_occupancy }}%"></div>
+    </div>
+    <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5">
+      <span>0% Empty Run</span>
+      <span>Target Efficiency: 85% - 95%</span>
+      <span>100% Full Manifest</span>
+    </div>
+  </div>
+
+  <!-- Filters & Controls Bar -->
+  <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-xs">
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Contract Filter -->
+      <div class="flex items-center gap-1.5">
+        <span class="font-medium text-slate-600 dark:text-slate-300">Contract:</span>
+        <select onchange="applyFilter('contract_id', this.value)" class="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="">All Corporate Contracts</option>
+          {% for c in contracts %}
+          <option value="{{ c.id }}" {% if current_contract_id == c.id %}selected{% endif %}>{{ c.name|truncatechars:35 }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Direction Filter -->
+      <div class="flex items-center gap-1.5">
+        <span class="font-medium text-slate-600 dark:text-slate-300">Direction:</span>
+        <select onchange="applyFilter('direction', this.value)" class="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="">All Shifts</option>
+          <option value="inbound" {% if current_direction == 'inbound' %}selected{% endif %}>Login / Inbound</option>
+          <option value="outbound" {% if current_direction == 'outbound' %}selected{% endif %}>Logout / Outbound</option>
+        </select>
+      </div>
+
+      <!-- Depot Filter -->
+      <div class="flex items-center gap-1.5">
+        <span class="font-medium text-slate-600 dark:text-slate-300">Depot:</span>
+        <select onchange="applyFilter('depot', this.value)" class="py-1 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="">All Hubs &amp; Depots</option>
+          {% for code, label in depot_choices %}
+          <option value="{{ code }}" {% if current_depot == code %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="text-xs text-slate-500 dark:text-slate-400">
+      Showing <span class="font-bold text-slate-800 dark:text-slate-200">{{ matrix.shifts|length }}</span> of {{ matrix.total_shifts }} shifts
+    </div>
+  </div>
+
+  <!-- Shifts Planning Matrix Table -->
+  <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+            <th class="py-3 px-4">Shift &amp; Time</th>
+            <th class="py-3 px-4">Route &amp; Client</th>
+            <th class="py-3 px-4">Pax Demand &amp; Occupancy</th>
+            <th class="py-3 px-4">Assigned Vehicle</th>
+            <th class="py-3 px-4">Assigned Chauffeur</th>
+            <th class="py-3 px-4">Dispatch Clearance</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+          {% for s in matrix.shifts %}
+          <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition {% if s.conflicts %}bg-rose-50/30 dark:bg-rose-950/20{% elif s.is_locked %}bg-amber-50/20 dark:bg-amber-950/10{% endif %}">
+            <!-- Shift & Time -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-sm text-slate-900 dark:text-white">{{ s.timing }}</span>
+                {% if s.direction == 'inbound' or s.direction == 'login' %}
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300">
+                  LOGIN
+                </span>
+                {% else %}
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                  LOGOUT
+                </span>
+                {% endif %}
+              </div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                <span>{{ s.shift_name }}</span>
+                {% if s.is_night_shift %}
+                <span title="Night Shift (Female Security Escort Sentry)" class="text-purple-600 dark:text-purple-400 font-bold ml-1">
+                  <i class="fa-solid fa-shield-halved"></i> Escort
+                </span>
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- Route & Client -->
+            <td class="py-3.5 px-4 max-w-xs">
+              <div class="font-medium text-slate-800 dark:text-slate-200 truncate" title="{{ s.route_name }}">
+                {{ s.route_name }}
+              </div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                <span class="text-primary font-semibold">{{ s.customer_name }}</span>
+                <span>&middot;</span>
+                <span>{{ s.distance_km }} km</span>
+                <span>&middot;</span>
+                <button type="button" onclick="showWaypointsModal('{{ s.shift_id }}', '{{ s.route_name|escapejs }}', {{ s.stops|safe }})" class="text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-0.5">
+                  <i class="fa-solid fa-location-dot text-[10px]"></i>
+                  <span>{{ s.stops|length }} stops</span>
+                </button>
+              </div>
+            </td>
+
+            <!-- Pax Demand & Occupancy -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-800 dark:text-slate-200">{{ s.pax_demand }} Pax</span>
+                {% if s.assigned_vehicle %}
+                <span class="font-mono text-[11px] text-slate-500">{{ s.occupancy_pct }}% of {{ s.assigned_vehicle.seating_capacity }}s</span>
+                {% else %}
+                <span class="text-[11px] text-rose-500 font-semibold">No Vehicle</span>
+                {% endif %}
+              </div>
+              <div class="w-28 bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                <div class="h-1.5 rounded-full {% if s.occupancy_pct > 100 %}bg-rose-500{% elif s.occupancy_pct >= 75 %}bg-emerald-500{% elif s.occupancy_pct >= 40 %}bg-sky-500{% else %}bg-amber-500{% endif %}" style="width: {% if s.occupancy_pct > 100 %}100{% else %}{{ s.occupancy_pct }}{% endif %}%"></div>
+              </div>
+            </td>
+
+            <!-- Assigned Vehicle -->
+            <td class="py-3.5 px-4">
+              {% if s.assigned_vehicle %}
+              <div>
+                <a href="/fleet/vehicles/{{ s.assigned_vehicle.id }}/" class="font-mono font-bold text-slate-900 dark:text-white hover:text-primary transition flex items-center gap-1.5">
+                  <span>{{ s.assigned_vehicle.plate }}</span>
+                  <span class="px-1.5 py-0.2 rounded text-[10px] font-sans font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    {{ s.assigned_vehicle.seating_capacity }}S
+                  </span>
+                </a>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[160px]">
+                  {{ s.assigned_vehicle.model }} &middot; {{ s.assigned_vehicle.health_score }}%
+                </div>
+              </div>
+              {% else %}
+              <span class="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Unallocated</span>
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Assigned Chauffeur -->
+            <td class="py-3.5 px-4">
+              {% if s.assigned_driver %}
+              <div>
+                <div class="font-medium text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <i class="fa-solid fa-user-tie text-slate-400 text-[10px]"></i>
+                  <span>{{ s.assigned_driver.name }}</span>
+                </div>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+                  {{ s.assigned_driver.phone }}
+                </div>
+              </div>
+              {% else %}
+              <span class="text-rose-600 dark:text-rose-400 font-semibold flex items-center gap-1">
+                <i class="fa-solid fa-user-xmark"></i>
+                <span>No Chauffeur</span>
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Dispatch Clearance -->
+            <td class="py-3.5 px-4">
+              {% if s.conflicts %}
+              <div>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">
+                  <i class="fa-solid fa-circle-exclamation"></i> CONFLICT
+                </span>
+                <div class="text-[10px] text-rose-600 dark:text-rose-400 mt-0.5 max-w-xs font-medium">
+                  {{ s.conflicts.0 }}
+                </div>
+              </div>
+              {% elif s.is_locked %}
+              <div>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                  <i class="fa-solid fa-lock"></i> LOCKED
+                </span>
+                <div class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 max-w-xs font-medium truncate" title="{{ s.lock_reasons.0 }}">
+                  {{ s.lock_reasons.0 }}
+                </div>
+              </div>
+              {% elif s.assigned_vehicle and s.assigned_driver %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                <i class="fa-solid fa-circle-check"></i> CLEARED
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                PENDING
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="py-3.5 px-4 text-right">
+              <div class="inline-flex items-center gap-1.5">
+                {% if s.trip_log_id %}
+                <button onclick="openSwapModal('{{ s.trip_log_id }}', '{{ s.assigned_vehicle.id|default:'' }}', '{{ s.assigned_driver.id|default:'' }}', '{{ s.shift_name|escapejs }}')" class="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 rounded text-[11px] font-medium transition shadow-sm">
+                  <i class="fa-solid fa-repeat"></i> Swap
+                </button>
+                <a href="/driver/commute/{{ s.trip_log_id }}/navigation/" target="_blank" class="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 rounded text-[11px] font-medium transition shadow-sm" title="Open Chauffeur Navigation Cockpit">
+                  <i class="fa-solid fa-mobile-screen text-slate-400"></i>
+                </a>
+                {% else %}
+                <button onclick="openAutoOptimizeModal()" class="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 rounded text-[11px] font-semibold hover:bg-indigo-100 transition shadow-sm">
+                  Provision
+                </button>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="py-8 text-center text-slate-500 dark:text-slate-400">
+              <i class="fa-solid fa-route text-3xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
+              No operating shifts scheduled for the selected date and filters.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Auto-Optimize Modal -->
+<div id="autoOptimizeModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
+        <span>Dispatch Brain Auto-Planner</span>
+      </h3>
+      <button onclick="closeAutoOptimizeModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+      The Dispatch Brain will automatically analyze passenger demand for <span class="font-bold text-slate-900 dark:text-white font-mono">{{ target_date_str }}</span>, match right-sized commercial vehicles, bypass locked assets with ready standby fleet, assign rested chauffeurs, and generate secure OTP commuter boarding passes.
+    </p>
+
+    <div class="space-y-2.5 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" id="replaceLockedCheck" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+        <span>Auto-replace dispatch-locked / expired assets</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" id="generatePassesCheck" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+        <span>Generate 4-digit OTP digital boarding passes</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" id="nightEscortCheck" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+        <span>Enforce night female security escort guard logs</span>
+      </label>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2">
+      <button type="button" onclick="closeAutoOptimizeModal()" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+        Cancel
+      </button>
+      <button type="button" id="btnExecuteOptimize" onclick="executeAutoOptimize()" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow transition flex items-center gap-1.5">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Run Optimization Engine</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Swap Resource Modal -->
+<div id="swapResourceModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-repeat text-indigo-600"></i>
+        <span>Swap Vehicle or Chauffeur</span>
+      </h3>
+      <button onclick="closeSwapModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <input type="hidden" id="swapTripLogId" />
+
+    <div class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Replacement Standby Vehicle:</label>
+        <select id="swapVehicleSelect" class="w-full py-1.5 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="">Keep Existing Vehicle</option>
+          {% for v in standby_vehicles %}
+          <option value="{{ v.id }}">{{ v.registration_number }} &middot; {{ v.model }} ({{ v.seating_capacity }}S) &middot; {{ v.base_depot }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Available Chauffeur:</label>
+        <select id="swapDriverSelect" class="w-full py-1.5 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+          <option value="">Keep Existing Chauffeur</option>
+          {% for d in standby_drivers %}
+          <option value="{{ d.id }}">{{ d.name }} &middot; {{ d.phone }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Reason for Reassignment:</label>
+        <input type="text" id="swapReasonInput" placeholder="e.g. Primary vehicle maintenance hold / driver leave" class="w-full py-1.5 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200" />
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+      <button type="button" onclick="closeSwapModal()" class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition">
+        Cancel
+      </button>
+      <button type="button" onclick="executeSwap()" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow transition">
+        Confirm Reassignment
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Waypoints Modal -->
+<div id="waypointsModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <i class="fa-solid fa-map-pin text-indigo-600"></i>
+        <span>Route Stops &amp; Timetable</span>
+      </h3>
+      <button onclick="closeWaypointsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    <div id="waypointsRouteTitle" class="text-xs font-semibold text-slate-800 dark:text-slate-200 pb-1"></div>
+
+    <div id="waypointsList" class="space-y-2 max-h-72 overflow-y-auto text-xs"></div>
+
+    <div class="flex justify-end pt-2 border-t border-slate-200 dark:border-slate-700">
+      <button type="button" onclick="closeWaypointsModal()" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-semibold">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function applyFilter(key, val) {
+    const params = new URLSearchParams(window.location.search);
+    if (val) {
+      params.set(key, val);
+    } else {
+      params.delete(key);
+    }
+    window.location.search = params.toString();
+  }
+
+  function openAutoOptimizeModal() {
+    document.getElementById('autoOptimizeModal').classList.remove('hidden');
+  }
+
+  function closeAutoOptimizeModal() {
+    document.getElementById('autoOptimizeModal').classList.add('hidden');
+  }
+
+  async function executeAutoOptimize() {
+    const btn = document.getElementById('btnExecuteOptimize');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Optimizing...';
+
+    const replaceLocked = document.getElementById('replaceLockedCheck').checked;
+
+    try {
+      const resp = await fetch('{% url "fleet_commute:api_dispatch_brain_auto_optimize" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          date: '{{ target_date_str }}',
+          replace_locked: replaceLocked
+        })
+      });
+      const data = await resp.json();
+      if (data.status === 'success') {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        alert('Optimization error: ' + (data.message || 'Unknown error'));
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Run Optimization Engine';
+      }
+    } catch (err) {
+      alert('Network error while running optimization: ' + err);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Run Optimization Engine';
+    }
+  }
+
+  function openSwapModal(tripLogId, vehicleId, driverId, shiftName) {
+    document.getElementById('swapTripLogId').value = tripLogId;
+    if (vehicleId) document.getElementById('swapVehicleSelect').value = vehicleId;
+    if (driverId) document.getElementById('swapDriverSelect').value = driverId;
+    document.getElementById('swapResourceModal').classList.remove('hidden');
+  }
+
+  function closeSwapModal() {
+    document.getElementById('swapResourceModal').classList.add('hidden');
+  }
+
+  async function executeSwap() {
+    const tripLogId = document.getElementById('swapTripLogId').value;
+    const vehicleId = document.getElementById('swapVehicleSelect').value;
+    const driverId = document.getElementById('swapDriverSelect').value;
+    const reason = document.getElementById('swapReasonInput').value;
+
+    try {
+      const resp = await fetch('{% url "fleet_commute:api_dispatch_brain_swap" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          trip_log_id: tripLogId,
+          vehicle_id: vehicleId,
+          driver_id: driverId,
+          reason: reason
+        })
+      });
+      const data = await resp.json();
+      if (data.status === 'success') {
+        alert(data.message);
+        window.location.reload();
+      } else {
+        alert('Swap error: ' + (data.message || 'Failed to update resource'));
+      }
+    } catch (err) {
+      alert('Network error while updating resource: ' + err);
+    }
+  }
+
+  function showWaypointsModal(shiftId, routeName, stops) {
+    document.getElementById('waypointsRouteTitle').innerText = routeName;
+    const list = document.getElementById('waypointsList');
+    list.innerHTML = '';
+
+    if (!stops || stops.length === 0) {
+      list.innerHTML = '<div class="text-slate-400 py-3">No intermediate waypoints defined for this route.</div>';
+    } else {
+      stops.forEach((st, idx) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800';
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 font-bold flex items-center justify-center text-[10px]">
+              ${st.order || idx + 1}
+            </span>
+            <div>
+              <div class="font-semibold text-slate-800 dark:text-slate-200">${st.name}</div>
+              <div class="text-[10px] text-slate-400">${st.landmark || 'Standard pickup point'}</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-mono font-bold text-slate-900 dark:text-white">${st.expected_time}</div>
+            <div class="text-[10px] text-slate-400">+${st.offset_min} min &middot; ${st.pax} pax</div>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    document.getElementById('waypointsModal').classList.remove('hidden');
+  }
+
+  function closeWaypointsModal() {
+    document.getElementById('waypointsModal').classList.add('hidden');
+  }
+
+  async function broadcastToCockpits() {
+    if (!confirm('Broadcast scheduled trip sheets to driver mobile cockpits and commuter boarding passes for {{ target_date_str }}?')) {
+      return;
+    }
+    try {
+      const resp = await fetch('{% url "fleet_commute:api_dispatch_brain_broadcast" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+          date: '{{ target_date_str }}'
+        })
+      });
+      const data = await resp.json();
+      alert(data.message);
+    } catch (err) {
+      alert('Error broadcasting: ' + err);
+    }
+  }
+</script>
+{% endblock %}

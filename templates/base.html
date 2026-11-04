@@ -152,6 +152,12 @@
             <i class="fa-solid fa-chevron-right unfold-group-chevron"></i>
           </div>
           <div class="unfold-group-links">
+            <a class="unfold-nav-item {% if request.resolver_match.url_name == 'dispatch-planning-brain' or request.resolver_match.url_name == 'dispatch_brain_studio' %}is-active{% endif %}" href="{% url 'dispatch-planning-brain' %}">
+              <span class="flex items-center justify-between w-full">
+                <span>Dispatch Brain Planner</span>
+                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">AI</span>
+              </span>
+            </a>
             <a class="unfold-nav-item {% if request.resolver_match.url_name == 'dispatch-console' %}is-active{% endif %}" href="{% url 'dispatch-console' %}">
               <span>Dispatch Console</span>
             </a>
