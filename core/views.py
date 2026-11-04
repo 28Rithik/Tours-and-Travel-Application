@@ -724,12 +724,10 @@ def compute_vehicle_health(vehicle):
     # Open Snags & Defect Tickets
     from maintenance.models import DefectTicket
     open_defects = DefectTicket.objects.filter(vehicle=vehicle, status__in=['reported', 'open', 'in_progress'])
-    critical_snags = open_defects.filter(severity__in=['critical', 'high', 'major']).count()
-    if critical_snags > 0:
-        score -= min(50, 30 * critical_snags)
-        lock_reasons.append(f"{critical_snags} active high-severity mechanical defect(s)")
-    elif open_defects.exists():
-        score -= 10
+    defect_count = open_defects.count()
+    if defect_count > 0:
+        score -= min(50, 20 * defect_count)
+        lock_reasons.append(f"{defect_count} active defect snag(s) reported")
 
     score = max(0, min(100, score))
     is_cleared = (score >= 70) and (len(lock_reasons) == 0) and (vehicle.status != 'maintenance')
@@ -742,7 +740,7 @@ def compute_vehicle_health(vehicle):
         'tier': 'excellent' if score >= 90 else ('fair' if score >= 70 else 'critical'),
         'docs_status': docs_status,
         'pm_status': pm_status,
-        'open_defects_count': open_defects.count(),
+        'open_defects_count': defect_count,
     }
 
 
@@ -774,7 +772,7 @@ def vehicle_detail_360_view(request, vehicle_id):
     # Defect Snags & Repairs
     defects = DefectTicket.objects.filter(
         vehicle=vehicle
-    ).select_related('reported_by').order_by('-reported_date')[:8]
+    ).select_related('reported_by').order_by('-date_reported')[:8]
 
     # Inter-Depot Relocations
     transfers = InterDepotTransferLog.objects.filter(
