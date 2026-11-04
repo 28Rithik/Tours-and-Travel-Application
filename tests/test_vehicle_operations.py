@@ -122,7 +122,7 @@ class VehicleOperationsTests(TestCase):
         """Verify Fleet Allocation Studio categorizes fleet into verticals."""
         resp = self.client.get('/fleet/allocation/')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Fleet Allocation & Capacity Studio")
+        self.assertContains(resp, "Fleet Allocation &amp; Capacity Studio")
         self.assertContains(resp, "Corporate IT Shifts")
         self.assertContains(resp, "Depot Standby Float")
         self.assertContains(resp, "Workshop Hold")
@@ -131,7 +131,7 @@ class VehicleOperationsTests(TestCase):
         """Verify Fleet Health Sentry computes composite health score and lists clearance."""
         resp = self.client.get('/fleet/health/')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Fleet Health & Preventive Maintenance Sentry")
+        self.assertContains(resp, "Fleet Health &amp; Preventive Maintenance Sentry")
         self.assertContains(resp, "Cleared for Dispatch")
         self.assertContains(resp, "Dispatch Locked")
         self.assertContains(resp, "TN-38-BZ-7701")
@@ -140,7 +140,7 @@ class VehicleOperationsTests(TestCase):
         """Verify Odometer & Dead Mileage Ledger audits trip run distance."""
         resp = self.client.get('/fleet/odometer/')
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, "Odometer Verification & Dead Mileage Ledger")
+        self.assertContains(resp, "Odometer Verification &amp; Dead Mileage Ledger")
         self.assertContains(resp, "TN-38-BZ-7701")
         self.assertContains(resp, "44980 KM")
         self.assertContains(resp, "45000 KM")
